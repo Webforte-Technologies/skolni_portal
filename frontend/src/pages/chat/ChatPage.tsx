@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { assistantService } from '../../services/assistantService';
 import { streamingService } from '../../services/streamingService';
 import { conversationService } from '../../services/conversationService';
 import Header from '../../components/layout/Header';
@@ -12,8 +11,8 @@ import CreditBalance from '../../components/dashboard/CreditBalance';
 import WorksheetGeneratorModal from '../../components/chat/WorksheetGeneratorModal';
 import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
 import ChatSidebar from '../../components/chat/ChatSidebar';
-import { ChatMessage, Conversation, ConversationWithMessages } from '../../types';
-import { AlertCircle, ArrowLeft, Copy, Check, Plus, FileText } from 'lucide-react';
+import { ChatMessage, Conversation } from '../../types';
+import { AlertCircle, ArrowLeft, Plus, FileText } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
 const ChatPage: React.FC = () => {
@@ -29,7 +28,7 @@ const ChatPage: React.FC = () => {
   const [isGeneratingWorksheet, setIsGeneratingWorksheet] = useState(false);
   const [generatedWorksheet, setGeneratedWorksheet] = useState<any>(null);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar] = useState(true);
 
   // Load conversation history from localStorage
   useEffect(() => {
@@ -201,7 +200,7 @@ const ChatPage: React.FC = () => {
         onStart: () => {
           // Worksheet generation is starting
         },
-        onChunk: (content: string) => {
+        onChunk: (_content: string) => {
           // Optional: You could show progress here if needed
         },
         onEnd: (metadata) => {

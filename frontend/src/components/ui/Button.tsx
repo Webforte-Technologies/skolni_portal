@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { ButtonProps } from '../../types';
 import { cn } from '../../utils/cn';
 

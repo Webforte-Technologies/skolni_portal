@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import { InputFieldProps } from '../../types';
 import { cn } from '../../utils/cn';
 

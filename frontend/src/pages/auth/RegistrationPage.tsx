@@ -80,7 +80,6 @@ const RegistrationPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <InputField
                 label="Jméno"
-                name="first_name"
                 placeholder="Vaše jméno"
                 required
                 error={errors.first_name?.message}
@@ -89,7 +88,6 @@ const RegistrationPage: React.FC = () => {
 
               <InputField
                 label="Příjmení"
-                name="last_name"
                 placeholder="Vaše příjmení"
                 required
                 error={errors.last_name?.message}
@@ -99,7 +97,6 @@ const RegistrationPage: React.FC = () => {
 
             <InputField
               label="Email"
-              name="email"
               type="email"
               placeholder="vas@email.cz"
               required
@@ -109,7 +106,6 @@ const RegistrationPage: React.FC = () => {
 
             <InputField
               label="Heslo"
-              name="password"
               type="password"
               placeholder="Minimálně 8 znaků"
               required
@@ -119,7 +115,6 @@ const RegistrationPage: React.FC = () => {
 
             <InputField
               label="Potvrzení hesla"
-              name="confirmPassword"
               type="password"
               placeholder="Zopakujte heslo"
               required

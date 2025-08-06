@@ -68,7 +68,6 @@ const LoginPage: React.FC = () => {
 
             <InputField
               label="Email"
-              name="email"
               type="email"
               placeholder="vas@email.cz"
               required
@@ -78,7 +77,6 @@ const LoginPage: React.FC = () => {
 
             <InputField
               label="Heslo"
-              name="password"
               type="password"
               placeholder="Vaše heslo"
               required

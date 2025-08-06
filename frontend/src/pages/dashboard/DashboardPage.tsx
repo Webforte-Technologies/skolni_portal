@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from 'react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import { assistantService } from '../../services/assistantService';
 import { authService } from '../../services/authService';
 import { useToast } from '../../contexts/ToastContext';
 import Header from '../../components/layout/Header';
-import CreditBalance from '../../components/dashboard/CreditBalance';
 import AssistantCard from '../../components/dashboard/AssistantCard';
 import EditProfileModal from '../../components/dashboard/EditProfileModal';
 import { AIFeature } from '../../types';
@@ -20,7 +19,7 @@ const DashboardPage: React.FC = () => {
   const [isAddingCredits, setIsAddingCredits] = useState(false);
 
   // Fetch AI features
-  const { data: aiFeatures, isLoading: featuresLoading } = useQuery(
+  const { isLoading: featuresLoading } = useQuery(
     'aiFeatures',
     assistantService.getFeatures,
     {

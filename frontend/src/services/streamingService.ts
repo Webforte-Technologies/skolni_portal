@@ -1,4 +1,4 @@
-import { api } from './apiClient';
+
 
 export interface StreamingResponse {
   type: 'start' | 'chunk' | 'end' | 'error';
@@ -30,7 +30,7 @@ export const streamingService = {
     message: string, 
     sessionId: string | undefined,
     conversationId?: string,
-    callbacks: StreamingCallbacks
+    callbacks: StreamingCallbacks = {}
   ): Promise<void> => {
     const token = localStorage.getItem('authToken');
     if (!token) {

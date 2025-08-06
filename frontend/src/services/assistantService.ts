@@ -23,7 +23,7 @@ export const assistantService = {
     const response = await api.get<AIFeature[]>('/ai/features');
     
     if (response.data.success && response.data.data) {
-      return response.data.data.features;
+      return response.data.data;
     }
     
     throw new Error(response.data.error || 'Failed to get AI features');
@@ -42,7 +42,7 @@ export const assistantService = {
 
   // Generate worksheet
   generateWorksheet: async (topic: string): Promise<{ worksheet: any; credits_used: number; credits_balance: number }> => {
-    const response = await api.post('/ai/generate-worksheet', { topic });
+    const response = await api.post<{ worksheet: any; credits_used: number; credits_balance: number }>('/ai/generate-worksheet', { topic });
     
     if (response.data.success && response.data.data) {
       return response.data.data;

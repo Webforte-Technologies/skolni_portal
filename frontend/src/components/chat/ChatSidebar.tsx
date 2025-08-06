@@ -214,7 +214,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                           variant="secondary"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation();
+                            e?.stopPropagation();
                             setEditingId(conversation.id);
                             setEditTitle(conversation.title);
                           }}
@@ -226,7 +226,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                           variant="secondary"
                           size="sm"
                           onClick={(e) => {
-                            e.stopPropagation();
+                            e?.stopPropagation();
                             handleDeleteConversation(conversation.id);
                           }}
                           className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
