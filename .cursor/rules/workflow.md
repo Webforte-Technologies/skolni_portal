@@ -1,0 +1,90 @@
+---
+alwaysApply: true
+---
+
+# 🧩 Workflow – EduAI-Asistent (Cursor Rules)
+
+## 🎯 Main Directive
+
+You are a development agent working on the **EduAI-Asistent** project. Your duty is to follow the documentation in the `/docs` folder precisely and maintain absolute consistency in architecture, design, and implementation. Your goal is to deliver a high-quality, functional, and visually clean SaaS application.
+
+## 🔁 Basic Workflow
+
+### 🔍 Before you start any task:
+
+* Check the project's Trello board or the relevant plan (e.g., `PLAN_MVP.md`) to identify the current development phase and available tasks.
+* Understand the dependencies and prerequisites for the given task.
+* Verify that you correctly understand the task's scope and objective.
+
+---
+
+### 🛠️ Task Execution Protocol
+
+#### 1. Task Evaluation
+
+-   Read the specific task description.
+-   Determine its complexity:
+    -   **Simple Task:** Implement directly.
+    -   **Complex Task:** First, create a detailed TODO list in Markdown.
+
+#### 2. Technical Documentation
+
+-   If the task involves specific technologies (e.g., Node.js, React, PostgreSQL), open and study the relevant official documentation.
+-   Do not make any implementation decisions without understanding the technology involved.
+
+#### 3. UI/UX Execution
+
+-   Before working on any UI element, open `/docs/design_guidelines.md`.
+-   Strictly adhere to the defined design system (Light Mode), colors, typography, and responsiveness rules.
+
+#### 4. Adherence to Project Structure
+
+-   Open `/docs/project_structure.md` before:
+    -   Running any commands that alter the project structure.
+    -   Creating new files or folders.
+    -   Installing new packages or dependencies.
+    -   Making any modifications to the project's architecture.
+
+#### 5. Error Handling
+
+-   Check if the error is already described in `/docs/bug_tracking.md` (if it exists).
+-   If it's a new bug, add it to the documentation:
+    -   Description of the bug and steps to reproduce it.
+    -   The root cause (if known).
+    -   The proposed or implemented solution.
+
+#### 6. Task Completion
+
+A task can only be marked as complete if:
+
+-   Everything functions according to the requirements and is error-free.
+-   The code complies with the project structure and coding standards.
+-   The UI/UX is 100% consistent with the specifications in `design_guidelines.md`.
+-   There are no warnings or errors in the browser console or server logs.
+-   All items on the TODO list (if one was created) are checked off.
+
+---
+
+### 🧷 Priority of Reference Files
+
+1.  `/docs/bug_tracking.md` – Known bugs and their solutions.
+2.  The current task description (from Trello or a plan file).
+3.  `/docs/design_guidelines.md` – Rules for design, colors, and UI components.
+4.  `/docs/project_structure.md` – The approved project structure.
+5.  `/docs/context.aisc` – The main context rules for AI generation.
+
+---
+
+## 🧱 Critical Rules
+
+-   **NEVER** start writing code without reading the relevant documentation.
+-   **NEVER** mark a task as done without thoroughly testing its functionality.
+-   **NEVER** violate the defined folder structure or code conventions.
+-   **NEVER** make a design decision that conflicts with `design_guidelines.md`.
+-   **NEVER** fix a bug without first checking if it has been documented before.
+-   **ALWAYS** document newly discovered bugs and their solutions.
+-   **ALWAYS** follow the defined workflow.
+
+---
+
+🧠 **Note:** Every decision you make must support the overall project goal: to build a professional, consistent, and easily maintainable SaaS platform that **effectively helps teachers save time, simplifies lesson preparation, and provides a valuable, modern tool for schools.**
