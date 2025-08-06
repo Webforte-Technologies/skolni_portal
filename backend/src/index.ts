@@ -13,7 +13,7 @@ import aiRoutes from './routes/ai';
 import conversationRoutes from './routes/conversations';
 
 const app = express();
-const PORT = process.env['PORT'] || 3001;
+const PORT = parseInt(process.env['PORT'] || '3001', 10);
 
 // Security middleware
 app.use(helmet());
@@ -21,7 +21,7 @@ app.use(helmet());
 // CORS configuration - allow multiple frontend ports for development
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://localhost:5174', 
+  'http://localhost:5174',
   'http://localhost:5175',
   'http://localhost:3000',
   process.env['FRONTEND_URL']
@@ -101,8 +101,8 @@ app.use('*', (_req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
+// CORRECTED: Start server listening on 0.0.0.0 to be reachable in Docker
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 EduAI-Asistent Backend server running on port ${PORT}`);
   console.log(`📊 Health check available at http://localhost:${PORT}/api/health`);
   console.log(`🔐 Auth endpoints available at http://localhost:${PORT}/api/auth`);
@@ -111,4 +111,4 @@ app.listen(PORT, () => {
   console.log(`🔒 CORS enabled for origins: ${allowedOrigins.join(', ')}`);
 });
 
-export default app; 
+export default app;
