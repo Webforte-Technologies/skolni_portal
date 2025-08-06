@@ -1,115 +1,30 @@
-// Use SQLite for development (easier setup)
-import sqlite3 from 'sqlite3';
-import path from 'path';
+import { Pool, PoolConfig } from 'pg';
+import dotenv from 'dotenv';
 
-// Create database file in the project root
-const dbPath = path.join(__dirname, '../../..', 'eduai_asistent.db');
+dotenv.config();
 
-// Create database connection
-const db = new sqlite3.Database(dbPath);
-
-// Simple query function
-const query = async (sql: string, params: any[] = []): Promise<{ rows: any[] }> => {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({ rows: rows || [] });
-      }
-    });
-  });
+const dbConfig: PoolConfig = {
+  user: process.env['DB_USER'] || 'postgres',
+  host: process.env['DB_HOST'] || 'localhost',
+  database: process.env['DB_NAME'] || 'eduai_asistent',
+  password: process.env['DB_PASSWORD'] || '',
+  port: parseInt(process.env['DB_PORT'] || '5432'),
+  ssl: process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: false } : false,
+  max: 20, // Maximum number of clients in the pool
+  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
 };
 
-// Simple run function for INSERT/UPDATE/DELETE
-const run = async (sql: string, params: any[] = []): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function(err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({ lastID: this.lastID, changes: this.changes });
-      }
-    });
-  });
-};
+const pool = new Pool(dbConfig);
 
-// Create a PostgreSQL-like interface
-const pool = {
-  query: async (sql: string, params: any[] = []): Promise<{ rows: any[] }> => {
-    try {
-      // Convert PostgreSQL-style queries to SQLite
-      const sqliteSql = sql
-        .replace(/\$(\d+)/g, '?') // Replace $1, $2 with ?
-        .replace(/CURRENT_TIMESTAMP/g, "datetime('now')")
-        .replace(/uuid_generate_v4\(\)/g, "lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(6)))")
-        .replace(/TIMESTAMP WITH TIME ZONE/g, 'TEXT')
-        .replace(/DECIMAL\([^)]+\)/g, 'REAL');
+// Test the connection
+pool.on('connect', () => {
+  console.log('📊 Connected to PostgreSQL database');
+});
 
-      return await query(sqliteSql, params);
-    } catch (error) {
-      console.error('SQLite query error:', error);
-      throw error;
-    }
-  },
-  
-  connect: async () => {
-    return {
-      query: async (sql: string, params: any[] = []) => {
-        const sqliteSql = sql
-          .replace(/\$(\d+)/g, '?')
-          .replace(/CURRENT_TIMESTAMP/g, "datetime('now')");
-        return await run(sqliteSql, params);
-      },
-      release: () => {}
-    };
-  }
-};
-
-// Initialize database tables
-const initDatabase = async () => {
-  try {
-    console.log('🗄️  Initializing SQLite database...');
-    
-    // Create tables
-    await run(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        email TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        first_name TEXT NOT NULL,
-        last_name TEXT NOT NULL,
-        role TEXT NOT NULL DEFAULT 'teacher',
-        school_id TEXT,
-        credits_balance INTEGER NOT NULL DEFAULT 0,
-        is_active INTEGER NOT NULL DEFAULT 1,
-        email_verified INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT DEFAULT datetime('now'),
-        updated_at TEXT DEFAULT datetime('now')
-      )
-    `);
-
-    await run(`
-      CREATE TABLE IF NOT EXISTS credit_transactions (
-        id TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        transaction_type TEXT NOT NULL,
-        amount INTEGER NOT NULL,
-        balance_before INTEGER NOT NULL,
-        balance_after INTEGER NOT NULL,
-        description TEXT,
-        related_subscription_id TEXT,
-        created_at TEXT DEFAULT datetime('now')
-      )
-    `);
-
-    console.log('📊 SQLite database initialized successfully');
-  } catch (error) {
-    console.error('❌ Database initialization error:', error);
-  }
-};
-
-// Initialize database on import
-initDatabase();
+pool.on('error', (err) => {
+  console.error('❌ Unexpected error on idle client', err);
+  process.exit(-1);
+});
 
 export default pool; 

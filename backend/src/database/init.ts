@@ -70,8 +70,8 @@ async function initializeDatabase() {
     console.error('❌ Database initialization failed:', error);
     throw error;
   } finally {
-    // SQLite doesn't need explicit connection closing
-    console.log('📊 Database connection closed');
+    await pool.end();
+    console.log('📊 PostgreSQL connection closed');
   }
 }
 

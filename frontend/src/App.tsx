@@ -1,25 +1,57 @@
-import React from 'react'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { AuthProvider } from './contexts/AuthContext';
+import PrivateRoute from './components/auth/PrivateRoute';
+import LoginPage from './pages/auth/LoginPage';
+import RegistrationPage from './pages/auth/RegistrationPage';
+import DashboardPage from './pages/dashboard/DashboardPage';
+import ChatPage from './pages/chat/ChatPage';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            EduAI-Asistent
-          </h1>
-          <p className="text-lg text-gray-600">
-            AI-powered tools for Czech teachers
-          </p>
-          <div className="mt-8 p-6 bg-white rounded-lg shadow-md">
-            <p className="text-gray-700">
-              Frontend setup is working correctly! 🎉
-            </p>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50 font-sans">
+            <Routes>
+              {/* Public routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegistrationPage />} />
+              
+              {/* Protected routes */}
+              <Route path="/dashboard" element={
+                <PrivateRoute>
+                  <DashboardPage />
+                </PrivateRoute>
+              } />
+              <Route path="/chat" element={
+                <PrivateRoute>
+                  <ChatPage />
+                </PrivateRoute>
+              } />
+              
+              {/* Redirect root to dashboard if authenticated, otherwise to login */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              
+              {/* Catch all route */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
           </div>
-        </div>
-      </div>
-    </div>
-  )
+        </Router>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
 }
 
-export default App 
+export default App; 
