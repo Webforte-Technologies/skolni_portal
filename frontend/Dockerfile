@@ -26,6 +26,9 @@ RUN npm run build
 FROM nginx:stable-alpine AS runner
 WORKDIR /usr/share/nginx/html
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 # Remove default Nginx content
 RUN rm -rf ./*
 
@@ -35,12 +38,15 @@ COPY --from=builder /app/dist .
 # Copy Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Validate nginx configuration
+RUN nginx -t
+
 # Expose Nginx port
 EXPOSE 80
 
-# FIXED Health check to ping the root URL, which will serve index.html
+# Health check to ping the health endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost/ || exit 1
+  CMD curl -f http://localhost/health || exit 1
 
 # Start Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]
