@@ -1,0 +1,61 @@
+{
+  "name": "eduai-asistent-backend",
+  "version": "1.0.0",
+  "description": "Backend API for EduAI-Asistent platform",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "db:init": "ts-node src/database/init.ts",
+    "db:reset": "ts-node src/database/init.ts"
+  },
+  "keywords": [
+    "education",
+    "ai",
+    "assistant",
+    "teachers",
+    "czech"
+  ],
+  "author": "EduAI-Asistent Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "joi": "^17.11.0",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5",
+    "winston": "^3.11.0",
+    "pg": "^8.11.3",
+    "express-validator": "^7.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2",
+    "ts-node": "^10.9.1",
+    "nodemon": "^3.0.1",
+    "@types/node": "^20.8.0",
+    "@types/express": "^4.17.20",
+    "@types/cors": "^2.8.15",
+    "@types/bcryptjs": "^2.4.5",
+    "@types/jsonwebtoken": "^9.0.4",
+    "@types/jest": "^29.5.6",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "supertest": "^6.3.3",
+    "@types/supertest": "^2.0.15",
+    "eslint": "^8.51.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "@types/express-validator": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+} 

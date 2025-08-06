@@ -1,0 +1,41 @@
+{
+  "name": "eduai-asistent",
+  "version": "1.0.0",
+  "description": "EduAI-Asistent - AI-powered tools for Czech teachers",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "build:backend": "npm run build --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
+    "test": "npm run test --prefix backend",
+    "type-check": "npm run type-check --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "education",
+    "ai",
+    "assistant",
+    "teachers",
+    "czech",
+    "react",
+    "nodejs",
+    "typescript"
+  ],
+  "author": "EduAI-Asistent Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+} 
