@@ -8,10 +8,24 @@ const getApiUrl = () => {
     console.log('Using runtime config API URL:', window.APP_CONFIG.API_URL);
     return window.APP_CONFIG.API_URL;
   }
-  // Fall back to environment variables (for development)
-  const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-  console.log('Using environment variable API URL:', envUrl);
-  return envUrl;
+  
+  // Try environment variable
+  if (import.meta.env.VITE_API_URL) {
+    console.log('Using environment variable API URL:', import.meta.env.VITE_API_URL);
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Production fallback - using actual backend URL
+  if (window.location.hostname !== 'localhost') {
+    const productionBackendUrl = 'http://ak8gggwkc84o04o4wcwc4gc4.82.29.179.61.sslip.io/api';
+    console.log('Using production fallback API URL:', productionBackendUrl);
+    return productionBackendUrl;
+  }
+  
+  // Development fallback
+  const devUrl = 'http://localhost:3001/api';
+  console.log('Using development API URL:', devUrl);
+  return devUrl;
 };
 
 const getApiTimeout = () => {

@@ -5,6 +5,8 @@ export const debugConfig = () => {
   console.log('window.ENV_API_URL:', (window as any).ENV_API_URL);
   console.log('window.APP_CONFIG:', (window as any).APP_CONFIG);
   console.log('window.APP_CONFIG?.API_URL:', (window as any).APP_CONFIG?.API_URL);
+  console.log('Current location:', window.location.href);
+  console.log('Expected backend URL:', import.meta.env.VITE_API_URL || 'http://localhost:3001/api');
   console.log('=============================');
 };
 
