@@ -289,35 +289,80 @@ Tasks:
 🧠 Phase 6: Live AI Integration (Math Bot)
 
 Timeline: Week 12
-Status: 📝 To-Do
+Status: ✅ Completed
 Goal: Replace the mock AI endpoint with a live connection to the OpenAI API to power a functional "Math Assistant".
 
 Tasks:
 
     6.1 Backend Preparation:
 
-        [ ] Install the official OpenAI client library: npm install openai in the backend/ directory.
+        [x] Install the official OpenAI client library: npm install openai in the backend/ directory.
 
-        [ ] Add OPENAI_API_KEY to the .env.example and .env files in the backend/ directory.
+        [x] Add OPENAI_API_KEY to the .env.example and .env files in the backend/ directory.
 
     6.2 Update the AI Assistant API Endpoint:
 
-        [ ] Locate the mock API endpoint (e.g., POST /api/assistant/ask).
+        [x] Locate the mock API endpoint (e.g., POST /api/assistant/ask).
 
-        [ ] Remove the static, predefined response logic.
+        [x] Remove the static, predefined response logic.
 
     6.3 Implement OpenAI API Call:
 
-        [ ] Initialize the OpenAI client in your service file using the API key from the environment variables.
+        [x] Initialize the OpenAI client in your service file using the API key from the environment variables.
 
-        [ ] Create a specific "system prompt" to define the bot's behavior. For example: "You are a helpful and patient math tutor for Czech high school students. Explain concepts clearly, step-by-step. Always provide a practical example. Your language must be encouraging and you must always respond in Czech."
+        [x] Create a specific "system prompt" to define the bot's behavior. For example: "You are a helpful and patient math tutor for Czech high school students. Explain concepts clearly, step-by-step. Always provide a practical example. Your language must be encouraging and you must always respond in Czech."
 
-        [ ] Use the openai.chat.completions.create method to send the user's query (the "user" message) along with the system prompt to a GPT model (e.g., gpt-4o or gpt-3.5-turbo).
+        [x] Use the openai.chat.completions.create method to send the user's query (the "user" message) along with the system prompt to a GPT model (e.g., gpt-4o or gpt-3.5-turbo).
 
     6.4 Process and Return the Live Response:
 
-        [ ] Take the response content from the OpenAI API's choice object.
+        [x] Take the response content from the OpenAI API's choice object.
 
-        [ ] Return this live response to the frontend.
+        [x] Return this live response to the frontend.
 
-        [ ] Ensure the credit deduction logic remains in place and is executed only upon a successful API call.
+        [x] Ensure the credit deduction logic remains in place and is executed only upon a successful API call.
+
+        ✨ Phase 7: Advanced Features & System Polish
+
+Timeline: Week 14
+Status: 📝 To-DoGoal: Enhance the application with key user features, including file generation and multi-chat support, while also fixing the critical credit system logic.
+
+Tasks:
+
+    7.1 Critical Fix: Credit System Logic:
+
+        [ ] Backend: Locate the live AI assistant endpoint (POST /api/assistant/ask).
+
+        [ ] Backend: Implement a check at the beginning of the endpoint to ensure the user has > 0 credits. If not, return a "402 Payment Required" error.
+
+        [ ] Backend: After receiving a successful response from the OpenAI API, decrement the user's credit count in the PostgreSQL database.
+
+    7.2 "Add Credits" Demo Feature:
+
+        [ ] Frontend: On the DashboardPage.tsx, add a new button styled as a secondary action, e.g., "+ Add 100 Demo Credits".
+
+        [ ] Backend: Create a new secure endpoint, POST /api/users/me/add-credits.
+
+        [ ] Backend: This endpoint will find the logged-in user and increment their credit count by 100.
+
+        [ ] Frontend: Wire the button to call this new endpoint and then refresh the displayed credit balance upon success.
+
+    7.3 Multi-Chat Session Support (Foundation):
+
+        [ ] Frontend: In the ChatPage.tsx UI (e.g., in the header or a new sidebar placeholder), add a "＋ New Chat" button.
+
+        [ ] Frontend: When this button is clicked, the current conversation state (messages array) should be cleared to start a fresh conversation.
+
+        [ ] Frontend (Optional but Recommended): Modify the chat route to include a session ID (e.g., /chat/math/:sessionId). Clicking "New Chat" would navigate to a new UUID, laying the groundwork for saving conversations later.
+
+    7.4 File Generation Feature (Math Worksheets):
+
+        [ ] Frontend: In the ChatPage.tsx UI, add a "Generate Worksheet" button near the message input field.
+
+        [ ] Backend: Create a new endpoint, POST /api/assistant/generate-worksheet. This endpoint will also deduct credits.
+
+        [ ] Backend: This endpoint will construct a highly-specific prompt for the AI, for example: "You are a high school math teacher. Generate a 10-question math worksheet on the topic of 'Quadratic Equations'. Format the output as a clean JSON object with a 'title', 'instructions', and an array of 'questions', where each question has a 'problem' string and an 'answer' string."
+
+        [ ] Frontend: When the "Generate Worksheet" button is clicked, it could trigger a modal to ask for the topic. This topic is then sent to the new backend endpoint.
+
+        [ ] Frontend: Upon receiving the structured JSON response, create a new component (WorksheetDisplay.tsx) that renders the content in a clean, printable format.

@@ -3,8 +3,33 @@ import { body, validationResult } from 'express-validator';
 import { authenticateToken } from '../middleware/auth';
 import { CreditTransactionModel } from '../models/CreditTransaction';
 import { UserModel } from '../models/User';
+import OpenAI from 'openai';
 
 const router = Router();
+
+// Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env['OPENAI_API_KEY'],
+});
+
+// High-quality system prompt for Czech Math Assistant
+const SYSTEM_PROMPT = `Jsi trpělivý a přátelský matematický asistent pro české středoškolské studenty. Tvým úkolem je:
+
+1. **Vysvětlovat matematické koncepty jasně a krok za krokem** - Používej jednoduchý jazyk a logické kroky
+2. **Vždy odpovídej česky** - Používej českou matematickou terminologii
+3. **Buď povzbuzující a pozitivní** - Motivuj studenty k učení
+4. **Poskytuj praktické příklady** - Ukaž, jak se matematika používá v reálném světě
+5. **Pomáhej s různými matematickými tématy** - Od základní aritmetiky po pokročilou matematiku
+6. **Odpovídej na dotazy o všech předmětech** - Nejen matematika, ale i fyzika, chemie, biologie, dějepis, český jazyk
+
+Při odpovídání:
+- Používej "ty" formu pro přátelský tón
+- Vysvětluj postupně a logicky
+- Uváděj praktické příklady
+- Buď trpělivý a povzbuzující
+- Pokud nevíš odpověď, upřímně to řekni a nabídni pomoc s něčím jiným
+
+Pamatuj: Jsi tu, abys pomohl českým studentům a učitelům s učením!`;
 
 // Validation middleware
 const validateChatMessage = [
@@ -12,50 +37,7 @@ const validateChatMessage = [
   body('session_id').optional().isUUID().withMessage('Invalid session ID format')
 ];
 
-// Mock AI responses for different types of questions
-const mockResponses = [
-  {
-    question: "matematika",
-    response: "V matematice je důležité pochopit základní principy. Například pro sčítání: 2 + 3 = 5. Zkuste si to představit jako skupiny předmětů. Máte 2 jablka a přidáte 3 další, celkem máte 5 jablek."
-  },
-  {
-    question: "fyzika",
-    response: "Ve fyzice studujeme přírodní zákony. Newtonův zákon říká, že síla = hmotnost × zrychlení (F = m × a). Tento zákon pomáhá pochopit, jak se objekty pohybují."
-  },
-  {
-    question: "chemie",
-    response: "V chemii studujeme atomy a molekuly. Voda (H₂O) se skládá ze dvou atomů vodíku a jednoho atomu kyslíku. Tato struktura jí dává unikátní vlastnosti."
-  },
-  {
-    question: "biologie",
-    response: "V biologii studujeme živé organismy. Buňka je základní stavební jednotka života. Každá buňka obsahuje DNA, která nese genetické informace."
-  },
-  {
-    question: "dějepis",
-    response: "V dějepisu studujeme minulost lidstva. První světová válka (1914-1918) byla globálním konfliktem, který změnil mapu Evropy a vedl k významným společenským změnám."
-  },
-  {
-    question: "český jazyk",
-    response: "V českém jazyce máme různé slovní druhy: podstatná jména (dům), přídavná jména (velký), slovesa (běžet). Správné použití gramatiky je důležité pro jasné vyjadřování."
-  }
-];
-
-// Get a mock response based on the user's message
-function getMockResponse(userMessage: string): string {
-  const lowerMessage = userMessage.toLowerCase();
-  
-  // Check for specific subjects
-  for (const mock of mockResponses) {
-    if (lowerMessage.includes(mock.question)) {
-      return mock.response;
-    }
-  }
-  
-  // Default response for general questions
-  return `Děkuji za váš dotaz: "${userMessage}". Jako AI asistent pro učitele vám mohu pomoci s přípravou výukových materiálů, vysvětlením složitých témat nebo vytvořením cvičení pro vaše studenty. Jaký předmět vás zajímá?`;
-}
-
-// Send message to AI assistant (mock implementation)
+// Send message to AI assistant (live OpenAI implementation)
 router.post('/chat', authenticateToken, validateChatMessage, async (req: Request, res: Response) => {
   try {
     // Check for validation errors
@@ -99,15 +81,32 @@ router.post('/chat', authenticateToken, validateChatMessage, async (req: Request
       });
     }
 
-    // Deduct credits
+    // Call OpenAI API
+    const completion = await openai.chat.completions.create({
+      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: SYSTEM_PROMPT
+        },
+        {
+          role: 'user',
+          content: message
+        }
+      ],
+      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2000'),
+      temperature: 0.7,
+    });
+
+    // Extract the AI response
+    const aiResponse = completion.choices[0]?.message?.content || 'Omlouvám se, ale momentálně nemohu zpracovat váš dotaz. Zkuste to prosím znovu.';
+
+    // Deduct credits only after successful API call
     await CreditTransactionModel.deductCredits(
       userId, 
       creditsRequired, 
       `AI chat message: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`
     );
-
-    // Generate mock AI response
-    const aiResponse = getMockResponse(message);
 
     // Get updated user balance
     const updatedUser = await UserModel.findById(userId);
@@ -125,6 +124,16 @@ router.post('/chat', authenticateToken, validateChatMessage, async (req: Request
 
   } catch (error) {
     console.error('AI chat error:', error);
+    
+    // Handle OpenAI API errors specifically
+    if (error instanceof OpenAI.APIError) {
+      return res.status(500).json({
+        success: false,
+        error: 'OpenAI API error',
+        details: error.message
+      });
+    }
+    
     return res.status(500).json({
       success: false,
       error: 'Failed to process AI request'
