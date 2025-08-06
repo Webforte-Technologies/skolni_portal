@@ -7,7 +7,6 @@ import { useToast } from '../../contexts/ToastContext';
 import Header from '../../components/layout/Header';
 import AssistantCard from '../../components/dashboard/AssistantCard';
 import EditProfileModal from '../../components/dashboard/EditProfileModal';
-import { AIFeature } from '../../types';
 import { Loader2, User, Calendar, School, Sparkles, Edit, Plus } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
