@@ -138,6 +138,21 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🤖 AI endpoints available at http://localhost:${PORT}/api/ai`);
   console.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
   console.log(`🔒 CORS enabled for origins: ${allowedOrigins.join(', ')}`);
+  console.log(`🗄️ Database config: ${process.env['DB_HOST']}:${process.env['DB_PORT']}/${process.env['DB_NAME']}`);
+}).on('error', (error) => {
+  console.error('❌ Server failed to start:', error);
+  process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });
 
 export default app;
