@@ -14,20 +14,17 @@ import Button from '../../components/ui/Button';
 const DashboardPage: React.FC = () => {
   const { user, updateUser } = useAuth();
   const { showToast } = useToast();
-  const [features, setFeatures] = useState<AIFeature[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddingCredits, setIsAddingCredits] = useState(false);
 
   // Fetch AI features
-  const { isLoading: featuresLoading } = useQuery(
+  const { data: features = [], isLoading: featuresLoading, error: featuresError } = useQuery(
     'aiFeatures',
     assistantService.getFeatures,
     {
-      onSuccess: (data) => {
-        setFeatures(data);
-      },
       onError: (error) => {
         console.error('Failed to load AI features:', error);
+        showToast({ type: 'error', message: 'Nepodařilo se načíst AI asistenty.' });
       },
     }
   );
@@ -80,6 +77,20 @@ const DashboardPage: React.FC = () => {
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                   <span className="ml-2 text-gray-600">Načítání asistentů...</span>
+                </div>
+              ) : featuresError ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 mb-4">Nepodařilo se načíst AI asistenty</p>
+                  <Button
+                    variant="secondary"
+                    onClick={() => window.location.reload()}
+                  >
+                    Zkusit znovu
+                  </Button>
+                </div>
+              ) : features.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">Žádní AI asistenti nejsou momentálně dostupní</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -261,52 +261,50 @@ router.get('/features', authenticateToken, async (_req: Request, res: Response) 
   try {
     return res.status(200).json({
       success: true,
-      data: {
-        features: [
-          {
-            id: 'math_assistant',
-            name: 'Matematický Asistent',
-            description: 'Pomáhá s matematickými úlohami a vysvětluje matematické koncepty',
-            credits_per_use: 1,
-            available: true
-          },
-          {
-            id: 'physics_assistant',
-            name: 'Fyzikální Asistent',
-            description: 'Vysvětluje fyzikální zákony a pomáhá s fyzikálními úlohami',
-            credits_per_use: 1,
-            available: true
-          },
-          {
-            id: 'chemistry_assistant',
-            name: 'Chemický Asistent',
-            description: 'Pomáhá s chemickými výpočty a vysvětluje chemické procesy',
-            credits_per_use: 1,
-            available: true
-          },
-          {
-            id: 'biology_assistant',
-            name: 'Biologický Asistent',
-            description: 'Vysvětluje biologické procesy a pomáhá s biologickými tématy',
-            credits_per_use: 1,
-            available: true
-          },
-          {
-            id: 'history_assistant',
-            name: 'Historický Asistent',
-            description: 'Pomáhá s historickými fakty a vysvětluje historické události',
-            credits_per_use: 1,
-            available: true
-          },
-          {
-            id: 'language_assistant',
-            name: 'Jazykový Asistent',
-            description: 'Pomáhá s gramatikou a jazykovými pravidly',
-            credits_per_use: 1,
-            available: true
-          }
-        ]
-      },
+      data: [
+        {
+          id: 'math_assistant',
+          name: 'Matematický Asistent',
+          description: 'Pomáhá s matematickými úlohami a vysvětluje matematické koncepty',
+          credits_per_use: 1,
+          available: true
+        },
+        {
+          id: 'physics_assistant',
+          name: 'Fyzikální Asistent',
+          description: 'Vysvětluje fyzikální zákony a pomáhá s fyzikálními úlohami',
+          credits_per_use: 1,
+          available: true
+        },
+        {
+          id: 'chemistry_assistant',
+          name: 'Chemický Asistent',
+          description: 'Pomáhá s chemickými výpočty a vysvětluje chemické procesy',
+          credits_per_use: 1,
+          available: true
+        },
+        {
+          id: 'biology_assistant',
+          name: 'Biologický Asistent',
+          description: 'Vysvětluje biologické procesy a pomáhá s biologickými tématy',
+          credits_per_use: 1,
+          available: true
+        },
+        {
+          id: 'history_assistant',
+          name: 'Historický Asistent',
+          description: 'Pomáhá s historickými fakty a vysvětluje historické události',
+          credits_per_use: 1,
+          available: true
+        },
+        {
+          id: 'language_assistant',
+          name: 'Jazykový Asistent',
+          description: 'Pomáhá s gramatikou a jazykovými pravidly',
+          credits_per_use: 1,
+          available: true
+        }
+      ],
       message: 'AI features retrieved successfully'
     });
 
