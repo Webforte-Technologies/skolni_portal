@@ -100,15 +100,20 @@ export class CreditTransactionModel {
       await UserModel.updateCredits(userId, newBalance);
       
       // Create transaction record
-      const transaction = await this.create({
+      const transactionData: Omit<CreditTransaction, 'id' | 'created_at'> = {
         user_id: userId,
         transaction_type: 'purchase',
         amount: amount,
         balance_before: user.credits_balance,
         balance_after: newBalance,
-        description: description || 'Credit purchase',
-        related_subscription_id: subscriptionId
-      });
+        description: description || 'Credit purchase'
+      };
+      
+      if (subscriptionId) {
+        transactionData.related_subscription_id = subscriptionId;
+      }
+      
+      const transaction = await this.create(transactionData);
       
       await client.query('COMMIT');
       return transaction;

@@ -28,9 +28,9 @@ export const generateToken = (user: User): string => {
     role: user.role
   };
 
-  return jwt.sign(payload, process.env['JWT_SECRET'] || 'fallback-secret', {
-    expiresIn: process.env['JWT_EXPIRES_IN'] || '7d'
-  });
+  const secret = process.env['JWT_SECRET'] || 'fallback-secret';
+
+  return jwt.sign(payload, secret, { expiresIn: '7d' });
 };
 
 // Verify JWT token middleware
@@ -47,7 +47,8 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       return;
     }
 
-    const decoded = jwt.verify(token, process.env['JWT_SECRET'] || 'fallback-secret') as JWTPayload;
+    const secret = process.env['JWT_SECRET'] || 'fallback-secret';
+    const decoded = jwt.verify(token, secret) as JWTPayload;
     
     // Get user from database
     const user = await UserModel.findById(decoded.userId);
@@ -108,7 +109,7 @@ export const requireRole = (roles: string[]) => {
 };
 
 // Optional authentication middleware (doesn't fail if no token)
-export const optionalAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const optionalAuth = async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
@@ -118,7 +119,8 @@ export const optionalAuth = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    const decoded = jwt.verify(token, process.env['JWT_SECRET'] || 'fallback-secret') as JWTPayload;
+    const secret = process.env['JWT_SECRET'] || 'fallback-secret';
+    const decoded = jwt.verify(token, secret) as JWTPayload;
     
     const user = await UserModel.findById(decoded.userId);
     if (user && user.is_active) {

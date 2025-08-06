@@ -163,22 +163,67 @@ Tasks:
 
         This endpoint will still deduct credits to allow for testing the full user flow.
 
-🎨 Phase 3: Frontend Development & UI
+Jasně, pojďme si Fázi 3 rozepsat do mnohem detailnějších a konkrétních kroků. Tímto způsobem bude mít kdokoliv, kdo na tom bude pracovat, naprosto jasný a proveditelný plán.
+
+Zde je nová, rozšířená verze Fáze 3.
+
+🎨 Phase 3: Frontend Development & UI (Detailed Breakdown)
 
 Timeline: Weeks 5-8
 Status: 📝 To-Do
-Goal: Create the complete user interface, connected to the backend with the mocked AI.
+Goal: Create the complete user interface, connected to the backend with the mocked AI. This includes building all necessary components, managing application state, and ensuring a seamless user experience from login to using the chat.
 
 Tasks:
 
-    [ ] 3.1 Build Authentication Pages: Develop components for Login and Registration.
+3.1: Základní Nastavení Frontendu a Routing
 
-    [ ] 3.2 Develop the Main Dashboard: Create the central hub for users, showing their credit balance.
+    [ ] 3.1.1 Instalace react-router-dom: Nastavení základního systému pro navigaci mezi stránkami.
 
-    [ ] 3.3 Create the AI Chat Component: Build the interactive chat interface.
+    [ ] 3.1.2 Vytvoření Struktury Stránek: Vytvoření souborů pro hlavní pohledy aplikace: LoginPage.tsx, RegistrationPage.tsx, DashboardPage.tsx, ChatPage.tsx.
 
-    [ ] 3.4 Integrate Frontend with Backend API: Connect all components to the backend, including calling the mock AI endpoint and displaying its static response.
+    [ ] 3.1.3 Implementace Hlavního Routeru: V App.tsx nebo podobném souboru nakonfigurovat cesty pro jednotlivé stránky.
 
+3.2: Autentizace a Správa Uživatelů
+
+    [ ] 3.2.1 Vytvoření Formulářových Komponent:
+
+        Vytvořit znovupoužitelnou komponentu InputField.tsx pro textová pole.
+
+        Vytvořit komponentu AuthForm.tsx, která bude obsahovat logiku pro formuláře registrace a přihlášení.
+
+    [ ] 3.2.2 Vytvoření AuthContext: Implementovat React Context pro globální správu stavu přihlášení. Bude uchovávat JWT token a informace o uživateli.
+
+    [ ] 3.2.3 Implementace PrivateRoute: Vytvořit komponentu, která obalí chráněné stránky (jako Dashboard) a automaticky přesměruje nepřihlášené uživatele na /login.
+
+    [ ] 3.2.4 Propojení s API: Vytvořit authService.ts s funkcemi login() a register(), které budou volat backendové API, ukládat JWT token do localStorage a aktualizovat AuthContext.
+
+3.3: Vývoj Hlavního Dashboardu
+
+    [ ] 3.3.1 Vytvoření Komponenty Header.tsx: Vytvořit hlavičku, která se bude zobrazovat přihlášeným uživatelům. Bude obsahovat jméno uživatele a tlačítko "Odhlásit se".
+
+    [ ] 3.3.2 Vytvoření Komponenty CreditBalance.tsx: Malá komponenta, která zobrazí aktuální počet kreditů uživatele. Data získá voláním API (přes userService.ts).
+
+    [ ] 3.3.3 Vytvoření Komponenty AssistantCard.tsx: Vizuální prvek (karta), který bude sloužit jako odkaz pro přechod na stránku s AI asistentem (např. "Spustit Matematického asistenta").
+
+    [ ] 3.3.4 Sestavení DashboardPage.tsx: Sestavit finální stránku dashboardu z výše uvedených komponent.
+
+3.4: Vývoj Chatovacího Rozhraní
+
+    [ ] 3.4.1 Vytvoření Komponenty MessageInput.tsx: Formulář ve spodní části stránky s textovým polem a tlačítkem "Odeslat".
+
+    [ ] 3.4.2 Vytvoření Komponenty Message.tsx: Komponenta pro zobrazení jedné zprávy (chatovací bubliny). Měla by mít různé styly pro zprávy od uživatele a od bota.
+
+    [ ] 3.4.3 Vytvoření Komponenty ChatWindow.tsx: Hlavní okno, které bude obsahovat seznam všech zpráv. Bude spravovat stav konverzace (pole zpráv) pomocí useState.
+
+    [ ] 3.4.4 Sestavení ChatPage.tsx: Složit celou chatovací stránku z komponent ChatWindow a MessageInput.
+
+3.5: Finální Integrace s API
+
+    [ ] 3.5.1 Vytvoření apiClient.ts: Centrální soubor pro konfiguraci axios (nebo fetch). Nastavit, aby se ke každému autorizovanému požadavku automaticky přidal JWT token do hlavičky.
+
+    [ ] 3.5.2 Propojení Chatu s Mock API: Po odeslání zprávy z MessageInput.tsx zavolat funkci askAssistant(prompt) z assistantService.ts, která odešle dotaz na mockovaný backendový endpoint.
+
+    [ ] 3.5.3 Zpracování Odpovědi: Po obdržení statické odpovědi z backendu ji přidat do stavu konverzace v ChatWindow.tsx jako zprávu od bota. Implementovat "loading" stav, zatímco se čeká na odpověď.
 ✨ Phase 4: Foundation Testing & Polish
 
 Timeline: Week 9

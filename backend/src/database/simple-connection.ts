@@ -1,4 +1,3 @@
-// Use SQLite for development (easier setup)
 import sqlite3 from 'sqlite3';
 import path from 'path';
 
@@ -32,38 +31,6 @@ const run = async (sql: string, params: any[] = []): Promise<any> => {
       }
     });
   });
-};
-
-// Create a PostgreSQL-like interface
-const pool = {
-  query: async (sql: string, params: any[] = []): Promise<{ rows: any[] }> => {
-    try {
-      // Convert PostgreSQL-style queries to SQLite
-      const sqliteSql = sql
-        .replace(/\$(\d+)/g, '?') // Replace $1, $2 with ?
-        .replace(/CURRENT_TIMESTAMP/g, "datetime('now')")
-        .replace(/uuid_generate_v4\(\)/g, "lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(2))) || '-' || lower(hex(randomblob(6)))")
-        .replace(/TIMESTAMP WITH TIME ZONE/g, 'TEXT')
-        .replace(/DECIMAL\([^)]+\)/g, 'REAL');
-
-      return await query(sqliteSql, params);
-    } catch (error) {
-      console.error('SQLite query error:', error);
-      throw error;
-    }
-  },
-  
-  connect: async () => {
-    return {
-      query: async (sql: string, params: any[] = []) => {
-        const sqliteSql = sql
-          .replace(/\$(\d+)/g, '?')
-          .replace(/CURRENT_TIMESTAMP/g, "datetime('now')");
-        return await run(sqliteSql, params);
-      },
-      release: () => {}
-    };
-  }
 };
 
 // Initialize database tables
@@ -112,4 +79,4 @@ const initDatabase = async () => {
 // Initialize database on import
 initDatabase();
 
-export default pool; 
+export { query, run }; 

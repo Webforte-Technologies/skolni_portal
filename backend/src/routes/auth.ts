@@ -44,13 +44,19 @@ router.post('/register', validateRegistration, async (req: Request, res: Respons
     }
 
     // Create new user
-    const user = await UserModel.create({
+    const userData: CreateUserRequest = {
       email,
       password,
       first_name,
-      last_name,
-      school_id
-    });
+      last_name
+    };
+    
+    // Only add school_id if it's provided
+    if (school_id) {
+      userData.school_id = school_id;
+    }
+    
+    const user = await UserModel.create(userData);
 
     // Generate JWT token
     const token = generateToken(user);
@@ -63,7 +69,7 @@ router.post('/register', validateRegistration, async (req: Request, res: Respons
       token
     };
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: response,
       message: 'User registered successfully'
@@ -71,7 +77,7 @@ router.post('/register', validateRegistration, async (req: Request, res: Respons
 
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Registration failed'
     });
@@ -130,7 +136,7 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
       token
     };
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: response,
       message: 'Login successful'
@@ -138,7 +144,7 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Login failed'
     });
@@ -158,7 +164,7 @@ router.get('/profile', authenticateToken, async (req: Request, res: Response) =>
     // Get user with school information
     const userWithSchool = await UserModel.findByIdWithSchool(req.user.id);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: userWithSchool,
       message: 'Profile retrieved successfully'
@@ -166,7 +172,7 @@ router.get('/profile', authenticateToken, async (req: Request, res: Response) =>
 
   } catch (error) {
     console.error('Profile retrieval error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to retrieve profile'
     });
@@ -203,7 +209,7 @@ router.put('/profile', authenticateToken, [
     // Remove password_hash from response
     const { password_hash, ...userWithoutPassword } = updatedUser;
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: userWithoutPassword,
       message: 'Profile updated successfully'
@@ -211,7 +217,7 @@ router.put('/profile', authenticateToken, [
 
   } catch (error) {
     console.error('Profile update error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to update profile'
     });
@@ -276,14 +282,14 @@ router.put('/change-password', authenticateToken, [
     
     await require('../database/connection').default.query(query, [newPasswordHash, req.user.id]);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Password changed successfully'
     });
 
   } catch (error) {
     console.error('Password change error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to change password'
     });

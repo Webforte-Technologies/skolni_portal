@@ -112,7 +112,7 @@ router.post('/chat', authenticateToken, validateChatMessage, async (req: Request
     // Get updated user balance
     const updatedUser = await UserModel.findById(userId);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: {
         response: aiResponse,
@@ -125,7 +125,7 @@ router.post('/chat', authenticateToken, validateChatMessage, async (req: Request
 
   } catch (error) {
     console.error('AI chat error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to process AI request'
     });
@@ -149,7 +149,7 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
     const totalCreditsPurchased = await CreditTransactionModel.getTotalCreditsPurchased(userId);
     const user = await UserModel.findById(userId);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: {
         total_messages: totalCreditsUsed,
@@ -162,7 +162,7 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('AI stats error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to retrieve AI usage statistics'
     });
@@ -170,9 +170,9 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Get available AI features (for future expansion)
-router.get('/features', authenticateToken, async (req: Request, res: Response) => {
+router.get('/features', authenticateToken, async (_req: Request, res: Response) => {
   try {
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: {
         features: [
@@ -225,7 +225,7 @@ router.get('/features', authenticateToken, async (req: Request, res: Response) =
 
   } catch (error) {
     console.error('AI features error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: 'Failed to retrieve AI features'
     });

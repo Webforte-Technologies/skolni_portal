@@ -70,7 +70,8 @@ async function initializeDatabase() {
     console.error('❌ Database initialization failed:', error);
     throw error;
   } finally {
-    await pool.end();
+    // SQLite doesn't need explicit connection closing
+    console.log('📊 Database connection closed');
   }
 }
 
