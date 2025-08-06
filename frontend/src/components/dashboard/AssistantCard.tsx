@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AIFeature } from '../../types';
 import Card from '../ui/Card';
@@ -22,12 +22,12 @@ const getAssistantIcon = (featureId: string) => {
   return iconMap[featureId] || <MessageSquare className="h-6 w-6 text-blue-600" />;
 };
 
-const AssistantCard: React.FC<AssistantCardProps> = ({ feature }) => {
+const AssistantCard: React.FC<AssistantCardProps> = React.memo(({ feature }) => {
   const navigate = useNavigate();
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     navigate('/chat');
-  };
+  }, [navigate]);
 
   return (
     <Card
@@ -66,6 +66,8 @@ const AssistantCard: React.FC<AssistantCardProps> = ({ feature }) => {
       </div>
     </Card>
   );
-};
+});
+
+AssistantCard.displayName = 'AssistantCard';
 
 export default AssistantCard; 

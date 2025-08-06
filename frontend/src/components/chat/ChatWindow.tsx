@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { ChatMessage } from '../../types';
 import Message from './Message';
 
@@ -8,16 +8,16 @@ interface ChatWindowProps {
   copiedMessageId?: string | null;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onCopyMessage, copiedMessageId }) => {
+const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMessage, copiedMessageId }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -52,6 +52,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onCopyMessage, copied
       )}
     </div>
   );
-};
+});
+
+ChatWindow.displayName = 'ChatWindow';
 
 export default ChatWindow; 

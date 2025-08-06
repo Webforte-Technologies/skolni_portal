@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ChatMessage } from '../../types';
 import { cn } from '../../utils/cn';
 import { User, Bot, Copy, Check } from 'lucide-react';
@@ -10,15 +10,15 @@ interface MessageProps {
   copiedMessageId?: string | null;
 }
 
-const Message: React.FC<MessageProps> = ({ message, onCopyMessage, copiedMessageId }) => {
+const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, copiedMessageId }) => {
   const isUser = message.isUser;
   const isCopied = copiedMessageId === message.id;
 
-  const handleCopy = () => {
+  const handleCopy = useCallback(() => {
     if (onCopyMessage) {
       onCopyMessage(message.id, message.content);
     }
-  };
+  }, [onCopyMessage, message.id, message.content]);
 
   return (
     <div className={cn(
@@ -80,6 +80,8 @@ const Message: React.FC<MessageProps> = ({ message, onCopyMessage, copiedMessage
       )}
     </div>
   );
-};
+});
+
+Message.displayName = 'Message';
 
 export default Message; 

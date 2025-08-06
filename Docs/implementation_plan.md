@@ -13,7 +13,7 @@ Goal of this part: To have a fully functional web application where users can re
 🎯 Phase 1: Project Foundation & Documentation
 
 Timeline: Week 1
-Status: 📝 To-Do
+Status: ✅ Completed
 Goal: Establish a solid project foundation, set up repositories, and define standards.
 
 Tasks:
@@ -170,136 +170,154 @@ Zde je nová, rozšířená verze Fáze 3.
 🎨 Phase 3: Frontend Development & UI (Detailed Breakdown)
 
 Timeline: Weeks 5-8
-Status: 📝 To-Do
+Status: ✅ Completed
 Goal: Create the complete user interface, connected to the backend with the mocked AI. This includes building all necessary components, managing application state, and ensuring a seamless user experience from login to using the chat.
 
 Tasks:
 
 3.1: Základní Nastavení Frontendu a Routing
 
-    [ ] 3.1.1 Instalace react-router-dom: Nastavení základního systému pro navigaci mezi stránkami.
+    [x] 3.1.1 Instalace react-router-dom: Nastavení základního systému pro navigaci mezi stránkami.
 
-    [ ] 3.1.2 Vytvoření Struktury Stránek: Vytvoření souborů pro hlavní pohledy aplikace: LoginPage.tsx, RegistrationPage.tsx, DashboardPage.tsx, ChatPage.tsx.
+    [x] 3.1.2 Vytvoření Struktury Stránek: Vytvoření souborů pro hlavní pohledy aplikace: LoginPage.tsx, RegistrationPage.tsx, DashboardPage.tsx, ChatPage.tsx.
 
-    [ ] 3.1.3 Implementace Hlavního Routeru: V App.tsx nebo podobném souboru nakonfigurovat cesty pro jednotlivé stránky.
+    [x] 3.1.3 Implementace Hlavního Routeru: V App.tsx nebo podobném souboru nakonfigurovat cesty pro jednotlivé stránky.
 
 3.2: Autentizace a Správa Uživatelů
 
-    [ ] 3.2.1 Vytvoření Formulářových Komponent:
+    [x] 3.2.1 Vytvoření Formulářových Komponent:
 
         Vytvořit znovupoužitelnou komponentu InputField.tsx pro textová pole.
 
         Vytvořit komponentu AuthForm.tsx, která bude obsahovat logiku pro formuláře registrace a přihlášení.
 
-    [ ] 3.2.2 Vytvoření AuthContext: Implementovat React Context pro globální správu stavu přihlášení. Bude uchovávat JWT token a informace o uživateli.
+    [x] 3.2.2 Vytvoření AuthContext: Implementovat React Context pro globální správu stavu přihlášení. Bude uchovávat JWT token a informace o uživateli.
 
-    [ ] 3.2.3 Implementace PrivateRoute: Vytvořit komponentu, která obalí chráněné stránky (jako Dashboard) a automaticky přesměruje nepřihlášené uživatele na /login.
+    [x] 3.2.3 Implementace PrivateRoute: Vytvořit komponentu, která obalí chráněné stránky (jako Dashboard) a automaticky přesměruje nepřihlášené uživatele na /login.
 
-    [ ] 3.2.4 Propojení s API: Vytvořit authService.ts s funkcemi login() a register(), které budou volat backendové API, ukládat JWT token do localStorage a aktualizovat AuthContext.
+    [x] 3.2.4 Propojení s API: Vytvořit authService.ts s funkcemi login() a register(), které budou volat backendové API, ukládat JWT token do localStorage a aktualizovat AuthContext.
 
 3.3: Vývoj Hlavního Dashboardu
 
-    [ ] 3.3.1 Vytvoření Komponenty Header.tsx: Vytvořit hlavičku, která se bude zobrazovat přihlášeným uživatelům. Bude obsahovat jméno uživatele a tlačítko "Odhlásit se".
+    [x] 3.3.1 Vytvoření Komponenty Header.tsx: Vytvořit hlavičku, která se bude zobrazovat přihlášeným uživatelům. Bude obsahovat jméno uživatele a tlačítko "Odhlásit se".
 
-    [ ] 3.3.2 Vytvoření Komponenty CreditBalance.tsx: Malá komponenta, která zobrazí aktuální počet kreditů uživatele. Data získá voláním API (přes userService.ts).
+    [x] 3.3.2 Vytvoření Komponenty CreditBalance.tsx: Malá komponenta, která zobrazí aktuální počet kreditů uživatele. Data získá voláním API (přes userService.ts).
 
-    [ ] 3.3.3 Vytvoření Komponenty AssistantCard.tsx: Vizuální prvek (karta), který bude sloužit jako odkaz pro přechod na stránku s AI asistentem (např. "Spustit Matematického asistenta").
+    [x] 3.3.3 Vytvoření Komponenty AssistantCard.tsx: Vizuální prvek (karta), který bude sloužit jako odkaz pro přechod na stránku s AI asistentem (např. "Spustit Matematického asistenta").
 
-    [ ] 3.3.4 Sestavení DashboardPage.tsx: Sestavit finální stránku dashboardu z výše uvedených komponent.
+    [x] 3.3.4 Sestavení DashboardPage.tsx: Sestavit finální stránku dashboardu z výše uvedených komponent.
 
 3.4: Vývoj Chatovacího Rozhraní
 
-    [ ] 3.4.1 Vytvoření Komponenty MessageInput.tsx: Formulář ve spodní části stránky s textovým polem a tlačítkem "Odeslat".
+    [x] 3.4.1 Vytvoření Komponenty MessageInput.tsx: Formulář ve spodní části stránky s textovým polem a tlačítkem "Odeslat".
 
-    [ ] 3.4.2 Vytvoření Komponenty Message.tsx: Komponenta pro zobrazení jedné zprávy (chatovací bubliny). Měla by mít různé styly pro zprávy od uživatele a od bota.
+    [x] 3.4.2 Vytvoření Komponenty Message.tsx: Komponenta pro zobrazení jedné zprávy (chatovací bubliny). Měla by mít různé styly pro zprávy od uživatele a od bota.
 
-    [ ] 3.4.3 Vytvoření Komponenty ChatWindow.tsx: Hlavní okno, které bude obsahovat seznam všech zpráv. Bude spravovat stav konverzace (pole zpráv) pomocí useState.
+    [x] 3.4.3 Vytvoření Komponenty ChatWindow.tsx: Hlavní okno, které bude obsahovat seznam všech zpráv. Bude spravovat stav konverzace (pole zpráv) pomocí useState.
 
-    [ ] 3.4.4 Sestavení ChatPage.tsx: Složit celou chatovací stránku z komponent ChatWindow a MessageInput.
+    [x] 3.4.4 Sestavení ChatPage.tsx: Složit celou chatovací stránku z komponent ChatWindow a MessageInput.
 
 3.5: Finální Integrace s API
 
-    [ ] 3.5.1 Vytvoření apiClient.ts: Centrální soubor pro konfiguraci axios (nebo fetch). Nastavit, aby se ke každému autorizovanému požadavku automaticky přidal JWT token do hlavičky.
+    [x] 3.5.1 Vytvoření apiClient.ts: Centrální soubor pro konfiguraci axios (nebo fetch). Nastavit, aby se ke každému autorizovanému požadavku automaticky přidal JWT token do hlavičky.
 
-    [ ] 3.5.2 Propojení Chatu s Mock API: Po odeslání zprávy z MessageInput.tsx zavolat funkci askAssistant(prompt) z assistantService.ts, která odešle dotaz na mockovaný backendový endpoint.
+    [x] 3.5.2 Propojení Chatu s Mock API: Po odeslání zprávy z MessageInput.tsx zavolat funkci askAssistant(prompt) z assistantService.ts, která odešle dotaz na mockovaný backendový endpoint.
 
-    [ ] 3.5.3 Zpracování Odpovědi: Po obdržení statické odpovědi z backendu ji přidat do stavu konverzace v ChatWindow.tsx jako zprávu od bota. Implementovat "loading" stav, zatímco se čeká na odpověď.
+    [x] 3.5.3 Zpracování Odpovědi: Po obdržení statické odpovědi z backendu ji přidat do stavu konverzace v ChatWindow.tsx jako zprávu od bota. Implementovat "loading" stav, zatímco se čeká na odpověď.
 ✨ Phase 4: UI/UX Redesign & Feature Polish
 
 Timeline: Week 10
-Status: 📝 To-Do
+Status: ✅ Completed
 Goal: Transform the functional MVP into a visually appealing and user-friendly application by adding key features and completely redesigning the main pages.
 
 Tasks:
 
     4.1 Dashboard Redesign:
 
-        [ ] Create a new, more modern layout (e.g., a two-column layout with main content on the left and a sidebar with info on the right).
+        [x] Create a new, more modern layout (e.g., a two-column layout with main content on the left and a sidebar with info on the right).
 
-        [ ] Make the credit display more prominent (e.g., a separate, visually distinct card).
+        [x] Make the credit display more prominent (e.g., a separate, visually distinct card).
 
-        [ ] Add icons for each assistant and improve hover effects on the cards.
+        [x] Add icons for each assistant and improve hover effects on the cards.
 
     4.2 User Account Management:
 
-        [ ] Backend: Create a secure PUT /api/users/me endpoint to update user data (name, password).
+        [x] Backend: Create a secure PUT /api/users/me endpoint to update user data (name, password).
 
-        [ ] Frontend: In the "Account Information" section, add an "Edit" button.
+        [x] Frontend: In the "Account Information" section, add an "Edit" button.
 
-        [ ] Frontend: Implement a modal window or a separate page with a form to edit the user's name and change their password.
+        [x] Frontend: Implement a modal window or a separate page with a form to edit the user's name and change their password.
 
     4.3 Chat Interface Enhancements:
 
-        [ ] Implement conversation history saving to localStorage so the chat is not lost on page refresh.
+        [x] Implement conversation history saving to localStorage so the chat is not lost on page refresh.
 
-        [ ] Add avatars (or initials) for the user and a bot icon to the chat bubbles.
+        [x] Add avatars (or initials) for the user and a bot icon to the chat bubbles.
 
-        [ ] Add a button to copy the AI's response to the clipboard.
+        [x] Add a button to copy the AI's response to the clipboard.
 
     4.4 General UX Improvements:
 
-        [ ] Implement loading states (spinners or skeleton screens) when fetching data from the API.
+        [x] Implement loading states (spinners or skeleton screens) when fetching data from the API.
 
-        [ ] Add a notification system ("toasts") to display success messages (e.g., "Your details have been saved successfully") or errors.
+        [x] Add a notification system ("toasts") to display success messages (e.g., "Your details have been saved successfully") or errors.
 
-        [ ] Add a confirmation modal on logout ("Are you sure you want to log out?").
+        [x] Add a confirmation modal on logout ("Are you sure you want to log out?").
 
 🧹 Phase 5: Code Optimization & Cleanup
 
 Timeline: Week 11
-Status: 📝 To-Do
+Status: ✅ Completed
 Goal: Improve the application's performance and maintainability by removing unused code and optimizing critical parts.
 
 Tasks:
 
-    [ ] 5.1 Dead Code Elimination: Use tools (e.g., ts-prune or IDE features) to identify and remove unused files, exports, variables, and functions.
+    [x] 5.1 Dead Code Elimination: Use tools (e.g., ts-prune or IDE features) to identify and remove unused files, exports, variables, and functions.
 
-    [ ] 5.2 NPM Package Audit: Review the package.json files and remove any dependencies that are no longer used in the project.
+    [x] 5.2 NPM Package Audit: Review the package.json files and remove any dependencies that are no longer used in the project.
 
-    [ ] 5.3 Frontend Optimization:
+    [x] 5.3 Frontend Optimization:
 
-        [ ] Review React components and apply React.memo where appropriate to prevent unnecessary re-renders.
+        [x] Review React components and apply React.memo where appropriate to prevent unnecessary re-renders.
 
-        [ ] Check the usage of useCallback and useMemo for performance optimization.
+        [x] Check the usage of useCallback and useMemo for performance optimization.
 
-    [ ] 5.4 Backend Optimization:
+    [x] 5.4 Backend Optimization:
 
-        [ ] Review database queries and ensure that key columns (e.g., foreign keys, user emails) have indexes for faster lookups.
+        [x] Review database queries and ensure that key columns (e.g., foreign keys, user emails) have indexes for faster lookups.
 
-🚀 Phase 6: Final Testing & Launch
+🧠 Phase 6: Live AI Integration (Math Bot)
 
 Timeline: Week 12
 Status: 📝 To-Do
-Goal: Thoroughly test the fully functional application and deploy it to a production environment.
+Goal: Replace the mock AI endpoint with a live connection to the OpenAI API to power a functional "Math Assistant".
 
 Tasks:
 
-    [ ] 6.1 Final End-to-End Testing (with AI): Test the complete functionality, including real responses from the AI.
+    6.1 Backend Preparation:
 
-    [ ] 6.2 Configure Production Environment: Set up the production database and final environment variables.
+        [ ] Install the official OpenAI client library: npm install openai in the backend/ directory.
 
-    [ ] 6.3 Deploy to Production: Deploy the final versions of the application to Vercel and Render.
+        [ ] Add OPENAI_API_KEY to the .env.example and .env files in the backend/ directory.
 
-    [ ] 6.4 Prepare for Pilot Users: Create welcome materials and invite the first users for testing.
+    6.2 Update the AI Assistant API Endpoint:
 
-    [ ] 6.5 Final Check & Launch: Perform a final smoke test on the production environment and officially begin the pilot program.
+        [ ] Locate the mock API endpoint (e.g., POST /api/assistant/ask).
+
+        [ ] Remove the static, predefined response logic.
+
+    6.3 Implement OpenAI API Call:
+
+        [ ] Initialize the OpenAI client in your service file using the API key from the environment variables.
+
+        [ ] Create a specific "system prompt" to define the bot's behavior. For example: "You are a helpful and patient math tutor for Czech high school students. Explain concepts clearly, step-by-step. Always provide a practical example. Your language must be encouraging and you must always respond in Czech."
+
+        [ ] Use the openai.chat.completions.create method to send the user's query (the "user" message) along with the system prompt to a GPT model (e.g., gpt-4o or gpt-3.5-turbo).
+
+    6.4 Process and Return the Live Response:
+
+        [ ] Take the response content from the OpenAI API's choice object.
+
+        [ ] Return this live response to the frontend.
+
+        [ ] Ensure the credit deduction logic remains in place and is executed only upon a successful API call.
