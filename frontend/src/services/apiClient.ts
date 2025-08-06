@@ -4,11 +4,14 @@ import { ApiResponse } from '../types';
 // Get API URL from runtime config or environment variables
 const getApiUrl = () => {
   // Try runtime config first (for production)
-  if (typeof window !== 'undefined' && window.APP_CONFIG?.API_URL) {
+  if (typeof window !== 'undefined' && window.APP_CONFIG?.API_URL && window.APP_CONFIG.API_URL !== '/api') {
+    console.log('Using runtime config API URL:', window.APP_CONFIG.API_URL);
     return window.APP_CONFIG.API_URL;
   }
   // Fall back to environment variables (for development)
-  return import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  console.log('Using environment variable API URL:', envUrl);
+  return envUrl;
 };
 
 const getApiTimeout = () => {
@@ -28,6 +31,9 @@ const apiClient: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Log the final API client configuration
+console.log('API Client configured with baseURL:', apiClient.defaults.baseURL);
 
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
