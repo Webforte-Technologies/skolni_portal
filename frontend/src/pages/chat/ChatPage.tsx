@@ -14,6 +14,7 @@ import ChatSidebar from '../../components/chat/ChatSidebar';
 import { ChatMessage, Conversation } from '../../types';
 import { AlertCircle, ArrowLeft, Plus, FileText } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import { generateUUID } from '../../utils/uuid';
 
 const ChatPage: React.FC = () => {
   const { user, updateUser } = useAuth();
@@ -45,7 +46,7 @@ const ChatPage: React.FC = () => {
       }
     } else {
       // Generate a new session ID for this chat session
-      const newSessionId = crypto.randomUUID();
+      const newSessionId = generateUUID();
       setSessionId(newSessionId);
       localStorage.setItem('chatSessionId', newSessionId);
     }
@@ -62,7 +63,7 @@ const ChatPage: React.FC = () => {
     if (!user) return;
 
     const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       content,
       isUser: true,
       timestamp: new Date().toISOString(),
@@ -74,7 +75,7 @@ const ChatPage: React.FC = () => {
     setError('');
 
     // Create a pending AI message
-    const aiMessageId = crypto.randomUUID();
+    const aiMessageId = generateUUID();
     const aiMessage: ChatMessage = {
       id: aiMessageId,
       content: '',
@@ -143,7 +144,7 @@ const ChatPage: React.FC = () => {
   const clearChatHistory = () => {
     setMessages([]);
     localStorage.removeItem('chatMessages');
-    const newSessionId = crypto.randomUUID();
+    const newSessionId = generateUUID();
     setSessionId(newSessionId);
     localStorage.setItem('chatSessionId', newSessionId);
   };
