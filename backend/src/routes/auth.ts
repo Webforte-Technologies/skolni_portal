@@ -35,6 +35,8 @@ router.post('/register', validateRegistration, async (req: Request, res: Respons
 
     const { email, password, first_name, last_name, school_id }: CreateUserRequest = req.body;
 
+    console.log('Registration attempt for email:', email);
+
     // Check if user already exists
     const existingUser = await UserModel.findByEmail(email);
     if (existingUser) {
@@ -57,7 +59,11 @@ router.post('/register', validateRegistration, async (req: Request, res: Respons
       userData.school_id = school_id;
     }
     
+    console.log('Creating user with data:', { ...userData, password: '[HIDDEN]' });
+    
     const user = await UserModel.create(userData);
+
+    console.log('User created successfully with ID:', user.id);
 
     // Generate JWT token
     const token = generateToken(user);
@@ -77,10 +83,15 @@ router.post('/register', validateRegistration, async (req: Request, res: Respons
     });
 
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Registration error details:', {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      name: (error as Error).name
+    });
     return res.status(500).json({
       success: false,
-      error: 'Registration failed'
+      error: 'Registration failed',
+      details: process.env['NODE_ENV'] === 'development' ? (error as Error).message : undefined
     });
   }
 });

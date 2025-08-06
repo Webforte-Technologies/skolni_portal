@@ -5,22 +5,37 @@ import bcrypt from 'bcryptjs';
 export class UserModel {
   // Create a new user
   static async create(userData: CreateUserRequest): Promise<User> {
-    const { email, password, first_name, last_name, school_id } = userData;
-    
-    // Hash the password
-    const saltRounds = 12;
-    const password_hash = await bcrypt.hash(password, saltRounds);
-    
-    const query = `
-      INSERT INTO users (email, password_hash, first_name, last_name, school_id)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *
-    `;
-    
-    const values = [email, password_hash, first_name, last_name, school_id];
-    const result = await pool.query(query, values);
-    
-    return result.rows[0];
+    try {
+      const { email, password, first_name, last_name, school_id } = userData;
+      
+      console.log('UserModel.create - Starting user creation for email:', email);
+      
+      // Hash the password
+      const saltRounds = 12;
+      const password_hash = await bcrypt.hash(password, saltRounds);
+      
+      const query = `
+        INSERT INTO users (email, password_hash, first_name, last_name, school_id)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `;
+      
+      const values = [email, password_hash, first_name, last_name, school_id];
+      console.log('UserModel.create - Executing query with values:', { email, first_name, last_name, school_id });
+      
+      const result = await pool.query(query, values);
+      
+      console.log('UserModel.create - User created successfully:', result.rows[0].id);
+      return result.rows[0];
+    } catch (error) {
+      console.error('UserModel.create - Database error:', {
+        message: (error as any).message,
+        code: (error as any).code,
+        detail: (error as any).detail,
+        hint: (error as any).hint
+      });
+      throw error;
+    }
   }
 
   // Find user by email

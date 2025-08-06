@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import pool from './database/connection';
 
 // Load environment variables
 dotenv.config();
@@ -68,13 +69,34 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/conversations', conversationRoutes);
 
 // Health check endpoint
-app.get('/api/health', (_req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    message: 'EduAI-Asistent Backend is running',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
+app.get('/api/health', async (_req, res) => {
+  try {
+    // Test database connection
+    const dbTest = await pool.query('SELECT NOW() as current_time');
+    
+    res.status(200).json({
+      status: 'OK',
+      message: 'EduAI-Asistent Backend is running',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      database: {
+        connected: true,
+        current_time: dbTest.rows[0].current_time
+      }
+    });
+  } catch (error: any) {
+    console.error('Health check failed:', error);
+    res.status(500).json({
+      status: 'ERROR',
+      message: 'Backend is running but database connection failed',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      database: {
+        connected: false,
+        error: error.message
+      }
+    });
+  }
 });
 
 // Root endpoint
