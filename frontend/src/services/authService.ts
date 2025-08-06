@@ -97,5 +97,18 @@ export const authService = {
     if (!response.data.success) {
       throw new Error(response.data.error || 'Failed to change password');
     }
+  },
+
+  // Add demo credits
+  addDemoCredits: async (): Promise<{ user: UserWithSchool; credits_added: number }> => {
+    const response = await api.post('/auth/me/add-credits');
+    
+    if (response.data.success && response.data.data) {
+      // Update stored user data with new credit balance
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      return response.data.data;
+    }
+    
+    throw new Error(response.data.error || 'Failed to add demo credits');
   }
 }; 

@@ -3,6 +3,8 @@ import { body, validationResult } from 'express-validator';
 import { authenticateToken } from '../middleware/auth';
 import { CreditTransactionModel } from '../models/CreditTransaction';
 import { UserModel } from '../models/User';
+import { ConversationModel } from '../models/Conversation';
+import { MessageModel } from '../models/Message';
 import OpenAI from 'openai';
 
 const router = Router();
@@ -31,6 +33,30 @@ Při odpovídání:
 
 Pamatuj: Jsi tu, abys pomohl českým studentům a učitelům s učením!`;
 
+// Specialized system prompt for worksheet generation
+const WORKSHEET_SYSTEM_PROMPT = `Jsi zkušený český učitel matematiky na střední škole. Tvým úkolem je vytvořit kvalitní cvičení pro studenty.
+
+PRAVIDLA PRO VYTVÁŘENÍ CVIČENÍ:
+1. **Vždy odpovídej v čistém JSON formátu** - Používej přesně tuto strukturu:
+{
+  "title": "Název cvičení",
+  "instructions": "Instrukce pro studenty",
+  "questions": [
+    {
+      "problem": "Zadání úlohy",
+      "answer": "Správná odpověď"
+    }
+  ]
+}
+
+2. **Vytvoř 10 otázek** - Každá otázka by měla být jiná a testovat různé aspekty tématu
+3. **Používej českou terminologii** - Všechny texty musí být v češtině
+4. **Správné obtížnosti** - Otázky by měly být přiměřené středoškolské úrovni
+5. **Praktické příklady** - Používej reálné situace a praktické aplikace
+6. **Krok za krokem** - U složitějších úloh uveď postup řešení
+
+PAMATUJ: Odpověď musí být platný JSON bez dodatečného textu!`;
+
 // Validation middleware
 const validateChatMessage = [
   body('message').trim().isLength({ min: 1, max: 2000 }).withMessage('Message must be between 1 and 2000 characters'),
@@ -57,7 +83,7 @@ router.post('/chat', authenticateToken, validateChatMessage, async (req: Request
       });
     }
 
-    const { message, session_id } = req.body;
+    const { message, session_id, conversation_id } = req.body;
     const userId = req.user.id;
 
     // Check if user has enough credits (1 credit per message)
@@ -70,19 +96,51 @@ router.post('/chat', authenticateToken, validateChatMessage, async (req: Request
     }
 
     const creditsRequired = 1;
+    
+    // Critical fix: Ensure user has > 0 credits before proceeding
+    if (user.credits_balance <= 0) {
+      return res.status(402).json({
+        success: false,
+        error: 'Insufficient credits',
+        data: {
+          credits_balance: user.credits_balance,
+          credits_required: creditsRequired,
+          message: 'You need at least 1 credit to use the AI assistant. Please add more credits to continue.'
+        }
+      });
+    }
+    
     if (user.credits_balance < creditsRequired) {
       return res.status(402).json({
         success: false,
         error: 'Insufficient credits',
         data: {
           credits_balance: user.credits_balance,
-          credits_required: creditsRequired
+          credits_required: creditsRequired,
+          message: `You have ${user.credits_balance} credits but need ${creditsRequired} credits for this request.`
         }
       });
     }
 
-    // Call OpenAI API
-    const completion = await openai.chat.completions.create({
+    // Deduct credits before starting the stream
+    await CreditTransactionModel.deductCredits(
+      userId, 
+      creditsRequired, 
+      `AI chat message: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`
+    );
+
+    // Set headers for streaming
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Cache-Control');
+
+    // Send initial response
+    res.write('data: {"type":"start","message":"Starting AI response..."}\n\n');
+
+    // Call OpenAI API with streaming
+    const stream = await openai.chat.completions.create({
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
       messages: [
         {
@@ -96,48 +154,68 @@ router.post('/chat', authenticateToken, validateChatMessage, async (req: Request
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2000'),
       temperature: 0.7,
+      stream: true,
     });
 
-    // Extract the AI response
-    const aiResponse = completion.choices[0]?.message?.content || 'Omlouvám se, ale momentálně nemohu zpracovat váš dotaz. Zkuste to prosím znovu.';
+    let fullResponse = '';
 
-    // Deduct credits only after successful API call
-    await CreditTransactionModel.deductCredits(
-      userId, 
-      creditsRequired, 
-      `AI chat message: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`
-    );
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        fullResponse += content;
+        // Send each chunk to the client
+        res.write(`data: {"type":"chunk","content":"${content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"}\n\n`);
+      }
+    }
 
     // Get updated user balance
     const updatedUser = await UserModel.findById(userId);
 
-    return res.status(200).json({
-      success: true,
-      data: {
-        response: aiResponse,
-        credits_used: creditsRequired,
-        credits_balance: updatedUser?.credits_balance || 0,
-        session_id: session_id || null
-      },
-      message: 'AI response generated successfully'
-    });
+    // Save messages to database if conversation_id is provided
+    if (conversation_id) {
+      try {
+        // Save user message
+        await MessageModel.create({
+          conversation_id,
+          role: 'user',
+          content: message
+        });
+
+        // Save AI response
+        await MessageModel.create({
+          conversation_id,
+          role: 'assistant',
+          content: fullResponse
+        });
+
+        // Update conversation title if it's the first message
+        const messageCount = await MessageModel.countByConversationId(conversation_id);
+        if (messageCount <= 2) { // User message + AI response
+          const conversation = await ConversationModel.findById(conversation_id);
+          if (conversation && conversation.title === 'New Conversation') {
+            // Create a title from the first user message
+            const title = message.length > 50 ? message.substring(0, 50) + '...' : message;
+            await ConversationModel.updateTitle(conversation_id, title);
+          }
+        }
+      } catch (dbError) {
+        console.error('Failed to save messages to database:', dbError);
+        // Don't fail the request if database save fails
+      }
+    }
+
+    // Send final response with metadata
+    res.write(`data: {"type":"end","credits_used":${creditsRequired},"credits_balance":${updatedUser?.credits_balance || 0},"session_id":"${session_id || ''}"}\n\n`);
+    res.end();
+    return;
 
   } catch (error) {
     console.error('AI chat error:', error);
     
-    // Handle OpenAI API errors specifically
-    if (error instanceof OpenAI.APIError) {
-      return res.status(500).json({
-        success: false,
-        error: 'OpenAI API error',
-        details: error.message
-      });
-    }
-    
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to process AI request'
-    });
+    // Send error through stream
+    res.write(`data: {"type":"error","message":"${error instanceof Error ? error.message : 'An unexpected error occurred'}"}\n\n`);
+    res.end();
+    return;
   }
 });
 
@@ -238,6 +316,147 @@ router.get('/features', authenticateToken, async (_req: Request, res: Response) 
       success: false,
       error: 'Failed to retrieve AI features'
     });
+  }
+});
+
+// Generate worksheet endpoint with streaming
+router.post('/generate-worksheet', authenticateToken, [
+  body('topic').trim().isLength({ min: 3, max: 200 }).withMessage('Topic must be between 3 and 200 characters')
+], async (req: Request, res: Response) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const { topic } = req.body;
+    const userId = req.user.id;
+
+    // Check if user has enough credits (2 credits per worksheet)
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    const creditsRequired = 2;
+    
+    // Critical fix: Ensure user has > 0 credits before proceeding
+    if (user.credits_balance <= 0) {
+      return res.status(402).json({
+        success: false,
+        error: 'Insufficient credits',
+        data: {
+          credits_balance: user.credits_balance,
+          credits_required: creditsRequired,
+          message: 'You need at least 2 credits to generate a worksheet. Please add more credits to continue.'
+        }
+      });
+    }
+    
+    if (user.credits_balance < creditsRequired) {
+      return res.status(402).json({
+        success: false,
+        error: 'Insufficient credits',
+        data: {
+          credits_balance: user.credits_balance,
+          credits_required: creditsRequired,
+          message: `You have ${user.credits_balance} credits but need ${creditsRequired} credits for worksheet generation.`
+        }
+      });
+    }
+
+    // Deduct credits before starting the stream
+    await CreditTransactionModel.deductCredits(
+      userId, 
+      creditsRequired, 
+      `Worksheet generation: "${topic}"`
+    );
+
+    // Set headers for streaming
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Cache-Control');
+
+    // Send initial response
+    res.write('data: {"type":"start","message":"Starting worksheet generation..."}\n\n');
+
+    // Call OpenAI API with streaming for worksheet generation
+    const stream = await openai.chat.completions.create({
+      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: WORKSHEET_SYSTEM_PROMPT
+        },
+        {
+          role: 'user',
+          content: `Vytvoř cvičení na téma: ${topic}. Vytvoř 10 různých otázek s odpověďmi.`
+        }
+      ],
+      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '3000'),
+      temperature: 0.7,
+      stream: true,
+    });
+
+    let fullResponse = '';
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        fullResponse += content;
+        // Send each chunk to the client
+        res.write(`data: {"type":"chunk","content":"${content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"}\n\n`);
+      }
+    }
+
+    // Parse JSON response
+    let worksheetData;
+    try {
+      worksheetData = JSON.parse(fullResponse);
+      
+      // Validate the structure
+      if (!worksheetData.title || !worksheetData.instructions || !Array.isArray(worksheetData.questions)) {
+        throw new Error('Invalid worksheet structure');
+      }
+    } catch (parseError) {
+      console.error('Failed to parse worksheet JSON:', parseError);
+      res.write('data: {"type":"error","message":"The AI response could not be parsed as a valid worksheet."}\n\n');
+      res.end();
+      return;
+    }
+
+    // Get updated user balance
+    const updatedUser = await UserModel.findById(userId);
+
+    // Send final response with metadata
+    res.write(`data: {"type":"end","worksheet":${JSON.stringify(worksheetData)},"credits_used":${creditsRequired},"credits_balance":${updatedUser?.credits_balance || 0}}\n\n`);
+    res.end();
+    return;
+
+  } catch (error) {
+    console.error('Worksheet generation error:', error);
+    
+    // Send error through stream
+    res.write(`data: {"type":"error","message":"${error instanceof Error ? error.message : 'An unexpected error occurred'}"}\n\n`);
+    res.end();
+    return;
   }
 });
 

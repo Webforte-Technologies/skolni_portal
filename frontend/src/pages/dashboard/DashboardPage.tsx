@@ -2,18 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from 'react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import { assistantService } from '../../services/assistantService';
+import { authService } from '../../services/authService';
+import { useToast } from '../../contexts/ToastContext';
 import Header from '../../components/layout/Header';
 import CreditBalance from '../../components/dashboard/CreditBalance';
 import AssistantCard from '../../components/dashboard/AssistantCard';
 import EditProfileModal from '../../components/dashboard/EditProfileModal';
 import { AIFeature } from '../../types';
-import { Loader2, User, Calendar, School, Sparkles, Edit } from 'lucide-react';
+import { Loader2, User, Calendar, School, Sparkles, Edit, Plus } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const { showToast } = useToast();
   const [features, setFeatures] = useState<AIFeature[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddingCredits, setIsAddingCredits] = useState(false);
 
   // Fetch AI features
   const { data: aiFeatures, isLoading: featuresLoading } = useQuery(
@@ -28,6 +32,21 @@ const DashboardPage: React.FC = () => {
       },
     }
   );
+
+  // Handle adding demo credits
+  const handleAddCredits = async () => {
+    try {
+      setIsAddingCredits(true);
+      const result = await authService.addDemoCredits();
+      updateUser(result.user);
+      showToast({ type: 'success', message: `Přidáno ${result.credits_added} demo kreditů!` });
+    } catch (error) {
+      console.error('Failed to add credits:', error);
+      showToast({ type: 'error', message: 'Nepodařilo se přidat kredity. Zkuste to prosím znovu.' });
+    } finally {
+      setIsAddingCredits(false);
+    }
+  };
 
   if (!user) return null;
 
@@ -88,9 +107,28 @@ const DashboardPage: React.FC = () => {
                 <div className="text-blue-100 text-sm">dostupné kreditů</div>
               </div>
               <div className="mt-4 text-center">
-                <div className="text-xs text-blue-200">
+                <div className="text-xs text-blue-200 mb-4">
                   Každá zpráva stojí 1 kredit
                 </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleAddCredits}
+                  disabled={isAddingCredits}
+                  className="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white border-white border-opacity-30"
+                >
+                  {isAddingCredits ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Přidávám...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      + Přidat 100 Demo Kreditů
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
 

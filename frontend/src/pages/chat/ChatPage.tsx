@@ -1,23 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { assistantService } from '../../services/assistantService';
+import { streamingService } from '../../services/streamingService';
+import { conversationService } from '../../services/conversationService';
 import Header from '../../components/layout/Header';
 import ChatWindow from '../../components/chat/ChatWindow';
 import MessageInput from '../../components/chat/MessageInput';
 import CreditBalance from '../../components/dashboard/CreditBalance';
-import { ChatMessage } from '../../types';
-import { AlertCircle, ArrowLeft, Copy, Check } from 'lucide-react';
+import WorksheetGeneratorModal from '../../components/chat/WorksheetGeneratorModal';
+import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
+import ChatSidebar from '../../components/chat/ChatSidebar';
+import { ChatMessage, Conversation, ConversationWithMessages } from '../../types';
+import { AlertCircle, ArrowLeft, Copy, Check, Plus, FileText } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
 const ChatPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [sessionId, setSessionId] = useState<string | undefined>();
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [isWorksheetModalOpen, setIsWorksheetModalOpen] = useState(false);
+  const [isGeneratingWorksheet, setIsGeneratingWorksheet] = useState(false);
+  const [generatedWorksheet, setGeneratedWorksheet] = useState<any>(null);
+  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+  const [showSidebar, setShowSidebar] = useState(true);
 
   // Load conversation history from localStorage
   useEffect(() => {
@@ -62,24 +74,58 @@ const ChatPage: React.FC = () => {
     setIsLoading(true);
     setError('');
 
-    try {
-      const response = await assistantService.sendMessage(content, sessionId);
-      
-      const aiMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        content: response.response,
-        isUser: false,
-        timestamp: new Date().toISOString(),
-        session_id: response.session_id,
-      };
+    // Create a pending AI message
+    const aiMessageId = crypto.randomUUID();
+    const aiMessage: ChatMessage = {
+      id: aiMessageId,
+      content: '',
+      isUser: false,
+      timestamp: new Date().toISOString(),
+      session_id: sessionId,
+    };
 
-      setMessages(prev => [...prev, aiMessage]);
+    setMessages(prev => [...prev, aiMessage]);
+
+    try {
+      await streamingService.sendMessageStream(content, sessionId, currentConversation?.id, {
+        onStart: () => {
+          // AI is starting to respond
+        },
+        onChunk: (content: string) => {
+          // Update the AI message with new content
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === aiMessageId 
+                ? { ...msg, content: msg.content + content }
+                : msg
+            )
+          );
+        },
+        onEnd: (metadata) => {
+          // Update user credits and finalize the message
+          updateUser({ ...user, credits_balance: metadata.credits_balance });
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === aiMessageId 
+                ? { ...msg, session_id: metadata.session_id }
+                : msg
+            )
+          );
+        },
+        onError: (message: string) => {
+          setError(message);
+          // Remove the pending AI message on error
+          setMessages(prev => prev.filter(msg => msg.id !== aiMessageId));
+        }
+      });
     } catch (err: any) {
-      if (err.response?.status === 402) {
+      if (err.message?.includes('402')) {
         setError('Nemáte dostatek kreditů pro odeslání zprávy. Prosím, doplňte kredity.');
       } else {
         setError(err.message || 'Nepodařilo se odeslat zprávu');
       }
+      // Remove the pending AI message on error
+      setMessages(prev => prev.filter(msg => msg.id !== aiMessageId));
     } finally {
       setIsLoading(false);
     }
@@ -103,78 +149,207 @@ const ChatPage: React.FC = () => {
     localStorage.setItem('chatSessionId', newSessionId);
   };
 
+  const startNewChat = async () => {
+    try {
+      const newConversation = await conversationService.createConversation({
+        title: 'New Conversation',
+        assistant_type: 'math_assistant'
+      });
+      
+      setCurrentConversation(newConversation);
+      setMessages([]);
+      setSessionId(newConversation.id);
+      localStorage.setItem('chatSessionId', newConversation.id);
+      localStorage.removeItem('chatMessages');
+      
+      showToast({ type: 'success', message: 'Nová konverzace byla vytvořena' });
+    } catch (error) {
+      console.error('Failed to create new conversation:', error);
+      showToast({ type: 'error', message: 'Nepodařilo se vytvořit novou konverzaci' });
+    }
+  };
+
+  const handleConversationSelect = async (conversationId: string) => {
+    try {
+      const conversation = await conversationService.getConversation(conversationId);
+      setCurrentConversation(conversation);
+      setSessionId(conversationId);
+      localStorage.setItem('chatSessionId', conversationId);
+      
+      // Convert database messages to chat messages
+      const chatMessages: ChatMessage[] = conversation.messages.map(msg => ({
+        id: msg.id,
+        content: msg.content,
+        isUser: msg.role === 'user',
+        timestamp: msg.created_at,
+        session_id: conversationId
+      }));
+      
+      setMessages(chatMessages);
+      localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+    } catch (error) {
+      console.error('Failed to load conversation:', error);
+      showToast({ type: 'error', message: 'Nepodařilo se načíst konverzaci' });
+    }
+  };
+
+  const handleGenerateWorksheet = async (topic: string) => {
+    try {
+      setIsGeneratingWorksheet(true);
+      
+      await streamingService.generateWorksheetStream(topic, {
+        onStart: () => {
+          // Worksheet generation is starting
+        },
+        onChunk: (content: string) => {
+          // Optional: You could show progress here if needed
+        },
+        onEnd: (metadata) => {
+          setGeneratedWorksheet(metadata.worksheet);
+          updateUser({ ...user, credits_balance: metadata.credits_balance });
+          showToast({ type: 'success', message: `Cvičení vygenerováno! Použito ${metadata.credits_used} kreditů.` });
+          setIsWorksheetModalOpen(false);
+        },
+        onError: (message: string) => {
+          showToast({ type: 'error', message: message });
+        }
+      });
+    } catch (error: any) {
+      console.error('Failed to generate worksheet:', error);
+      if (error.message?.includes('402')) {
+        showToast({ type: 'error', message: 'Nemáte dostatek kreditů pro generování cvičení. Potřebujete 2 kredity.' });
+      } else {
+        showToast({ type: 'error', message: 'Nepodařilo se vygenerovat cvičení. Zkuste to prosím znovu.' });
+      }
+    } finally {
+      setIsGeneratingWorksheet(false);
+    }
+  };
+
   if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header with back button and credit balance */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center space-x-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Zpět na dashboard</span>
-            </Button>
-            <h1 className="text-2xl font-bold text-gray-900">
-              AI Asistent
-            </h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <CreditBalance />
-            {messages.length > 0 && (
+      <div className="flex h-[calc(100vh-64px)]">
+        {/* Sidebar */}
+        {showSidebar && (
+          <ChatSidebar
+            onConversationSelect={handleConversationSelect}
+            onNewConversation={startNewChat}
+            selectedConversationId={currentConversation?.id}
+          />
+        )}
+        
+        {/* Main chat area */}
+        <div className="flex-1 flex flex-col">
+          {/* Header with back button and credit balance */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+            <div className="flex items-center space-x-4">
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={clearChatHistory}
-                className="text-red-600 hover:text-red-700"
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center space-x-2"
               >
-                Vymazat historii
+                <ArrowLeft className="h-4 w-4" />
+                <span>Zpět na dashboard</span>
               </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Error message */}
-        {error && (
-          <div className="mb-4 flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md">
-            <AlertCircle className="h-5 w-5 text-red-500" />
-            <span className="text-sm text-red-700">{error}</span>
-          </div>
-        )}
-
-        {/* Chat container */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm h-[600px] flex flex-col">
-          <ChatWindow 
-            messages={messages} 
-            onCopyMessage={handleCopyMessage}
-            copiedMessageId={copiedMessageId}
-          />
-          <MessageInput
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            disabled={user.credits_balance < 1}
-          />
-        </div>
-
-        {/* Credit warning */}
-        {user.credits_balance < 1 && (
-          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="h-5 w-5 text-yellow-500" />
-              <span className="text-sm text-yellow-700">
-                Nemáte dostatek kreditů pro odeslání zprávy. Každá zpráva stojí 1 kredit.
-              </span>
+              <h1 className="text-xl font-bold text-gray-900">
+                AI Asistent
+              </h1>
+              {currentConversation && (
+                <span className="text-sm text-gray-500">
+                  - {currentConversation.title}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center space-x-4">
+              <CreditBalance />
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setIsWorksheetModalOpen(true)}
+                className="flex items-center space-x-2 text-green-600 hover:text-green-700"
+                disabled={user.credits_balance < 2}
+              >
+                <FileText className="h-4 w-4" />
+                <span>Vygenerovat cvičení</span>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={startNewChat}
+                className="flex items-center space-x-2 text-blue-600 hover:text-blue-700"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Nový chat</span>
+              </Button>
+              {messages.length > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={clearChatHistory}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  Vymazat historii
+                </Button>
+              )}
             </div>
           </div>
-        )}
+
+          {/* Error message */}
+          {error && (
+            <div className="mx-4 mt-4 flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <span className="text-sm text-red-700">{error}</span>
+            </div>
+          )}
+
+          {/* Chat container */}
+          <div className="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm mx-4 my-4 flex flex-col">
+            <ChatWindow 
+              messages={messages} 
+              onCopyMessage={handleCopyMessage}
+              copiedMessageId={copiedMessageId}
+            />
+            <MessageInput
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+              disabled={user.credits_balance < 1}
+            />
+          </div>
+
+          {/* Credit warning */}
+          {user.credits_balance < 1 && (
+            <div className="mx-4 mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="h-5 w-5 text-yellow-500" />
+                <span className="text-sm text-yellow-700">
+                  Nemáte dostatek kreditů pro odeslání zprávy. Každá zpráva stojí 1 kredit.
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Worksheet Generator Modal */}
+      <WorksheetGeneratorModal
+        isOpen={isWorksheetModalOpen}
+        onClose={() => setIsWorksheetModalOpen(false)}
+        onGenerate={handleGenerateWorksheet}
+        isLoading={isGeneratingWorksheet}
+      />
+
+      {/* Worksheet Display Modal */}
+      {generatedWorksheet && (
+        <WorksheetDisplay
+          worksheet={generatedWorksheet}
+          onClose={() => setGeneratedWorksheet(null)}
+        />
+      )}
     </div>
   );
 };

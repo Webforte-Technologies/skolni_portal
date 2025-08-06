@@ -38,5 +38,16 @@ export const assistantService = {
     }
     
     throw new Error(response.data.error || 'Failed to get AI statistics');
+  },
+
+  // Generate worksheet
+  generateWorksheet: async (topic: string): Promise<{ worksheet: any; credits_used: number; credits_balance: number }> => {
+    const response = await api.post('/ai/generate-worksheet', { topic });
+    
+    if (response.data.success && response.data.data) {
+      return response.data.data;
+    }
+    
+    throw new Error(response.data.error || 'Failed to generate worksheet');
   }
 }; 

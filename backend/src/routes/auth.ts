@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { UserModel } from '../models/User';
+import { CreditTransactionModel } from '../models/CreditTransaction';
 import { generateToken, authenticateToken } from '../middleware/auth';
 import { CreateUserRequest, LoginRequest, AuthResponse } from '../types/database';
 
@@ -292,6 +293,57 @@ router.put('/change-password', authenticateToken, [
     return res.status(500).json({
       success: false,
       error: 'Failed to change password'
+    });
+  }
+});
+
+// Add demo credits endpoint
+router.post('/me/add-credits', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const userId = req.user.id;
+    const creditsToAdd = 100; // Demo feature: add 100 credits
+
+    // Add credits using the CreditTransactionModel
+    const transaction = await CreditTransactionModel.addCredits(
+      userId,
+      creditsToAdd,
+      'Demo credits added'
+    );
+
+    // Get updated user with new balance
+    const updatedUser = await UserModel.findById(userId);
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found after credit addition'
+      });
+    }
+
+    // Remove password_hash from response
+    const { password_hash, ...userWithoutPassword } = updatedUser;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        user: userWithoutPassword,
+        credits_added: creditsToAdd,
+        transaction_id: transaction.id
+      },
+      message: 'Demo credits added successfully'
+    });
+
+  } catch (error) {
+    console.error('Add credits error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to add credits'
     });
   }
 });

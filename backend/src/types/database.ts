@@ -75,6 +75,56 @@ export interface ChatMessage {
   created_at: Date;
 }
 
+// Phase 8: Conversation History & Advanced File Generation Types
+export interface Conversation {
+  id: string;
+  user_id: string;
+  assistant_type: string;
+  title: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Message {
+  id: string;
+  conversation_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: Date;
+}
+
+export interface GeneratedFile {
+  id: string;
+  user_id: string;
+  title: string;
+  content: any; // JSONB content
+  file_type: string;
+  created_at: Date;
+}
+
+export interface ConversationWithMessages extends Conversation {
+  messages: Message[];
+}
+
+export interface CreateConversationRequest {
+  user_id: string;
+  assistant_type?: string;
+  title: string;
+}
+
+export interface CreateMessageRequest {
+  conversation_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface CreateGeneratedFileRequest {
+  user_id: string;
+  title: string;
+  content: any;
+  file_type?: string;
+}
+
 // Request/Response types for API
 export interface CreateUserRequest {
   email: string;

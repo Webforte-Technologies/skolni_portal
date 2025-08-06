@@ -59,6 +59,37 @@ export interface ChatMessage {
   session_id?: string;
 }
 
+// Phase 8: Conversation History Types
+export interface Conversation {
+  id: string;
+  user_id: string;
+  assistant_type: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Message {
+  id: string;
+  conversation_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at: string;
+}
+
+export interface ConversationWithMessages extends Conversation {
+  messages: Message[];
+}
+
+export interface GeneratedFile {
+  id: string;
+  user_id: string;
+  title: string;
+  content: any; // JSONB content
+  file_type: string;
+  created_at: string;
+}
+
 export interface ChatRequest {
   message: string;
   session_id?: string;

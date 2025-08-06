@@ -325,44 +325,98 @@ Tasks:
         ✨ Phase 7: Advanced Features & System Polish
 
 Timeline: Week 14
-Status: 📝 To-DoGoal: Enhance the application with key user features, including file generation and multi-chat support, while also fixing the critical credit system logic.
+Status: ✅ Completed
+Goal: Enhance the application with key user features, including file generation and multi-chat support, while also fixing the critical credit system logic.
 
 Tasks:
 
     7.1 Critical Fix: Credit System Logic:
 
-        [ ] Backend: Locate the live AI assistant endpoint (POST /api/assistant/ask).
+        [x] Backend: Locate the live AI assistant endpoint (POST /api/assistant/ask).
 
-        [ ] Backend: Implement a check at the beginning of the endpoint to ensure the user has > 0 credits. If not, return a "402 Payment Required" error.
+        [x] Backend: Implement a check at the beginning of the endpoint to ensure the user has > 0 credits. If not, return a "402 Payment Required" error.
 
-        [ ] Backend: After receiving a successful response from the OpenAI API, decrement the user's credit count in the PostgreSQL database.
+        [x] Backend: After receiving a successful response from the OpenAI API, decrement the user's credit count in the PostgreSQL database.
 
     7.2 "Add Credits" Demo Feature:
 
-        [ ] Frontend: On the DashboardPage.tsx, add a new button styled as a secondary action, e.g., "+ Add 100 Demo Credits".
+        [x] Frontend: On the DashboardPage.tsx, add a new button styled as a secondary action, e.g., "+ Add 100 Demo Credits".
 
-        [ ] Backend: Create a new secure endpoint, POST /api/users/me/add-credits.
+        [x] Backend: Create a new secure endpoint, POST /api/users/me/add-credits.
 
-        [ ] Backend: This endpoint will find the logged-in user and increment their credit count by 100.
+        [x] Backend: This endpoint will find the logged-in user and increment their credit count by 100.
 
-        [ ] Frontend: Wire the button to call this new endpoint and then refresh the displayed credit balance upon success.
+        [x] Frontend: Wire the button to call this new endpoint and then refresh the displayed credit balance upon success.
 
     7.3 Multi-Chat Session Support (Foundation):
 
-        [ ] Frontend: In the ChatPage.tsx UI (e.g., in the header or a new sidebar placeholder), add a "＋ New Chat" button.
+        [x] Frontend: In the ChatPage.tsx UI (e.g., in the header or a new sidebar placeholder), add a "＋ New Chat" button.
 
-        [ ] Frontend: When this button is clicked, the current conversation state (messages array) should be cleared to start a fresh conversation.
+        [x] Frontend: When this button is clicked, the current conversation state (messages array) should be cleared to start a fresh conversation.
 
-        [ ] Frontend (Optional but Recommended): Modify the chat route to include a session ID (e.g., /chat/math/:sessionId). Clicking "New Chat" would navigate to a new UUID, laying the groundwork for saving conversations later.
+        [x] Frontend (Optional but Recommended): Modify the chat route to include a session ID (e.g., /chat/math/:sessionId). Clicking "New Chat" would navigate to a new UUID, laying the groundwork for saving conversations later.
 
     7.4 File Generation Feature (Math Worksheets):
 
-        [ ] Frontend: In the ChatPage.tsx UI, add a "Generate Worksheet" button near the message input field.
+        [x] Frontend: In the ChatPage.tsx UI, add a "Generate Worksheet" button near the message input field.
 
-        [ ] Backend: Create a new endpoint, POST /api/assistant/generate-worksheet. This endpoint will also deduct credits.
+        [x] Backend: Create a new endpoint, POST /api/assistant/generate-worksheet. This endpoint will also deduct credits.
 
-        [ ] Backend: This endpoint will construct a highly-specific prompt for the AI, for example: "You are a high school math teacher. Generate a 10-question math worksheet on the topic of 'Quadratic Equations'. Format the output as a clean JSON object with a 'title', 'instructions', and an array of 'questions', where each question has a 'problem' string and an 'answer' string."
+        [x] Backend: This endpoint will construct a highly-specific prompt for the AI, for example: "You are a high school math teacher. Generate a 10-question math worksheet on the topic of 'Quadratic Equations'. Format the output as a clean JSON object with a 'title', 'instructions', and an array of 'questions', where each question has a 'problem' string and an 'answer' string."
 
-        [ ] Frontend: When the "Generate Worksheet" button is clicked, it could trigger a modal to ask for the topic. This topic is then sent to the new backend endpoint.
+        [x] Frontend: When the "Generate Worksheet" button is clicked, it could trigger a modal to ask for the topic. This topic is then sent to the new backend endpoint.
 
-        [ ] Frontend: Upon receiving the structured JSON response, create a new component (WorksheetDisplay.tsx) that renders the content in a clean, printable format.
+        [x] Frontend: Upon receiving the structured JSON response, create a new component (WorksheetDisplay.tsx) that renders the content in a clean, printable format.
+
+
+You are absolutely right, my apologies. I will ensure my responses stay in English. Thank you for the reminder.
+
+Here is the fully English version of the new Phase 8 for your implementation plan, along with the corresponding prompt for Cursor.
+
+🚀 Updated Implementation Plan – EduAI-Asistent
+
+(Previous phases remain the same)
+
+... Phases 1 through 7 are now prerequisites ...
+
+✨ Phase 8: Conversation History & Advanced File Generation
+
+Timeline: Week 15
+Status: 📝 To-Do
+Goal: Significantly improve the user experience by implementing persistent history for chats and generated materials, and adding the ability to download materials directly as a PDF.
+
+Tasks:
+
+    8.1 Database Schema for History:
+
+        [x] Backend: Design and implement new tables in PostgreSQL:
+
+            conversations (id, user_id, assistant_type, title, created_at) to store individual chats.
+
+            messages (id, conversation_id, role, content, created_at) to store messages within a conversation.
+
+            generated_files (id, user_id, title, content, created_at) to store generated worksheets and homework in JSON format.
+
+    8.2 Implement Chat History & Sidebar:
+
+        [x] Backend: Create a new GET /api/conversations endpoint to fetch all conversations for the logged-in user.
+
+        [x] Backend: Modify the existing chat endpoint (POST /api/assistant/ask) to save both the user's query and the AI's response to the messages table, linking them to the appropriate conversation.
+
+        [x] Frontend: Create a new ChatSidebar.tsx component. This panel will be displayed on the left side of the chat page and will fetch and display the list of conversations from the new API.
+
+        [x] Frontend: Update ChatPage.tsx to fetch the message history for a specific conversation selected by the user in the sidebar.
+
+    8.3 History of Generated Materials:
+
+        [ ] Backend: Modify the worksheet generation endpoint (POST /api/assistant/generate-worksheet) to save the successfully generated JSON content to the new generated_files table.
+
+        [ ] Backend: Create a new GET /api/files endpoint that returns a list of all generated materials for the given user.
+
+        [ ] Frontend: Create a new page or a tab on the dashboard titled "My Materials," which will display a list of the generated worksheets. Each item will link to a detail view of the material.
+
+    8.4 Download Materials as PDF:
+
+        [ ] Frontend: In the component for displaying a generated worksheet (WorksheetDisplay.tsx), add a "Download as PDF" button.
+
+        [ ] Frontend: Implement the logic for this button using client-side libraries (e.g., jspdf and html2canvas) that will take the HTML content of the worksheet and generate a downloadable PDF file.
