@@ -27,15 +27,19 @@ RUN apk add --no-cache curl
 ENV NODE_ENV=production
 ENV PORT=3001
 
+# Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 nodejs
 
 # Copy the built application
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 
-USER nextjs
+# Change ownership of the app directory
+RUN chown -R nodejs:nodejs /app
+
+USER nodejs
 
 EXPOSE 3001
 
