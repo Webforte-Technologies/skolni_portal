@@ -1,4 +1,4 @@
-# Frontend Dockerfile for EduAI-Asistent
+# Frontend Dockerfile for EduAI-Asistent (Coolify)
 FROM node:18-alpine AS base
 
 # Install dependencies only when needed
@@ -17,12 +17,31 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
 
+# Build arguments for environment variables
+ARG VITE_API_URL
+ARG VITE_API_TIMEOUT
+ARG VITE_APP_NAME
+ARG VITE_APP_VERSION
+ARG VITE_ENABLE_ANALYTICS
+ARG VITE_ENABLE_DEBUG_MODE
+
+# Set environment variables for build
+ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_API_TIMEOUT=${VITE_API_TIMEOUT}
+ENV VITE_APP_NAME=${VITE_APP_NAME}
+ENV VITE_APP_VERSION=${VITE_APP_VERSION}
+ENV VITE_ENABLE_ANALYTICS=${VITE_ENABLE_ANALYTICS}
+ENV VITE_ENABLE_DEBUG_MODE=${VITE_ENABLE_DEBUG_MODE}
+
 # Build the application
 RUN npm run build
 
 # Production image, copy all the files and run nginx
 FROM nginx:alpine AS runner
 WORKDIR /usr/share/nginx/html
+
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 # Remove default nginx static assets
 RUN rm -rf ./*
@@ -35,6 +54,10 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
 EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost/health || exit 1
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"] 

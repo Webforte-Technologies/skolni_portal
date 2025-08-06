@@ -13,4 +13,16 @@ interface ImportMetaEnv {
 
 interface ImportMeta {
   readonly env: ImportMetaEnv
+}
+
+// Runtime configuration interface
+interface Window {
+  APP_CONFIG?: {
+    API_URL: string
+    API_TIMEOUT: number
+    APP_NAME: string
+    APP_VERSION: string
+    ENABLE_ANALYTICS: boolean
+    ENABLE_DEBUG_MODE: boolean
+  }
 } 

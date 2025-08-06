@@ -1,10 +1,29 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ApiResponse } from '../types';
 
+// Get API URL from runtime config or environment variables
+const getApiUrl = () => {
+  // Try runtime config first (for production)
+  if (typeof window !== 'undefined' && window.APP_CONFIG?.API_URL) {
+    return window.APP_CONFIG.API_URL;
+  }
+  // Fall back to environment variables (for development)
+  return import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+};
+
+const getApiTimeout = () => {
+  // Try runtime config first (for production)
+  if (typeof window !== 'undefined' && window.APP_CONFIG?.API_TIMEOUT) {
+    return window.APP_CONFIG.API_TIMEOUT;
+  }
+  // Fall back to environment variables (for development)
+  return parseInt(import.meta.env.VITE_API_TIMEOUT || '10000');
+};
+
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
-  timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '10000'),
+  baseURL: getApiUrl(),
+  timeout: getApiTimeout(),
   headers: {
     'Content-Type': 'application/json',
   },
