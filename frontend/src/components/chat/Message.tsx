@@ -1,14 +1,24 @@
 import React from 'react';
 import { ChatMessage } from '../../types';
 import { cn } from '../../utils/cn';
-import { User, Bot } from 'lucide-react';
+import { User, Bot, Copy, Check } from 'lucide-react';
+import Button from '../ui/Button';
 
 interface MessageProps {
   message: ChatMessage;
+  onCopyMessage?: (messageId: string, content: string) => void;
+  copiedMessageId?: string | null;
 }
 
-const Message: React.FC<MessageProps> = ({ message }) => {
+const Message: React.FC<MessageProps> = ({ message, onCopyMessage, copiedMessageId }) => {
   const isUser = message.isUser;
+  const isCopied = copiedMessageId === message.id;
+
+  const handleCopy = () => {
+    if (onCopyMessage) {
+      onCopyMessage(message.id, message.content);
+    }
+  };
 
   return (
     <div className={cn(
@@ -17,25 +27,54 @@ const Message: React.FC<MessageProps> = ({ message }) => {
     )}>
       {!isUser && (
         <div className="flex-shrink-0">
-          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-            <Bot className="h-5 w-5 text-white" />
+          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-sm">
+            <Bot className="h-6 w-6 text-white" />
           </div>
         </div>
       )}
       
       <div className={cn(
-        'max-w-xs lg:max-w-md px-4 py-2 rounded-lg',
+        'max-w-xs lg:max-w-md px-4 py-3 rounded-lg relative group',
         isUser 
           ? 'bg-blue-600 text-white' 
-          : 'bg-white border border-gray-200 text-gray-900'
+          : 'bg-white border border-gray-200 text-gray-900 shadow-sm'
       )}>
-        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+        <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+        
+        {/* Copy button for AI messages */}
+        {!isUser && onCopyMessage && (
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCopy}
+              className="h-6 w-6 p-0 bg-white bg-opacity-90 hover:bg-opacity-100"
+            >
+              {isCopied ? (
+                <Check className="h-3 w-3 text-green-600" />
+              ) : (
+                <Copy className="h-3 w-3 text-gray-600" />
+              )}
+            </Button>
+          </div>
+        )}
+        
+        {/* Timestamp */}
+        <div className={cn(
+          'text-xs mt-2',
+          isUser ? 'text-blue-100' : 'text-gray-500'
+        )}>
+          {new Date(message.timestamp).toLocaleTimeString('cs-CZ', {
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
+        </div>
       </div>
       
       {isUser && (
         <div className="flex-shrink-0">
-          <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-            <User className="h-5 w-5 text-white" />
+          <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center shadow-sm">
+            <User className="h-6 w-6 text-white" />
           </div>
         </div>
       )}

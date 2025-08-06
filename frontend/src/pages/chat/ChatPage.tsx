@@ -7,7 +7,7 @@ import ChatWindow from '../../components/chat/ChatWindow';
 import MessageInput from '../../components/chat/MessageInput';
 import CreditBalance from '../../components/dashboard/CreditBalance';
 import { ChatMessage } from '../../types';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Copy, Check } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
 const ChatPage: React.FC = () => {
@@ -17,11 +17,35 @@ const ChatPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [sessionId, setSessionId] = useState<string | undefined>();
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
+  // Load conversation history from localStorage
   useEffect(() => {
-    // Generate a session ID for this chat session
-    setSessionId(crypto.randomUUID());
+    const savedSessionId = localStorage.getItem('chatSessionId');
+    const savedMessages = localStorage.getItem('chatMessages');
+    
+    if (savedSessionId && savedMessages) {
+      setSessionId(savedSessionId);
+      try {
+        const parsedMessages = JSON.parse(savedMessages);
+        setMessages(parsedMessages);
+      } catch (error) {
+        console.error('Error parsing saved messages:', error);
+      }
+    } else {
+      // Generate a new session ID for this chat session
+      const newSessionId = crypto.randomUUID();
+      setSessionId(newSessionId);
+      localStorage.setItem('chatSessionId', newSessionId);
+    }
   }, []);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem('chatMessages', JSON.stringify(messages));
+    }
+  }, [messages]);
 
   const handleSendMessage = async (content: string) => {
     if (!user) return;
@@ -61,6 +85,24 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  const handleCopyMessage = async (messageId: string, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessageId(messageId);
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy message:', error);
+    }
+  };
+
+  const clearChatHistory = () => {
+    setMessages([]);
+    localStorage.removeItem('chatMessages');
+    const newSessionId = crypto.randomUUID();
+    setSessionId(newSessionId);
+    localStorage.setItem('chatSessionId', newSessionId);
+  };
+
   if (!user) return null;
 
   return (
@@ -84,7 +126,19 @@ const ChatPage: React.FC = () => {
               AI Asistent
             </h1>
           </div>
-          <CreditBalance />
+          <div className="flex items-center space-x-4">
+            <CreditBalance />
+            {messages.length > 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={clearChatHistory}
+                className="text-red-600 hover:text-red-700"
+              >
+                Vymazat historii
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Error message */}
@@ -97,7 +151,11 @@ const ChatPage: React.FC = () => {
 
         {/* Chat container */}
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm h-[600px] flex flex-col">
-          <ChatWindow messages={messages} />
+          <ChatWindow 
+            messages={messages} 
+            onCopyMessage={handleCopyMessage}
+            copiedMessageId={copiedMessageId}
+          />
           <MessageInput
             onSendMessage={handleSendMessage}
             isLoading={isLoading}

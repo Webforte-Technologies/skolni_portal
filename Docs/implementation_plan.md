@@ -224,35 +224,67 @@ Tasks:
     [ ] 3.5.2 Propojení Chatu s Mock API: Po odeslání zprávy z MessageInput.tsx zavolat funkci askAssistant(prompt) z assistantService.ts, která odešle dotaz na mockovaný backendový endpoint.
 
     [ ] 3.5.3 Zpracování Odpovědi: Po obdržení statické odpovědi z backendu ji přidat do stavu konverzace v ChatWindow.tsx jako zprávu od bota. Implementovat "loading" stav, zatímco se čeká na odpověď.
-✨ Phase 4: Foundation Testing & Polish
+✨ Phase 4: UI/UX Redesign & Feature Polish
 
-Timeline: Week 9
+Timeline: Week 10
 Status: 📝 To-Do
-Goal: Ensure that the application foundation (registration, login, credit management, simulated chat) is stable and bug-free.
+Goal: Transform the functional MVP into a visually appealing and user-friendly application by adding key features and completely redesigning the main pages.
 
 Tasks:
 
-    [ ] 4.1 End-to-End Application Testing: Manually test all user scenarios.
+    4.1 Dashboard Redesign:
 
-    [ ] 4.2 UI/UX Review: Check and polish the visual aspects of the application according to design_guidelines.md.
+        [ ] Create a new, more modern layout (e.g., a two-column layout with main content on the left and a sidebar with info on the right).
 
-PART 2: AI Integration & MVP Launch
+        [ ] Make the credit display more prominent (e.g., a separate, visually distinct card).
 
-Goal of this part: To replace the simulated assistant with a live connection to OpenAI, test the final product, and launch it for the first users.
+        [ ] Add icons for each assistant and improve hover effects on the cards.
 
-🧠 Phase 5: AI Integration
+    4.2 User Account Management:
 
-Timeline: Weeks 10-11
+        [ ] Backend: Create a secure PUT /api/users/me endpoint to update user data (name, password).
+
+        [ ] Frontend: In the "Account Information" section, add an "Edit" button.
+
+        [ ] Frontend: Implement a modal window or a separate page with a form to edit the user's name and change their password.
+
+    4.3 Chat Interface Enhancements:
+
+        [ ] Implement conversation history saving to localStorage so the chat is not lost on page refresh.
+
+        [ ] Add avatars (or initials) for the user and a bot icon to the chat bubbles.
+
+        [ ] Add a button to copy the AI's response to the clipboard.
+
+    4.4 General UX Improvements:
+
+        [ ] Implement loading states (spinners or skeleton screens) when fetching data from the API.
+
+        [ ] Add a notification system ("toasts") to display success messages (e.g., "Your details have been saved successfully") or errors.
+
+        [ ] Add a confirmation modal on logout ("Are you sure you want to log out?").
+
+🧹 Phase 5: Code Optimization & Cleanup
+
+Timeline: Week 11
 Status: 📝 To-Do
-Goal: Replace the temporary solution with a live connection to the finished AI assistant.
+Goal: Improve the application's performance and maintainability by removing unused code and optimizing critical parts.
 
 Tasks:
 
-    [ ] 5.1 Implement Live AI Connection: Update the backend endpoint to call the actual OpenAI service instead of returning a static response.
+    [ ] 5.1 Dead Code Elimination: Use tools (e.g., ts-prune or IDE features) to identify and remove unused files, exports, variables, and functions.
 
-    [ ] 5.2 Handle Dynamic Responses: Adapt the frontend and backend to handle real, variable responses from the AI.
+    [ ] 5.2 NPM Package Audit: Review the package.json files and remove any dependencies that are no longer used in the project.
 
-    [ ] 5.3 Fine-tune "System Prompts": Develop and test the final instructions for the AI to ensure it behaves correctly as a "Math Assistant."
+    [ ] 5.3 Frontend Optimization:
+
+        [ ] Review React components and apply React.memo where appropriate to prevent unnecessary re-renders.
+
+        [ ] Check the usage of useCallback and useMemo for performance optimization.
+
+    [ ] 5.4 Backend Optimization:
+
+        [ ] Review database queries and ensure that key columns (e.g., foreign keys, user emails) have indexes for faster lookups.
 
 🚀 Phase 6: Final Testing & Launch
 

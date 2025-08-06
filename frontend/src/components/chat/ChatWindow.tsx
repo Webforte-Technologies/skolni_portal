@@ -4,9 +4,11 @@ import Message from './Message';
 
 interface ChatWindowProps {
   messages: ChatMessage[];
+  onCopyMessage?: (messageId: string, content: string) => void;
+  copiedMessageId?: string | null;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages, onCopyMessage, copiedMessageId }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -38,7 +40,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages }) => {
       ) : (
         <>
           {messages.map((message, index) => (
-            <Message key={`${message.id}-${index}`} message={message} />
+            <Message 
+              key={`${message.id}-${index}`} 
+              message={message}
+              onCopyMessage={onCopyMessage}
+              copiedMessageId={copiedMessageId}
+            />
           ))}
           <div ref={messagesEndRef} />
         </>
