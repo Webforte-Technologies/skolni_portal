@@ -18,7 +18,8 @@ const PORT = parseInt(process.env['PORT'] || '3001', 10);
 // Security middleware
 app.use(helmet());
 
-// CORS configuration - allow multiple frontend ports for development
+// CORS configuration - more flexible for production
+const isDevelopment = process.env['NODE_ENV'] === 'development';
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -32,10 +33,16 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
+    // In development, check against allowed origins
+    if (isDevelopment) {
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // In production, allow all origins (you can restrict this further if needed)
+      callback(null, true);
     }
   },
   credentials: true,
