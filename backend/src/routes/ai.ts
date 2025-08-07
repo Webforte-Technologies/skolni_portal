@@ -5,6 +5,7 @@ import { CreditTransactionModel } from '../models/CreditTransaction';
 import { UserModel } from '../models/User';
 import { ConversationModel } from '../models/Conversation';
 import { MessageModel } from '../models/Message';
+import { GeneratedFileModel } from '../models/GeneratedFile';
 import OpenAI from 'openai';
 
 const router = Router();
@@ -440,6 +441,20 @@ router.post('/generate-worksheet', authenticateToken, [
       res.write('data: {"type":"error","message":"The AI response could not be parsed as a valid worksheet."}\n\n');
       res.end();
       return;
+    }
+
+    // Save the generated worksheet to the database
+    try {
+      await GeneratedFileModel.create({
+        user_id: userId,
+        title: worksheetData.title,
+        content: JSON.stringify(worksheetData),
+        file_type: 'worksheet'
+      });
+      console.log('✅ Worksheet saved to database successfully');
+    } catch (saveError) {
+      console.error('Failed to save worksheet to database:', saveError);
+      // Don't fail the request if database save fails, but log the error
     }
 
     // Get updated user balance

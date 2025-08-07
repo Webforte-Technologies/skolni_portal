@@ -3,11 +3,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+
 import PrivateRoute from './components/auth/PrivateRoute';
 import LoginPage from './pages/auth/LoginPage';
 import RegistrationPage from './pages/auth/RegistrationPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import ChatPage from './pages/chat/ChatPage';
+import MyMaterialsPage from './pages/materials/MyMaterialsPage';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -42,6 +44,11 @@ function App() {
                     <ChatPage />
                   </PrivateRoute>
                 } />
+                <Route path="/materials" element={
+                  <PrivateRoute>
+                    <MyMaterialsPage />
+                  </PrivateRoute>
+                } />
                 
                 {/* Redirect root to dashboard if authenticated, otherwise to login */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -52,6 +59,7 @@ function App() {
             </div>
           </Router>
         </AuthProvider>
+
       </ToastProvider>
     </QueryClientProvider>
   );

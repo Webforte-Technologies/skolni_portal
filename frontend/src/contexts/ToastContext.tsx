@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import ToastContainer, { Toast } from '../components/ui/Toast';
+import ToastContainer, { Toast } from '../components/ui/ToastContainer';
 
 interface ToastContextType {
   showToast: (toast: Omit<Toast, 'id'>) => void;
@@ -19,6 +19,11 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     const id = crypto.randomUUID();
     const newToast: Toast = { ...toast, id };
     setToasts(prev => [...prev, newToast]);
+
+    // Auto-remove toast after duration (default 5 seconds)
+    setTimeout(() => {
+      removeToast(id);
+    }, toast.duration || 5000);
   };
 
   const removeToast = (id: string) => {
@@ -33,7 +38,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   );
 };
 
-export const useToast = (): ToastContextType => {
+export const useToast = () => {
   const context = useContext(ToastContext);
   if (context === undefined) {
     throw new Error('useToast must be used within a ToastProvider');

@@ -11,6 +11,7 @@ dotenv.config();
 import authRoutes from './routes/auth';
 import aiRoutes from './routes/ai';
 import conversationRoutes from './routes/conversations';
+import filesRoutes from './routes/files';
 
 const app = express();
 const PORT = process.env['PORT'] || 3001;
@@ -59,6 +60,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/conversations', conversationRoutes);
+app.use('/api/files', filesRoutes);
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {

@@ -11,7 +11,8 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "db:init": "ts-node src/database/init.ts",
-    "db:reset": "ts-node src/database/init.ts"
+    "db:reset": "ts-node src/database/init.ts",
+    "db:add-tables": "ts-node src/database/add-missing-tables.ts"
   },
   "keywords": [
     "education",
@@ -32,7 +33,8 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "openai": "^5.12.0",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "validator": "^13.15.15"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.5",
