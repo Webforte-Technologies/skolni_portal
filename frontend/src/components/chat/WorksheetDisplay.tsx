@@ -104,12 +104,12 @@ const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-neutral-900/60 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-floating max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-neutral-200">
           <div className="flex items-center space-x-3">
-            <FileText className="h-6 w-6 text-blue-600" />
-            <h2 className="text-xl font-semibold text-gray-900">
+            <FileText className="h-6 w-6 text-primary-600" />
+            <h2 className="text-xl font-semibold text-neutral-900">
               Vygenerované cvičení
             </h2>
           </div>
@@ -135,7 +135,7 @@ const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose 
             </Button>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-neutral-400 hover:text-neutral-600 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
@@ -145,14 +145,14 @@ const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           <div id="worksheet-print" className="space-y-6">
             {/* Header */}
-            <div className="text-center border-b border-gray-200 pb-4">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <div className="text-center border-b border-neutral-200 pb-4">
+              <h1 className="text-3xl font-bold text-neutral-900 mb-2">
                 {worksheet.title}
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-neutral-600">
                 {worksheet.instructions}
               </p>
-              <div className="mt-4 text-sm text-gray-500">
+              <div className="mt-4 text-sm text-neutral-500">
                 Datum: {new Date().toLocaleDateString('cs-CZ')}
               </div>
             </div>
@@ -160,28 +160,28 @@ const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose 
             {/* Questions */}
             <div className="space-y-6">
               {worksheet.questions.map((question, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                <div key={index} className="border border-neutral-200 rounded-lg p-4">
                   <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-semibold text-blue-600">
+                    <div className="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-semibold text-primary-600">
                         {index + 1}
                       </span>
                     </div>
                     <div className="flex-1 space-y-3">
                       <div>
-                        <h3 className="font-medium text-gray-900 mb-2">
+                        <h3 className="font-medium text-neutral-900 mb-2">
                           Zadání:
                         </h3>
-                        <p className="text-gray-700 whitespace-pre-wrap">
+                        <p className="text-neutral-700 whitespace-pre-wrap">
                           {question.problem}
                         </p>
                       </div>
-                      <div className="border-t border-gray-100 pt-3">
-                        <h4 className="font-medium text-gray-900 mb-2 flex items-center">
-                          <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                      <div className="border-t border-neutral-100 pt-3">
+                        <h4 className="font-medium text-neutral-900 mb-2 flex items-center">
+                          <CheckCircle className="h-4 w-4 text-success-600 mr-2" />
                           Řešení:
                         </h4>
-                        <p className="text-gray-700 whitespace-pre-wrap">
+                        <p className="text-neutral-700 whitespace-pre-wrap">
                           {question.answer}
                         </p>
                       </div>
@@ -192,7 +192,7 @@ const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose 
             </div>
 
             {/* Footer */}
-            <div className="border-t border-gray-200 pt-4 text-center text-sm text-gray-500">
+            <div className="border-t border-neutral-200 pt-4 text-center text-sm text-neutral-500">
               <p>Vygenerováno pomocí EduAI-Asistent</p>
               <p>© 2025 EduAI-Asistent. Všechna práva vyhrazena.</p>
             </div>

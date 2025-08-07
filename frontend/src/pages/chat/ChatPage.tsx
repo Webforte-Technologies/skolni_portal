@@ -229,7 +229,7 @@ const ChatPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       <Header />
       
       <div className="flex h-[calc(100vh-64px)]">
@@ -245,7 +245,7 @@ const ChatPage: React.FC = () => {
         {/* Main chat area */}
         <div className="flex-1 flex flex-col">
           {/* Header with back button and credit balance */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between p-4 border-b border-neutral-200 bg-white">
             <div className="flex items-center space-x-4">
               <Button
                 variant="secondary"
@@ -256,11 +256,11 @@ const ChatPage: React.FC = () => {
                 <ArrowLeft className="h-4 w-4" />
                 <span>Zpět na dashboard</span>
               </Button>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-xl font-bold text-neutral-900">
                 AI Asistent
               </h1>
               {currentConversation && (
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-neutral-500">
                   - {currentConversation.title}
                 </span>
               )}
@@ -271,7 +271,7 @@ const ChatPage: React.FC = () => {
                 variant="secondary"
                 size="sm"
                 onClick={() => setIsWorksheetModalOpen(true)}
-                className="flex items-center space-x-2 text-green-600 hover:text-green-700"
+                className="flex items-center space-x-2 text-success-700 hover:text-success-800"
                 disabled={user.credits_balance < 2}
               >
                 <FileText className="h-4 w-4" />
@@ -281,7 +281,7 @@ const ChatPage: React.FC = () => {
                 variant="secondary"
                 size="sm"
                 onClick={startNewChat}
-                className="flex items-center space-x-2 text-blue-600 hover:text-blue-700"
+                className="flex items-center space-x-2 text-primary-600 hover:text-primary-700"
               >
                 <Plus className="h-4 w-4" />
                 <span>Nový chat</span>
@@ -291,7 +291,7 @@ const ChatPage: React.FC = () => {
                   variant="secondary"
                   size="sm"
                   onClick={clearChatHistory}
-                  className="text-red-600 hover:text-red-700"
+                  className="text-danger-600 hover:text-danger-700"
                 >
                   Vymazat historii
                 </Button>
@@ -301,14 +301,14 @@ const ChatPage: React.FC = () => {
 
           {/* Error message */}
           {error && (
-            <div className="mx-4 mt-4 flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md">
-              <AlertCircle className="h-5 w-5 text-red-500" />
-              <span className="text-sm text-red-700">{error}</span>
+            <div className="mx-4 mt-4 flex items-center space-x-2 p-3 bg-danger-50 border border-danger-200 rounded-md">
+              <AlertCircle className="h-5 w-5 text-danger-500" />
+              <span className="text-sm text-danger-700">{error}</span>
             </div>
           )}
 
           {/* Chat container */}
-          <div className="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm mx-4 my-4 flex flex-col">
+          <div className="flex-1 bg-white border border-neutral-200 rounded-lg shadow-soft mx-4 my-4 flex flex-col">
             <ChatWindow 
               messages={messages} 
               onCopyMessage={handleCopyMessage}
@@ -323,10 +323,10 @@ const ChatPage: React.FC = () => {
 
           {/* Credit warning */}
           {user.credits_balance < 1 && (
-            <div className="mx-4 mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <div className="mx-4 mb-4 p-4 bg-warning-50 border border-warning-200 rounded-md">
               <div className="flex items-center space-x-2">
-                <AlertCircle className="h-5 w-5 text-yellow-500" />
-                <span className="text-sm text-yellow-700">
+                <AlertCircle className="h-5 w-5 text-warning-600" />
+                <span className="text-sm text-warning-800">
                   Nemáte dostatek kreditů pro odeslání zprávy. Každá zpráva stojí 1 kredit.
                 </span>
               </div>

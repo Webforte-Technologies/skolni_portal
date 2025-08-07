@@ -30,17 +30,17 @@ const WorksheetGeneratorModal: React.FC<WorksheetGeneratorModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="bg-white rounded-xl shadow-floating max-w-md w-full mx-4">
+        <div className="flex items-center justify-between p-6 border-b border-neutral-200">
           <div className="flex items-center space-x-3">
-            <FileText className="h-6 w-6 text-blue-600" />
+            <FileText className="h-6 w-6 text-primary-600" />
             <h2 className="text-xl font-semibold text-gray-900">
               Vygenerovat cvičení
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-neutral-400 hover:text-neutral-600 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -57,13 +57,13 @@ const WorksheetGeneratorModal: React.FC<WorksheetGeneratorModalProps> = ({
               required
               disabled={isLoading}
             />
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-neutral-500 mt-2">
               Zadejte téma, na které chcete vygenerovat cvičení. AI vytvoří 10 různých otázek s odpověďmi.
             </p>
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-neutral-600">
               <span className="font-medium">Cena:</span> 2 kredity
             </div>
             <div className="flex space-x-3">

@@ -27,7 +27,7 @@ const MessageInput: React.FC<MessageInputProps> = React.memo(({ onSendMessage, i
   }, [handleSubmit]);
 
   return (
-    <div className="border-t border-gray-200 p-4">
+    <div className="border-t border-neutral-200 p-4">
       <form onSubmit={handleSubmit} className="flex space-x-3">
         <div className="flex-1">
           <textarea
@@ -35,7 +35,7 @@ const MessageInput: React.FC<MessageInputProps> = React.memo(({ onSendMessage, i
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Napište svůj dotaz..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+            className="w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
             rows={3}
             disabled={isLoading || disabled}
           />

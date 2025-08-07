@@ -22,12 +22,12 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
 
   return (
     <div className={cn(
-      'flex items-start space-x-3 mb-4',
+      'flex items-start space-x-3 mb-4 animate-slide-up',
       isUser ? 'justify-end' : 'justify-start'
     )}>
       {!isUser && (
         <div className="flex-shrink-0">
-          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-sm">
+          <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center shadow-soft">
             <Bot className="h-6 w-6 text-white" />
           </div>
         </div>
@@ -36,8 +36,8 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
       <div className={cn(
         'max-w-xs lg:max-w-md px-4 py-3 rounded-lg relative group',
         isUser 
-          ? 'bg-blue-600 text-white' 
-          : 'bg-white border border-gray-200 text-gray-900 shadow-sm'
+          ? 'bg-primary-600 text-white' 
+          : 'bg-white border border-neutral-200 text-neutral-900 shadow-sm'
       )}>
         <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
         
@@ -51,9 +51,9 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
               className="h-6 w-6 p-0 bg-white bg-opacity-90 hover:bg-opacity-100"
             >
               {isCopied ? (
-                <Check className="h-3 w-3 text-green-600" />
+                <Check className="h-3 w-3 text-success-600" />
               ) : (
-                <Copy className="h-3 w-3 text-gray-600" />
+                <Copy className="h-3 w-3 text-neutral-600" />
               )}
             </Button>
           </div>
@@ -62,7 +62,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
         {/* Timestamp */}
         <div className={cn(
           'text-xs mt-2',
-          isUser ? 'text-blue-100' : 'text-gray-500'
+          isUser ? 'text-primary-100' : 'text-neutral-500'
         )}>
           {new Date(message.timestamp).toLocaleTimeString('cs-CZ', {
             hour: '2-digit',
@@ -73,7 +73,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
       
       {isUser && (
         <div className="flex-shrink-0">
-          <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center shadow-sm">
+          <div className="w-10 h-10 bg-neutral-600 rounded-full flex items-center justify-center shadow-soft">
             <User className="h-6 w-6 text-white" />
           </div>
         </div>
