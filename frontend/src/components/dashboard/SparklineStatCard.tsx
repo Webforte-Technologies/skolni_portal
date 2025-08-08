@@ -17,8 +17,8 @@ const SparklineStatCard: React.FC<SparklineStatCardProps> = ({ title, value, dat
           <div className="text-sm text-neutral-500 dark:text-neutral-300">{title}</div>
           <div className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">{value}</div>
         </div>
-        <div className="h-10 w-24">
-          <Sparklines data={data} svgWidth={96} svgHeight={40} margin={4}>
+        <div className="h-10 w-24 overflow-hidden">
+          <Sparklines data={data} width={96} height={40} margin={4}>
             <SparklinesLine style={{ stroke: color, fill: 'none' }} />
           </Sparklines>
         </div>

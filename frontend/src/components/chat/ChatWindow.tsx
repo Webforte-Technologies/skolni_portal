@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { ChatMessage } from '../../types';
 import Message from './Message';
-import { Virtuoso } from 'react-virtuoso';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 interface ChatWindowProps {
   messages: ChatMessage[];
@@ -11,34 +11,27 @@ interface ChatWindowProps {
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMessage, copiedMessageId, isTyping = false }) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<VirtuosoHandle>(null);
   const [isNearBottom, setIsNearBottom] = useState(true);
 
+  // Group messages early so hooks below can depend on it safely
+  const grouped = useMemo(() => {
+    return messages.map((m, i) => {
+      const prev = i > 0 ? messages[i - 1] : undefined;
+      const next = i < messages.length - 1 ? messages[i + 1] : undefined;
+      return {
+        ...m,
+        showLeftAvatar: !m.isUser && (!prev || prev.isUser !== m.isUser),
+        showRightAvatar: m.isUser && (!prev || prev.isUser !== m.isUser),
+        isFirstOfGroup: !prev || prev.isUser !== m.isUser,
+        isLastOfGroup: !next || next.isUser !== m.isUser,
+      } as ChatMessage & { showLeftAvatar: boolean; showRightAvatar: boolean; isFirstOfGroup: boolean; isLastOfGroup: boolean };
+    });
+  }, [messages]);
+
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  const handleScroll = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const threshold = 80; // px from bottom considered "near bottom"
-    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    setIsNearBottom(distanceFromBottom < threshold);
-  }, []);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    el.addEventListener('scroll', handleScroll);
-    return () => {
-      el.removeEventListener('scroll', handleScroll);
-    };
-  }, [handleScroll]);
+    listRef.current?.scrollToIndex({ index: Math.max(0, grouped.length - 1), behavior: 'smooth' });
+  }, [grouped.length]);
 
   // Optional: day separator util
   const shouldShowDate = (current: ChatMessage, previous?: ChatMessage) => {
@@ -58,23 +51,10 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
     return d.toLocaleDateString('cs-CZ');
   };
 
-  const grouped = useMemo(() => {
-    // Group consecutive messages by author for avatar grouping
-    return messages.map((m, i) => {
-      const prev = i > 0 ? messages[i - 1] : undefined;
-      const next = i < messages.length - 1 ? messages[i + 1] : undefined;
-      return {
-        ...m,
-        showLeftAvatar: !m.isUser && (!prev || prev.isUser !== m.isUser),
-        showRightAvatar: m.isUser && (!prev || prev.isUser !== m.isUser),
-        isFirstOfGroup: !prev || prev.isUser !== m.isUser,
-        isLastOfGroup: !next || next.isUser !== m.isUser,
-      } as ChatMessage & { showLeftAvatar: boolean; showRightAvatar: boolean; isFirstOfGroup: boolean; isLastOfGroup: boolean };
-    });
-  }, [messages]);
+  
 
   return (
-    <div ref={containerRef} className="relative flex-1 min-h-0 bg-white dark:bg-neutral-950">
+    <div className="relative flex-1 min-h-0 bg-white dark:bg-neutral-950">
       {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
@@ -94,8 +74,11 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
       ) : (
         <div className="h-full min-h-0 flex flex-col">
           <Virtuoso
+            ref={listRef}
             style={{ height: '100%' }}
             data={grouped}
+            followOutput={isNearBottom ? 'smooth' : false}
+            atBottomStateChange={(atBottom) => setIsNearBottom(atBottom)}
             itemContent={(index, message) => {
               const prev = index > 0 ? grouped[index - 1] : undefined;
               return (
@@ -117,24 +100,29 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
                 </div>
               );
             }}
+            components={{
+              Footer: () => (
+                isTyping ? (
+                  <div className="px-4 py-2">
+                    <div className="flex items-start space-x-3 mb-4">
+                      <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center shadow-soft">
+                        <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <circle cx="12" cy="12" r="10" strokeWidth="1.5" />
+                        </svg>
+                      </div>
+                      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 shadow-sm px-4 py-3 rounded-lg">
+                        <div className="flex space-x-1">
+                          <span className="w-2 h-2 bg-neutral-400 dark:bg-neutral-600 rounded-full animate-bounce [animation-delay:0ms]" />
+                          <span className="w-2 h-2 bg-neutral-400 dark:bg-neutral-600 rounded-full animate-bounce [animation-delay:150ms]" />
+                          <span className="w-2 h-2 bg-neutral-400 dark:bg-neutral-600 rounded-full animate-bounce [animation-delay:300ms]" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : null
+              )
+            }}
           />
-          {isTyping && (
-            <div className="flex items-start space-x-3 mb-4">
-              <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center shadow-soft">
-                <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10" strokeWidth="1.5" />
-                </svg>
-              </div>
-              <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 shadow-sm px-4 py-3 rounded-lg">
-                <div className="flex space-x-1">
-                  <span className="w-2 h-2 bg-neutral-400 dark:bg-neutral-600 rounded-full animate-bounce [animation-delay:0ms]" />
-                  <span className="w-2 h-2 bg-neutral-400 dark:bg-neutral-600 rounded-full animate-bounce [animation-delay:150ms]" />
-                  <span className="w-2 h-2 bg-neutral-400 dark:bg-neutral-600 rounded-full animate-bounce [animation-delay:300ms]" />
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
           {!isNearBottom && (
             <button
               type="button"

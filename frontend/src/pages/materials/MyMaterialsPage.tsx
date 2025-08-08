@@ -9,6 +9,9 @@ import Card from '../../components/ui/Card';
 import InputField from '../../components/ui/InputField';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
+import Header from '../../components/layout/Header';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 interface GeneratedFile {
   id: string;
@@ -30,6 +33,7 @@ interface Worksheet {
 const MyMaterialsPage: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFile, setSelectedFile] = useState<GeneratedFile | null>(null);
   const [showWorksheet, setShowWorksheet] = useState(false);
@@ -40,7 +44,7 @@ const MyMaterialsPage: React.FC = () => {
   const { data: filesData, isLoading, error, refetch } = useQuery(
     ['user-files'],
     async () => {
-      const response = await apiClient.get('/api/files');
+      const response = await apiClient.get('/files');
       return response.data;
     },
     {
@@ -69,7 +73,7 @@ const MyMaterialsPage: React.FC = () => {
 
   const handleDeleteFile = async (file: GeneratedFile) => {
     try {
-      await apiClient.delete(`/api/files/${file.id}`);
+      await apiClient.delete(`/files/${file.id}`);
       showToast('Soubor byl úspěšně smazán', 'success');
       refetch();
     } catch (error) {
@@ -110,16 +114,19 @@ const MyMaterialsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-white dark:bg-neutral-900">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+            <div className="h-8 bg-neutral-200 dark:bg-neutral-800 rounded w-1/4 mb-6"></div>
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+                <div key={i} className="h-24 bg-neutral-200 dark:bg-neutral-800 rounded"></div>
               ))}
             </div>
           </div>
+        </div>
         </div>
       </div>
     );
@@ -127,13 +134,14 @@ const MyMaterialsPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-white dark:bg-neutral-900">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
               Chyba při načítání materiálů
             </h2>
-            <p className="text-gray-600 mb-4">
+            <p className="text-neutral-600 dark:text-neutral-300 mb-4">
               Nepodařilo se načíst vaše vygenerované materiály.
             </p>
             <Button onClick={() => refetch()}>
@@ -146,22 +154,34 @@ const MyMaterialsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white dark:bg-neutral-900">
+      <Header />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Zpět na dashboard</span>
+          </Button>
+        </div>
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
                 Moje materiály
               </h1>
-              <p className="text-gray-600 mt-2">
+              <p className="text-neutral-600 dark:text-neutral-300 mt-2">
                 Zde najdete všechny vaše vygenerované cvičení a materiály
               </p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                 <InputField
                   type="text"
                   placeholder="Hledat materiály..."
@@ -181,8 +201,8 @@ const MyMaterialsPage: React.FC = () => {
               <div className="flex items-center">
                 <FileText className="h-8 w-8 text-blue-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Celkem materiálů</p>
-                  <p className="text-2xl font-bold text-gray-900">{files.length}</p>
+                  <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">Celkem materiálů</p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">{files.length}</p>
                 </div>
               </div>
             </div>
@@ -192,8 +212,8 @@ const MyMaterialsPage: React.FC = () => {
               <div className="flex items-center">
                 <Calendar className="h-8 w-8 text-green-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Vytvořeno tento měsíc</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">Vytvořeno tento měsíc</p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
                     {files.filter((file: GeneratedFile) => {
                       const fileDate = new Date(file.created_at);
                       const now = new Date();
@@ -210,8 +230,8 @@ const MyMaterialsPage: React.FC = () => {
               <div className="flex items-center">
                 <Download className="h-8 w-8 text-purple-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Cvičení</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">Cvičení</p>
+                  <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
                     {files.filter((file: GeneratedFile) => file.file_type === 'worksheet').length}
                   </p>
                 </div>
@@ -224,11 +244,11 @@ const MyMaterialsPage: React.FC = () => {
         {filteredFiles.length === 0 ? (
           <Card>
             <div className="p-12 text-center">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
                 {searchTerm ? 'Žádné materiály nenalezeny' : 'Zatím nemáte žádné materiály'}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-neutral-600 dark:text-neutral-300">
                 {searchTerm 
                   ? 'Zkuste změnit vyhledávací termín'
                   : 'Začněte generovat cvičení v chat rozhraní'
@@ -249,10 +269,10 @@ const MyMaterialsPage: React.FC = () => {
                           {file.file_type === 'worksheet' ? 'Cvičení' : file.file_type}
                         </span>
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                      <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2 line-clamp-2">
                         {file.title}
                       </h3>
-                      <p className="text-sm text-gray-500 mb-4">
+                      <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
                         Vytvořeno: {formatDate(file.created_at)}
                       </p>
                     </div>

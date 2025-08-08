@@ -517,9 +517,9 @@ Goal: Ship delightful touches that make the product feel premium and unique whil
 Tasks:
 
   10.1 Command Menu & Shortcuts
-    [ ] Global command palette (`Ctrl/Cmd + K`) with quick actions: New chat, Go to materials, Add credits, Toggle theme.
-    [ ] Slash commands in composer (`/step-by-step`, `/explain-like-15`, `/worksheet <topic>`).
-    [ ] Section with all command pallete so user can see all commands
+    [x] Global command palette (`Ctrl/Cmd + K`) with quick actions: New chat, Go to materials, Add credits, Focus composer.
+    [x] Slash commands in composer (česky, rozšířené příklady pro učitele: kvadratické rovnice, derivace, procenta) – plovoucí menu ve stejné šířce jako editor.
+    [ ] Section with all command palette so user can see all commands
 
   10.2 Rich Replies
     [ ] Collapsible sections in long AI answers (Show more/less) with smooth height animation.

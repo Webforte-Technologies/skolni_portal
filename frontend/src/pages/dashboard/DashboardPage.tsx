@@ -240,7 +240,7 @@ const DashboardPage: React.FC = () => {
                   </span>
                 </div>
                 {/* 9.7.3 Sparkline cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 items-stretch">
                   <SparklineStatCard title="Týdenní aktivita" value={42} />
                   <SparklineStatCard title="Počet zpráv" value={128} color="#10b981" />
                   <SparklineStatCard title="Vytvořená cvičení" value={8} color="#a78bfa" />

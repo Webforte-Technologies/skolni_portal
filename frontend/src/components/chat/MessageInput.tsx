@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useImperativeHandle } from 'react';
 import { Send, Loader2, CornerDownLeft, FilePlus2, Wand2 } from 'lucide-react';
 import Button from '../ui/Button';
+import SlashCommandsMenu from './SlashCommandsMenu';
 
 export interface MessageInputHandle {
   focus: () => void;
@@ -18,6 +19,8 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
   const [message, setMessage] = useState('');
   const [rows, setRows] = useState(3);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [slashOpen, setSlashOpen] = useState(false);
+  const [slashQuery, setSlashQuery] = useState('');
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +53,15 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
                 const lineBreaks = (e.target.value.match(/\n/g) || []).length + 1;
                 const next = Math.min(7, Math.max(3, lineBreaks));
                 setRows(next);
+                const val = e.target.value;
+                const cursor = e.target.selectionStart || val.length;
+                const slashIndex = val.lastIndexOf('/', cursor - 1);
+                if (slashIndex >= 0 && (slashIndex === 0 || val[slashIndex - 1] === '\n' || val[slashIndex - 1] === ' ')) {
+                  setSlashOpen(true);
+                  setSlashQuery(val.substring(slashIndex + 1, cursor).trim());
+                } else {
+                  setSlashOpen(false);
+                }
               }}
               onKeyPress={handleKeyPress}
               placeholder="Napište svůj dotaz..."
@@ -61,6 +73,16 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
               <CornerDownLeft className="h-3 w-3" />
               <span>Send</span>
             </div>
+            {slashOpen && (
+              <SlashCommandsMenu
+                query={slashQuery}
+                onSelect={(text) => {
+                  setMessage(prev => (prev.replace(/\/?[^\s]*$/, '').trimEnd() + '\n' + text));
+                  setSlashOpen(false);
+                  setTimeout(() => textareaRef.current?.focus(), 0);
+                }}
+              />
+            )}
           </div>
           <div className="mt-2 flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
             <Wand2 className="h-3 w-3" />
