@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
 import ConfirmModal from '../ui/ConfirmModal';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   if (!user) return null;
@@ -20,21 +22,28 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo and title */}
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-neutral-100">
                 EduAI-Asistent
               </h1>
             </div>
 
             {/* User info and logout */}
             <div className="flex items-center space-x-4">
+              <button
+                onClick={toggleTheme}
+                className="rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
               <div className="flex items-center space-x-2">
-                <User className="h-5 w-5 text-gray-400" />
-                <span className="text-sm text-gray-700">
+                <User className="h-5 w-5 text-gray-400 dark:text-neutral-400" />
+                <span className="text-sm text-gray-700 dark:text-neutral-100">
                   {user.first_name} {user.last_name}
                 </span>
               </div>

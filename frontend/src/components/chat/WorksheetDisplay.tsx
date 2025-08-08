@@ -1,7 +1,6 @@
 import React from 'react';
 import { FileText, Printer, X, CheckCircle, Download } from 'lucide-react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+// Defer heavy libs via dynamic import for performance
 import Button from '../ui/Button';
 
 interface Question {
@@ -34,6 +33,10 @@ const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose 
 
   const handleDownloadPDF = async () => {
     try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas')
+      ]);
       const worksheetElement = document.getElementById('worksheet-print');
       if (!worksheetElement) {
         console.error('Worksheet element not found');

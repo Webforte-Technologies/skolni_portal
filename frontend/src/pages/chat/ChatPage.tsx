@@ -13,7 +13,7 @@ import WorksheetGeneratorModal from '../../components/chat/WorksheetGeneratorMod
 import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
 import ChatSidebar from '../../components/chat/ChatSidebar';
 import { ChatMessage, Conversation, ConversationWithMessages } from '../../types';
-import { AlertCircle, ArrowLeft, Copy, Check, Plus, FileText } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Copy, Check, Plus, FileText, Menu } from 'lucide-react';
 import Button from '../../components/ui/Button';
 
 const ChatPage: React.FC = () => {
@@ -30,6 +30,7 @@ const ChatPage: React.FC = () => {
   const [generatedWorksheet, setGeneratedWorksheet] = useState<any>(null);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Load conversation history from localStorage
   useEffect(() => {
@@ -229,24 +230,56 @@ const ChatPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-muted dark:bg-neutral-900">
       <Header />
       
       <div className="flex h-[calc(100vh-64px)]">
-        {/* Sidebar */}
+        {/* Sidebar - desktop */}
         {showSidebar && (
-          <ChatSidebar
-            onConversationSelect={handleConversationSelect}
-            onNewConversation={startNewChat}
-            selectedConversationId={currentConversation?.id}
-          />
+          <div className="hidden md:block">
+            <ChatSidebar
+              onConversationSelect={handleConversationSelect}
+              onNewConversation={startNewChat}
+              selectedConversationId={currentConversation?.id}
+            />
+          </div>
+        )}
+        {/* Sidebar - mobile drawer */}
+        {isMobileSidebarOpen && (
+          <div className="fixed inset-0 z-40 md:hidden">
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setIsMobileSidebarOpen(false)}
+            />
+            <div className="absolute inset-y-0 left-0 w-80 bg-white shadow-2xl">
+              <ChatSidebar
+                onConversationSelect={(id) => {
+                  handleConversationSelect(id);
+                  setIsMobileSidebarOpen(false);
+                }}
+                onNewConversation={() => {
+                  startNewChat();
+                  setIsMobileSidebarOpen(false);
+                }}
+                selectedConversationId={currentConversation?.id}
+              />
+            </div>
+          </div>
         )}
         
         {/* Main chat area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           {/* Header with back button and credit balance */}
-          <div className="flex items-center justify-between p-4 border-b border-neutral-200 bg-white">
+          <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
             <div className="flex items-center space-x-4">
+              <button
+                type="button"
+                className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                onClick={() => setIsMobileSidebarOpen(true)}
+                aria-label="Open sidebar"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
               <Button
                 variant="secondary"
                 size="sm"
@@ -256,11 +289,11 @@ const ChatPage: React.FC = () => {
                 <ArrowLeft className="h-4 w-4" />
                 <span>Zpět na dashboard</span>
               </Button>
-              <h1 className="text-xl font-bold text-neutral-900">
+              <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
                 AI Asistent
               </h1>
               {currentConversation && (
-                <span className="text-sm text-neutral-500">
+                <span className="text-sm text-neutral-500 dark:text-neutral-300">
                   - {currentConversation.title}
                 </span>
               )}
@@ -308,11 +341,12 @@ const ChatPage: React.FC = () => {
           )}
 
           {/* Chat container */}
-          <div className="flex-1 bg-white border border-neutral-200 rounded-lg shadow-soft mx-4 my-4 flex flex-col">
+          <div className="flex-1 min-h-0 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-soft mx-4 my-4 flex flex-col">
             <ChatWindow 
               messages={messages} 
               onCopyMessage={handleCopyMessage}
               copiedMessageId={copiedMessageId}
+              isTyping={isLoading}
             />
             <MessageInput
               onSendMessage={handleSendMessage}

@@ -34,10 +34,10 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
       )}
       
       <div className={cn(
-        'max-w-xs lg:max-w-md px-4 py-3 rounded-lg relative group',
+        'max-w-xs md:max-w-md lg:max-w-2xl px-4 py-3 rounded-lg relative group',
         isUser 
           ? 'bg-primary-600 text-white' 
-          : 'bg-white border border-neutral-200 text-neutral-900 shadow-sm'
+          : 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 shadow-sm'
       )}>
         <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
         
@@ -62,7 +62,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
         {/* Timestamp */}
         <div className={cn(
           'text-xs mt-2',
-          isUser ? 'text-primary-100' : 'text-neutral-500'
+          isUser ? 'text-primary-100' : 'text-neutral-500 dark:text-neutral-400'
         )}>
           {new Date(message.timestamp).toLocaleTimeString('cs-CZ', {
             hour: '2-digit',

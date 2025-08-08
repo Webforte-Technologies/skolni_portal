@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 import PrivateRoute from './components/auth/PrivateRoute';
 import LoginPage from './pages/auth/LoginPage';
@@ -24,10 +25,11 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <AuthProvider>
-          <Router>
-            <div className="min-h-screen bg-gray-50 font-sans">
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <Router>
+              <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 font-sans">
               <Routes>
                 {/* Public routes */}
                 <Route path="/login" element={<LoginPage />} />
@@ -56,11 +58,11 @@ function App() {
                 {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
-            </div>
-          </Router>
-        </AuthProvider>
-
-      </ToastProvider>
+              </div>
+            </Router>
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
