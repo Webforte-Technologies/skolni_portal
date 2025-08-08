@@ -12,9 +12,13 @@ interface MessageProps {
   message: ChatMessage;
   onCopyMessage?: (messageId: string, content: string) => void;
   copiedMessageId?: string | null;
+  onDeleteMessage?: (messageId: string) => void;
+  onRegenerate?: (messageId: string) => void;
+  showLeftAvatar?: boolean;
+  showRightAvatar?: boolean;
 }
 
-const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, copiedMessageId }) => {
+const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, copiedMessageId, onDeleteMessage, onRegenerate, showLeftAvatar = true, showRightAvatar = true }) => {
   const isUser = message.isUser;
   const isCopied = copiedMessageId === message.id;
 
@@ -29,7 +33,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
       'flex items-start space-x-3 mb-4 animate-slide-up',
       isUser ? 'justify-end' : 'justify-start'
     )}>
-      {!isUser && (
+      {!isUser && showLeftAvatar && (
         <div className="flex-shrink-0">
           <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center shadow-soft">
             <Bot className="h-6 w-6 text-white" />
@@ -86,36 +90,46 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
         </div>
         
         {/* Copy button for AI messages */}
-        {!isUser && onCopyMessage && (
+        {!isUser && (
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleCopy}
-              className="h-6 w-6 p-0 bg-white bg-opacity-90 hover:bg-opacity-100"
-            >
-              {isCopied ? (
-                <Check className="h-3 w-3 text-success-600" />
-              ) : (
-                <Copy className="h-3 w-3 text-neutral-600" />
+            <div className="flex space-x-1">
+              {onCopyMessage && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleCopy}
+                  className="h-6 w-6 p-0 bg-white bg-opacity-90 hover:bg-opacity-100"
+                >
+                  {isCopied ? (
+                    <Check className="h-3 w-3 text-success-600" />
+                  ) : (
+                    <Copy className="h-3 w-3 text-neutral-600" />
+                  )}
+                </Button>
               )}
-            </Button>
+              {onRegenerate && (
+                <Button variant="secondary" size="sm" onClick={() => onRegenerate(message.id)} className="h-6 w-6 p-0">↻</Button>
+              )}
+              {onDeleteMessage && (
+                <Button variant="secondary" size="sm" onClick={() => onDeleteMessage(message.id)} className="h-6 w-6 p-0">×</Button>
+              )}
+            </div>
           </div>
         )}
         
         {/* Timestamp */}
-        <div className={cn(
-          'text-xs mt-2',
-          isUser ? 'text-primary-100' : 'text-neutral-500 dark:text-neutral-400'
-        )}>
-          {new Date(message.timestamp).toLocaleTimeString('cs-CZ', {
-            hour: '2-digit',
-            minute: '2-digit'
-          })}
+        <div
+          className={cn(
+            'absolute -bottom-5 right-0 text-[11px] opacity-0 group-hover:opacity-100 transition-opacity',
+            isUser ? 'text-primary-100' : 'text-neutral-500 dark:text-neutral-400'
+          )}
+          title={new Date(message.timestamp).toLocaleString('cs-CZ')}
+        >
+          {new Date(message.timestamp).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
       
-      {isUser && (
+      {isUser && showRightAvatar && (
         <div className="flex-shrink-0">
           <div className="w-10 h-10 bg-neutral-600 rounded-full flex items-center justify-center shadow-soft">
             <User className="h-6 w-6 text-white" />

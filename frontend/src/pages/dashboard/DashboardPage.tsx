@@ -8,6 +8,8 @@ import Header from '../../components/layout/Header';
 import CreditBalance from '../../components/dashboard/CreditBalance';
 import AssistantCard from '../../components/dashboard/AssistantCard';
 import EditProfileModal from '../../components/dashboard/EditProfileModal';
+import DashboardHero from '../../components/dashboard/DashboardHero';
+import SparklineStatCard from '../../components/dashboard/SparklineStatCard';
 import { AIFeature } from '../../types';
 import { 
   Loader2, 
@@ -68,23 +70,9 @@ const DashboardPage: React.FC = () => {
     <div className="min-h-screen bg-white dark:bg-neutral-900">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome section */}
-        <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <div className="p-2 bg-blue-100 dark:bg-neutral-800 rounded-lg">
-              <Sparkles className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-neutral-100">
-                Vítejte, {user.first_name}!
-              </h1>
-              <p className="text-gray-600 dark:text-neutral-300 mt-1">
-                Vyberte si AI asistenta pro pomoc s vaší výukou
-              </p>
-            </div>
-          </div>
-        </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* 9.7.1 Hero Header */}
+        <DashboardHero credits={user.credits_balance} />
 
         {/* Quick Navigation */}
         <div className="mb-8">
@@ -250,6 +238,12 @@ const DashboardPage: React.FC = () => {
                     <Activity className="h-3 w-3 mr-1" />
                     Aktivní
                   </span>
+                </div>
+                {/* 9.7.3 Sparkline cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                  <SparklineStatCard title="Týdenní aktivita" value={42} />
+                  <SparklineStatCard title="Počet zpráv" value={128} color="#10b981" />
+                  <SparklineStatCard title="Vytvořená cvičení" value={8} color="#a78bfa" />
                 </div>
               </div>
             </Card>

@@ -8,12 +8,12 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 const Card: React.FC<CardProps> = ({ children, title, className, ...props }) => {
   return (
     <div
-      className={cn('bg-white rounded-lg border border-gray-200 shadow-sm', className)}
+      className={cn('bg-white dark:bg-neutral-950 rounded-card border border-neutral-200 dark:border-neutral-800 shadow-soft', className)}
       {...props}
     >
       {title && (
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+        <div className="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
+          <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">{title}</h3>
         </div>
       )}
       <div className="p-6">

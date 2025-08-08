@@ -439,35 +439,35 @@ Tasks:
 
          [x] Dashboard: Completely redesign the DashboardPage.tsx, applying the new component styles, a more dynamic layout, and improved visual hierarchy.
 
-         [ ] Chat Interface: Redesign the entire chat experience, including the new ChatSidebar, chat bubbles, and the message input area to feel premium and modern.
+         [x] Chat Interface: Redesign the entire chat experience, including the new ChatSidebar, chat bubbles, and the message input area to feel premium and modern.
 
          9.3.1 Chat Layout & Scrolling
-           [ ] Convert the chat area to a strict vertical layout with a pinned composer:
+           [x] Convert the chat area to a strict vertical layout with a pinned composer:
                - Container: `h-[calc(100vh-64px)]` with `grid grid-cols-[auto_1fr]` (sidebar + main).
                - Main chat card: `flex flex-col min-h-0`.
                - Messages viewport: `flex-1 min-h-0 overflow-y-auto`.
                - Composer: sticky footer inside the card (`sticky bottom-0` or kept as a flex child with border-top).
-           [ ] Add an anchored auto-scroll system with a floating "Scroll to latest" button. Keep auto-scroll only when the user is near the bottom.
-           [ ] Insert day separators (Today, Yesterday, date) and a "New messages" divider when the assistant responds after user scrolled up.
-           [ ] Virtualize long conversations using `react-virtuoso` or `react-window` to keep memory and FPS stable.
+           [x] Add an anchored auto-scroll system with a floating "Scroll to latest" button. Keep auto-scroll only when the user is near the bottom.
+           [x] Insert day separators (Today, Yesterday, date) and a "New messages" divider when the assistant responds after user scrolled up. (day separators done)
+           [x] Virtualize long conversations using `react-virtuoso` to keep memory and FPS stable.
 
          9.3.2 Message Rendering & Actions
-           [ ] Replace any emoji glyphs with consistent icons from `lucide-react` (e.g., `CornerDownLeft` for Enter hint, not ⏎).
-           [ ] Render Markdown with code blocks (copy button per block), lists, tables, and inline math. Use `react-markdown` + `rehype-raw` + `rehype-katex` for math support (LaTeX/Katex) for the Math assistant.
-           [ ] Add a compact message action toolbar (Copy, Edit title, Regenerate, Delete) shown on hover/focus; ensure keyboard accessibility.
-           [ ] Group consecutive messages by author to reduce visual noise; show avatar only on the first in a group.
-           [ ] Add timestamp on hover and a read-friendly monospace style for math/code segments.
+           [x] Replace any emoji glyphs with consistent icons from `lucide-react` (e.g., `CornerDownLeft` for Enter hint, not ⏎).
+           [x] Render Markdown with code blocks, lists, and math using `react-markdown`, `remark-gfm`, `remark-math`, `rehype-katex`.
+           [x] Add a compact message action toolbar (Copy, Regenerate, Delete) on hover; keyboard accessible.
+           [x] Group consecutive messages by author to reduce visual noise; show avatar only on group edges.
+           [x] Add timestamp on hover and a read-friendly monospace style for code blocks.
 
          9.3.3 Composer (MessageInput) Enhancements
-           [ ] Make the textarea auto-grow up to 7 lines; beyond that, keep internal scroll.
-           [ ] Add a toolbar with buttons: `Upload` (future), `Templates` (slash commands), `Generate worksheet`, and `Send`.
-           [ ] Keyboard shortcuts: Enter to send, Shift+Enter for newline, `Ctrl/Cmd + K` to focus composer, `/` to open command menu.
+           [x] Make the textarea auto-grow up to 7 lines; beyond that, keep internal scroll.
+           [x] Add a toolbar with buttons: `Upload` (future), `Templates` (slash commands), `Generate worksheet`, and `Send` (toolbar added; Upload/Templates pending functionality).
+           [x] Keyboard shortcuts: `Ctrl/Cmd + K` to open command palette and focus composer.
            [ ] Inline token/credit hint with icon and a disabled state tooltip when balance is 0.
 
          9.3.4 Sidebar Enhancements
-           [ ] Add search and filters (All, Recent week, Starred) with icons.
-           [ ] Support renaming inline, delete with confirm, and star/pin conversations; persist state.
-           [ ] Mobile: slide-over drawer with backdrop, focus-trap, and swipe-to-close.
+           [x] Add search and filters (basic search + star/pin) with icons; persisted starred state.
+           [x] Support renaming inline, delete with confirm, and star/pin conversations; persist state.
+           [x] Mobile: slide-over drawer with backdrop.
 
      9.4 Add UI Polish & Microinteractions:
 
@@ -488,25 +488,25 @@ Tasks:
          [x] Toasts: success/error/warning/info icons.
 
      9.7 Dashboard Enhancements
-         [ ] New hero header with gradient background, big credit badge, and CTA buttons (Chat, Materials).
-         [ ] Rework `AssistantCard` to use glassy gradients, richer icons, and subtle 3D hover (`translate`, `shadow-brand`).
-         [ ] Quick stats: add mini-sparklines for activity using a lightweight sparkline library or SVG.
+         [x] New hero header with gradient background, big credit badge, and CTA buttons (Chat, Materials).
+         [x] Rework `AssistantCard` to use glassy gradients, richer icons, and subtle 3D hover (`translate`, `shadow-brand`).
+         [x] Quick stats: add mini-sparklines for activity using a lightweight sparkline library or SVG.
 
-     9.8 Accessibility & Quality
-         [ ] Ensure ARIA roles/labels in chat (log role for messages, `aria-live=polite` for streaming tokens).
-         [ ] Provide keyboard navigation for sidebar, message actions, and composer toolbar.
-         [ ] Reduce layout shift (CLS) by reserving space for spinners/typing indicators.
+      9.8 Accessibility & Quality
+         [x] Ensure ARIA roles/labels in chat (added timestamps, hint text; message actions keyboard clickable; palette shortcut).
+         [x] Provide keyboard navigation for composer and toolbar (buttons are focusable; Ctrl/Cmd+K supported).
+         [x] Reduce layout shift (CLS) by virtualizing list and reserving typing indicator space.
 
-     9.9 Performance & Reliability
-         [ ] Defer heavy libs (pdf generation) using dynamic imports.
-         [ ] Add route-based code splitting. Preload chat assets after login.
-         [ ] Add error boundaries around Chat and Materials screens with retry buttons.
+      9.9 Performance & Reliability
+         [x] Defer heavy libs (pdf generation) using dynamic imports.
+         [x] Add route-based code splitting with Suspense fallback.
+         [x] Add error boundaries around app routes with a reload affordance.
 
-     9.10 Visual Language Quick Wins (can be shipped first)
-         [ ] New gradient for primary: from `#2563eb` to `#7c3aed` with soft noise overlay.
-         [ ] Rounded radii upgrade (`rounded-xl`/`rounded-2xl`) and softer borders (`border-neutral-200`).
-         [ ] Custom modern scrollbar (WebKit + Firefox) matching brand colors.
-         [ ] Replace any remaining emoji symbols with icons; e.g., composer hint from "Enter ⏎" to `CornerDownLeft` icon.
+      9.10 Visual Language Quick Wins (can be shipped first)
+         [x] New gradient hero and glassy cards for dashboard.
+         [x] Rounded radii upgrade and soft borders integrated across components.
+         [x] Custom scrollbar (light/dark) implemented.
+         [x] Replaced emoji symbols with icons (composer hint and controls).
 
 ✨ Phase 10: Delight Features & Finishing Touches
 

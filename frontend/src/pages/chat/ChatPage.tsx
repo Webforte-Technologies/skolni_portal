@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -7,11 +7,13 @@ import { streamingService } from '../../services/streamingService';
 import { conversationService } from '../../services/conversationService';
 import Header from '../../components/layout/Header';
 import ChatWindow from '../../components/chat/ChatWindow';
-import MessageInput from '../../components/chat/MessageInput';
+import MessageInput, { MessageInputHandle } from '../../components/chat/MessageInput';
 import CreditBalance from '../../components/dashboard/CreditBalance';
 import WorksheetGeneratorModal from '../../components/chat/WorksheetGeneratorModal';
 import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
 import ChatSidebar from '../../components/chat/ChatSidebar';
+import ComposerToolbar from '../../components/chat/ComposerToolbar';
+import CommandPalette from '../../components/chat/CommandPalette';
 import { ChatMessage, Conversation, ConversationWithMessages } from '../../types';
 import { AlertCircle, ArrowLeft, Copy, Check, Plus, FileText, Menu } from 'lucide-react';
 import Button from '../../components/ui/Button';
@@ -31,6 +33,8 @@ const ChatPage: React.FC = () => {
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [showSidebar, setShowSidebar] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
+  const composerRef = useRef<MessageInputHandle | null>(null);
 
   // Load conversation history from localStorage
   useEffect(() => {
@@ -59,6 +63,19 @@ const ChatPage: React.FC = () => {
       localStorage.setItem('chatMessages', JSON.stringify(messages));
     }
   }, [messages]);
+
+  // Keyboard shortcuts: Ctrl/Cmd + K to open palette
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const isCmdK = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k';
+      if (isCmdK) {
+        e.preventDefault();
+        setIsCmdPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const handleSendMessage = async (content: string) => {
     if (!user) return;
@@ -227,6 +244,16 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  const handleAddCreditsShortcut = async () => {
+    try {
+      const result = await authService.addDemoCredits();
+      updateUser(result.user);
+      showToast({ type: 'success', message: `Přidáno ${result.credits_added} demo kreditů!` });
+    } catch (e) {
+      showToast({ type: 'error', message: 'Nepodařilo se přidat kredity.' });
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -348,10 +375,16 @@ const ChatPage: React.FC = () => {
               copiedMessageId={copiedMessageId}
               isTyping={isLoading}
             />
+            <ComposerToolbar
+              onGenerateWorksheet={() => setIsWorksheetModalOpen(true)}
+              disabled={user.credits_balance < 2}
+            />
             <MessageInput
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
               disabled={user.credits_balance < 1}
+              disabledReason={user.credits_balance < 1 ? 'Nemáte dostatek kreditů' : undefined}
+              ref={composerRef}
             />
           </div>
 
@@ -384,6 +417,16 @@ const ChatPage: React.FC = () => {
           onClose={() => setGeneratedWorksheet(null)}
         />
       )}
+
+      {/* Command Palette */}
+      <CommandPalette
+        isOpen={isCmdPaletteOpen}
+        onClose={() => setIsCmdPaletteOpen(false)}
+        onNewChat={startNewChat}
+        onGoMaterials={() => navigate('/materials')}
+        onAddCredits={handleAddCreditsShortcut}
+        onFocusComposer={() => composerRef.current?.focus()}
+      />
     </div>
   );
 };

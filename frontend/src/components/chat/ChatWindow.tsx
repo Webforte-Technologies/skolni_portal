@@ -1,6 +1,7 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { ChatMessage } from '../../types';
 import Message from './Message';
+import { Virtuoso } from 'react-virtuoso';
 
 interface ChatWindowProps {
   messages: ChatMessage[];
@@ -57,8 +58,23 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
     return d.toLocaleDateString('cs-CZ');
   };
 
+  const grouped = useMemo(() => {
+    // Group consecutive messages by author for avatar grouping
+    return messages.map((m, i) => {
+      const prev = i > 0 ? messages[i - 1] : undefined;
+      const next = i < messages.length - 1 ? messages[i + 1] : undefined;
+      return {
+        ...m,
+        showLeftAvatar: !m.isUser && (!prev || prev.isUser !== m.isUser),
+        showRightAvatar: m.isUser && (!prev || prev.isUser !== m.isUser),
+        isFirstOfGroup: !prev || prev.isUser !== m.isUser,
+        isLastOfGroup: !next || next.isUser !== m.isUser,
+      } as ChatMessage & { showLeftAvatar: boolean; showRightAvatar: boolean; isFirstOfGroup: boolean; isLastOfGroup: boolean };
+    });
+  }, [messages]);
+
   return (
-    <div ref={containerRef} className="relative flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-neutral-950">
+    <div ref={containerRef} className="relative flex-1 min-h-0 bg-white dark:bg-neutral-950">
       {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
@@ -76,26 +92,32 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
           </div>
         </div>
       ) : (
-        <>
-          {messages.map((message, index) => {
-            const prev = index > 0 ? messages[index-1] : undefined;
-            return (
-              <React.Fragment key={`${message.id}-${index}`}>
-                {shouldShowDate(message, prev) && (
-                  <div className="sticky top-2 z-0 flex justify-center">
-                    <span className="text-xs px-2 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
-                      {formatDate(message.timestamp)}
-                    </span>
-                  </div>
-                )}
-                <Message 
-                  message={message}
-                  onCopyMessage={onCopyMessage}
-                  copiedMessageId={copiedMessageId}
-                />
-              </React.Fragment>
-            );
-          })}
+        <div className="h-full min-h-0 flex flex-col">
+          <Virtuoso
+            style={{ height: '100%' }}
+            data={grouped}
+            itemContent={(index, message) => {
+              const prev = index > 0 ? grouped[index - 1] : undefined;
+              return (
+                <div className="px-4 py-2">
+                  {shouldShowDate(message, prev) && (
+                    <div className="sticky top-2 z-0 flex justify-center">
+                      <span className="text-xs px-2 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                        {formatDate(message.timestamp)}
+                      </span>
+                    </div>
+                  )}
+                  <Message
+                    message={message}
+                    onCopyMessage={onCopyMessage}
+                    copiedMessageId={copiedMessageId}
+                    showLeftAvatar={(message as any).showLeftAvatar}
+                    showRightAvatar={(message as any).showRightAvatar}
+                  />
+                </div>
+              );
+            }}
+          />
           {isTyping && (
             <div className="flex items-start space-x-3 mb-4">
               <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center shadow-soft">
@@ -125,7 +147,7 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
               </svg>
             </button>
           )}
-        </>
+        </div>
       )}
     </div>
   );
