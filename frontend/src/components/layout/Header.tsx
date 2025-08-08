@@ -22,7 +22,7 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
+      <header className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur supports-[backdrop-filter]:backdrop-blur border-b border-gray-200 dark:border-neutral-800 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo and title */}

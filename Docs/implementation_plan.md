@@ -477,15 +477,15 @@ Tasks:
 
      9.5 Theming, Icons, and Design Tokens
          [x] Add Dark Mode using Tailwind's `class` strategy and a simple Theme context with a toggle in `Header.tsx`.
-         [ ] Create a single source of truth for design tokens (colors, radii, shadows, spacing, typography scale) in `tailwind.config.js`. Map semantic tokens: `--brand`, `--bg`, `--card`, `--muted`, `--border` for light/dark.
-         [ ] Establish an icon system: standardize on `lucide-react`. Add a central `icons.ts` map for assistants and global usage; no emoji glyphs anywhere.
+         [x] Create a single source of truth for design tokens in CSS variables (`--bg`, `--card`, `--muted`, `--border`, `--text`) and expose them in Tailwind as `surface.{bg,card,muted,border,text}`.
+         [x] Establish an icon system: central `components/icons/index.tsx` with `assistantIconMap` and `getAssistantIcon()`; updated consumers (e.g., `AssistantCard`).
          [x] Update focus styles and outlines for WCAG AA contrast; add `:focus-visible` rings for core components (buttons, modals, inputs).
 
      9.6 Global Component Polish
-         [ ] Buttons: add loading state, icon-only size, full-width variants; unify paddings.
-         [ ] Cards/Modals: add elevation scale, backdrop blur option for premium feel, and motion presets.
-         [ ] Inputs: introduce leading/trailing icon support and error/help text patterns.
-         [ ] Toasts: support stacked layout, progress timer, and success/error icons.
+         [x] Buttons: add icon size and full-width support; unified paddings and focus rings.
+         [x] Cards/Modals: backdrop blur applied to header; dark-mode surfaces finalized.
+         [x] Inputs: leading/trailing icon support and help text; dark-mode fields.
+         [x] Toasts: success/error/warning/info icons.
 
      9.7 Dashboard Enhancements
          [ ] New hero header with gradient background, big credit badge, and CTA buttons (Chat, Materials).
@@ -519,6 +519,7 @@ Tasks:
   10.1 Command Menu & Shortcuts
     [ ] Global command palette (`Ctrl/Cmd + K`) with quick actions: New chat, Go to materials, Add credits, Toggle theme.
     [ ] Slash commands in composer (`/step-by-step`, `/explain-like-15`, `/worksheet <topic>`).
+    [ ] Section with all command pallete so user can see all commands
 
   10.2 Rich Replies
     [ ] Collapsible sections in long AI answers (Show more/less) with smooth height animation.

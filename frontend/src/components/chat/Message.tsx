@@ -3,6 +3,10 @@ import { ChatMessage } from '../../types';
 import { cn } from '../../utils/cn';
 import { User, Bot, Copy, Check } from 'lucide-react';
 import Button from '../ui/Button';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 interface MessageProps {
   message: ChatMessage;
@@ -39,7 +43,47 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
           ? 'bg-primary-600 text-white' 
           : 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 shadow-sm'
       )}>
-        <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+        <div className="text-sm leading-relaxed markdown-body">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeKatex]}
+            components={{
+              code({ inline, className, children, ...props }) {
+                const code = String(children);
+                if (inline) {
+                  return (
+                    <code className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-[0.85em]" {...props}>
+                      {code}
+                    </code>
+                  );
+                }
+                return (
+                  <pre className="bg-neutral-100 dark:bg-neutral-900 rounded-md p-3 overflow-x-auto text-[0.85em]">
+                    <code className={className} {...props}>{code}</code>
+                  </pre>
+                );
+              },
+              a({ children, ...props }) {
+                return (
+                  <a className="text-primary-600 hover:underline" target="_blank" rel="noreferrer" {...props}>
+                    {children}
+                  </a>
+                );
+              },
+              ul({ children }) {
+                return <ul className="list-disc pl-5 space-y-1">{children}</ul>;
+              },
+              ol({ children }) {
+                return <ol className="list-decimal pl-5 space-y-1">{children}</ol>;
+              },
+              p({ children }) {
+                return <p className="whitespace-pre-wrap">{children}</p>;
+              },
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
+        </div>
         
         {/* Copy button for AI messages */}
         {!isUser && onCopyMessage && (

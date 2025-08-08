@@ -4,6 +4,25 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* Design tokens (CSS variables) used by Tailwind via rgb(var(--token) / <alpha-value>) */
+:root {
+  /* light */
+  --bg: 248 250 252;          /* slate-50 */
+  --card: 255 255 255;        /* white */
+  --muted: 241 245 249;       /* slate-100 */
+  --border: 229 231 235;      /* gray-200 */
+  --text: 17 24 39;           /* gray-900 */
+}
+
+.dark {
+  /* dark */
+  --bg: 17 24 39;             /* gray-900 */
+  --card: 10 10 12;           /* near-neutral-950 */
+  --muted: 30 41 59;          /* slate-800 */
+  --border: 31 41 55;         /* slate-800-ish */
+  --text: 241 245 249;        /* slate-100 */
+}
+
 /* Custom component styles */
 .btn-primary {
   @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;

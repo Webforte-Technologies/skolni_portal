@@ -39,6 +39,24 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
     };
   }, [handleScroll]);
 
+  // Optional: day separator util
+  const shouldShowDate = (current: ChatMessage, previous?: ChatMessage) => {
+    if (!previous) return true;
+    const a = new Date(previous.timestamp);
+    const b = new Date(current.timestamp);
+    return a.toDateString() !== b.toDateString();
+  };
+
+  const formatDate = (iso: string) => {
+    const d = new Date(iso);
+    const today = new Date();
+    const yest = new Date();
+    yest.setDate(today.getDate() - 1);
+    if (d.toDateString() === today.toDateString()) return 'Dnes';
+    if (d.toDateString() === yest.toDateString()) return 'Včera';
+    return d.toLocaleDateString('cs-CZ');
+  };
+
   return (
     <div ref={containerRef} className="relative flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-white dark:bg-neutral-950">
       {messages.length === 0 ? (
@@ -59,14 +77,25 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
         </div>
       ) : (
         <>
-          {messages.map((message, index) => (
-            <Message 
-              key={`${message.id}-${index}`} 
-              message={message}
-              onCopyMessage={onCopyMessage}
-              copiedMessageId={copiedMessageId}
-            />
-          ))}
+          {messages.map((message, index) => {
+            const prev = index > 0 ? messages[index-1] : undefined;
+            return (
+              <React.Fragment key={`${message.id}-${index}`}>
+                {shouldShowDate(message, prev) && (
+                  <div className="sticky top-2 z-0 flex justify-center">
+                    <span className="text-xs px-2 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                      {formatDate(message.timestamp)}
+                    </span>
+                  </div>
+                )}
+                <Message 
+                  message={message}
+                  onCopyMessage={onCopyMessage}
+                  copiedMessageId={copiedMessageId}
+                />
+              </React.Fragment>
+            );
+          })}
           {isTyping && (
             <div className="flex items-start space-x-3 mb-4">
               <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center shadow-soft">

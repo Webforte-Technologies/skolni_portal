@@ -10,6 +10,7 @@ interface MessageInputProps {
 
 const MessageInput: React.FC<MessageInputProps> = React.memo(({ onSendMessage, isLoading = false, disabled = false }) => {
   const [message, setMessage] = useState('');
+  const [rows, setRows] = useState(3);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +38,7 @@ const MessageInput: React.FC<MessageInputProps> = React.memo(({ onSendMessage, i
               onKeyPress={handleKeyPress}
               placeholder="Napište svůj dotaz..."
               className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 rounded-lg shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none pr-12"
-              rows={3}
+              rows={rows}
               disabled={isLoading || disabled}
             />
             <div className="absolute right-3 bottom-3 text-xs text-neutral-400 flex items-center space-x-1">

@@ -18,6 +18,13 @@ export default {
     },
     extend: {
       colors: {
+        surface: {
+          bg: 'rgb(var(--bg) / <alpha-value>)',
+          card: 'rgb(var(--card) / <alpha-value>)',
+          muted: 'rgb(var(--muted) / <alpha-value>)',
+          border: 'rgb(var(--border) / <alpha-value>)',
+          text: 'rgb(var(--text) / <alpha-value>)',
+        },
         // Brand palette
         primary: {
           50: '#eff6ff',

@@ -142,11 +142,13 @@ export interface FormField {
 export interface ButtonProps {
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'icon';
   disabled?: boolean;
   onClick?: () => void;
   type?: 'button' | 'submit';
   className?: string;
+  isLoading?: boolean;
+  fullWidth?: boolean;
 }
 
 export interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -159,6 +161,9 @@ export interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElem
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
+  leadingIcon?: React.ReactNode;
+  trailingIcon?: React.ReactNode;
+  helpText?: string;
 }
 
 export interface CardProps {

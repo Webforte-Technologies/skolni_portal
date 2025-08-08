@@ -48,18 +48,18 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
 
         {/* Modal panel */}
         <div className={cn(
-          'inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-floating transform transition-all animate-scale-in sm:my-8 sm:align-middle sm:w-full',
+          'inline-block align-bottom bg-white dark:bg-neutral-950 rounded-xl text-left overflow-hidden shadow-floating transform transition-all animate-scale-in sm:my-8 sm:align-middle sm:w-full',
           sizeClasses[size]
         )}>
           {/* Header */}
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div className="bg-white dark:bg-neutral-950 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-neutral-900">
+              <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
                 {title}
               </h3>
               <button
                 onClick={onClose}
-                className="rounded-md text-neutral-400 hover:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                className="rounded-md text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-900"
               >
                 <X className="h-6 w-6" />
               </button>

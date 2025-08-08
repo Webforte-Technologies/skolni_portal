@@ -65,21 +65,21 @@ const DashboardPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-neutral-900">
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome section */}
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-2">
-            <div className="p-2 bg-blue-100 rounded-lg">
+            <div className="p-2 bg-blue-100 dark:bg-neutral-800 rounded-lg">
               <Sparkles className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-neutral-100">
                 Vítejte, {user.first_name}!
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-gray-600 dark:text-neutral-300 mt-1">
                 Vyberte si AI asistenta pro pomoc s vaší výukou
               </p>
             </div>
@@ -111,14 +111,14 @@ const DashboardPage: React.FC = () => {
               <div className="mb-4">
                 <div className="flex items-center mb-2">
                   <Sparkles className="h-5 w-5 mr-2 text-blue-600" />
-                  <h3 className="text-lg font-semibold">AI Asistenti</h3>
+                  <h3 className="text-lg font-semibold dark:text-neutral-100">AI Asistenti</h3>
                 </div>
-                <p className="text-gray-600 text-sm">Vyberte si asistenta podle vašich potřeb</p>
+                <p className="text-gray-600 dark:text-neutral-300 text-sm">Vyberte si asistenta podle vašich potřeb</p>
               </div>
               {featuresLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-600 mr-3" />
-                  <span className="text-gray-500">Načítání asistentů...</span>
+                  <span className="text-gray-500 dark:text-neutral-300">Načítání asistentů...</span>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -168,8 +168,8 @@ const DashboardPage: React.FC = () => {
             <Card title="Informace o účtu">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
-                  <User className="h-5 w-5 mr-2 text-gray-500" />
-                  <h3 className="text-lg font-semibold">Informace o účtu</h3>
+                  <User className="h-5 w-5 mr-2 text-gray-500 dark:text-neutral-400" />
+                  <h3 className="text-lg font-semibold dark:text-neutral-100">Informace o účtu</h3>
                 </div>
                 <Button
                   variant="ghost"
@@ -188,38 +188,38 @@ const DashboardPage: React.FC = () => {
                     </span>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-neutral-100">
                       {user.first_name} {user.last_name}
                     </p>
-                    <p className="text-sm text-gray-500">{user.email}</p>
+                    <p className="text-sm text-gray-500 dark:text-neutral-300">{user.email}</p>
                   </div>
                 </div>
                 
                 {user.school && (
                   <>
-                    <hr className="border-gray-200" />
+                    <hr className="border-gray-200 dark:border-neutral-800" />
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-green-100 rounded-lg">
+                      <div className="p-2 bg-green-100 dark:bg-neutral-800 rounded-lg">
                         <School className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{user.school.name}</p>
-                        <p className="text-sm text-gray-500">Škola</p>
+                        <p className="font-medium text-gray-900 dark:text-neutral-100">{user.school.name}</p>
+                        <p className="text-sm text-gray-500 dark:text-neutral-300">Škola</p>
                       </div>
                     </div>
                   </>
                 )}
                 
-                <hr className="border-gray-200" />
+                <hr className="border-gray-200 dark:border-neutral-800" />
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
+                  <div className="p-2 bg-purple-100 dark:bg-neutral-800 rounded-lg">
                     <Calendar className="h-4 w-4 text-purple-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-neutral-100">
                       {new Date(user.created_at).toLocaleDateString('cs-CZ')}
                     </p>
-                    <p className="text-sm text-gray-500">Člen od</p>
+                    <p className="text-sm text-gray-500 dark:text-neutral-300">Člen od</p>
                   </div>
                 </div>
               </div>
@@ -228,25 +228,25 @@ const DashboardPage: React.FC = () => {
             {/* Quick Stats */}
             <Card title="Rychlé statistiky">
               <div className="flex items-center mb-4">
-                <TrendingUp className="h-5 w-5 mr-2 text-gray-500" />
-                <h3 className="text-lg font-semibold">Rychlé statistiky</h3>
+                <TrendingUp className="h-5 w-5 mr-2 text-gray-500 dark:text-neutral-400" />
+                <h3 className="text-lg font-semibold dark:text-neutral-100">Rychlé statistiky</h3>
               </div>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-500">Dostupné kredity</span>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm">
+                  <span className="text-gray-500 dark:text-neutral-300">Dostupné kredity</span>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded text-sm">
                     {user.credits_balance}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-500">Dostupné asistenty</span>
-                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-sm">
+                  <span className="text-gray-500 dark:text-neutral-300">Dostupné asistenty</span>
+                  <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 rounded text-sm">
                     {features.length}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-500">Status účtu</span>
-                  <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-sm flex items-center">
+                  <span className="text-gray-500 dark:text-neutral-300">Status účtu</span>
+                  <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 rounded text-sm flex items-center">
                     <Activity className="h-3 w-3 mr-1" />
                     Aktivní
                   </span>
