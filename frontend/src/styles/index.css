@@ -58,3 +58,11 @@
 .dark ::-webkit-scrollbar-track { background: theme('colors.neutral.800'); }
 .dark ::-webkit-scrollbar-thumb { background: theme('colors.neutral.700'); }
 .dark ::-webkit-scrollbar-thumb:hover { background: theme('colors.neutral.600'); }
+
+/* Print styles for A4 worksheets */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  .print\:hidden { display: none !important; }
+  .avoid-break { break-inside: avoid; page-break-inside: avoid; }
+  body { background: #ffffff !important; }
+}

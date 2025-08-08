@@ -22,11 +22,11 @@ CREATE TABLE schools (
 -- Users table
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    email VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
-    role VARCHAR(20) NOT NULL DEFAULT 'teacher' CHECK (role IN ('teacher', 'admin')),
+    role VARCHAR(32) NOT NULL DEFAULT 'teacher_individual' CHECK (role IN ('school_admin', 'teacher_school', 'teacher_individual')),
     school_id UUID REFERENCES schools(id),
     credits_balance INTEGER NOT NULL DEFAULT 0,
     is_active BOOLEAN NOT NULL DEFAULT true,
@@ -86,8 +86,27 @@ CREATE TABLE chat_messages (
 );
 
 -- Indexes for better performance
-CREATE INDEX idx_users_email ON users(email);
+-- Uniqueness strategy:
+-- 1) Individual teachers: unique by email globally
+-- 2) School users (admin/teacher_school): unique within the same school (school_id, email)
+CREATE UNIQUE INDEX IF NOT EXISTS ux_users_email_individual
+  ON users(email)
+  WHERE role = 'teacher_individual';
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_users_school_email
+  ON users(school_id, email)
+  WHERE role IN ('teacher_school','school_admin');
+
+-- Presence of school_id must match role
+ALTER TABLE users
+  ADD CONSTRAINT users_school_role_consistency
+  CHECK (
+    (role IN ('teacher_school','school_admin') AND school_id IS NOT NULL)
+    OR (role = 'teacher_individual' AND school_id IS NULL)
+  );
+
 CREATE INDEX idx_users_school_id ON users(school_id);
+CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX idx_credit_transactions_user_id ON credit_transactions(user_id);
 CREATE INDEX idx_chat_sessions_user_id ON chat_sessions(user_id);

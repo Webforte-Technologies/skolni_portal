@@ -6,7 +6,7 @@ export interface User {
   password_hash: string;
   first_name: string;
   last_name: string;
-  role: 'teacher' | 'admin';
+  role: 'school_admin' | 'teacher_school' | 'teacher_individual';
   school_id?: string;
   credits_balance: number;
   is_active: boolean;
@@ -132,6 +132,7 @@ export interface CreateUserRequest {
   first_name: string;
   last_name: string;
   school_id?: string;
+  role?: 'school_admin' | 'teacher_school' | 'teacher_individual';
 }
 
 export interface LoginRequest {

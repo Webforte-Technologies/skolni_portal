@@ -31,3 +31,21 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
 };
 
 export default PrivateRoute; 
+
+export const RequireRole: React.FC<{ roles: Array<'school_admin' | 'teacher_school' | 'teacher_individual'>; children: React.ReactNode }>
+  = ({ roles, children }) => {
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Načítání...</p>
+        </div>
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/login" replace />;
+  if (!roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+};

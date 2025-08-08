@@ -3,7 +3,8 @@ import { body, validationResult } from 'express-validator';
 import { UserModel } from '../models/User';
 import { CreditTransactionModel } from '../models/CreditTransaction';
 import { generateToken, authenticateToken } from '../middleware/auth';
-import { CreateUserRequest, LoginRequest, AuthResponse } from '../types/database';
+import pool from '../database/connection';
+import { CreateUserRequest, LoginRequest, AuthResponse, CreateSchoolRequest, User } from '../types/database';
 
 const router = Router();
 
@@ -19,6 +20,55 @@ const validateLogin = [
   body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
   body('password').notEmpty().withMessage('Password is required')
 ];
+
+// Register new school + admin user
+router.post('/register-school', [
+  body('school.name').trim().isLength({ min: 2 }).withMessage('School name is required'),
+  body('admin.email').isEmail().withMessage('Valid admin email is required'),
+  body('admin.password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+  body('admin.first_name').trim().isLength({ min: 2 }).withMessage('First name is required'),
+  body('admin.last_name').trim().isLength({ min: 2 }).withMessage('Last name is required'),
+], async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() });
+  }
+
+  const schoolData: CreateSchoolRequest = req.body.school || {};
+  const adminData = req.body.admin || {};
+
+  try {
+    // Create school
+    const schoolInsert = await pool.query(
+      `INSERT INTO schools (name, address, city, postal_code, contact_email, contact_phone)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [schoolData.name, schoolData.address || null, schoolData.city || null, schoolData.postal_code || null, schoolData.contact_email || adminData.email || null, schoolData.contact_phone || null]
+    );
+    const school = schoolInsert.rows[0];
+
+    // Create admin user for this school
+    const user = await UserModel.create({
+      email: adminData.email,
+      password: adminData.password,
+      first_name: adminData.first_name,
+      last_name: adminData.last_name,
+      school_id: school.id,
+      role: 'school_admin'
+    } as CreateUserRequest);
+
+    const adminUser: User = user as any;
+
+    const token = generateToken(adminUser);
+    const { password_hash, ...userWithoutPassword } = adminUser;
+
+    const response: AuthResponse = { user: userWithoutPassword, token };
+
+    return res.status(201).json({ success: true, data: response, message: 'School and admin created' });
+  } catch (error) {
+    console.error('Register school error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to register school' });
+  }
+});
 
 // Register new user
 router.post('/register', validateRegistration, async (req: Request, res: Response) => {
@@ -55,6 +105,9 @@ router.post('/register', validateRegistration, async (req: Request, res: Respons
     // Only add school_id if it's provided
     if (school_id) {
       userData.school_id = school_id;
+      userData.role = 'teacher_school';
+    } else {
+      userData.role = 'teacher_individual';
     }
     
     const user = await UserModel.create(userData);

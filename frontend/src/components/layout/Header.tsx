@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
 import ConfirmModal from '../ui/ConfirmModal';
-import { LogOut, User, Sun, Moon } from 'lucide-react';
+import { LogOut, User, Sun, Moon, Building2 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -41,7 +42,12 @@ const Header: React.FC = () => {
               >
                 {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </button>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3">
+                {user.role === 'school_admin' && (
+                  <Link to="/school" className="inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                    <Building2 className="h-4 w-4 mr-1" /> Správa školy
+                  </Link>
+                )}
                 <User className="h-5 w-5 text-gray-400 dark:text-neutral-400" />
                 <span className="text-sm text-gray-700 dark:text-neutral-100">
                   {user.first_name} {user.last_name}

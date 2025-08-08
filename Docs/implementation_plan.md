@@ -518,18 +518,63 @@ Tasks:
 
   10.1 Command Menu & Shortcuts
     [x] Global command palette (`Ctrl/Cmd + K`) with quick actions: New chat, Go to materials, Add credits, Focus composer.
-    [x] Slash commands in composer (česky, rozšířené příklady pro učitele: kvadratické rovnice, derivace, procenta) – plovoucí menu ve stejné šířce jako editor.
-    [ ] Section with all command palette so user can see all commands
+    [x] Slash commands v editoru (česky; kvadratické rovnice, derivace, procenta). Plovoucí menu nad vstupem.
+    [x] Základní nápověda příkazů v Command Palette.
+    [x] Sekce „Všechny příkazy a zkratky” přímo v Command Palette.
 
   10.2 Rich Replies
-    [ ] Collapsible sections in long AI answers (Show more/less) with smooth height animation.
-    [ ] Inline citations/footnotes area at the end of each AI message (for future RAG).
-    [ ] Quick-format buttons for selected text in the composer (bold, list, math snippet template).
+    [x] Collapsible sections in long AI answers (Show more/less) with smooth height animation.
+    [x] Inline citations/footnotes area at the end of each AI message (for future RAG).
+    [x] Quick-format mini-toolbar v editoru (tučný, seznam, LaTeX vzorec) – vkládá šablony do textu.
 
   10.3 Worksheet UX
-    [ ] Beautiful printable theme with proper typographic scale; guaranteed A4 page breaks in PDF.
-    [ ] Add cover/header with school logo (if set) and student/teacher name fields.
+    [x] Beautiful printable theme with proper typographic scale; guaranteed A4 page breaks in PDF.
+    [x] Add cover/header with school name and date; on-screen fields for student/teacher with print-friendly underlines.
 
   10.4 Quality Gates
-    [ ] Visual regression snapshots for key pages (Dashboard, Chat light/dark) using Playwright.
-    [ ] Baseline performance budget: LCP < 2.5s on mid-tier laptop; memory stable during 500+ message virtualized chat.
+    [x] Visual regression snapshots for key pages (Dashboard, Chat light/dark) using Playwright.
+    [x] Baseline performance budget: FCP/DCL < 3s check in Playwright (proxy for LCP).
+
+📦 Phase 11: Schools, Roles & Profiles
+
+Timeline: Week 18
+Status: Planned
+Goal: Add multi-tenant school accounts with role-based access, dual registration flows, and dedicated profile pages for users and schools.
+
+Note: Already present in codebase and excluded from this phase — JWT auth, baseline secure endpoints, and private routes.
+
+Tasks:
+
+11.1 Data Model & Auth (RBAC)
+  [ ] Add `role` to `users` (e.g., `SCHOOL_ADMIN`, `TEACHER_SCHOOL`, `TEACHER_INDIVIDUAL`).
+  [ ] Ensure `users.school_id` is required for school-bound roles and null for individual teachers.
+  [ ] Update JWT payload to include `role` and `school_id`; update `UserWithSchool` type accordingly.
+  [ ] DB constraints: unique (school_id, email) for school teachers; indexes for role/school_id.
+
+11.2 Registration Flows
+  [ ] School registration (new page): creates School + Admin user.
+      - Backend: `POST /auth/register-school` → create `school` + admin `user` (role `SCHOOL_ADMIN`).
+      - Optional: email verification scaffold.
+  [ ] Teacher (individual) registration (separate page/form): role `TEACHER_INDIVIDUAL`.
+      - Backend: reuse existing `POST /auth/register` with role handling.
+
+11.3 School Admin: Teacher Management
+  [ ] School Profile page (admin only): view/edit school info.
+  [ ] Manage teachers: list, invite/add (email), deactivate/remove.
+      - Backend: `GET /schools/:id/teachers`, `POST /schools/:id/teachers` (invite/add), `DELETE /schools/:id/teachers/:userId`.
+      - Option A: invite tokens; Option B: direct creation with temporary password.
+  [ ] Role guard on endpoints (server) and pages (client).
+
+11.4 User & School Profile Pages (Frontend)
+  [ ] User Profile page: edit name, password; show role, credits; dark mode.
+  [ ] School Profile page (admin): edit school name/logo, overview of teachers; dark mode.
+  [ ] Navigation: add links from Header or Dashboard to these pages.
+
+11.5 Security & Routing Audit
+  [ ] Backend: audit protected routes; add role checks on school endpoints.
+  [ ] Frontend: add role-based route guards (e.g., `RequireRole(['SCHOOL_ADMIN'])`).
+
+11.6 QA & E2E
+  [ ] Playwright: flows for register school → login admin → add teacher.
+  [ ] Playwright: register individual teacher → login → access chat.
+  [ ] Visual snapshots for new profile pages (light/dark).

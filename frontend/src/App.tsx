@@ -5,12 +5,15 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
-import PrivateRoute from './components/auth/PrivateRoute';
+import PrivateRoute, { RequireRole } from './components/auth/PrivateRoute';
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const RegistrationPage = React.lazy(() => import('./pages/auth/RegistrationPage'));
+const SchoolRegistrationPage = React.lazy(() => import('./pages/auth/SchoolRegistrationPage'));
 const DashboardPage = React.lazy(() => import('./pages/dashboard/DashboardPage'));
 const ChatPage = React.lazy(() => import('./pages/chat/ChatPage'));
 const MyMaterialsPage = React.lazy(() => import('./pages/materials/MyMaterialsPage'));
+const SchoolAdminPage = React.lazy(() => import('./pages/dashboard/SchoolAdminPage'));
+const UserProfilePage = React.lazy(() => import('./pages/dashboard/UserProfilePage'));
 import ErrorBoundary from './components/layout/ErrorBoundary';
 
 // Create a client
@@ -37,6 +40,7 @@ function App() {
                 {/* Public routes */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegistrationPage />} />
+                <Route path="/register-school" element={<SchoolRegistrationPage />} />
                 
                 {/* Protected routes */}
                 <Route path="/dashboard" element={
@@ -52,6 +56,18 @@ function App() {
                 <Route path="/materials" element={
                   <PrivateRoute>
                     <MyMaterialsPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/school" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['school_admin']}>
+                      <SchoolAdminPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/me" element={
+                  <PrivateRoute>
+                    <UserProfilePage />
                   </PrivateRoute>
                 } />
                 

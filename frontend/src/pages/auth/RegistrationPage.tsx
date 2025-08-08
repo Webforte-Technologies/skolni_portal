@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
-import { AlertCircle, Loader2, BookOpen, UserPlus } from 'lucide-react';
+import { AlertCircle, Loader2, BookOpen, UserPlus, Building2 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 const registerSchema = z.object({
@@ -203,6 +203,14 @@ const RegistrationPage: React.FC = () => {
                   Přihlásit se
                 </Link>
               </Button>
+              <div className="mt-6">
+                <p className="text-sm text-gray-500 mb-2">Jste škola? Založte školní účet:</p>
+                <Button variant="secondary" className="w-full">
+                  <Link to="/register-school" className="inline-flex items-center">
+                    <Building2 className="h-4 w-4 mr-2" /> Registrovat školu
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </Card>

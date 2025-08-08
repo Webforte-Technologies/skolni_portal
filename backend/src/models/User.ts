@@ -6,18 +6,22 @@ export class UserModel {
   // Create a new user
   static async create(userData: CreateUserRequest): Promise<User> {
     const { email, password, first_name, last_name, school_id } = userData;
+    // Determine role if not provided
+    const role = userData.role
+      ? userData.role
+      : (school_id ? 'teacher_school' : 'teacher_individual');
     
     // Hash the password
     const saltRounds = 12;
     const password_hash = await bcrypt.hash(password, saltRounds);
     
     const query = `
-      INSERT INTO users (email, password_hash, first_name, last_name, school_id)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO users (email, password_hash, first_name, last_name, school_id, role)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
     
-    const values = [email, password_hash, first_name, last_name, school_id];
+    const values = [email, password_hash, first_name, last_name, school_id || null, role];
     const result = await pool.query(query, values);
     
     return result.rows[0];

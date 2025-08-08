@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { FileText, Printer, X, CheckCircle, Download } from 'lucide-react';
 // Defer heavy libs via dynamic import for performance
 import Button from '../ui/Button';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Question {
   problem: string;
@@ -20,6 +21,14 @@ interface WorksheetDisplayProps {
 }
 
 const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose }) => {
+  const { user } = useAuth();
+  const defaultTeacher = useMemo(() => {
+    if (!user) return '';
+    const full = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+    return full;
+  }, [user]);
+  const [studentName, setStudentName] = useState('');
+  const [teacherName, setTeacherName] = useState(defaultTeacher);
   const handlePrint = () => {
     const printContent = document.getElementById('worksheet-print');
     if (printContent) {
@@ -108,11 +117,11 @@ const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose 
 
   return (
     <div className="fixed inset-0 bg-neutral-900/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-floating max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-neutral-200">
+      <div className="bg-white dark:bg-neutral-900 rounded-xl shadow-floating max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-neutral-200 dark:border-neutral-800 print:hidden">
           <div className="flex items-center space-x-3">
             <FileText className="h-6 w-6 text-primary-600" />
-            <h2 className="text-xl font-semibold text-neutral-900">
+            <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
               Vygenerované cvičení
             </h2>
           </div>
@@ -146,24 +155,65 @@ const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose 
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          <div id="worksheet-print" className="space-y-6">
-            {/* Header */}
-            <div className="text-center border-b border-neutral-200 pb-4">
-              <h1 className="text-3xl font-bold text-neutral-900 mb-2">
-                {worksheet.title}
-              </h1>
-              <p className="text-lg text-neutral-600">
-                {worksheet.instructions}
-              </p>
-              <div className="mt-4 text-sm text-neutral-500">
-                Datum: {new Date().toLocaleDateString('cs-CZ')}
+          <div id="worksheet-print" className="space-y-6 bg-white text-neutral-900">
+            {/* Cover/Header with fields */}
+            <div className="border border-neutral-200 rounded-lg p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-sm text-neutral-500">Škola</div>
+                  <div className="text-lg font-semibold">{user?.school?.name || '—'}</div>
+                </div>
+                <div className="text-center flex-1">
+                  <h1 className="text-2xl font-bold">{worksheet.title}</h1>
+                  <p className="text-neutral-600 mt-1">{worksheet.instructions}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-neutral-500">Datum</div>
+                  <div className="text-lg font-medium">{new Date().toLocaleDateString('cs-CZ')}</div>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <div className="text-sm text-neutral-500">Jméno žáka</div>
+                  <div className="mt-1 min-h-[28px] border-b border-neutral-300">
+                    <span className="inline-block whitespace-pre-wrap">{studentName || ' '}</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-neutral-500">Učitel</div>
+                  <div className="mt-1 min-h-[28px] border-b border-neutral-300">
+                    <span className="inline-block whitespace-pre-wrap">{teacherName || ' '}</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-neutral-500">Třída</div>
+                  <div className="mt-1 min-h-[28px] border-b border-neutral-300" />
+                </div>
+              </div>
+              {/* On-screen inputs (hidden in print) */}
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4 print:hidden">
+                <input
+                  type="text"
+                  placeholder="Vyplňte jméno žáka"
+                  className="w-full rounded border border-neutral-300 px-2 py-1 text-sm"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="Vyplňte jméno učitele"
+                  className="w-full rounded border border-neutral-300 px-2 py-1 text-sm"
+                  value={teacherName}
+                  onChange={(e) => setTeacherName(e.target.value)}
+                />
+                <div className="text-xs text-neutral-500 flex items-center">Hodnoty se vytisknou jako podtržené řádky.</div>
               </div>
             </div>
 
             {/* Questions */}
             <div className="space-y-6">
               {worksheet.questions.map((question, index) => (
-                <div key={index} className="border border-neutral-200 rounded-lg p-4">
+                <div key={index} className="border border-neutral-200 rounded-lg p-4 avoid-break bg-white">
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
                       <span className="text-sm font-semibold text-primary-600">

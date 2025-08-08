@@ -378,6 +378,8 @@ const ChatPage: React.FC = () => {
             <ComposerToolbar
               onGenerateWorksheet={() => setIsWorksheetModalOpen(true)}
               disabled={user.credits_balance < 2}
+              onInsertText={(text) => composerRef.current?.insertText(text)}
+              onOpenHelp={() => setIsCmdPaletteOpen(true)}
             />
             <MessageInput
               onSendMessage={handleSendMessage}

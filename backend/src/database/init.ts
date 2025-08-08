@@ -35,7 +35,7 @@ async function initializeDatabase() {
       adminPasswordHash,
       'Admin',
       'User',
-      'admin',
+      'school_admin',
       1000,
       true
     ]);
@@ -53,7 +53,7 @@ async function initializeDatabase() {
       teacherPasswordHash,
       'Jan',
       'Novák',
-      'teacher',
+      'teacher_school',
       100,
       true,
       sampleSchool.rows[0].id

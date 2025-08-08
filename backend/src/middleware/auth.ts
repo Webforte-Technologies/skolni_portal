@@ -16,17 +16,21 @@ export interface JWTPayload {
   userId: string;
   email: string;
   role: string;
+  school_id?: string;
   iat: number;
   exp: number;
 }
 
 // Generate JWT token
 export const generateToken = (user: User): string => {
-  const payload: Omit<JWTPayload, 'iat' | 'exp'> = {
+  const payload: Record<string, any> = {
     userId: user.id,
     email: user.email,
-    role: user.role
+    role: user.role,
   };
+  if (user.school_id) {
+    payload['school_id'] = user.school_id;
+  }
 
   const secret = process.env['JWT_SECRET'] || 'fallback-secret';
 

@@ -11,6 +11,7 @@ dotenv.config();
 import authRoutes from './routes/auth';
 import aiRoutes from './routes/ai';
 import conversationRoutes from './routes/conversations';
+import schoolsRoutes from './routes/schools';
 import filesRoutes from './routes/files';
 
 const app = express();
@@ -61,6 +62,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/files', filesRoutes);
+app.use('/api/schools', schoolsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {

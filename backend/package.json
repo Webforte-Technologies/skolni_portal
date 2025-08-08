@@ -12,7 +12,8 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "db:init": "ts-node src/database/init.ts",
     "db:reset": "ts-node src/database/init.ts",
-    "db:add-tables": "ts-node src/database/add-missing-tables.ts"
+    "db:add-tables": "ts-node src/database/add-missing-tables.ts",
+    "db:migrate:phase11": "ts-node src/database/run-migration.ts src/database/migrations/phase11_rbac.sql"
   },
   "keywords": [
     "education",

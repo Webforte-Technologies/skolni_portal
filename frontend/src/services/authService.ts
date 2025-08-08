@@ -30,6 +30,20 @@ export const authService = {
     throw new Error(response.data.error || 'Registration failed');
   },
 
+  // Register school + admin
+  registerSchool: async (payload: {
+    school: { name: string; address?: string; city?: string; postal_code?: string; contact_email?: string; contact_phone?: string };
+    admin: { email: string; password: string; first_name: string; last_name: string };
+  }): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/register-school', payload);
+    if (response.data.success && response.data.data) {
+      localStorage.setItem('authToken', response.data.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      return response.data.data;
+    }
+    throw new Error(response.data.error || 'School registration failed');
+  },
+
   // Logout user
   logout: (): void => {
     localStorage.removeItem('authToken');
