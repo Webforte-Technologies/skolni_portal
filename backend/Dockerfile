@@ -33,11 +33,10 @@ RUN adduser --system --uid 1001 nodejs
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
 # Copy SQL migrations so we can run DB migrations in the container
 COPY --from=builder /app/src/database/migrations ./dist/migrations
 
-USER nextjs
+USER nodejs
 
 EXPOSE 3001
 
