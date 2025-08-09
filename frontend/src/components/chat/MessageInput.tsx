@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useImperativeHandle } from 'react';
-import { Send, Loader2, CornerDownLeft, FilePlus2, Wand2 } from 'lucide-react';
+import { Send, Loader2, CornerDownLeft, Wand2 } from 'lucide-react';
 import Button from '../ui/Button';
 import SlashCommandsMenu from './SlashCommandsMenu';
 
@@ -21,6 +21,28 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [slashOpen, setSlashOpen] = useState(false);
   const [slashQuery, setSlashQuery] = useState('');
+
+  useImperativeHandle(ref, () => ({
+    focus: () => textareaRef.current?.focus(),
+    insertText: (text: string) => {
+      const el = textareaRef.current;
+      if (!el) return;
+      const start = el.selectionStart ?? el.value.length;
+      const end = el.selectionEnd ?? el.value.length;
+      const before = el.value.slice(0, start);
+      const after = el.value.slice(end);
+      const next = before + text + after;
+      setMessage(next);
+      // restore cursor after insert
+      setTimeout(() => {
+        el.focus();
+        const cursor = start + text.length;
+        try {
+          el.setSelectionRange(cursor, cursor);
+        } catch {}
+      }, 0);
+    }
+  }), []);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();

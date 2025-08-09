@@ -17,7 +17,7 @@ const SchoolAdminPage: React.FC = () => {
   const { user } = useAuth();
   const [teachers, setTeachers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [school, setSchool] = useState<any | null>(null);
+  const [, setSchool] = useState<any | null>(null);
   const [schoolForm, setSchoolForm] = useState<{ name?: string; address?: string; city?: string; postal_code?: string; contact_email?: string; contact_phone?: string; logo_url?: string }>({});
   const [form, setForm] = useState<TeacherForm>({ email: '', first_name: '', last_name: '', password: '' });
 
@@ -25,8 +25,8 @@ const SchoolAdminPage: React.FC = () => {
     if (!user?.school_id) return;
     setIsLoading(true);
     try {
-      const res = await api.get(`/schools/${user.school_id}/teachers`);
-      if (res.data.success) setTeachers(res.data.data);
+      const res = await api.get<any[]>(`/schools/${user.school_id}/teachers`);
+      if (res.data.success) setTeachers(res.data.data as any[]);
     } finally {
       setIsLoading(false);
     }
@@ -34,7 +34,7 @@ const SchoolAdminPage: React.FC = () => {
 
   const loadSchool = async () => {
     if (!user?.school_id) return;
-    const res = await api.get(`/schools/${user.school_id}`);
+    const res = await api.get<any>(`/schools/${user.school_id}`);
     if (res.data.success) {
       setSchool(res.data.data);
       setSchoolForm({
@@ -96,13 +96,13 @@ const SchoolAdminPage: React.FC = () => {
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-neutral-100">Správa školy</h1>
         <Card title="Profil školy">
           <form onSubmit={saveSchool} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <InputField label="Název" required value={schoolForm.name || ''} onChange={e=>setSchoolForm({...schoolForm, name: e.target.value})} />
-            <InputField label="Město" value={schoolForm.city || ''} onChange={e=>setSchoolForm({...schoolForm, city: e.target.value})} />
-            <InputField label="PSČ" value={schoolForm.postal_code || ''} onChange={e=>setSchoolForm({...schoolForm, postal_code: e.target.value})} />
-            <InputField label="Adresa" className="sm:col-span-2" value={schoolForm.address || ''} onChange={e=>setSchoolForm({...schoolForm, address: e.target.value})} />
-            <InputField label="Kontaktní email" value={schoolForm.contact_email || ''} onChange={e=>setSchoolForm({...schoolForm, contact_email: e.target.value})} />
-            <InputField label="Kontaktní telefon" value={schoolForm.contact_phone || ''} onChange={e=>setSchoolForm({...schoolForm, contact_phone: e.target.value})} />
-            <InputField label="URL loga" className="sm:col-span-2" value={schoolForm.logo_url || ''} onChange={e=>setSchoolForm({...schoolForm, logo_url: e.target.value})} />
+            <InputField name="school_name" label="Název" required value={schoolForm.name || ''} onChange={e=>setSchoolForm({...schoolForm, name: e.target.value})} />
+            <InputField name="school_city" label="Město" value={schoolForm.city || ''} onChange={e=>setSchoolForm({...schoolForm, city: e.target.value})} />
+            <InputField name="school_postal_code" label="PSČ" value={schoolForm.postal_code || ''} onChange={e=>setSchoolForm({...schoolForm, postal_code: e.target.value})} />
+            <InputField name="school_address" label="Adresa" className="sm:col-span-2" value={schoolForm.address || ''} onChange={e=>setSchoolForm({...schoolForm, address: e.target.value})} />
+            <InputField name="school_contact_email" label="Kontaktní email" value={schoolForm.contact_email || ''} onChange={e=>setSchoolForm({...schoolForm, contact_email: e.target.value})} />
+            <InputField name="school_contact_phone" label="Kontaktní telefon" value={schoolForm.contact_phone || ''} onChange={e=>setSchoolForm({...schoolForm, contact_phone: e.target.value})} />
+            <InputField name="school_logo_url" label="URL loga" className="sm:col-span-2" value={schoolForm.logo_url || ''} onChange={e=>setSchoolForm({...schoolForm, logo_url: e.target.value})} />
             <div className="sm:col-span-3 flex justify-end">
               <Button type="submit" disabled={isLoading}>Uložit</Button>
             </div>
@@ -111,10 +111,10 @@ const SchoolAdminPage: React.FC = () => {
         <Card title="Učitelé">
           <div className="space-y-4">
             <form onSubmit={addTeacher} className="grid grid-cols-1 sm:grid-cols-5 gap-3">
-              <InputField label="Email" required value={form.email} onChange={e=>setForm({...form, email: e.target.value})} />
-              <InputField label="Jméno" required value={form.first_name} onChange={e=>setForm({...form, first_name: e.target.value})} />
-              <InputField label="Příjmení" required value={form.last_name} onChange={e=>setForm({...form, last_name: e.target.value})} />
-              <InputField label="Dočasné heslo" required type="password" value={form.password} onChange={e=>setForm({...form, password: e.target.value})} />
+              <InputField name="teacher_email" label="Email" required value={form.email} onChange={e=>setForm({...form, email: e.target.value})} />
+              <InputField name="teacher_first_name" label="Jméno" required value={form.first_name} onChange={e=>setForm({...form, first_name: e.target.value})} />
+              <InputField name="teacher_last_name" label="Příjmení" required value={form.last_name} onChange={e=>setForm({...form, last_name: e.target.value})} />
+              <InputField name="teacher_password" label="Dočasné heslo" required type="password" value={form.password} onChange={e=>setForm({...form, password: e.target.value})} />
               <div className="flex items-end">
                 <Button type="submit" disabled={isLoading}>Přidat učitele</Button>
               </div>

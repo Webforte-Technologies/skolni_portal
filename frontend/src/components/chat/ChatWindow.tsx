@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
+import React, { useRef, useCallback, useState, useMemo } from 'react';
 import { ChatMessage } from '../../types';
 import Message from './Message';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';

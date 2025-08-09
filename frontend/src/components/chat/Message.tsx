@@ -59,7 +59,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
             remarkPlugins={[remarkGfm, remarkMath]}
             rehypePlugins={[rehypeKatex]}
             components={{
-              code({ inline, className, children, ...props }) {
+              code({ inline, className, children, ...props }: any) {
                 const code = String(children);
                 if (inline) {
                   return (
@@ -74,20 +74,20 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
                   </pre>
                 );
               },
-              a({ children, ...props }) {
+              a({ children, ...props }: any) {
                 return (
                   <a className="text-primary-600 hover:underline" target="_blank" rel="noreferrer" {...props}>
                     {children}
                   </a>
                 );
               },
-              ul({ children }) {
+              ul({ children }: any) {
                 return <ul className="list-disc pl-5 space-y-1">{children}</ul>;
               },
-              ol({ children }) {
+              ol({ children }: any) {
                 return <ol className="list-decimal pl-5 space-y-1">{children}</ol>;
               },
-              p({ children }) {
+              p({ children }: any) {
                 return <p className="whitespace-pre-wrap">{children}</p>;
               },
             }}

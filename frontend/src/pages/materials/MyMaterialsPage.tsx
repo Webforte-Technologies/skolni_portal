@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from 'react-query';
 import { FileText, Download, Trash2, Eye, Calendar, Search } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -35,7 +35,7 @@ const MyMaterialsPage: React.FC = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFile, setSelectedFile] = useState<GeneratedFile | null>(null);
+  
   const [showWorksheet, setShowWorksheet] = useState(false);
   const [worksheetData, setWorksheetData] = useState<Worksheet | null>(null);
   const [fileToDelete, setFileToDelete] = useState<GeneratedFile | null>(null);
@@ -64,20 +64,19 @@ const MyMaterialsPage: React.FC = () => {
     try {
       const worksheet = JSON.parse(file.content);
       setWorksheetData(worksheet);
-      setSelectedFile(file);
       setShowWorksheet(true);
     } catch (error) {
-      showToast('Chyba při načítání cvičení', 'error');
+      showToast({ type: 'error', message: 'Chyba při načítání cvičení' });
     }
   };
 
   const handleDeleteFile = async (file: GeneratedFile) => {
     try {
       await apiClient.delete(`/files/${file.id}`);
-      showToast('Soubor byl úspěšně smazán', 'success');
+      showToast({ type: 'success', message: 'Soubor byl úspěšně smazán' });
       refetch();
     } catch (error) {
-      showToast('Chyba při mazání souboru', 'error');
+      showToast({ type: 'error', message: 'Chyba při mazání souboru' });
     }
     setFileToDelete(null);
   };
@@ -87,7 +86,6 @@ const MyMaterialsPage: React.FC = () => {
       const worksheet = JSON.parse(file.content);
       // Open the worksheet in a modal and then trigger PDF download
       setWorksheetData(worksheet);
-      setSelectedFile(file);
       setShowWorksheet(true);
       
       // Trigger PDF download after a short delay to ensure modal is rendered
@@ -98,7 +96,7 @@ const MyMaterialsPage: React.FC = () => {
         }
       }, 100);
     } catch (error) {
-      showToast('Chyba při načítání cvičení', 'error');
+      showToast({ type: 'error', message: 'Chyba při načítání cvičení' });
     }
   };
 
@@ -183,6 +181,8 @@ const MyMaterialsPage: React.FC = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
                 <InputField
+                  name="materials_search"
+                  label="Hledat"
                   type="text"
                   placeholder="Hledat materiály..."
                   value={searchTerm}
@@ -322,7 +322,6 @@ const MyMaterialsPage: React.FC = () => {
           onClose={() => {
             setShowWorksheet(false);
             setWorksheetData(null);
-            setSelectedFile(null);
           }}
         />
       )}

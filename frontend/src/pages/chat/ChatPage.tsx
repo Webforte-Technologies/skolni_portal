@@ -14,8 +14,8 @@ import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
 import ChatSidebar from '../../components/chat/ChatSidebar';
 import ComposerToolbar from '../../components/chat/ComposerToolbar';
 import CommandPalette from '../../components/chat/CommandPalette';
-import { ChatMessage, Conversation, ConversationWithMessages } from '../../types';
-import { AlertCircle, ArrowLeft, Copy, Check, Plus, FileText, Menu } from 'lucide-react';
+import { ChatMessage, Conversation } from '../../types';
+import { AlertCircle, ArrowLeft, Plus, FileText, Menu } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import { generateUUID } from '../../utils/uuid';
 
@@ -32,7 +32,7 @@ const ChatPage: React.FC = () => {
   const [isGeneratingWorksheet, setIsGeneratingWorksheet] = useState(false);
   const [generatedWorksheet, setGeneratedWorksheet] = useState<any>(null);
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
   const composerRef = useRef<MessageInputHandle | null>(null);

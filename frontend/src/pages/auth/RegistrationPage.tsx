@@ -6,7 +6,8 @@ import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
-import { AlertCircle, Loader2, BookOpen, UserPlus, Building2 } from 'lucide-react';
+import { AlertCircle, Loader2, UserPlus, Building2 } from 'lucide-react';
+import InputField from '../../components/ui/InputField';
 import { cn } from '../../utils/cn';
 
 const registerSchema = z.object({

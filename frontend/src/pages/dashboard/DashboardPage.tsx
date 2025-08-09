@@ -9,7 +9,6 @@ import AssistantCard from '../../components/dashboard/AssistantCard';
 import EditProfileModal from '../../components/dashboard/EditProfileModal';
 import DashboardHero from '../../components/dashboard/DashboardHero';
 import SparklineStatCard from '../../components/dashboard/SparklineStatCard';
-import { AIFeature } from '../../types';
 import { 
   Loader2, 
   User, 
@@ -34,7 +33,7 @@ const DashboardPage: React.FC = () => {
   const [isAddingCredits, setIsAddingCredits] = useState(false);
 
   // Fetch AI features
-  const { data: features = [], isLoading: featuresLoading, error: featuresError } = useQuery(
+  const { data: features = [], isLoading: featuresLoading } = useQuery(
     'aiFeatures',
     assistantService.getFeatures,
     {
