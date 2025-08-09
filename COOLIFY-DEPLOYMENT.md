@@ -1,213 +1,214 @@
-# 🚀 Coolify Deployment with Dockerfiles
+# Coolify Deployment Guide for EduAI-Asistent
 
-This guide explains how to deploy EduAI-Asistent on Coolify using individual Dockerfiles for frontend and backend.
+## Overview
+This guide provides step-by-step instructions for deploying the EduAI-Asistent application on Coolify.
 
-## 📋 Prerequisites
+## Prerequisites
+- Coolify instance set up and running
+- Docker and Docker Compose installed on your server
+- PostgreSQL database (can be managed by Coolify or external)
 
-- Coolify instance set up
-- PostgreSQL database (external or managed)
-- Domain names for frontend and backend (optional but recommended)
+## Deployment Steps
 
-## 🏗️ Deployment Steps
+### 1. Backend Deployment
 
-### Step 1: Set Up Database
+#### Create Backend Service in Coolify:
+1. Go to your Coolify dashboard
+2. Create a new service
+3. Choose "Docker" as the deployment method
+4. Select "Dockerfile" as the build method
+5. Set the following configuration:
 
-You'll need a PostgreSQL database. Options:
-- **External PostgreSQL** (recommended for production)
-- **Coolify managed database**
-- **Cloud database** (AWS RDS, Google Cloud SQL, etc.)
+**Build Configuration:**
+- Source: Your Git repository
+- Branch: `main` (or your preferred branch)
+- Dockerfile Path: `backend/Dockerfile`
+- Build Context: `backend/`
 
-### Step 2: Deploy Backend Application
-
-1. **Create a new application** in Coolify
-2. **Application Name**: `eduai-backend`
-3. **Repository**: Your Git repository
-4. **Branch**: `main` (or your preferred branch)
-5. **Dockerfile Path**: `backend/Dockerfile.coolify`
-6. **Port**: `3001`
-
-#### Backend Environment Variables:
+**Environment Variables:**
 ```
 NODE_ENV=production
 PORT=3001
-
-# Database Configuration
-DB_HOST=your-database-host
+DB_HOST=your-postgres-host
 DB_PORT=5432
 DB_NAME=eduai_asistent
-DB_USER=your-database-user
-DB_PASSWORD=your-database-password
-DATABASE_URL=postgresql://your-database-user:your-database-password@your-database-host:5432/eduai_asistent
-
-# JWT Configuration
+DB_USER=your-db-user
+DB_PASSWORD=your-db-password
+DATABASE_URL=postgresql://your-db-user:your-db-password@your-postgres-host:5432/eduai_asistent
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 JWT_EXPIRES_IN=7d
-JWT_REFRESH_SECRET=your-super-secret-refresh-key-change-this-in-production
-JWT_REFRESH_EXPIRES_IN=30d
-
-# Frontend URL (for CORS)
 FRONTEND_URL=https://your-frontend-domain.com
-
-# AI Service Configuration
-OPENAI_API_KEY=your-openai-api-key
-OPENAI_MODEL=gpt-4
-OPENAI_MAX_TOKENS=2000
-
-# Credit System
-DEFAULT_CREDITS=100
-CREDIT_COST_PER_REQUEST=1
-
-# Security
-BCRYPT_ROUNDS=12
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# Logging
-LOG_LEVEL=info
 ```
 
-### Step 3: Deploy Frontend Application
+**Port Configuration:**
+- Internal Port: `3001`
+- External Port: `3001` (or your preferred port)
 
-1. **Create another application** in Coolify
-2. **Application Name**: `eduai-frontend`
-3. **Repository**: Your Git repository (same as backend)
-4. **Branch**: `main` (or your preferred branch)
-5. **Dockerfile Path**: `frontend/Dockerfile.coolify`
-6. **Port**: `80`
+### 2. Frontend Deployment
 
-#### Frontend Environment Variables:
+#### Create Frontend Service in Coolify:
+1. Create another service in Coolify
+2. Choose "Docker" as the deployment method
+3. Select "Dockerfile" as the build method
+4. Set the following configuration:
+
+**Build Configuration:**
+- Source: Your Git repository
+- Branch: `main` (or your preferred branch)
+- Dockerfile Path: `frontend/Dockerfile`
+- Build Context: `frontend/`
+
+**Build Arguments:**
 ```
-# No environment variables needed for frontend
-# The frontend will connect to the backend via the backend URL
+VITE_API_URL=/api
+VITE_API_TIMEOUT=10000
+VITE_APP_NAME=EduAI-Asistent
+VITE_APP_VERSION=1.0.0
+VITE_ENABLE_ANALYTICS=false
+VITE_ENABLE_DEBUG_MODE=false
 ```
 
-### Step 4: Configure Domain Names (Optional)
+**Port Configuration:**
+- Internal Port: `80`
+- External Port: `3000` (or your preferred port)
 
-1. **Backend Domain**: `api.yourdomain.com`
-2. **Frontend Domain**: `yourdomain.com` or `app.yourdomain.com`
+### 3. Database Setup
 
-### Step 5: Database Initialization
+#### Option A: Use Coolify's PostgreSQL Service
+1. Create a PostgreSQL service in Coolify
+2. Use the connection details in your backend environment variables
 
-After both applications are deployed:
+#### Option B: Use External PostgreSQL
+1. Set up PostgreSQL on your server or use a managed service
+2. Update the backend environment variables with the correct connection details
 
-1. **Access the backend container**:
-   ```bash
-   # Via Coolify terminal or SSH into your server
-   docker exec -it eduai-backend sh
-   ```
+### 4. Network Configuration
 
-2. **Initialize the database**:
-   ```bash
-   npm run db:init
-   ```
+#### Create a Custom Network (Optional):
+If you want the services to communicate using service names:
+1. Create a custom Docker network in Coolify
+2. Add both services to this network
+3. Update the nginx configuration to use the backend service name
 
-## 🔧 Configuration Details
+### 5. Domain Configuration
 
-### Backend Service
-- **Dockerfile**: `backend/Dockerfile.coolify`
-- **Port**: 3001
-- **Health Check**: `/api/health` endpoint
-- **Environment**: Production
-- **Database**: PostgreSQL
+#### Set up Domains:
+1. Configure your domain(s) in Coolify
+2. Point the frontend domain to the frontend service
+3. Optionally, create a subdomain for the backend API
 
-### Frontend Service
-- **Dockerfile**: `frontend/Dockerfile.coolify`
-- **Port**: 80 (nginx)
-- **Health Check**: `/health` endpoint
-- **Static Files**: Served by nginx
-- **React Router**: Handled by nginx configuration
+### 6. SSL/HTTPS Configuration
 
-## 🌐 Access Points
+#### Enable SSL:
+1. Configure SSL certificates in Coolify
+2. Enable HTTPS for both services
+3. Update the `FRONTEND_URL` environment variable to use HTTPS
 
-After deployment:
-- **Frontend**: `https://your-frontend-domain.com`
-- **Backend API**: `https://your-backend-domain.com`
-- **Health Checks**:
-  - Frontend: `https://your-frontend-domain.com/health`
-  - Backend: `https://your-backend-domain.com/api/health`
+## Important Notes
 
-## 🔗 Service Communication
+### API Proxy Configuration
+The frontend nginx configuration includes a proxy for `/api/*` requests to the backend. This means:
+- Frontend calls to `/api/*` will be automatically proxied to the backend
+- No need to expose the backend port publicly
+- The frontend serves as the main entry point
 
-The frontend needs to know the backend URL. You can:
+### Health Checks
+Both services include health checks:
+- Backend: `http://localhost:3001/api/health`
+- Frontend: `http://localhost/health`
 
-1. **Set it in the frontend build** by adding environment variables to the frontend Dockerfile
-2. **Use environment variables** in the frontend application
-3. **Configure it in the frontend code** to use the backend domain
+### Environment Variables
+Make sure to update all environment variables with your actual values:
+- Database connection details
+- JWT secret (use a strong, unique secret)
+- Domain URLs
+- API keys (if using external services)
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
-### Common Issues
+### Common Issues:
 
-1. **Backend can't connect to database**
-   - Check database credentials
-   - Ensure database is accessible from Coolify's network
-   - Verify firewall rules
+1. **Bad Gateway (502) Error:**
+   - Check if the backend service is running
+   - Verify the nginx proxy configuration
+   - Check backend logs for errors
+   - Ensure database connection is working
 
-2. **Frontend can't connect to backend**
-   - Check CORS configuration in backend
-   - Verify backend URL in frontend
-   - Check network connectivity between services
+2. **CORS Errors:**
+   - Verify the `FRONTEND_URL` environment variable is set correctly
+   - Check that the frontend domain is in the allowed origins
 
-3. **Health checks failing**
-   - Check application logs in Coolify
-   - Verify ports are correctly configured
-   - Ensure applications are starting properly
+3. **Database Connection Issues:**
+   - Verify database credentials
+   - Check if the database is accessible from the backend container
+   - Ensure the database is running and healthy
 
-### Useful Commands
+4. **Build Failures:**
+   - Check if all required files are present in the repository
+   - Verify Dockerfile syntax
+   - Check build logs for specific errors
 
+### Debugging Commands:
 ```bash
-# Check backend logs
+# Check service logs
 docker logs eduai-backend
-
-# Check frontend logs
 docker logs eduai-frontend
 
-# Access backend container
-docker exec -it eduai-backend sh
+# Check service status
+docker ps
 
-# Test database connection
-docker exec -it eduai-backend npm run db:init
+# Test backend health
+curl http://your-backend-domain:3001/api/health
 
-# Check health endpoints
-curl https://your-backend-domain.com/api/health
-curl https://your-frontend-domain.com/health
+# Test frontend health
+curl http://your-frontend-domain/health
 ```
 
-## 🔒 Security Considerations
+## Security Considerations
 
-1. **Change default secrets** (JWT_SECRET, etc.)
-2. **Use HTTPS** (Coolify can handle SSL certificates)
-3. **Set up proper firewall rules**
-4. **Regular security updates**
-5. **Database backups**
+1. **Environment Variables:**
+   - Never commit sensitive data to the repository
+   - Use Coolify's environment variable management
+   - Rotate secrets regularly
 
-## 📊 Monitoring
+2. **Network Security:**
+   - Only expose necessary ports
+   - Use internal networks for service communication
+   - Configure firewalls appropriately
 
-- **Health checks** are configured for both services
-- **Logs** are available through Coolify dashboard
-- **Metrics** can be viewed in Coolify
+3. **SSL/TLS:**
+   - Always use HTTPS in production
+   - Configure proper SSL certificates
+   - Enable HSTS headers
 
-## 🚀 Production Checklist
+## Monitoring
 
-- [ ] Database set up and accessible
-- [ ] Backend application deployed
-- [ ] Frontend application deployed
-- [ ] Environment variables configured
-- [ ] Domain names configured
-- [ ] SSL certificates enabled
-- [ ] Database initialized
-- [ ] Health checks passing
-- [ ] Frontend can connect to backend
-- [ ] Logs monitored
+1. **Set up monitoring in Coolify:**
+   - Enable health checks
+   - Configure log aggregation
+   - Set up alerts for service failures
 
-## 🔄 Updates
+2. **Application Monitoring:**
+   - Monitor API response times
+   - Track error rates
+   - Monitor database performance
 
-To update your application:
+## Updates and Maintenance
 
-1. **Push changes** to your Git repository
-2. **Coolify will automatically rebuild** and deploy
-3. **Database migrations** will need to be run manually if schema changes
+1. **Deploying Updates:**
+   - Push changes to your Git repository
+   - Coolify will automatically rebuild and deploy
+   - Monitor the deployment process
 
----
+2. **Database Migrations:**
+   - Run migrations manually or automate them
+   - Always backup before major updates
+   - Test migrations in a staging environment first
 
-For support, check the main README.md or create an issue in the repository. 
+## Support
+
+If you encounter issues:
+1. Check the troubleshooting section above
+2. Review service logs in Coolify
+3. Verify all configuration settings
+4. Test individual components in isolation 

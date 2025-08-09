@@ -79,6 +79,14 @@ const LoginPage: React.FC = () => {
               </div>
             )}
 
+            <InputField
+              label="Email"
+              type="email"
+              placeholder="vas@email.cz"
+              required
+              error={errors.email?.message}
+              {...register('email')}
+            />
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-neutral-200">Email</label>
               <input
@@ -96,6 +104,14 @@ const LoginPage: React.FC = () => {
               )}
             </div>
 
+            <InputField
+              label="Heslo"
+              type="password"
+              placeholder="Vaše heslo"
+              required
+              error={errors.password?.message}
+              {...register('password')}
+            />
             <div className="space-y-2">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-neutral-200">Heslo</label>
               <input

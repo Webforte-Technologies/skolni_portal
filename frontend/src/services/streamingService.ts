@@ -1,4 +1,4 @@
-import { api } from './apiClient';
+import apiClient from './apiClient';
 
 export interface StreamingResponse {
   type: 'start' | 'chunk' | 'end' | 'error';
@@ -30,14 +30,16 @@ export const streamingService = {
     message: string, 
     sessionId: string | undefined,
     conversationId?: string,
-    callbacks: StreamingCallbacks
+    callbacks: StreamingCallbacks = {}
   ): Promise<void> => {
     const token = localStorage.getItem('authToken');
     if (!token) {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/ai/chat`, {
+    // Get the base URL from the API client
+    const baseURL = apiClient.defaults.baseURL;
+    const response = await fetch(`${baseURL}/ai/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -119,7 +121,9 @@ export const streamingService = {
       throw new Error('No authentication token found');
     }
 
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/ai/generate-worksheet`, {
+    // Get the base URL from the API client
+    const baseURL = apiClient.defaults.baseURL;
+    const response = await fetch(`${baseURL}/ai/generate-worksheet`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

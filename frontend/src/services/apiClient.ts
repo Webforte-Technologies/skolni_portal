@@ -1,14 +1,53 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ApiResponse } from '../types';
 
+// Get API URL from runtime config or environment variables
+const getApiUrl = () => {
+  // Try runtime config first (for production)
+  if (typeof window !== 'undefined' && window.APP_CONFIG?.API_URL && window.APP_CONFIG.API_URL !== '/api') {
+    console.log('Using runtime config API URL:', window.APP_CONFIG.API_URL);
+    return window.APP_CONFIG.API_URL;
+  }
+  
+  // Try environment variable
+  if (import.meta.env.VITE_API_URL) {
+    console.log('Using environment variable API URL:', import.meta.env.VITE_API_URL);
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // Production fallback - using actual backend URL
+  if (window.location.hostname !== 'localhost') {
+    const productionBackendUrl = 'http://ak8gggwkc84o04o4wcwc4gc4.82.29.179.61.sslip.io/api';
+    console.log('Using production fallback API URL:', productionBackendUrl);
+    return productionBackendUrl;
+  }
+  
+  // Development fallback
+  const devUrl = 'http://localhost:3001/api';
+  console.log('Using development API URL:', devUrl);
+  return devUrl;
+};
+
+const getApiTimeout = () => {
+  // Try runtime config first (for production)
+  if (typeof window !== 'undefined' && window.APP_CONFIG?.API_TIMEOUT) {
+    return window.APP_CONFIG.API_TIMEOUT;
+  }
+  // Fall back to environment variables (for development)
+  return parseInt(import.meta.env.VITE_API_TIMEOUT || '10000');
+};
+
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
-  timeout: 10000,
+  baseURL: getApiUrl(),
+  timeout: getApiTimeout(),
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Log the final API client configuration
+console.log('API Client configured with baseURL:', apiClient.defaults.baseURL);
 
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(

@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import pool from './database/connection';
 
 // Load environment variables
 dotenv.config();
@@ -19,15 +20,16 @@ import path from 'path';
 import pool from './database/connection';
 
 const app = express();
-const PORT = process.env['PORT'] || 3001;
+const PORT = parseInt(process.env['PORT'] || '3001', 10);
 
 // Security middleware
 app.use(helmet());
 
-// CORS configuration - allow multiple frontend ports for development
+// CORS configuration - more flexible for production
+const isDevelopment = process.env['NODE_ENV'] === 'development';
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://localhost:5174', 
+  'http://localhost:5174',
   'http://localhost:5175',
   'http://localhost:3000',
   process.env['FRONTEND_URL']
@@ -38,10 +40,16 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
+    // In development, check against allowed origins
+    if (isDevelopment) {
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // In production, allow all origins (you can restrict this further if needed)
+      callback(null, true);
     }
   },
   credentials: true,
@@ -88,13 +96,34 @@ app.use('/api/users', usersRoutes);
 app.use('/api/schools', schoolsRoutes);
 
 // Health check endpoint
-app.get('/api/health', (_req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    message: 'EduAI-Asistent Backend is running',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0'
-  });
+app.get('/api/health', async (_req, res) => {
+  try {
+    // Test database connection
+    const dbTest = await pool.query('SELECT NOW() as current_time');
+    
+    res.status(200).json({
+      status: 'OK',
+      message: 'EduAI-Asistent Backend is running',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      database: {
+        connected: true,
+        current_time: dbTest.rows[0].current_time
+      }
+    });
+  } catch (error: any) {
+    console.error('Health check failed:', error);
+    res.status(500).json({
+      status: 'ERROR',
+      message: 'Backend is running but database connection failed',
+      timestamp: new Date().toISOString(),
+      version: '1.0.0',
+      database: {
+        connected: false,
+        error: error.message
+      }
+    });
+  }
 });
 
 // Root endpoint
@@ -128,14 +157,29 @@ app.use('*', (_req, res) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
+// CORRECTED: Start server listening on 0.0.0.0 to be reachable in Docker
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 EduAI-Asistent Backend server running on port ${PORT}`);
   console.log(`📊 Health check available at http://localhost:${PORT}/api/health`);
   console.log(`🔐 Auth endpoints available at http://localhost:${PORT}/api/auth`);
   console.log(`🤖 AI endpoints available at http://localhost:${PORT}/api/ai`);
   console.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
   console.log(`🔒 CORS enabled for origins: ${allowedOrigins.join(', ')}`);
+  console.log(`🗄️ Database config: ${process.env['DB_HOST']}:${process.env['DB_PORT']}/${process.env['DB_NAME']}`);
+}).on('error', (error) => {
+  console.error('❌ Server failed to start:', error);
+  process.exit(1);
 });
 
-export default app; 
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+export default app;

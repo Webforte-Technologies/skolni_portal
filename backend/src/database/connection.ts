@@ -1,21 +1,17 @@
-import { Pool, PoolConfig } from 'pg';
+import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const dbConfig: PoolConfig = {
-  user: process.env['DB_USER'] || 'postgres',
-  host: process.env['DB_HOST'] || 'localhost',
-  database: process.env['DB_NAME'] || 'eduai_asistent',
-  password: process.env['DB_PASSWORD'] || '',
-  port: parseInt(process.env['DB_PORT'] || '5432'),
-  ssl: process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: false } : false,
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
-};
-
-const pool = new Pool(dbConfig);
+// This simplified config uses the DATABASE_URL you already set in Coolify.
+// The `ssl` object ensures the connection works in production.
+const pool = new Pool({
+  // CORRECTED: Use bracket notation to satisfy the TypeScript strictness rule.
+  connectionString: process.env['DATABASE_URL'],
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
 // Test the connection
 pool.on('connect', () => {
@@ -27,4 +23,4 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
-export default pool; 
+export default pool;

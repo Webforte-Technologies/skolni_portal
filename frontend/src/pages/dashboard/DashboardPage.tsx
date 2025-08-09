@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from 'react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import { assistantService } from '../../services/assistantService';
 import { authService } from '../../services/authService';
 import { useToast } from '../../contexts/ToastContext';
 import Header from '../../components/layout/Header';
-import CreditBalance from '../../components/dashboard/CreditBalance';
 import AssistantCard from '../../components/dashboard/AssistantCard';
 import EditProfileModal from '../../components/dashboard/EditProfileModal';
 import DashboardHero from '../../components/dashboard/DashboardHero';
@@ -31,20 +30,17 @@ import { Link } from 'react-router-dom';
 const DashboardPage: React.FC = () => {
   const { user, updateUser } = useAuth();
   const { showToast } = useToast();
-  const [features, setFeatures] = useState<AIFeature[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddingCredits, setIsAddingCredits] = useState(false);
 
   // Fetch AI features
-  const { data: aiFeatures, isLoading: featuresLoading } = useQuery(
+  const { data: features = [], isLoading: featuresLoading, error: featuresError } = useQuery(
     'aiFeatures',
     assistantService.getFeatures,
     {
-      onSuccess: (data) => {
-        setFeatures(data);
-      },
       onError: (error) => {
         console.error('Failed to load AI features:', error);
+        showToast({ type: 'error', message: 'Nepodařilo se načíst AI asistenty.' });
       },
     }
   );

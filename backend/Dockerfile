@@ -1,37 +1,37 @@
-# Backend Dockerfile for EduAI-Asistent (Coolify)
-FROM node:18-alpine AS base
+# Backend Dockerfile for EduAI-Asistent (Coolify) - FINAL
 
-# Install dependencies only when needed
-FROM base AS builder
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+# Stage 1: Build the application
+FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
+# Install dependencies needed for native modules, if any
+RUN apk add --no-cache libc6-compat
+
+# Copy package files and install production dependencies
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Copy source code
+# Copy the rest of the source code and build the application
 COPY . .
-
-# Build the application
 RUN npm run build
 
-# Production image, copy all the files and run the app
-FROM base AS runner
+# Stage 2: Production image
+FROM node:18-alpine AS runner
 WORKDIR /app
 
 # Install curl for health checks
 RUN apk add --no-cache curl
 
+# Set Node.js to run in production mode
 ENV NODE_ENV=production
-ENV PORT=3001
 
+# Create a non-root user for security
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 nodejs
 
-# Copy the built application
+# Copy only the necessary artifacts from the 'builder' stage
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 # Copy SQL migrations so we can run DB migrations in the container
@@ -41,11 +41,10 @@ USER nextjs
 
 EXPOSE 3001
 
-ENV PORT=3001
-ENV HOSTNAME="0.0.0.0"
-
-# Health check
+# Health check using the PORT variable for flexibility
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3001/api/health || exit 1
+  CMD curl -f http://localhost:${PORT:-3001}/api/health || exit 1
 
-CMD ["npm", "start"] 
+# CORRECTED: The command to start the production application
+# Replace 'index.js' with your actual main server file name (e.g., main.js, app.js, server.js)
+CMD [ "node", "dist/index.js" ]

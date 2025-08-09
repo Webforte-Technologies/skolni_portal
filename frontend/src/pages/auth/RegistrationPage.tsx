@@ -91,6 +91,13 @@ const RegistrationPage: React.FC = () => {
             )}
 
             <div className="grid grid-cols-2 gap-4">
+              <InputField
+                label="Jméno"
+                placeholder="Vaše jméno"
+                required
+                error={errors.first_name?.message}
+                {...register('first_name')}
+              />
               <div className="space-y-2">
                 <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">Jméno</label>
                 <input
@@ -107,6 +114,13 @@ const RegistrationPage: React.FC = () => {
                 )}
               </div>
 
+              <InputField
+                label="Příjmení"
+                placeholder="Vaše příjmení"
+                required
+                error={errors.last_name?.message}
+                {...register('last_name')}
+              />
               <div className="space-y-2">
                 <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">Příjmení</label>
                 <input
@@ -124,6 +138,14 @@ const RegistrationPage: React.FC = () => {
               </div>
             </div>
 
+            <InputField
+              label="Email"
+              type="email"
+              placeholder="vas@email.cz"
+              required
+              error={errors.email?.message}
+              {...register('email')}
+            />
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
               <input
@@ -141,6 +163,14 @@ const RegistrationPage: React.FC = () => {
               )}
             </div>
 
+            <InputField
+              label="Heslo"
+              type="password"
+              placeholder="Minimálně 8 znaků"
+              required
+              error={errors.password?.message}
+              {...register('password')}
+            />
             <div className="space-y-2">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">Heslo</label>
               <input
@@ -158,6 +188,14 @@ const RegistrationPage: React.FC = () => {
               )}
             </div>
 
+            <InputField
+              label="Potvrzení hesla"
+              type="password"
+              placeholder="Zopakujte heslo"
+              required
+              error={errors.confirmPassword?.message}
+              {...register('confirmPassword')}
+            />
             <div className="space-y-2">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Potvrzení hesla</label>
               <input

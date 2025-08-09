@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { assistantService } from '../../services/assistantService';
 import { streamingService } from '../../services/streamingService';
 import { conversationService } from '../../services/conversationService';
+import { authService } from '../../services/authService';
 import Header from '../../components/layout/Header';
 import ChatWindow from '../../components/chat/ChatWindow';
 import MessageInput, { MessageInputHandle } from '../../components/chat/MessageInput';
@@ -17,6 +17,7 @@ import CommandPalette from '../../components/chat/CommandPalette';
 import { ChatMessage, Conversation, ConversationWithMessages } from '../../types';
 import { AlertCircle, ArrowLeft, Copy, Check, Plus, FileText, Menu } from 'lucide-react';
 import Button from '../../components/ui/Button';
+import { generateUUID } from '../../utils/uuid';
 
 const ChatPage: React.FC = () => {
   const { user, updateUser } = useAuth();
@@ -51,7 +52,7 @@ const ChatPage: React.FC = () => {
       }
     } else {
       // Generate a new session ID for this chat session
-      const newSessionId = crypto.randomUUID();
+      const newSessionId = generateUUID();
       setSessionId(newSessionId);
       localStorage.setItem('chatSessionId', newSessionId);
     }
@@ -81,7 +82,7 @@ const ChatPage: React.FC = () => {
     if (!user) return;
 
     const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       content,
       isUser: true,
       timestamp: new Date().toISOString(),
@@ -93,7 +94,7 @@ const ChatPage: React.FC = () => {
     setError('');
 
     // Create a pending AI message
-    const aiMessageId = crypto.randomUUID();
+    const aiMessageId = generateUUID();
     const aiMessage: ChatMessage = {
       id: aiMessageId,
       content: '',
@@ -162,7 +163,7 @@ const ChatPage: React.FC = () => {
   const clearChatHistory = () => {
     setMessages([]);
     localStorage.removeItem('chatMessages');
-    const newSessionId = crypto.randomUUID();
+    const newSessionId = generateUUID();
     setSessionId(newSessionId);
     localStorage.setItem('chatSessionId', newSessionId);
   };
@@ -219,7 +220,7 @@ const ChatPage: React.FC = () => {
         onStart: () => {
           // Worksheet generation is starting
         },
-        onChunk: (content: string) => {
+        onChunk: (_content: string) => {
           // Optional: You could show progress here if needed
         },
         onEnd: (metadata) => {

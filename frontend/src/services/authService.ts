@@ -115,7 +115,7 @@ export const authService = {
 
   // Add demo credits
   addDemoCredits: async (): Promise<{ user: UserWithSchool; credits_added: number }> => {
-    const response = await api.post('/auth/me/add-credits');
+    const response = await api.post<{ user: UserWithSchool; credits_added: number }>('/auth/me/add-credits');
     
     if (response.data.success && response.data.data) {
       // Update stored user data with new credit balance
