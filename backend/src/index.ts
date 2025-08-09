@@ -13,6 +13,10 @@ import aiRoutes from './routes/ai';
 import conversationRoutes from './routes/conversations';
 import schoolsRoutes from './routes/schools';
 import filesRoutes from './routes/files';
+import usersRoutes from './routes/users';
+import fs from 'fs';
+import path from 'path';
+import pool from './database/connection';
 
 const app = express();
 const PORT = process.env['PORT'] || 3001;
@@ -57,11 +61,30 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Optional: run Phase 11 migration at startup if instructed
+async function runStartupMigrationIfNeeded() {
+  try {
+    if (process.env['RUN_STARTUP_MIGRATIONS'] !== 'true') return;
+    const migrationsDir = path.join(__dirname, 'database', 'migrations');
+    const phase11 = path.join(migrationsDir, 'phase11_rbac.sql');
+    if (fs.existsSync(phase11)) {
+      const sql = fs.readFileSync(phase11, 'utf8');
+      await pool.query(sql);
+      console.log('✅ Phase 11 migration executed at startup');
+    }
+  } catch (err) {
+    console.error('⚠️  Startup migration failed (continuing):', err);
+  }
+}
+
+runStartupMigrationIfNeeded().catch(() => void 0);
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/files', filesRoutes);
+app.use('/api/users', usersRoutes);
 app.use('/api/schools', schoolsRoutes);
 
 // Health check endpoint

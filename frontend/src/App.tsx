@@ -14,6 +14,7 @@ const ChatPage = React.lazy(() => import('./pages/chat/ChatPage'));
 const MyMaterialsPage = React.lazy(() => import('./pages/materials/MyMaterialsPage'));
 const SchoolAdminPage = React.lazy(() => import('./pages/dashboard/SchoolAdminPage'));
 const UserProfilePage = React.lazy(() => import('./pages/dashboard/UserProfilePage'));
+const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
 import ErrorBoundary from './components/layout/ErrorBoundary';
 
 // Create a client
@@ -56,6 +57,11 @@ function App() {
                 <Route path="/materials" element={
                   <PrivateRoute>
                     <MyMaterialsPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/profile" element={
+                  <PrivateRoute>
+                    <ProfilePage />
                   </PrivateRoute>
                 } />
                 <Route path="/school" element={
