@@ -17,7 +17,6 @@ import filesRoutes from './routes/files';
 import usersRoutes from './routes/users';
 import fs from 'fs';
 import path from 'path';
-import pool from './database/connection';
 
 const app = express();
 const PORT = parseInt(process.env['PORT'] || '3001', 10);
