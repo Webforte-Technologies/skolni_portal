@@ -126,6 +126,13 @@ router.delete('/:schoolId/teachers/:userId', authenticateToken, requireRole(['sc
     if (!user || user.school_id !== schoolId) {
       return res.status(404).json({ success: false, error: 'Teacher not found in your school' });
     }
+    // Safety: do not allow deactivating school admins or self
+    if (user.role !== 'teacher_school') {
+      return res.status(400).json({ success: false, error: 'Only teacher accounts can be deactivated' });
+    }
+    if (req.user && user.id === req.user.id) {
+      return res.status(400).json({ success: false, error: 'You cannot deactivate your own account' });
+    }
     await pool.query(`UPDATE users SET is_active = false WHERE id = $1`, [userId]);
     return res.status(200).json({ success: true, message: 'Teacher deactivated' });
   } catch (error) {

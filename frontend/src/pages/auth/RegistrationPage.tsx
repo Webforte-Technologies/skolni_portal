@@ -203,13 +203,14 @@ const RegistrationPage: React.FC = () => {
                   Přihlásit se
                 </Link>
               </Button>
-              <div className="mt-6">
-                <p className="text-sm text-gray-500 mb-2">Jste škola? Založte školní účet:</p>
+              <div className="mt-6 space-y-3">
+                <p className="text-sm text-gray-500">Jste škola? Založte školní účet:</p>
                 <Button variant="secondary" className="w-full">
                   <Link to="/register-school" className="inline-flex items-center">
                     <Building2 className="h-4 w-4 mr-2" /> Registrovat školu
                   </Link>
                 </Button>
+                <p className="text-xs text-gray-500">Vyzkoušet demo bez registrace: přihlaste se jako <span className="font-mono">admin@eduai.cz</span> / <span className="font-mono">admin123</span> (školní admin) nebo <span className="font-mono">teacher@eduai.cz</span> / <span className="font-mono">teacher123</span> (učitel).</p>
               </div>
             </div>
           </div>

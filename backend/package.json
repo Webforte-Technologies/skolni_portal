@@ -13,7 +13,9 @@
     "db:init": "ts-node src/database/init.ts",
     "db:reset": "ts-node src/database/init.ts",
     "db:add-tables": "ts-node src/database/add-missing-tables.ts",
-    "db:migrate:phase11": "ts-node src/database/run-migration.ts src/database/migrations/phase11_rbac.sql"
+    "db:migrate:phase11": "ts-node src/database/run-migration.ts src/database/migrations/phase11_rbac.sql",
+    "db:migrate:phase11:fix": "ts-node src/database/run-migration.ts src/database/migrations/phase11_fix_check.sql",
+    "db:migrate:phase11:normalize": "ts-node src/database/run-migration.ts src/database/migrations/phase11_normalize_roles.sql"
   },
   "keywords": [
     "education",
