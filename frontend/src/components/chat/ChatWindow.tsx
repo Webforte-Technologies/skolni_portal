@@ -8,9 +8,18 @@ interface ChatWindowProps {
   onCopyMessage?: (messageId: string, content: string) => void;
   copiedMessageId?: string | null;
   isTyping?: boolean;
+  onDeleteMessage?: (messageId: string) => void;
+  onRegenerate?: (messageId: string) => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMessage, copiedMessageId, isTyping = false }) => {
+const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ 
+  messages, 
+  onCopyMessage, 
+  copiedMessageId, 
+  isTyping = false,
+  onDeleteMessage,
+  onRegenerate
+}) => {
   const listRef = useRef<VirtuosoHandle>(null);
   const [isNearBottom, setIsNearBottom] = useState(true);
 
@@ -94,6 +103,8 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
                     message={message}
                     onCopyMessage={onCopyMessage}
                     copiedMessageId={copiedMessageId}
+                    onDeleteMessage={onDeleteMessage}
+                    onRegenerate={onRegenerate}
                     showLeftAvatar={(message as any).showLeftAvatar}
                     showRightAvatar={(message as any).showRightAvatar}
                   />

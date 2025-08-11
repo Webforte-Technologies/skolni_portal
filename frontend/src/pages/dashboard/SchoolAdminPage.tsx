@@ -6,7 +6,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
 import { api } from '../../services/apiClient';
-import { ArrowLeft, Search, CreditCard, Calendar, Users, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Search, CreditCard, Users, TrendingUp } from 'lucide-react';
 
 interface TeacherForm {
   email: string;
@@ -325,8 +325,8 @@ const SchoolAdminPage: React.FC = () => {
         </div>
 
         {/* Credit Allocation Section */}
-        <Card title={
-          <div className="flex items-center justify-between w-full">
+        <Card title="Správa přidělení kreditů">
+          <div className="flex items-center justify-between w-full mb-4">
             <div className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-blue-600" />
               <span>Správa přidělení kreditů</span>
@@ -358,7 +358,6 @@ const SchoolAdminPage: React.FC = () => {
               </Button>
             </div>
           </div>
-        }>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/30 p-4 rounded-lg border border-blue-200 dark:border-blue-700/50">
               <div className="flex items-center space-x-2 mb-2">
@@ -422,11 +421,9 @@ const SchoolAdminPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
-                    Počet kreditů
-                  </label>
                   <InputField
                     name="allocation_amount"
+                    label="Počet kreditů"
                     type="number"
                     min="1"
                     max={creditAllocation?.unallocated_credits || 0}
@@ -437,11 +434,9 @@ const SchoolAdminPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
-                    Popis (volitelné)
-                  </label>
                   <InputField
                     name="allocation_description"
+                    label="Popis (volitelné)"
                     placeholder="Měsíční přidělení, bonus, atd."
                     value={allocationDescription}
                     onChange={(e) => setAllocationDescription(e.target.value)}
@@ -522,8 +517,8 @@ const SchoolAdminPage: React.FC = () => {
         </Card>
 
         {/* Credit Management Section */}
-        <Card title={
-          <div className="flex items-center justify-between w-full">
+        <Card title="Správa kreditů">
+          <div className="flex items-center justify-between w-full mb-4">
             <div className="flex items-center space-x-2">
               <CreditCard className="h-5 w-5 text-primary-600" />
               <span>Správa kreditů</span>
@@ -555,7 +550,7 @@ const SchoolAdminPage: React.FC = () => {
               </Button>
             </div>
           </div>
-        }>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/30 p-4 rounded-lg border border-primary-200 dark:border-primary-700/50">
               <div className="flex items-center space-x-2 mb-2">
@@ -569,7 +564,7 @@ const SchoolAdminPage: React.FC = () => {
             <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/30 p-4 rounded-lg border border-green-200 dark:border-green-700/50">
               <div className="flex items-center space-x-2 mb-2">
                 <TrendingUp className="h-5 w-5 text-green-600" />
-                <span className="text-sm font-medium text-green-700 dark:text-green-300">Použito tento měsíc</span>
+                <span className="text-sm font-medium text-green-700 dark:text-primary-300">Použito tento měsíc</span>
               </div>
               <p className="text-2xl font-bold text-green-900 dark:text-green-100">
                 {subscriptionInfo?.monthly_usage || 0}
@@ -592,11 +587,9 @@ const SchoolAdminPage: React.FC = () => {
               <h4 className="text-lg font-medium text-gray-900 dark:text-neutral-100 mb-4">Přidat kredity do školy</h4>
               <form onSubmit={addCredits} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
-                    Počet kreditů
-                  </label>
                   <InputField
                     name="credits_amount"
+                    label="Počet kreditů"
                     type="number"
                     min="1"
                     placeholder="100"
@@ -606,11 +599,9 @@ const SchoolAdminPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
-                    Popis (volitelné)
-                  </label>
                   <InputField
                     name="credits_description"
+                    label="Popis (volitelné)"
                     placeholder="Demo kredity, bonus, atd."
                     value={addCreditsDescription}
                     onChange={(e) => setAddCreditsDescription(e.target.value)}
@@ -690,12 +681,7 @@ const SchoolAdminPage: React.FC = () => {
         </Card>
 
         {/* Subscription Info Panel */}
-        <Card title={
-          <div className="flex items-center space-x-2">
-            <Calendar className="h-5 w-5 text-primary-600" />
-            <span>Informace o předplatném</span>
-          </div>
-        }>
+        <Card title="Informace o předplatném">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
@@ -773,6 +759,7 @@ const SchoolAdminPage: React.FC = () => {
               </div>
               <InputField
                 name="teacher_search"
+                label="Hledat učitele"
                 placeholder="Hledat učitele..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}

@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
+import KeyboardNavigation from './components/ui/KeyboardNavigation';
 
 import PrivateRoute, { RequireRole } from './components/auth/PrivateRoute';
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
@@ -34,11 +36,13 @@ function App() {
       <ThemeProvider>
         <ToastProvider>
           <AuthProvider>
-            <Router>
-              <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 font-sans">
-                <ErrorBoundary>
-                  <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
-                    <Routes>
+            <AccessibilityProvider>
+              <Router>
+                <KeyboardNavigation>
+                  <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 font-sans">
+                    <ErrorBoundary>
+                      <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                        <Routes>
                 {/* Public routes */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegistrationPage />} />
@@ -88,11 +92,13 @@ function App() {
                 
                 {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                    </Routes>
-                  </Suspense>
-                </ErrorBoundary>
-              </div>
-            </Router>
+                                            </Routes>
+                      </Suspense>
+                    </ErrorBoundary>
+                  </div>
+                </KeyboardNavigation>
+              </Router>
+            </AccessibilityProvider>
           </AuthProvider>
         </ToastProvider>
       </ThemeProvider>

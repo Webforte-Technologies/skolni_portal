@@ -1,15 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
 import ConfirmModal from '../ui/ConfirmModal';
-import { LogOut, User, Sun, Moon, Building2 } from 'lucide-react';
+import { LogOut, User, Sun, Moon, Building2, Settings, HelpCircle, Keyboard } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Link } from 'react-router-dom';
+import { useAccessibility } from '../../contexts/AccessibilityContext';
+import UserPreferences from '../ui/UserPreferences';
+import HelpSystem from '../ui/HelpSystem';
+import KeyboardShortcuts from '../ui/KeyboardShortcuts';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { settings } = useAccessibility();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [activeShortcuts, setActiveShortcuts] = useState<string[]>([]);
+
+  // Load active shortcuts from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('keyboardShortcuts');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const active = parsed.filter((s: any) => s.currentKey !== s.defaultKey);
+        setActiveShortcuts(active.map((s: any) => s.name));
+      } catch (error) {
+        console.error('Failed to parse saved shortcuts:', error);
+      }
+    }
+  }, []);
+
+  const refreshActiveShortcuts = () => {
+    const saved = localStorage.getItem('keyboardShortcuts');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const active = parsed.filter((s: any) => s.currentKey !== s.defaultKey);
+        setActiveShortcuts(active.map((s: any) => s.name));
+      } catch (error) {
+        console.error('Failed to parse saved shortcuts:', error);
+      }
+    }
+  };
 
   if (!user) return null;
 
@@ -28,20 +64,64 @@ const Header: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo and title */}
             <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-neutral-100">
-                EduAI-Asistent
-              </h1>
+              <Link to="/dashboard" className="hover:opacity-80 transition-opacity">
+                <h1 className="text-xl font-semibold text-gray-900 dark:text-neutral-100 cursor-pointer">
+                  EduAI-Asistent
+                </h1>
+              </Link>
             </div>
 
             {/* User info and logout */}
             <div className="flex items-center space-x-4">
-              <button
-                onClick={toggleTheme}
-                className="rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </button>
+              {/* Accessibility and Settings Buttons */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowShortcuts(true)}
+                  className="relative rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  aria-label="Klávesové zkratky"
+                  title={`Klávesové zkratky (Ctrl+/)${activeShortcuts.length > 0 ? ` - ${activeShortcuts.length} vlastní` : ''}`}
+                >
+                  <Keyboard className="h-4 w-4" />
+                  {/* Active indicator - green for default, blue for custom */}
+                  <div className={`absolute -top-1 -right-1 w-2 h-2 rounded-full ${
+                    activeShortcuts.length > 0 ? 'bg-blue-500' : 'bg-green-500'
+                  }`}></div>
+                </button>
+                <button
+                  onClick={() => setShowHelp(true)}
+                  className="rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  aria-label="Nápověda"
+                  title="Nápověda (F1)"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setShowPreferences(true)}
+                  className="rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  aria-label="Nastavení"
+                  title="Nastavení"
+                >
+                  <Settings className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={toggleTheme}
+                  className="rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  aria-label="Toggle theme"
+                  title="Přepnout téma (Ctrl+T)"
+                >
+                  {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </button>
+                <Link
+                  to="/dashboard"
+                  className="rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  aria-label="Dashboard"
+                  title="Dashboard (Ctrl+D)"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </Link>
+              </div>
               <div className="flex items-center space-x-3">
                 {user.role === 'school_admin' && (
                   <Link to="/school" className="inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:underline">
@@ -77,6 +157,60 @@ const Header: React.FC = () => {
         confirmText="Odhlásit se"
         cancelText="Zrušit"
         variant="warning"
+      />
+
+      {/* User Preferences Modal */}
+      <UserPreferences
+        isOpen={showPreferences}
+        onClose={() => setShowPreferences(false)}
+        onPreferencesChange={(preferences) => {
+          // Handle preferences change
+          console.log('Preferences changed:', preferences);
+        }}
+        currentPreferences={{
+          theme: theme,
+          language: 'cs',
+          notifications: {
+            email: true,
+            push: true,
+            sound: true,
+            chat: true,
+            updates: true
+          },
+          accessibility: {
+            highContrast: settings.highContrast,
+            screenReader: settings.screenReader,
+            fontSize: settings.fontSize,
+            reducedMotion: settings.reducedMotion,
+            focusIndicator: settings.focusIndicator
+          },
+          display: {
+            compactMode: false,
+            sidebarCollapsed: false,
+            showTooltips: true,
+            showProgressBars: true
+          },
+          privacy: {
+            analytics: true,
+            telemetry: false,
+            shareUsage: false
+          }
+        }}
+      />
+
+      {/* Help System Modal */}
+      <HelpSystem
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+      />
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcuts
+        isOpen={showShortcuts}
+        onClose={() => {
+          setShowShortcuts(false);
+          refreshActiveShortcuts();
+        }}
       />
     </>
   );

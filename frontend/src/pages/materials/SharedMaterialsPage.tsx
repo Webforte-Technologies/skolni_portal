@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from 'react-query';
-import { FileText, Download, Eye, Calendar, Search, Folder, Filter, Grid, List, Users } from 'lucide-react';
+import { FileText, Download, Eye, Calendar, Search, Filter, Grid, List, Users } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import apiClient from '../../services/apiClient';
@@ -11,7 +11,7 @@ import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
 import Header from '../../components/layout/Header';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { GeneratedFile, Folder as FolderType } from '../../types';
+import { Folder as FolderType } from '../../types';
 
 interface Worksheet {
   title: string;

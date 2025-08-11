@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ChatMessage } from '../../types';
+import { ChatMessage, MathTopic, MathDifficulty } from '../../types';
 import { cn } from '../../utils/cn';
-import { User, Bot, Copy, Check, BookOpen, ExternalLink } from 'lucide-react';
+import { User, Bot, Copy, Check, BookOpen, ExternalLink, Target, TrendingUp, Star } from 'lucide-react';
 import Button from '../ui/Button';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -17,6 +17,68 @@ interface MessageProps {
   showLeftAvatar?: boolean;
   showRightAvatar?: boolean;
 }
+
+const getDifficultyIcon = (difficulty: MathDifficulty) => {
+  switch (difficulty) {
+    case 'basic':
+      return <Target className="h-3 w-3" />;
+    case 'intermediate':
+      return <TrendingUp className="h-3 w-3" />;
+    case 'advanced':
+      return <Star className="h-3 w-3" />;
+    default:
+      return null;
+  }
+};
+
+const getDifficultyColor = (difficulty: MathDifficulty) => {
+  switch (difficulty) {
+    case 'basic':
+      return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700';
+    case 'intermediate':
+      return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-700';
+    case 'advanced':
+      return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700';
+    default:
+      return 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700';
+  }
+};
+
+const getTopicColor = (topic: MathTopic) => {
+  const topicColors: Record<MathTopic, string> = {
+    basic_math: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700',
+    algebra: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700',
+    geometry: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 border-purple-200 dark:border-purple-700',
+    calculus: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700',
+    statistics: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-700',
+    discrete_math: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-200 border-indigo-200 dark:border-indigo-700',
+    physics: 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200 border-orange-200 dark:border-orange-700',
+    chemistry: 'bg-teal-100 dark:bg-teal-900/30 text-teal-800 dark:text-teal-200 border-teal-200 dark:border-teal-700',
+    biology: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 border-emerald-200 dark:border-emerald-700',
+    history: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-700',
+    czech_language: 'bg-rose-100 dark:bg-rose-900/30 text-rose-800 dark:text-rose-200 border-rose-200 dark:border-rose-700',
+    other: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+  };
+  return topicColors[topic] || topicColors.other;
+};
+
+const getTopicName = (topic: MathTopic) => {
+  const topicNames: Record<MathTopic, string> = {
+    basic_math: 'Základní matematika',
+    algebra: 'Algebra',
+    geometry: 'Geometrie',
+    calculus: 'Analýza',
+    statistics: 'Statistika',
+    discrete_math: 'Diskrétní matematika',
+    physics: 'Fyzika',
+    chemistry: 'Chemie',
+    biology: 'Biologie',
+    history: 'Dějepis',
+    czech_language: 'Český jazyk',
+    other: 'Jiné'
+  };
+  return topicNames[topic] || 'Jiné';
+};
 
 const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, copiedMessageId, onDeleteMessage, onRegenerate, showLeftAvatar = true, showRightAvatar = true }) => {
   const isUser = message.isUser;
@@ -51,6 +113,37 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
           ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-primary-500/25 hover:shadow-primary-500/35 hover:-translate-y-0.5' 
           : 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/30 border border-primary-200 dark:border-primary-700/50 text-primary-900 dark:text-primary-100 shadow-primary-500/10 hover:shadow-primary-500/20 hover:-translate-y-0.5'
       )}>
+        {/* Math Topic and Difficulty Tags */}
+        {!isUser && (message.mathTopic || message.difficulty) && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {message.mathTopic && (
+              <span className={cn(
+                'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border',
+                getTopicColor(message.mathTopic)
+              )}>
+                {getTopicName(message.mathTopic)}
+              </span>
+            )}
+            {message.difficulty && (
+              <span className={cn(
+                'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border',
+                getDifficultyColor(message.difficulty)
+              )}>
+                {getDifficultyIcon(message.difficulty)}
+                {message.difficulty === 'basic' && 'Základní'}
+                {message.difficulty === 'intermediate' && 'Střední'}
+                {message.difficulty === 'advanced' && 'Pokročilé'}
+              </span>
+            )}
+            {message.practiceMode && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-700">
+                <Target className="h-3 w-3" />
+                Cvičení
+              </span>
+            )}
+          </div>
+        )}
+
         <div className={cn(
           'text-sm leading-relaxed markdown-body transition-[max-height] duration-300 ease-in-out',
           !isUser && isLong && !isExpanded ? 'max-h-56 overflow-hidden pr-2' : 'max-h-fit'
@@ -76,7 +169,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
               },
               a({ children, ...props }: any) {
                 return (
-                  <a className="text-primary-600 hover:underline" target="_blank" rel="noreferrer" {...props}>
+                  <a className="text-primary-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props}>
                     {children}
                   </a>
                 );
@@ -100,83 +193,63 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
           )}
         </div>
 
-        {/* Show more/less control for long AI answers */}
+        {/* Message Actions */}
+        {!isUser && (
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1">
+            {onCopyMessage && (
+              <Button
+                onClick={handleCopy}
+                variant="secondary"
+                size="icon"
+                className="w-6 h-6 p-0"
+                title="Kopírovat zprávu"
+              >
+                {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+              </Button>
+            )}
+            {onDeleteMessage && (
+              <Button
+                onClick={() => onDeleteMessage(message.id)}
+                variant="danger"
+                size="icon"
+                className="w-6 h-6 p-0"
+                title="Smazat zprávu"
+              >
+                <ExternalLink className="h-3 w-3" />
+              </Button>
+            )}
+            {onRegenerate && (
+              <Button
+                onClick={() => onRegenerate(message.id)}
+                variant="secondary"
+                size="icon"
+                className="w-6 h-6 p-0"
+                title="Přegenerovat odpověď"
+              >
+                <BookOpen className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Expand/Collapse Button for Long Messages */}
         {!isUser && isLong && (
-          <div className="mt-2">
-            <Button variant={isUser ? 'secondary' : 'primary'} size="sm" onClick={() => setIsExpanded(v => !v)}>
+          <div className="absolute bottom-2 right-2">
+            <Button
+              onClick={() => setIsExpanded(!isExpanded)}
+              variant="secondary"
+              size="sm"
+              className="text-xs px-2 py-1"
+            >
               {isExpanded ? 'Zobrazit méně' : 'Zobrazit více'}
             </Button>
           </div>
         )}
-        
-        {/* Copy button for AI messages */}
-        {!isUser && (
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <div className="flex space-x-1">
-              {onCopyMessage && (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleCopy}
-                  className="h-6 w-6 p-0 bg-white/90 dark:bg-primary-800/90 hover:bg-white dark:hover:bg-primary-700 border border-primary-200 dark:border-primary-600"
-                >
-                  {isCopied ? (
-                    <Check className="h-3 w-3 text-success-600" />
-                  ) : (
-                    <Copy className="h-3 w-3 text-muted-foreground dark:text-neutral-600" />
-                  )}
-                </Button>
-              )}
-              {onRegenerate && (
-                <Button variant="secondary" size="sm" onClick={() => onRegenerate(message.id)} className="h-6 w-6 p-0">↻</Button>
-              )}
-              {onDeleteMessage && (
-                <Button variant="secondary" size="sm" onClick={() => onDeleteMessage(message.id)} className="h-6 w-6 p-0">×</Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Citations / Footnotes (for future RAG). Render if present on message */}
-        {!isUser && Array.isArray((message as any).citations) && (message as any).citations.length > 0 && (
-          <div className="mt-3 pt-2 border-t border-border dark:border-neutral-800 text-xs text-muted-foreground dark:text-neutral-300">
-            <div className="flex items-center gap-2 mb-1 font-medium">
-              <BookOpen className="h-3.5 w-3.5" />
-              Zdroje
-            </div>
-            <ul className="space-y-1">
-              {((message as any).citations as Array<{ label: string; url?: string }>).map((c, idx) => (
-                <li key={idx} className="flex items-center gap-2">
-                  <span className="text-muted-foreground dark:text-neutral-400">[{idx + 1}]</span>
-                  {c.url ? (
-                    <a href={c.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary-600 hover:underline">
-                      {c.label}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  ) : (
-                    <span>{c.label}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        
-        {/* Timestamp */}
-        <div
-          className={cn(
-            'absolute -bottom-5 right-0 text-[11px] opacity-0 group-hover:opacity-100 transition-opacity',
-            isUser ? 'text-primary-100' : 'text-neutral-500 dark:text-neutral-400'
-          )}
-          title={new Date(message.timestamp).toLocaleString('cs-CZ')}
-        >
-          {new Date(message.timestamp).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}
-        </div>
       </div>
-      
+
       {isUser && showRightAvatar && (
         <div className="flex-shrink-0">
-          <div className="w-10 h-10 bg-neutral-600 rounded-full flex items-center justify-center shadow-soft">
+          <div className="w-10 h-10 bg-gradient-to-r from-neutral-600 to-neutral-700 rounded-full flex items-center justify-center shadow-soft">
             <User className="h-6 w-6 text-white" />
           </div>
         </div>
@@ -184,7 +257,5 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
     </div>
   );
 });
-
-Message.displayName = 'Message';
 
 export default Message; 

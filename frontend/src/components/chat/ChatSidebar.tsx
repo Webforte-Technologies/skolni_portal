@@ -25,6 +25,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'recent' | 'starred' | 'math' | 'worksheets'>('all');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
   const [starred, setStarred] = useState<Record<string, boolean>>(() => {
     try { return JSON.parse(localStorage.getItem('starredConversations') || '{}'); } catch { return {}; }
   });
@@ -122,6 +124,74 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     return title.length > maxLength ? title.substring(0, maxLength) + '...' : title;
   };
 
+  const getFilteredConversations = () => {
+    let filtered = conversations;
+
+    // Text search - only search in titles since messages aren't loaded in the sidebar
+    if (query) {
+      filtered = filtered.filter(c => 
+        c.title.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    // Type filter
+    switch (filterType) {
+      case 'recent':
+        filtered = filtered.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        break;
+      case 'starred':
+        filtered = filtered.filter(c => starred[c.id]);
+        break;
+      case 'math':
+        filtered = filtered.filter(c => 
+          c.title.toLowerCase().includes('matematika') ||
+          c.title.toLowerCase().includes('math') ||
+          c.title.toLowerCase().includes('rovnice') ||
+          c.title.toLowerCase().includes('vzorec')
+        );
+        break;
+      case 'worksheets':
+        filtered = filtered.filter(c => 
+          c.title.toLowerCase().includes('cvičení') ||
+          c.title.toLowerCase().includes('worksheet') ||
+          c.title.toLowerCase().includes('úkol')
+        );
+        break;
+    }
+
+    // Date filter
+    const now = new Date();
+    switch (dateFilter) {
+      case 'today':
+        filtered = filtered.filter(c => {
+          const convDate = new Date(c.updated_at);
+          return convDate.toDateString() === now.toDateString();
+        });
+        break;
+      case 'week':
+        filtered = filtered.filter(c => {
+          const convDate = new Date(c.updated_at);
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return convDate >= weekAgo;
+        });
+        break;
+      case 'month':
+        filtered = filtered.filter(c => {
+          const convDate = new Date(c.updated_at);
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          return convDate >= monthAgo;
+        });
+        break;
+    }
+
+    // Sort by starred first, then by date
+    return filtered.sort((a, b) => {
+      const starredDiff = Number(Boolean(starred[b.id])) - Number(Boolean(starred[a.id]));
+      if (starredDiff !== 0) return starredDiff;
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    });
+  };
+
   if (loading) {
     return (
       <div className="w-80 bg-card dark:bg-neutral-950 border-r border-border dark:border-neutral-800 p-4">
@@ -155,14 +225,65 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             <span>Nová</span>
           </Button>
         </div>
-        <div className="relative">
+        <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-2 rounded-md border border-border dark:border-neutral-800 bg-background dark:bg-neutral-900 text-sm text-foreground dark:text-neutral-100 placeholder-muted-foreground"
-            placeholder="Hledat..."
+            placeholder="Hledat v názvech a zprávách..."
           />
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex flex-wrap gap-1 mb-3">
+          {[
+            { key: 'all', label: 'Vše', icon: '📋' },
+            { key: 'recent', label: 'Poslední', icon: '🕒' },
+            { key: 'starred', label: 'Oblíbené', icon: '⭐' },
+            { key: 'math', label: 'Matematika', icon: '📐' },
+            { key: 'worksheets', label: 'Cvičení', icon: '📝' }
+          ].map(({ key, label, icon }) => (
+            <button
+              key={key}
+              onClick={() => setFilterType(key as any)}
+              className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                filterType === key
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-muted dark:bg-neutral-800 text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              <span className="mr-1">{icon}</span>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Date Filter */}
+        <div className="flex gap-1">
+          {[
+            { key: 'all', label: 'Všechny' },
+            { key: 'today', label: 'Dnes' },
+            { key: 'week', label: 'Týden' },
+            { key: 'month', label: 'Měsíc' }
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setDateFilter(key as any)}
+              className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                dateFilter === key
+                  ? 'bg-secondary-500 text-white'
+                  : 'bg-muted dark:bg-neutral-800 text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Results Counter */}
+        <div className="text-xs text-muted-foreground text-center mt-2">
+          {getFilteredConversations().length} z {conversations.length} konverzací
         </div>
       </div>
 
@@ -176,10 +297,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           </div>
         ) : (
           <div className="p-2">
-            {conversations
-              .filter(c => c.title.toLowerCase().includes(query.toLowerCase()))
-              .sort((a,b) => Number(Boolean(starred[b.id])) - Number(Boolean(starred[a.id])))
-              .map((conversation) => (
+            {getFilteredConversations().map((conversation) => (
               <div
                 key={conversation.id}
                 className={`group relative p-3 rounded-lg cursor-pointer transition-colors transition-transform ${

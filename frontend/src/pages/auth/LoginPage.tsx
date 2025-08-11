@@ -7,7 +7,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { AlertCircle, Loader2, BookOpen } from 'lucide-react';
-import { cn } from '../../utils/cn';
 import InputField from '../../components/ui/InputField';
 
 const loginSchema = z.object({

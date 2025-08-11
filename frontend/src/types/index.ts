@@ -59,6 +59,68 @@ export interface ChatMessage {
   isUser: boolean;
   timestamp: string;
   session_id?: string;
+  mathTopic?: MathTopic;
+  difficulty?: MathDifficulty;
+  practiceMode?: boolean;
+}
+
+// Math Assistant Types for Phase 13.1
+export type MathTopic = 
+  | 'basic_math' 
+  | 'algebra' 
+  | 'geometry' 
+  | 'calculus' 
+  | 'statistics' 
+  | 'discrete_math'
+  | 'physics'
+  | 'chemistry'
+  | 'biology'
+  | 'history'
+  | 'czech_language'
+  | 'other';
+
+export type MathDifficulty = 'basic' | 'intermediate' | 'advanced';
+
+export interface MathTopicInfo {
+  id: MathTopic;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  examples: string[];
+}
+
+export interface PracticeProblem {
+  id: string;
+  problem: string;
+  answer: string;
+  solution: string;
+  topic: MathTopic;
+  difficulty: MathDifficulty;
+  hints: string[];
+}
+
+export interface PracticeSession {
+  id: string;
+  topic: MathTopic;
+  difficulty: MathDifficulty;
+  problems: PracticeProblem[];
+  currentProblemIndex: number;
+  score: number;
+  totalProblems: number;
+  startedAt: string;
+  completedAt?: string;
+}
+
+export interface MathProgress {
+  userId: string;
+  topic: MathTopic;
+  difficulty: MathDifficulty;
+  problemsAttempted: number;
+  problemsCorrect: number;
+  averageTime: number;
+  lastPracticed: string;
+  masteryLevel: number; // 0-100
 }
 
 // Phase 8: Conversation History Types

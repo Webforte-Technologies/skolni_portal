@@ -594,20 +594,141 @@ Tasks:
 
 12.2 School Administration Overhaul:
 
-    [ ] Frontend: Add a prominent "Back to Dashboard" navigation link/button on the SchoolAdminPage.tsx.
+    [x] Frontend: Add a prominent "Back to Dashboard" navigation link/button on the SchoolAdminPage.tsx.
 
-    [ ] Backend & Frontend: Implement a "Credit Management" section for admins, showing the school's total credits, monthly usage, and a table with credit usage per teacher.
+    [x] Backend & Frontend: Implement a "Credit Management" section for admins, showing the school's total credits, monthly usage, and a table with credit usage per teacher.
 
-    [ ] Frontend: Add a "Subscription Info" panel that displays the school's current plan and its renewal date.
+    [x] Frontend: Add a "Subscription Info" panel that displays the school's current plan and its renewal date.
 
-    [ ] Frontend: Enhance the teacher list with a search input field.
+    [x] Frontend: Enhance the teacher list with a search input field.
 
 12.3 "My Materials" to Library Transformation:
 
-    [ ] Backend: Update the database schema to support folders (folders table) and sharing (shared_materials table).
+    [x] Backend: Update the database schema to support folders (folders table) and sharing (shared_materials table).
 
-    [ ] Backend & Frontend: Implement full CRUD (Create, Read, Update, Delete) functionality for folders. Allow materials to be moved into folders.
+    [x] Backend & Frontend: Implement full CRUD (Create, Read, Update, Delete) functionality for folders. Allow materials to be moved into folders.
 
-    [ ] Backend & Frontend: Implement a robust search and filtering system for the materials page.
+    [x] Backend & Frontend: Implement a robust search and filtering system for the materials page.
 
-    [ ] Backend & Frontend: Implement the "Share within school" functionality. Create a new "School Library" page where teachers can view materials shared by their colleagues.
+    [x] Backend & Frontend: Implement the "Share within school" functionality. Create a new "School Library" page where teachers can view materials shared by their colleagues.
+
+ Phase 13: Enhanced Math Assistant & User Experience
+
+Timeline: Week 20-21
+Status:  Planned
+Goal: Significantly enhance the math assistant capabilities and improve overall user experience with advanced features and better interaction patterns.
+
+Tasks:
+
+13.1 Math Assistant Improvements:
+    [x] Backend & Frontend: Integrate KaTeX or MathJax for beautiful mathematical notation display in chat responses.
+    [x] Backend: Enhance AI prompts to generate step-by-step problem solutions with clear explanations.
+    [x] Frontend: Implement math topic categorization system (algebra, geometry, calculus, statistics) with visual topic tags.
+    [x] Frontend: Add practice mode with immediate feedback and progress tracking for students.
+    [x] Backend & Frontend: Create a math difficulty progression system (basic, intermediate, advanced) with adaptive content.
+
+13.2 Enhanced Chat Experience:
+    [x] Frontend: Add image upload capability for math problems (OCR integration for handwritten equations).
+    [x] Frontend: Implement PDF export functionality for conversations and generated worksheets.
+    [x] Frontend: Add advanced search and filtering for conversation history.
+    [x] Frontend: Add voice input and text-to-speech for accessibility.
+    [ ] Frontend: Add collaborative chat features allowing teachers to share sessions with students. - maybe
+    [x] Frontend: Create chat templates with pre-built conversation starters for common math topics.
+
+13.3 User Experience Enhancements:
+    [x] Frontend: Implement advanced keyboard shortcuts and customizable hotkeys.
+    [x] Frontend: Add a comprehensive help system with interactive tutorials and tooltips.
+    [x] Frontend: Implement user preference settings (language, theme, notification preferences).
+    [x] Frontend: Add accessibility features (screen reader support, high contrast mode, keyboard navigation).
+
+🎨 Phase 14: Landing Page & Marketing
+
+Timeline: Week 22-23
+Status: 📝 Planned
+Goal: Create a compelling public-facing landing page and implement marketing features to attract new users and schools.
+
+Tasks:
+
+14.1 Public Landing Page:
+    [ ] Frontend: Design and implement a modern, responsive landing page with compelling hero section.
+    [ ] Frontend: Create feature showcase with interactive demos of AI capabilities.
+    [ ] Frontend: Add testimonials section with success stories from Czech schools.
+    [ ] Frontend: Implement clear pricing plans and subscription tiers.
+    [ ] Frontend: Add streamlined school registration flow with clear CTAs.
+
+14.2 Marketing Features:
+    [ ] Frontend: Implement SEO optimization with Czech language keywords and meta tags.
+    [ ] Backend: Create analytics endpoints for tracking visitor behavior and conversions.
+    [ ] Frontend: Add A/B testing framework for landing page variations.
+    [ ] Frontend: Implement lead capture forms (newsletter signup, demo requests).
+    [ ] Frontend: Add social proof elements and integration with Czech education platforms.
+
+
+🔧 Phase 15: Developer Admin Dashboard
+
+Timeline: Week 24-25
+Status: 📝 Planned
+Goal: Build a comprehensive developer/admin dashboard for system management, monitoring, and business intelligence.
+
+Tasks:
+
+15.1 System Administration:
+    [ ] Backend: Create admin-only endpoints for system-wide user management.
+    [ ] Frontend: Build admin dashboard with user overview, school management, and system status.
+    [ ] Backend: Implement system health monitoring (API performance, database health, error rates).
+    [ ] Backend: Add comprehensive audit logging for all system activities.
+    [ ] Frontend: Create system health dashboard with real-time metrics and alerts.
+
+15.2 Credit & Business Management:
+    [ ] Backend: Implement system-wide credit management and distribution controls.
+    [ ] Frontend: Create credit analytics dashboard showing usage patterns and trends.
+    [ ] Backend: Add subscription management endpoints for different plan tiers.
+    [ ] Frontend: Build business intelligence dashboard with revenue tracking and user growth metrics.
+
+15.3 Content Moderation & Quality:
+    [ ] Backend: Implement content moderation system for AI-generated materials.
+    [ ] Frontend: Create moderation interface for reviewing and approving content.
+    [ ] Backend: Add quality scoring system for AI responses and generated materials.
+    [ ] Frontend: Build quality metrics dashboard with performance indicators.
+
+15.4 Developer Tools:
+    [ ] Backend: Create API documentation and testing endpoints.
+    [ ] Frontend: Build API testing interface for developers.
+    [ ] Backend: Implement feature flags and configuration management.
+    [ ] Frontend: Create system configuration panel for feature toggles and settings.
+
+ Phase 16: Advanced Library & Content Management
+
+Timeline: Week 26-27
+Status: 📝 Planned
+Goal: Transform the materials system into a comprehensive, intelligent library with advanced organization, collaboration, and discovery features.
+
+Tasks:
+
+16.1 Content Organization & Discovery:
+    [ ] Backend: Implement AI-powered content categorization and tagging system.
+    [ ] Frontend: Create intelligent search with filters, sorting, and relevance scoring.
+    [ ] Backend: Add content recommendation engine based on user preferences and usage patterns.
+    [ ] Frontend: Implement advanced filtering system (subject, grade level, difficulty, tags).
+    [ ] Backend: Create content versioning system with change tracking and rollback capabilities.
+
+16.2 Collaboration & Sharing:
+    [ ] Frontend: Build teacher networks and communities within and across schools.
+    [ ] Backend: Implement content rating and review system with moderation.
+    [ ] Frontend: Create discussion forums for subject-specific teacher communities.
+    [ ] Backend: Add collaborative content creation with real-time editing capabilities.
+    [ ] Frontend: Implement resource sharing workflows with approval processes.
+
+16.3 Content Templates & Standards:
+    [ ] Backend: Create template system for worksheets, lessons, and assessments.
+    [ ] Frontend: Build template library with customizable educational content structures.
+    [ ] Backend: Implement curriculum alignment system with Czech educational standards.
+    [ ] Frontend: Add curriculum mapping interface for content organization.
+    [ ] Backend: Create assessment tools with standardized testing and evaluation features.
+
+16.4 Advanced Library Features:
+    [ ] Frontend: Implement content collections and curated learning paths.
+    [ ] Backend: Add content analytics (usage statistics, popularity, effectiveness).
+    [ ] Frontend: Create personalized learning recommendations for students.
+    [ ] Backend: Implement content export/import system for backup and migration.
+    [ ] Frontend: Add offline content access with synchronization capabilities.

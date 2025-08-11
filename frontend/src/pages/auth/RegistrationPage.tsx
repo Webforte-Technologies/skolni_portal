@@ -8,7 +8,6 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { AlertCircle, Loader2, UserPlus, Building2 } from 'lucide-react';
 import InputField from '../../components/ui/InputField';
-import { cn } from '../../utils/cn';
 
 const registerSchema = z.object({
   email: z.string().email('Zadejte platný email'),

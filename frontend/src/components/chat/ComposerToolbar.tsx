@@ -3,7 +3,7 @@ import Button from '../ui/Button';
 import { Paperclip, Wand2, FileText, Bold, List, Sigma } from 'lucide-react';
 
 interface ComposerToolbarProps {
-  onUpload?: () => void;
+  onUpload: () => void;
   onTemplates?: () => void;
   onGenerateWorksheet?: () => void;
   disabled?: boolean;
@@ -14,7 +14,7 @@ interface ComposerToolbarProps {
 const ComposerToolbar: React.FC<ComposerToolbarProps> = ({ onUpload, onTemplates, onGenerateWorksheet, disabled, onInsertText, onOpenHelp }) => {
   return (
     <div className="flex items-center gap-2 px-1 pt-2 text-xs text-muted-foreground dark:text-neutral-400">
-      <Button variant="ghost" size="icon" onClick={onUpload} title="Nahrát soubor (brzy)">
+      <Button variant="ghost" size="icon" onClick={onUpload} title="Nahrát obrázek matematického problému">
         <Paperclip className="h-4 w-4" />
       </Button>
       <Button variant="ghost" size="icon" onClick={onTemplates} title="Šablony / příkazy">
