@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -8,6 +9,8 @@ import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import KeyboardNavigation from './components/ui/KeyboardNavigation';
 
 import PrivateRoute, { RequireRole } from './components/auth/PrivateRoute';
+import PublicRoute from './components/auth/PublicRoute';
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const RegistrationPage = React.lazy(() => import('./pages/auth/RegistrationPage'));
 const SchoolRegistrationPage = React.lazy(() => import('./pages/auth/SchoolRegistrationPage'));
@@ -33,17 +36,23 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <ToastProvider>
-          <AuthProvider>
-            <AccessibilityProvider>
-              <Router>
-                <KeyboardNavigation>
-                  <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 font-sans">
-                    <ErrorBoundary>
-                      <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
-                        <Routes>
+      <HelmetProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <AccessibilityProvider>
+                <Router>
+                  <KeyboardNavigation>
+                    <div className="min-h-screen bg-gray-50 dark:bg-neutral-900 font-sans">
+                      <ErrorBoundary>
+                        <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                          <Routes>
                 {/* Public routes */}
+                <Route path="/" element={
+                  <PublicRoute>
+                    <LandingPage />
+                  </PublicRoute>
+                } />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegistrationPage />} />
                 <Route path="/register-school" element={<SchoolRegistrationPage />} />
@@ -87,22 +96,20 @@ function App() {
                   </PrivateRoute>
                 } />
                 
-                {/* Redirect root to dashboard if authenticated, otherwise to login */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                
                 {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                                            </Routes>
-                      </Suspense>
-                    </ErrorBoundary>
-                  </div>
-                </KeyboardNavigation>
-              </Router>
-            </AccessibilityProvider>
-          </AuthProvider>
-        </ToastProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+      </KeyboardNavigation>
+    </Router>
+  </AccessibilityProvider>
+</AuthProvider>
+</ToastProvider>
+</ThemeProvider>
+</HelmetProvider>
+</QueryClientProvider>
   );
 }
 
