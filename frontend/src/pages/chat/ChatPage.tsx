@@ -6,6 +6,7 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { generateUUID } from '../../utils/uuid';
 import { MathTopic, MathDifficulty, PracticeSession } from '../../types';
 import { api } from '../../services/apiClient';
+import { streamingService } from '../../services/streamingService';
 import ChatSidebar from '../../components/chat/ChatSidebar';
 import ChatWindow from '../../components/chat/ChatWindow';
 import MessageInput from '../../components/chat/MessageInput';
@@ -224,11 +225,42 @@ const ChatPage: React.FC = () => {
     setMessages(prev => [...prev, aiMessage]);
 
     try {
-      await api.post(`/conversations/${currentConversation?.id}/messages`, {
-        content: content,
-        session_id: sessionId,
-        message_id: aiMessageId,
-      });
+      // Ensure we have a conversation id
+      let conversationId = currentConversation?.id as string | undefined;
+      if (!conversationId) {
+        const resp = await api.post('/conversations', {
+          title: 'New Conversation',
+          assistant_type: 'math_assistant'
+        });
+        const conv = (resp.data as any).data;
+        setCurrentConversation(conv);
+        const convId: string = conv.id;
+        conversationId = convId;
+        setSessionId(convId);
+        localStorage.setItem('chatSessionId', convId);
+        localStorage.removeItem('chatMessages');
+      }
+
+      // Stream AI response
+      await streamingService.sendMessageStream(
+        content,
+        sessionId,
+        conversationId,
+        {
+          onChunk: (chunk) => {
+            setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, content: (m.content || '') + chunk } : m));
+          },
+          onEnd: ({ credits_balance }) => {
+            if (user) {
+              updateUser({ ...user, credits_balance });
+            }
+          },
+          onError: (msg) => {
+            setError(msg);
+            setMessages(prev => prev.filter(m => m.id !== aiMessageId));
+          }
+        }
+      );
     } catch (err: any) {
       if (err.response?.status === 402) {
         setError('Nemáte dostatek kreditů pro odeslání zprávy. Prosím, doplňte kredity.');
@@ -258,13 +290,14 @@ const ChatPage: React.FC = () => {
         title: 'New Conversation',
         assistant_type: 'math_assistant'
       });
-      
-      setCurrentConversation(newConversation.data);
+
+      const conv = (newConversation.data as any).data;
+      setCurrentConversation(conv);
       setMessages([]);
       setError('');
       setGeneratedWorksheet(null);
-      setSessionId((newConversation.data as any).id);
-      localStorage.setItem('chatSessionId', (newConversation.data as any).id);
+      setSessionId(conv.id);
+      localStorage.setItem('chatSessionId', conv.id);
       localStorage.removeItem('chatMessages');
       
       showToast({ type: 'success', message: 'Nová konverzace vytvořena!' });
@@ -277,13 +310,14 @@ const ChatPage: React.FC = () => {
   const handleConversationSelect = async (conversationId: string) => {
     try {
       const conversation = await api.get(`/conversations/${conversationId}`);
-      if (conversation.data) {
-        setCurrentConversation(conversation.data);
+      const conv = (conversation.data as any).data;
+      if (conv) {
+        setCurrentConversation(conv);
         setSessionId(conversationId);
         localStorage.setItem('chatSessionId', conversationId);
         
         // Convert database messages to chat messages
-        const chatMessages: any[] = (conversation.data as any).messages.map((msg: any) => ({
+        const chatMessages: any[] = (conv as any).messages.map((msg: any) => ({
           id: msg.id,
           content: msg.content,
           role: msg.role,

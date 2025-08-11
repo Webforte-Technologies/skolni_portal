@@ -525,7 +525,7 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ isOpen, on
         </div>
 
         {/* Debug Info (Development Only) */}
-        {process.env.NODE_ENV === 'development' && (
+        {import.meta.env.MODE === 'development' && (
           <div className="bg-gray-100 rounded-lg p-4 text-xs font-mono">
             <h3 className="font-medium mb-2">Debug Info</h3>
             <div>editingShortcut: {editingShortcut || 'null'}</div>

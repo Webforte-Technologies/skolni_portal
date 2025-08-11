@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "EduAI-Asistent API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "b6b2a2f3-9f6e-4e11-b6b3-eduai"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register School",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{BASE_URL}}/auth/register-school", "host": ["{{BASE_URL}}"], "path": ["auth","register-school"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"school\": { \"name\": \"ZŠ Praha\", \"city\": \"Praha\", \"address\": \"Ulice 1\", \"postal_code\": \"11000\", \"contact_email\": \"admin@skola.cz\" },\n  \"admin\": { \"email\": \"admin@skola.cz\", \"password\": \"admin12345\", \"first_name\": \"Jan\", \"last_name\": \"Novák\" }\n}"
+            }
+          }
+        },
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{BASE_URL}}/auth/register", "host": ["{{BASE_URL}}"], "path": ["auth","register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"secret12345\",\n  \"first_name\": \"Eva\",\n  \"last_name\": \"Malá\"\n}" }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{BASE_URL}}/auth/login", "host": ["{{BASE_URL}}"], "path": ["auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"secret12345\"\n}" }
+          }
+        },
+        {
+          "name": "Profile (GET)",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" } ],
+            "url": { "raw": "{{BASE_URL}}/auth/profile", "host": ["{{BASE_URL}}"], "path": ["auth","profile"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Schools",
+      "item": [
+        {
+          "name": "Get School",
+          "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" } ], "url": { "raw": "{{BASE_URL}}/schools/{{SCHOOL_ID}}", "host": ["{{BASE_URL}}"], "path": ["schools","{{SCHOOL_ID}}"] } }
+        },
+        {
+          "name": "Add Teacher",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{BASE_URL}}/schools/{{SCHOOL_ID}}/teachers", "host": ["{{BASE_URL}}"], "path": ["schools","{{SCHOOL_ID}}","teachers"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"teacher@skola.cz\",\n  \"first_name\": \"Petr\",\n  \"last_name\": \"Svoboda\",\n  \"password\": \"TempPass123\"\n}" }
+          }
+        },
+        {
+          "name": "Add Credits (school)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{BASE_URL}}/schools/{{SCHOOL_ID}}/add-credits", "host": ["{{BASE_URL}}"], "path": ["schools","{{SCHOOL_ID}}","add-credits"] },
+            "body": { "mode": "raw", "raw": "{\n  \"amount\": 200,\n  \"description\": \"Demo credits\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI",
+      "item": [
+        {
+          "name": "Chat (SSE) – curl example",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "text/event-stream" } ],
+            "url": { "raw": "{{BASE_URL}}/ai/chat", "host": ["{{BASE_URL}}"], "path": ["ai","chat"] },
+            "body": { "mode": "raw", "raw": "{\n  \"message\": \"Vysvětli kvadratické rovnice krok za krokem.\",\n  \"conversation_id\": \"{{CONVERSATION_ID}}\"\n}" }
+          }
+        },
+        {
+          "name": "Generate Worksheet (SSE)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }, { "key": "Accept", "value": "text/event-stream" } ],
+            "url": { "raw": "{{BASE_URL}}/ai/generate-worksheet", "host": ["{{BASE_URL}}"], "path": ["ai","generate-worksheet"] },
+            "body": { "mode": "raw", "raw": "{\n  \"topic\": \"Kvadratické rovnice\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Conversations",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" } ], "url": { "raw": "{{BASE_URL}}/conversations?limit=50", "host": ["{{BASE_URL}}"], "path": ["conversations"], "query": [ { "key": "limit", "value": "50" } ] } } },
+        { "name": "Create", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" } ], "url": { "raw": "{{BASE_URL}}/conversations", "host": ["{{BASE_URL}}"], "path": ["conversations"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"New Conversation\",\n  \"assistant_type\": \"math_assistant\"\n}" } } },
+        { "name": "Get by ID", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" } ], "url": { "raw": "{{BASE_URL}}/conversations/{{CONVERSATION_ID}}", "host": ["{{BASE_URL}}"], "path": ["conversations","{{CONVERSATION_ID}}"] } } },
+        { "name": "Add Message", "request": { "method": "POST", "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" } ], "url": { "raw": "{{BASE_URL}}/conversations/{{CONVERSATION_ID}}/messages", "host": ["{{BASE_URL}}"], "path": ["conversations","{{CONVERSATION_ID}}","messages"] }, "body": { "mode": "raw", "raw": "{\n  \"role\": \"user\",\n  \"content\": \"Ahoj!\"\n}" } } }
+      ]
+    },
+    {
+      "name": "Files",
+      "item": [
+        { "name": "List", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" } ], "url": { "raw": "{{BASE_URL}}/files?limit=50", "host": ["{{BASE_URL}}"], "path": ["files"], "query": [ { "key": "limit", "value": "50" } ] } } },
+        { "name": "Stats", "request": { "method": "GET", "header": [ { "key": "Authorization", "value": "Bearer {{TOKEN}}" } ], "url": { "raw": "{{BASE_URL}}/files/stats", "host": ["{{BASE_URL}}"], "path": ["files","stats"] } } }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        { "name": "Health Check", "request": { "method": "GET", "url": { "raw": "{{BASE_URL}}/health", "host": ["{{BASE_URL}}"], "path": ["health"] } } }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "BASE_URL", "value": "http://localhost:3001/api" },
+    { "key": "TOKEN", "value": "" },
+    { "key": "SCHOOL_ID", "value": "" },
+    { "key": "CONVERSATION_ID", "value": "" }
+  ]
+}
+
+

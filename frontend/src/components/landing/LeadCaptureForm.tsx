@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../ui/Button';
-import { Mail, Phone, Building, User, CheckCircle } from 'lucide-react';
+import { Mail, Phone, Building, CheckCircle } from 'lucide-react';
 
 interface LeadCaptureFormProps {
   type: 'newsletter' | 'demo' | 'contact';

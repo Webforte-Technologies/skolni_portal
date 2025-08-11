@@ -140,9 +140,43 @@ router.post('/:schoolId/add-credits', authenticateToken, requireRole(['school_ad
     `, [schoolId]);
 
     if (usersResult.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'No active users found in this school' 
+      // No active teachers yet: credit the requesting school admin instead
+      // Fetch current admin balance
+      const adminResult = await pool.query(
+        `SELECT id, credits_balance FROM users WHERE id = $1 AND role = 'school_admin' AND is_active = true`,
+        [req.user!.id]
+      );
+
+      if (adminResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'School admin not found'
+        });
+      }
+
+      const admin = adminResult.rows[0];
+      const balanceBefore = admin.credits_balance;
+      const balanceAfter = balanceBefore + amount;
+
+      await pool.query(
+        `UPDATE users SET credits_balance = $1 WHERE id = $2`,
+        [balanceAfter, admin.id]
+      );
+
+      await pool.query(
+        `INSERT INTO credit_transactions (user_id, transaction_type, amount, balance_before, balance_after, description)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [admin.id, 'bonus', amount, balanceBefore, balanceAfter, `${description} - credited to school admin (no teachers yet)`]
+      );
+
+      return res.json({
+        success: true,
+        message: `Successfully added ${amount} credits to school admin (no active teachers found)`,
+        data: {
+          credits_added: amount,
+          users_updated: 1,
+          credited_admin_id: admin.id
+        }
       });
     }
 
