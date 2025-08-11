@@ -233,9 +233,10 @@ const ChatPage: React.FC = () => {
         });
         const conv = (resp.data as any).data;
         setCurrentConversation(conv);
-        conversationId = conv.id;
-        setSessionId(conversationId);
-        localStorage.setItem('chatSessionId', conversationId);
+        const convId: string = conv.id;
+        conversationId = convId;
+        setSessionId(convId);
+        localStorage.setItem('chatSessionId', convId);
         localStorage.removeItem('chatMessages');
       }
 
