@@ -224,7 +224,23 @@ const ChatPage: React.FC = () => {
     setMessages(prev => [...prev, aiMessage]);
 
     try {
-      await api.post(`/conversations/${currentConversation?.id}/messages`, {
+      // Ensure we have a conversation id
+      let conversationId = currentConversation?.id as string | undefined;
+      if (!conversationId) {
+        const resp = await api.post('/conversations', {
+          title: 'New Conversation',
+          assistant_type: 'math_assistant'
+        });
+        const conv = (resp.data as any).data;
+        setCurrentConversation(conv);
+        conversationId = conv.id;
+        setSessionId(conversationId);
+        localStorage.setItem('chatSessionId', conversationId);
+        localStorage.removeItem('chatMessages');
+      }
+
+      await api.post(`/conversations/${conversationId}/messages`, {
+        role: 'user',
         content: content,
         session_id: sessionId,
         message_id: aiMessageId,
@@ -258,13 +274,14 @@ const ChatPage: React.FC = () => {
         title: 'New Conversation',
         assistant_type: 'math_assistant'
       });
-      
-      setCurrentConversation(newConversation.data);
+
+      const conv = (newConversation.data as any).data;
+      setCurrentConversation(conv);
       setMessages([]);
       setError('');
       setGeneratedWorksheet(null);
-      setSessionId((newConversation.data as any).id);
-      localStorage.setItem('chatSessionId', (newConversation.data as any).id);
+      setSessionId(conv.id);
+      localStorage.setItem('chatSessionId', conv.id);
       localStorage.removeItem('chatMessages');
       
       showToast({ type: 'success', message: 'Nová konverzace vytvořena!' });
@@ -277,13 +294,14 @@ const ChatPage: React.FC = () => {
   const handleConversationSelect = async (conversationId: string) => {
     try {
       const conversation = await api.get(`/conversations/${conversationId}`);
-      if (conversation.data) {
-        setCurrentConversation(conversation.data);
+      const conv = (conversation.data as any).data;
+      if (conv) {
+        setCurrentConversation(conv);
         setSessionId(conversationId);
         localStorage.setItem('chatSessionId', conversationId);
         
         // Convert database messages to chat messages
-        const chatMessages: any[] = (conversation.data as any).messages.map((msg: any) => ({
+        const chatMessages: any[] = (conv as any).messages.map((msg: any) => ({
           id: msg.id,
           content: msg.content,
           role: msg.role,
