@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import Button from '../components/ui/Button';
 import SEOHead from '../components/seo/SEOHead';
 import LeadCaptureForm from '../components/landing/LeadCaptureForm';
@@ -16,11 +16,8 @@ import {
   Play,
   Zap,
   GraduationCap,
-  Globe,
   BarChart3,
   MessageSquare,
-  FileText,
-  Download,
   Sparkles,
   Rocket,
   Target,
@@ -36,26 +33,27 @@ import {
 
 const LandingPage: React.FC = () => {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-  const [selectedPlan, setSelectedPlan] = useState('basic');
+  // State kept for future selection UX; unused at build to avoid errors
+  // const [selectedPlan, setSelectedPlan] = useState('basic');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Animation hooks
-  const { scrollY } = useScroll();
   const heroRef = useRef(null);
   const featuresRef = useRef(null);
   const testimonialsRef = useRef(null);
   const pricingRef = useRef(null);
   
   // Parallax effects
-  const heroY = useTransform(scrollY, [0, 500], [0, -100]);
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.3]);
+  // Parallax values reserved for future effects; avoid unused warnings
+  // const heroY = useTransform(scrollY, [0, 500], [0, -100]);
+  // const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.3]);
   
   // Intersection observers
   const isHeroInView = useInView(heroRef, { once: true });
-  const isFeaturesInView = useInView(featuresRef, { once: true });
-  const isTestimonialsInView = useInView(testimonialsRef, { once: true });
-  const isPricingInView = useInView(pricingRef, { once: true });
+  // const isFeaturesInView = useInView(featuresRef, { once: true });
+  // const isTestimonialsInView = useInView(testimonialsRef, { once: true });
+  // const isPricingInView = useInView(pricingRef, { once: true });
   
   // Auto-rotate testimonials
   useEffect(() => {
