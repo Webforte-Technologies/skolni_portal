@@ -57,20 +57,20 @@ const RegistrationPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex justify-center">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <UserPlus className="h-8 w-8 text-blue-600" />
+            <div className="p-3 bg-blue-100 dark:bg-neutral-800 rounded-full">
+              <UserPlus className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-neutral-100">
               EduAI-Asistent
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 dark:text-neutral-300 mt-2">
               Vytvořte si nový účet
             </p>
           </div>
@@ -79,15 +79,15 @@ const RegistrationPage: React.FC = () => {
         {/* Registration Form */}
         <Card title="Registrace" className="shadow-lg border-0">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold">Registrace</h2>
-            <p className="text-gray-600 mt-2">Vyplňte údaje pro vytvoření účtu</p>
+            <h2 className="text-2xl font-semibold dark:text-neutral-100">Registrace</h2>
+            <p className="text-gray-600 dark:text-neutral-300 mt-2">Vyplňte údaje pro vytvoření účtu</p>
           </div>
           
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <span className="text-sm text-red-600">{error}</span>
+              <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
               </div>
             )}
 
@@ -99,21 +99,6 @@ const RegistrationPage: React.FC = () => {
                 error={errors.first_name?.message}
                 {...register('first_name')}
               />
-              <div className="space-y-2">
-                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">Jméno</label>
-                <input
-                  id="first_name"
-                  placeholder="Vaše jméno"
-                  className={cn(
-                    "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
-                    errors.first_name && "border-red-300 focus:ring-red-500 focus:border-red-500"
-                  )}
-                  {...register('first_name')}
-                />
-                {errors.first_name && (
-                  <p className="text-sm text-red-600">{errors.first_name.message}</p>
-                )}
-              </div>
 
               <InputField
                 label="Příjmení"
@@ -122,21 +107,6 @@ const RegistrationPage: React.FC = () => {
                 error={errors.last_name?.message}
                 {...register('last_name')}
               />
-              <div className="space-y-2">
-                <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">Příjmení</label>
-                <input
-                  id="last_name"
-                  placeholder="Vaše příjmení"
-                  className={cn(
-                    "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
-                    errors.last_name && "border-red-300 focus:ring-red-500 focus:border-red-500"
-                  )}
-                  {...register('last_name')}
-                />
-                {errors.last_name && (
-                  <p className="text-sm text-red-600">{errors.last_name.message}</p>
-                )}
-              </div>
             </div>
 
             <InputField
@@ -147,22 +117,6 @@ const RegistrationPage: React.FC = () => {
               error={errors.email?.message}
               {...register('email')}
             />
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-              <input
-                id="email"
-                type="email"
-                placeholder="vas@email.cz"
-                className={cn(
-                  "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
-                  errors.email && "border-red-300 focus:ring-red-500 focus:border-red-500"
-                )}
-                {...register('email')}
-              />
-              {errors.email && (
-                <p className="text-sm text-red-600">{errors.email.message}</p>
-              )}
-            </div>
 
             <InputField
               label="Heslo"
@@ -172,22 +126,7 @@ const RegistrationPage: React.FC = () => {
               error={errors.password?.message}
               {...register('password')}
             />
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">Heslo</label>
-              <input
-                id="password"
-                type="password"
-                placeholder="Minimálně 8 znaků"
-                className={cn(
-                  "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
-                  errors.password && "border-red-300 focus:ring-red-500 focus:border-red-500"
-                )}
-                {...register('password')}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-600">{errors.password.message}</p>
-              )}
-            </div>
+
 
             <InputField
               label="Potvrzení hesla"
@@ -197,22 +136,7 @@ const RegistrationPage: React.FC = () => {
               error={errors.confirmPassword?.message}
               {...register('confirmPassword')}
             />
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Potvrzení hesla</label>
-              <input
-                id="confirmPassword"
-                type="password"
-                placeholder="Zopakujte heslo"
-                className={cn(
-                  "block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
-                  errors.confirmPassword && "border-red-300 focus:ring-red-500 focus:border-red-500"
-                )}
-                {...register('confirmPassword')}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
-              )}
-            </div>
+
 
             <Button
               type="submit"
@@ -234,7 +158,7 @@ const RegistrationPage: React.FC = () => {
           <div className="mt-6">
             <hr className="my-4 border-gray-200" />
             <div className="text-center">
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">
                 Už máte účet?
               </p>
               <Button variant="outline" className="w-full">
@@ -243,13 +167,13 @@ const RegistrationPage: React.FC = () => {
                 </Link>
               </Button>
               <div className="mt-6 space-y-3">
-                <p className="text-sm text-gray-500">Jste škola? Založte školní účet:</p>
+                <p className="text-sm text-gray-500 dark:text-neutral-400">Jste škola? Založte školní účet:</p>
                 <Button variant="secondary" className="w-full">
                   <Link to="/register-school" className="inline-flex items-center">
                     <Building2 className="h-4 w-4 mr-2" /> Registrovat školu
                   </Link>
                 </Button>
-                <p className="text-xs text-gray-500">Vyzkoušet demo bez registrace: přihlaste se jako <span className="font-mono">admin@eduai.cz</span> / <span className="font-mono">admin123</span> (školní admin) nebo <span className="font-mono">teacher@eduai.cz</span> / <span className="font-mono">teacher123</span> (učitel).</p>
+                <p className="text-xs text-gray-500 dark:text-neutral-400">Vyzkoušet demo bez registrace: přihlaste se jako <span className="font-mono">admin@eduai.cz</span> / <span className="font-mono">admin123</span> (školní admin) nebo <span className="font-mono">teacher@eduai.cz</span> / <span className="font-mono">teacher123</span> (učitel).</p>
               </div>
             </div>
           </div>
@@ -257,8 +181,8 @@ const RegistrationPage: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center">
-          <p className="text-xs text-gray-500">
-            © 2024 EduAI-Asistent. Všechna práva vyhrazena.
+          <p className="text-xs text-gray-500 dark:text-neutral-400">
+            © 2025 EduAI-Asistent. Všechna práva vyhrazena.
           </p>
         </div>
       </div>

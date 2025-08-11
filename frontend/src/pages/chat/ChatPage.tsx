@@ -258,7 +258,7 @@ const ChatPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-muted dark:bg-neutral-900">
+    <div className="min-h-screen bg-background dark:bg-neutral-900">
       <Header />
       
       <div className="flex h-[calc(100vh-64px)]">
@@ -279,7 +279,7 @@ const ChatPage: React.FC = () => {
               className="absolute inset-0 bg-black/40"
               onClick={() => setIsMobileSidebarOpen(false)}
             />
-            <div className="absolute inset-y-0 left-0 w-80 bg-white shadow-2xl">
+            <div className="absolute inset-y-0 left-0 w-80 bg-card dark:bg-neutral-950 shadow-2xl">
               <ChatSidebar
                 onConversationSelect={(id) => {
                   handleConversationSelect(id);
@@ -298,11 +298,11 @@ const ChatPage: React.FC = () => {
         {/* Main chat area */}
         <div className="flex-1 flex flex-col min-h-0">
           {/* Header with back button and credit balance */}
-          <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
+          <div className="flex items-center justify-between p-4 border-b border-border dark:border-neutral-800 bg-card dark:bg-neutral-950">
             <div className="flex items-center space-x-4">
               <button
                 type="button"
-                className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted dark:hover:bg-neutral-800"
                 onClick={() => setIsMobileSidebarOpen(true)}
                 aria-label="Open sidebar"
               >
@@ -317,11 +317,11 @@ const ChatPage: React.FC = () => {
                 <ArrowLeft className="h-4 w-4" />
                 <span>Zpět na dashboard</span>
               </Button>
-              <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+              <h1 className="text-xl font-bold text-foreground dark:text-neutral-100">
                 AI Asistent
               </h1>
               {currentConversation && (
-                <span className="text-sm text-neutral-500 dark:text-neutral-300">
+                <span className="text-sm text-muted-foreground dark:text-neutral-300">
                   - {currentConversation.title}
                 </span>
               )}
@@ -362,14 +362,14 @@ const ChatPage: React.FC = () => {
 
           {/* Error message */}
           {error && (
-            <div className="mx-4 mt-4 flex items-center space-x-2 p-3 bg-danger-50 border border-danger-200 rounded-md">
+            <div className="mx-4 mt-4 flex items-center space-x-2 p-3 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 rounded-md">
               <AlertCircle className="h-5 w-5 text-danger-500" />
-              <span className="text-sm text-danger-700">{error}</span>
+              <span className="text-sm text-danger-700 dark:text-danger-400">{error}</span>
             </div>
           )}
 
           {/* Chat container */}
-          <div className="flex-1 min-h-0 bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-soft mx-4 my-4 flex flex-col">
+          <div className="flex-1 min-h-0 bg-card dark:bg-neutral-950 border border-border dark:border-neutral-800 rounded-lg shadow-soft mx-4 my-4 flex flex-col">
             <ChatWindow 
               messages={messages} 
               onCopyMessage={handleCopyMessage}
@@ -393,10 +393,10 @@ const ChatPage: React.FC = () => {
 
           {/* Credit warning */}
           {user.credits_balance < 1 && (
-            <div className="mx-4 mb-4 p-4 bg-warning-50 border border-warning-200 rounded-md">
+            <div className="mx-4 mb-4 p-4 bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 rounded-md">
               <div className="flex items-center space-x-2">
                 <AlertCircle className="h-5 w-5 text-warning-600" />
-                <span className="text-sm text-warning-800">
+                <span className="text-sm text-warning-800 dark:text-warning-400">
                   Nemáte dostatek kreditů pro odeslání zprávy. Každá zpráva stojí 1 kredit.
                 </span>
               </div>

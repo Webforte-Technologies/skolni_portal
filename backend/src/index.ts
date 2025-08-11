@@ -15,6 +15,8 @@ import conversationRoutes from './routes/conversations';
 import schoolsRoutes from './routes/schools';
 import filesRoutes from './routes/files';
 import usersRoutes from './routes/users';
+import foldersRoutes from './routes/folders';
+import sharedMaterialsRoutes from './routes/shared-materials';
 import fs from 'fs';
 import path from 'path';
 
@@ -93,6 +95,8 @@ app.use('/api/conversations', conversationRoutes);
 app.use('/api/files', filesRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/schools', schoolsRoutes);
+app.use('/api/folders', foldersRoutes);
+app.use('/api/shared-materials', sharedMaterialsRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (_req, res) => {

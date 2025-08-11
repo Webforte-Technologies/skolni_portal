@@ -20,7 +20,8 @@ import {
   FileText, 
   MessageSquare,
   TrendingUp,
-  Activity
+  Activity,
+  Users
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -82,6 +83,12 @@ const DashboardPage: React.FC = () => {
               <Button variant="outline" size="lg" className="shadow-sm">
                 <FileText className="h-4 w-4 mr-2" />
                 Moje materiály
+              </Button>
+            </Link>
+            <Link to="/shared-materials">
+              <Button variant="outline" size="lg" className="shadow-sm">
+                <Users className="h-4 w-4 mr-2" />
+                Sdílené materiály
               </Button>
             </Link>
           </div>

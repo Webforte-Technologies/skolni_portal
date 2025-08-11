@@ -89,7 +89,38 @@ export interface GeneratedFile {
   title: string;
   content: any; // JSONB content
   file_type: string;
+  folder_id?: string;
   created_at: string;
+}
+
+export interface Folder {
+  id: string;
+  user_id: string;
+  school_id?: string;
+  name: string;
+  description?: string;
+  parent_folder_id?: string;
+  is_shared: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SharedMaterial {
+  id: string;
+  material_id: string;
+  shared_by_user_id: string;
+  school_id: string;
+  folder_id?: string;
+  is_public: boolean;
+  shared_at: string;
+  title?: string;
+  content?: any;
+  file_type?: string;
+  material_created_at?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  folder_name?: string;
 }
 
 export interface ChatRequest {

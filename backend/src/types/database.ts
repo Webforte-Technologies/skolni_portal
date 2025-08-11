@@ -99,7 +99,30 @@ export interface GeneratedFile {
   title: string;
   content: any; // JSONB content
   file_type: string;
+  folder_id?: string;
   created_at: Date;
+}
+
+export interface Folder {
+  id: string;
+  user_id: string;
+  school_id?: string;
+  name: string;
+  description?: string;
+  parent_folder_id?: string;
+  is_shared: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface SharedMaterial {
+  id: string;
+  material_id: string;
+  shared_by_user_id: string;
+  school_id: string;
+  folder_id?: string;
+  is_public: boolean;
+  shared_at: Date;
 }
 
 export interface ConversationWithMessages extends Conversation {
@@ -123,6 +146,30 @@ export interface CreateGeneratedFileRequest {
   title: string;
   content: any;
   file_type?: string;
+  folder_id?: string;
+}
+
+export interface CreateFolderRequest {
+  user_id: string;
+  school_id?: string;
+  name: string;
+  description?: string;
+  parent_folder_id?: string;
+  is_shared?: boolean;
+}
+
+export interface UpdateFolderRequest {
+  name?: string;
+  description?: string;
+  parent_folder_id?: string;
+  is_shared?: boolean;
+}
+
+export interface ShareMaterialRequest {
+  material_id: string;
+  school_id: string;
+  folder_id?: string;
+  is_public?: boolean;
 }
 
 // Request/Response types for API

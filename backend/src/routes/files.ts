@@ -64,6 +64,36 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
   }
 });
 
+// Get file statistics for the current user
+router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const userId = req.user.id;
+    
+    // Get comprehensive file statistics using the existing method
+    const stats = await GeneratedFileModel.getUserStats(userId);
+    
+    return res.status(200).json({
+      success: true,
+      data: stats,
+      message: 'File statistics retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('Get file stats error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve file statistics'
+    });
+  }
+});
+
 // Get a specific file by ID
 router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {

@@ -3,14 +3,24 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// This simplified config uses the DATABASE_URL you already set in Coolify.
-// The `ssl` object ensures the connection works in production.
+// Database configuration that works for both local development and production
 const pool = new Pool({
-  // CORRECTED: Use bracket notation to satisfy the TypeScript strictness rule.
-  connectionString: process.env['DATABASE_URL'],
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  // For local development, use individual environment variables
+  host: process.env['DB_HOST'] || 'localhost',
+  port: parseInt(process.env['DB_PORT'] || '5432', 10),
+  database: process.env['DB_NAME'] || 'eduai_asistent',
+  user: process.env['DB_USER'] || 'postgres',
+  password: process.env['DB_PASSWORD'],
+  // Only use SSL in production (when DATABASE_URL is provided)
+  ...(process.env['DATABASE_URL'] ? {
+    connectionString: process.env['DATABASE_URL'],
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  } : {
+    // Local development - no SSL
+    ssl: false,
+  }),
 });
 
 // Test the connection

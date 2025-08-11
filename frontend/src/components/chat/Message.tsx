@@ -46,10 +46,10 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
       )}
       
       <div className={cn(
-        'max-w-xs md:max-w-md lg:max-w-2xl px-4 py-3 rounded-lg relative group',
+        'max-w-xs md:max-w-md lg:max-w-2xl px-4 py-3 rounded-2xl relative group shadow-lg transition-all duration-200 hover:shadow-xl',
         isUser 
-          ? 'bg-primary-600 text-white' 
-          : 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 shadow-sm'
+          ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-primary-500/25 hover:shadow-primary-500/35 hover:-translate-y-0.5' 
+          : 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/30 border border-primary-200 dark:border-primary-700/50 text-primary-900 dark:text-primary-100 shadow-primary-500/10 hover:shadow-primary-500/20 hover:-translate-y-0.5'
       )}>
         <div className={cn(
           'text-sm leading-relaxed markdown-body transition-[max-height] duration-300 ease-in-out',
@@ -63,13 +63,13 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
                 const code = String(children);
                 if (inline) {
                   return (
-                    <code className="px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-[0.85em]" {...props}>
+                    <code className="px-1.5 py-0.5 rounded bg-muted dark:bg-neutral-800 text-[0.85em]" {...props}>
                       {code}
                     </code>
                   );
                 }
                 return (
-                  <pre className="bg-neutral-100 dark:bg-neutral-900 rounded-md p-3 overflow-x-auto text-[0.85em]">
+                  <pre className="bg-muted dark:bg-neutral-900 rounded-md p-3 overflow-x-auto text-[0.85em]">
                     <code className={className} {...props}>{code}</code>
                   </pre>
                 );
@@ -96,7 +96,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
           </ReactMarkdown>
           {/* Gradient fade when collapsed */}
           {!isUser && isLong && !isExpanded && (
-            <div className="pointer-events-none absolute bottom-10 left-0 right-0 h-16 bg-gradient-to-t from-white dark:from-neutral-900 to-transparent" />
+            <div className="pointer-events-none absolute bottom-10 left-0 right-0 h-16 bg-gradient-to-t from-primary-50 dark:from-primary-900/20 to-transparent" />
           )}
         </div>
 
@@ -118,12 +118,12 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
                   variant="secondary"
                   size="sm"
                   onClick={handleCopy}
-                  className="h-6 w-6 p-0 bg-white bg-opacity-90 hover:bg-opacity-100"
+                  className="h-6 w-6 p-0 bg-white/90 dark:bg-primary-800/90 hover:bg-white dark:hover:bg-primary-700 border border-primary-200 dark:border-primary-600"
                 >
                   {isCopied ? (
                     <Check className="h-3 w-3 text-success-600" />
                   ) : (
-                    <Copy className="h-3 w-3 text-neutral-600" />
+                    <Copy className="h-3 w-3 text-muted-foreground dark:text-neutral-600" />
                   )}
                 </Button>
               )}
@@ -139,7 +139,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
 
         {/* Citations / Footnotes (for future RAG). Render if present on message */}
         {!isUser && Array.isArray((message as any).citations) && (message as any).citations.length > 0 && (
-          <div className="mt-3 pt-2 border-t border-neutral-200 dark:border-neutral-800 text-xs text-neutral-600 dark:text-neutral-300">
+          <div className="mt-3 pt-2 border-t border-border dark:border-neutral-800 text-xs text-muted-foreground dark:text-neutral-300">
             <div className="flex items-center gap-2 mb-1 font-medium">
               <BookOpen className="h-3.5 w-3.5" />
               Zdroje
@@ -147,7 +147,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
             <ul className="space-y-1">
               {((message as any).citations as Array<{ label: string; url?: string }>).map((c, idx) => (
                 <li key={idx} className="flex items-center gap-2">
-                  <span className="text-neutral-500 dark:text-neutral-400">[{idx + 1}]</span>
+                  <span className="text-muted-foreground dark:text-neutral-400">[{idx + 1}]</span>
                   {c.url ? (
                     <a href={c.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary-600 hover:underline">
                       {c.label}

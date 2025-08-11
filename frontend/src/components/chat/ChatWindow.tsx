@@ -54,19 +54,19 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
   
 
   return (
-    <div className="relative flex-1 min-h-0 bg-white dark:bg-neutral-950">
+    <div className="relative flex-1 min-h-0 bg-card dark:bg-primary-950/30">
       {messages.length === 0 ? (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <div className="text-neutral-400 dark:text-neutral-500 mb-4">
+            <div className="text-primary-400 dark:text-primary-300 mb-4">
               <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+            <h3 className="text-lg font-medium text-foreground dark:text-primary-100 mb-2">
               Začněte konverzaci
             </h3>
-            <p className="text-neutral-500 dark:text-neutral-400">
+            <p className="text-primary-600 dark:text-primary-300">
               Napište svůj dotaz a AI asistent vám pomůže s výukou
             </p>
           </div>
@@ -85,7 +85,7 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
                 <div className="px-4 py-2">
                   {shouldShowDate(message, prev) && (
                     <div className="sticky top-2 z-0 flex justify-center">
-                      <span className="text-xs px-2 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                      <span className="text-xs px-2 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
                         {formatDate(message.timestamp)}
                       </span>
                     </div>
@@ -110,11 +110,11 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ messages, onCopyMess
                           <circle cx="12" cy="12" r="10" strokeWidth="1.5" />
                         </svg>
                       </div>
-                      <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 shadow-sm px-4 py-3 rounded-lg">
+                      <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700/50 text-primary-900 dark:text-primary-100 shadow-sm px-4 py-3 rounded-lg">
                         <div className="flex space-x-1">
-                          <span className="w-2 h-2 bg-neutral-400 dark:bg-neutral-600 rounded-full animate-bounce [animation-delay:0ms]" />
-                          <span className="w-2 h-2 bg-neutral-400 dark:bg-neutral-600 rounded-full animate-bounce [animation-delay:150ms]" />
-                          <span className="w-2 h-2 bg-neutral-400 dark:bg-neutral-600 rounded-full animate-bounce [animation-delay:300ms]" />
+                          <span className="w-2 h-2 bg-primary-500 dark:bg-primary-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                          <span className="w-2 h-2 bg-primary-500 dark:bg-primary-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                          <span className="w-2 h-2 bg-primary-500 dark:bg-primary-400 rounded-full animate-bounce [animation-delay:300ms]" />
                         </div>
                       </div>
                     </div>

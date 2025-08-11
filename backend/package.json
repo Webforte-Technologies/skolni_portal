@@ -11,8 +11,12 @@
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "db:init": "ts-node src/database/init.ts",
-    "db:reset": "ts-node src/database/init.ts",
+    "db:reset": "ts-node src/database/reset.ts",
     "db:add-tables": "ts-node src/database/add-missing-tables.ts",
+    "db:add-conversations": "ts-node src/database/add-conversations.ts",
+    "db:add-generated-files": "ts-node src/database/add-generated-files.ts",
+    "db:add-sample-credits": "ts-node src/database/add-sample-credits.ts",
+    "db:check-schema": "ts-node src/database/check-schema.ts",
     "db:migrate:phase11": "ts-node src/database/run-migration.ts src/database/migrations/phase11_rbac.sql",
     "db:migrate:phase11:fix": "ts-node src/database/run-migration.ts src/database/migrations/phase11_fix_check.sql",
     "db:migrate:phase11:normalize": "ts-node src/database/run-migration.ts src/database/migrations/phase11_normalize_roles.sql"

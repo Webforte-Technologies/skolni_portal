@@ -146,4 +146,111 @@ export class GeneratedFileModel {
     const result = await pool.query(query, [userId]);
     return result.rows.map(row => row.file_type);
   }
+
+  // Get files by folder
+  static async findByFolder(folderId: string, userId: string): Promise<GeneratedFile[]> {
+    const query = `
+      SELECT * FROM generated_files 
+      WHERE folder_id = $1 AND user_id = $2
+      ORDER BY created_at DESC
+    `;
+    
+    const result = await pool.query(query, [folderId, userId]);
+    return result.rows;
+  }
+
+  // Get files without folder (unorganized)
+  static async findUnorganized(userId: string): Promise<GeneratedFile[]> {
+    const query = `
+      SELECT * FROM generated_files 
+      WHERE user_id = $1 AND folder_id IS NULL
+      ORDER BY created_at DESC
+    `;
+    
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+  }
+
+  // Enhanced search with multiple criteria
+  static async advancedSearch(
+    userId: string,
+    searchTerm?: string,
+    fileType?: string,
+    folderId?: string,
+    dateFrom?: Date,
+    dateTo?: Date
+  ): Promise<GeneratedFile[]> {
+    let query = `
+      SELECT * FROM generated_files 
+      WHERE user_id = $1
+    `;
+    
+    const values: any[] = [userId];
+    let paramCount = 2;
+
+    if (searchTerm) {
+      query += ` AND (title ILIKE $${paramCount} OR content::text ILIKE $${paramCount})`;
+      values.push(`%${searchTerm}%`);
+      paramCount++;
+    }
+
+    if (fileType) {
+      query += ` AND file_type = $${paramCount}`;
+      values.push(fileType);
+      paramCount++;
+    }
+
+    if (folderId) {
+      query += ` AND folder_id = $${paramCount}`;
+      values.push(folderId);
+      paramCount++;
+    }
+
+    if (dateFrom) {
+      query += ` AND created_at >= $${paramCount}`;
+      values.push(dateFrom);
+      paramCount++;
+    }
+
+    if (dateTo) {
+      query += ` AND created_at <= $${paramCount}`;
+      values.push(dateTo);
+      paramCount++;
+    }
+
+    query += ` ORDER BY created_at DESC`;
+    
+    const result = await pool.query(query, values);
+    return result.rows;
+  }
+
+  // Move file to folder
+  static async moveToFolder(fileId: string, folderId: string | null): Promise<GeneratedFile> {
+    const query = `
+      UPDATE generated_files 
+      SET folder_id = $1 
+      WHERE id = $2
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [folderId, fileId]);
+    return result.rows[0];
+  }
+
+  // Get file statistics for a user
+  static async getUserStats(userId: string): Promise<any> {
+    const query = `
+      SELECT 
+        COUNT(*) as total_files,
+        COUNT(CASE WHEN folder_id IS NOT NULL THEN 1 END) as organized_files,
+        COUNT(CASE WHEN folder_id IS NULL THEN 1 END) as unorganized_files,
+        COUNT(DISTINCT file_type) as unique_file_types,
+        COUNT(CASE WHEN created_at >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as recent_files
+      FROM generated_files 
+      WHERE user_id = $1
+    `;
+    
+    const result = await pool.query(query, [userId]);
+    return result.rows[0];
+  }
 } 

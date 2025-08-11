@@ -13,7 +13,7 @@ interface ComposerToolbarProps {
 
 const ComposerToolbar: React.FC<ComposerToolbarProps> = ({ onUpload, onTemplates, onGenerateWorksheet, disabled, onInsertText, onOpenHelp }) => {
   return (
-    <div className="flex items-center gap-2 px-1 pt-2 text-xs text-neutral-500 dark:text-neutral-400">
+    <div className="flex items-center gap-2 px-1 pt-2 text-xs text-muted-foreground dark:text-neutral-400">
       <Button variant="ghost" size="icon" onClick={onUpload} title="Nahrát soubor (brzy)">
         <Paperclip className="h-4 w-4" />
       </Button>
@@ -23,7 +23,7 @@ const ComposerToolbar: React.FC<ComposerToolbarProps> = ({ onUpload, onTemplates
       <Button variant="ghost" size="icon" disabled={disabled} onClick={onGenerateWorksheet} title="Vygenerovat cvičení">
         <FileText className="h-4 w-4" />
       </Button>
-      <div className="mx-2 h-5 w-px bg-neutral-200 dark:bg-neutral-700" />
+      <div className="mx-2 h-5 w-px bg-border dark:bg-neutral-700" />
       <Button variant="ghost" size="icon" onClick={() => onInsertText && onInsertText('**tučný text**')} title="Vložit tučný text">
         <Bold className="h-4 w-4" />
       </Button>

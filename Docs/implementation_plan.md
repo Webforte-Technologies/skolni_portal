@@ -578,3 +578,36 @@ Tasks:
   [ ] Playwright: flows for register school → login admin → add teacher.
   [ ] Playwright: register individual teacher → login → access chat.
   [ ] Visual snapshots for new profile pages (light/dark).
+
+
+  🎨 Phase 12: School Administration & Advanced Library
+
+Timeline: Week 19+
+Status: 📝 To-Do
+Goal: To implement advanced features for school administrators and transform the "My Materials" section into a full-fledged, organized library with sharing capabilities.
+
+Tasks:
+
+12.1 Chat UI Theming:
+
+    [x] Frontend: Apply the dark mode color scheme and styles to all components within the ChatPage.tsx, including the sidebar, message bubbles, and composer, to ensure visual consistency with the rest of the application.
+
+12.2 School Administration Overhaul:
+
+    [ ] Frontend: Add a prominent "Back to Dashboard" navigation link/button on the SchoolAdminPage.tsx.
+
+    [ ] Backend & Frontend: Implement a "Credit Management" section for admins, showing the school's total credits, monthly usage, and a table with credit usage per teacher.
+
+    [ ] Frontend: Add a "Subscription Info" panel that displays the school's current plan and its renewal date.
+
+    [ ] Frontend: Enhance the teacher list with a search input field.
+
+12.3 "My Materials" to Library Transformation:
+
+    [ ] Backend: Update the database schema to support folders (folders table) and sharing (shared_materials table).
+
+    [ ] Backend & Frontend: Implement full CRUD (Create, Read, Update, Delete) functionality for folders. Allow materials to be moved into folders.
+
+    [ ] Backend & Frontend: Implement a robust search and filtering system for the materials page.
+
+    [ ] Backend & Frontend: Implement the "Share within school" functionality. Create a new "School Library" page where teachers can view materials shared by their colleagues.

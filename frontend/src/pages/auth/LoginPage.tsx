@@ -88,22 +88,6 @@ const LoginPage: React.FC = () => {
               error={errors.email?.message}
               {...register('email')}
             />
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-neutral-200">Email</label>
-              <input
-                id="email"
-                type="email"
-                placeholder="vas@email.cz"
-                className={cn(
-                  "block w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md shadow-sm placeholder-gray-400 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
-                  errors.email && "border-red-300 focus:ring-red-500 focus:border-red-500"
-                )}
-                {...register('email')}
-              />
-              {errors.email && (
-                <p className="text-sm text-red-600">{errors.email.message}</p>
-              )}
-            </div>
 
             <InputField
               label="Heslo"
@@ -113,22 +97,6 @@ const LoginPage: React.FC = () => {
               error={errors.password?.message}
               {...register('password')}
             />
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-neutral-200">Heslo</label>
-              <input
-                id="password"
-                type="password"
-                placeholder="Vaše heslo"
-                className={cn(
-                  "block w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-md shadow-sm placeholder-gray-400 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm",
-                  errors.password && "border-red-300 focus:ring-red-500 focus:border-red-500"
-                )}
-                {...register('password')}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-600">{errors.password.message}</p>
-              )}
-            </div>
 
             <Button
               type="submit"
@@ -163,9 +131,9 @@ const LoginPage: React.FC = () => {
         </Card>
 
         {/* Footer */}
-            <div className="text-center">
-              <p className="text-xs text-gray-500 dark:text-neutral-400">
-            © 2024 EduAI-Asistent. Všechna práva vyhrazena.
+        <div className="text-center">
+          <p className="text-xs text-gray-500 dark:text-neutral-400">
+            © 2025 EduAI-Asistent. Všechna práva vyhrazena.
           </p>
         </div>
       </div>

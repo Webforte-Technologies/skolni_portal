@@ -12,6 +12,7 @@ const SchoolRegistrationPage = React.lazy(() => import('./pages/auth/SchoolRegis
 const DashboardPage = React.lazy(() => import('./pages/dashboard/DashboardPage'));
 const ChatPage = React.lazy(() => import('./pages/chat/ChatPage'));
 const MyMaterialsPage = React.lazy(() => import('./pages/materials/MyMaterialsPage'));
+const SharedMaterialsPage = React.lazy(() => import('./pages/materials/SharedMaterialsPage'));
 const SchoolAdminPage = React.lazy(() => import('./pages/dashboard/SchoolAdminPage'));
 const UserProfilePage = React.lazy(() => import('./pages/dashboard/UserProfilePage'));
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
@@ -57,6 +58,11 @@ function App() {
                 <Route path="/materials" element={
                   <PrivateRoute>
                     <MyMaterialsPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/shared-materials" element={
+                  <PrivateRoute>
+                    <SharedMaterialsPage />
                   </PrivateRoute>
                 } />
                 <Route path="/profile" element={

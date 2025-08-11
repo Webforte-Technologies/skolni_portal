@@ -124,14 +124,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   if (loading) {
     return (
-      <div className="w-80 bg-white border-r border-neutral-200 p-4">
+      <div className="w-80 bg-card dark:bg-neutral-950 border-r border-border dark:border-neutral-800 p-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-neutral-900">Historie konverzací</h2>
+          <h2 className="text-lg font-semibold text-foreground dark:text-neutral-100">Historie konverzací</h2>
         </div>
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="h-12 bg-neutral-200 rounded-md"></div>
+              <div className="h-12 bg-muted dark:bg-neutral-800 rounded-md"></div>
             </div>
           ))}
         </div>
@@ -140,11 +140,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   }
 
   return (
-    <div className="w-80 bg-white dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 flex flex-col">
+    <div className="w-80 bg-card dark:bg-neutral-950 border-r border-border dark:border-neutral-800 flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
+      <div className="p-4 border-b border-border dark:border-neutral-800">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Historie konverzací</h2>
+          <h2 className="text-lg font-semibold text-foreground dark:text-neutral-100">Historie konverzací</h2>
           <Button
             variant="secondary"
             size="sm"
@@ -156,11 +156,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           </Button>
         </div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-sm text-neutral-700 dark:text-neutral-100 placeholder-neutral-400"
+            className="w-full pl-9 pr-3 py-2 rounded-md border border-border dark:border-neutral-800 bg-background dark:bg-neutral-900 text-sm text-foreground dark:text-neutral-100 placeholder-muted-foreground"
             placeholder="Hledat..."
           />
         </div>
@@ -169,8 +169,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto">
         {conversations.length === 0 ? (
-          <div className="p-4 text-center text-neutral-500">
-            <MessageSquare className="h-12 w-12 mx-auto mb-2 text-neutral-300" />
+          <div className="p-4 text-center text-muted-foreground dark:text-neutral-400">
+            <MessageSquare className="h-12 w-12 mx-auto mb-2 text-muted-foreground dark:text-neutral-500" />
             <p>Žádné konverzace</p>
             <p className="text-sm">Začněte novou konverzaci</p>
           </div>
@@ -184,8 +184,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 key={conversation.id}
                 className={`group relative p-3 rounded-lg cursor-pointer transition-colors transition-transform ${
                   selectedConversationId === conversation.id
-                    ? 'bg-primary-50 border border-primary-200'
-                    : 'hover:bg-neutral-50 hover:-translate-y-0.5'
+                    ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800'
+                    : 'hover:bg-muted dark:hover:bg-neutral-800 hover:-translate-y-0.5'
                 }`}
                 onClick={() => onConversationSelect(conversation.id)}
               >
@@ -196,7 +196,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                       type="text"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
-                      className="w-full px-2 py-1 text-sm border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-2 py-1 text-sm border border-border dark:border-neutral-700 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-background dark:bg-neutral-900 text-foreground dark:text-neutral-100"
                       autoFocus
                     />
                     <div className="flex space-x-1">
@@ -225,14 +225,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   <>
                     {/* Conversation content */}
                     <div className="flex items-start space-x-2">
-                      <MessageSquare className="h-4 w-4 text-neutral-400 mt-0.5 flex-shrink-0" />
+                      <MessageSquare className="h-4 w-4 text-muted-foreground dark:text-neutral-400 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-medium text-neutral-900 truncate">
+                        <h3 className="text-sm font-medium text-foreground dark:text-neutral-100 truncate">
                           {truncateTitle(conversation.title)}
                         </h3>
                         <div className="flex items-center space-x-1 mt-1">
-                          <Calendar className="h-3 w-3 text-neutral-400" />
-                          <span className="text-xs text-neutral-500">
+                          <Calendar className="h-3 w-3 text-muted-foreground dark:text-neutral-400" />
+                          <span className="text-xs text-muted-foreground dark:text-neutral-500">
                             {formatDate(conversation.updated_at)}
                           </span>
                         </div>
