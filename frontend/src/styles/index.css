@@ -7,6 +7,9 @@
 /* Accessibility styles */
 @import './accessibility.css';
 
+/* Glassmorphism and modern design styles */
+@import './glassmorphism.css';
+
 /* Design tokens (CSS variables) used by Tailwind via rgb(var(--token) / <alpha-value>) */
 :root {
   /* light */
@@ -15,6 +18,16 @@
   --muted: 241 245 249;       /* slate-100 */
   --border: 229 231 235;      /* gray-200 */
   --text: 17 24 39;           /* gray-900 */
+}
+
+/* Keyframes for global animated background used in App wrapper */
+@keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+  50% { transform: translateY(-12px) translateX(8px) scale(1.05); }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) translateX(0) scale(1); }
+  50% { transform: translateY(14px) translateX(-10px) scale(0.97); }
 }
 
 .dark {

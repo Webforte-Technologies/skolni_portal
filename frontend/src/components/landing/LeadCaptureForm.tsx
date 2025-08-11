@@ -61,10 +61,10 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
 
   if (isSubmitted) {
     return (
-      <div className={`bg-green-50 border border-green-200 rounded-lg p-6 text-center ${className}`}>
-        <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-green-800 mb-2">Děkujeme za zájem!</h3>
-        <p className="text-green-700">
+      <div className={`bg-green-900/20 border border-green-700/40 rounded-lg p-6 text-center text-green-300 ${className}`}>
+        <CheckCircle className="h-12 w-12 text-green-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Děkujeme za zájem!</h3>
+        <p>
           {type === 'newsletter' && 'Byli jste přidáni do našeho newsletteru. První email vám dorazí brzy!'}
           {type === 'demo' && 'Budeme vás kontaktovat do 24 hodin a domluvíme si demo prezentaci.'}
           {type === 'contact' && 'Vaše zpráva byla odeslána. Odpovíme vám co nejdříve.'}
@@ -74,16 +74,16 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg p-6 ${className}`}>
+    <div className={`bg-surface-card/90 backdrop-blur-xl border border-surface-border/60 rounded-2xl shadow-2xl p-6 text-surface-text ${className}`}>
       <div className="text-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600">{description}</p>
+        <h3 className="text-xl font-semibold mb-2">{title}</h3>
+        <p className="text-gray-300">{description}</p>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-1">
               Jméno *
             </label>
             <input
@@ -93,12 +93,12 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
               value={formData.firstName}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-md border border-surface-border/60 bg-surface-bg text-surface-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Vaše jméno"
             />
           </div>
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-1">
               Příjmení *
             </label>
             <input
@@ -108,14 +108,14 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
               value={formData.lastName}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-md border border-surface-border/60 bg-surface-bg text-surface-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Vaše příjmení"
             />
           </div>
         </div>
         
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
             Email *
           </label>
           <div className="relative">
@@ -127,7 +127,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-3 py-2 rounded-md border border-surface-border/60 bg-surface-bg text-surface-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="vas@email.cz"
             />
           </div>
@@ -136,7 +136,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
         {type !== 'newsletter' && (
           <>
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-300 mb-1">
                 Telefon
               </label>
               <div className="relative">
@@ -147,14 +147,14 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-3 py-2 rounded-md border border-surface-border/60 bg-surface-bg text-surface-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="+420 123 456 789"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="school" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="school" className="block text-sm font-medium text-gray-300 mb-1">
                 Název školy *
               </label>
               <div className="relative">
@@ -166,14 +166,14 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
                   value={formData.school}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-3 py-2 rounded-md border border-surface-border/60 bg-surface-bg text-surface-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Název vaší školy"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="role" className="block text-sm font-medium text-gray-300 mb-1">
                 Vaše role *
               </label>
               <select
@@ -182,7 +182,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
                 value={formData.role}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 rounded-md border border-surface-border/60 bg-surface-bg text-surface-text focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">Vyberte roli</option>
                 <option value="teacher">Učitel</option>
@@ -194,7 +194,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
 
             {type === 'contact' && (
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">
                   Zpráva
                 </label>
                 <textarea
@@ -203,7 +203,7 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
                   value={formData.message}
                   onChange={handleChange}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 rounded-md border border-surface-border/60 bg-surface-bg text-surface-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Napište nám, s čím vám můžeme pomoci..."
                 />
               </div>
@@ -232,9 +232,9 @@ const LeadCaptureForm: React.FC<LeadCaptureFormProps> = ({
           )}
         </Button>
 
-        <p className="text-xs text-gray-500 text-center">
+        <p className="text-xs text-gray-400 text-center">
           Odesláním formuláře souhlasíte s našimi{' '}
-          <a href="/privacy" className="text-blue-600 hover:underline">
+          <a href="/privacy" className="text-blue-400 hover:underline">
             podmínkami ochrany osobních údajů
           </a>
         </p>

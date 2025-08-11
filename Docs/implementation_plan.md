@@ -650,11 +650,11 @@ Goal: Create a compelling public-facing landing page and implement marketing fea
 Tasks:
 
 14.1 Public Landing Page:
-    [ ] Frontend: Design and implement a modern, responsive landing page with compelling hero section.
-    [ ] Frontend: Create feature showcase with interactive demos of AI capabilities.
-    [ ] Frontend: Add testimonials section with success stories from Czech schools.
-    [ ] Frontend: Implement clear pricing plans and subscription tiers.
-    [ ] Frontend: Add streamlined school registration flow with clear CTAs.
+    [x] Frontend: Design and implement a modern, responsive landing page with compelling hero section.
+    [x] Frontend: Create feature showcase with interactive demos of AI capabilities.
+    [x] Frontend: Add testimonials section with success stories from Czech schools.
+    [x] Frontend: Implement clear pricing plans and subscription tiers.
+    [x] Frontend: Add streamlined school registration flow with clear CTAs.
 
 14.2 Marketing Features:
     [ ] Frontend: Implement SEO optimization with Czech language keywords and meta tags.

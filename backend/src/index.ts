@@ -71,23 +71,64 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Optional: run Phase 11 migration at startup if instructed
-async function runStartupMigrationIfNeeded() {
+// Automatic SQL migrations runner (safe, idempotent).
+// Enable by setting RUN_STARTUP_MIGRATIONS=true
+async function runStartupMigrationsIfNeeded(): Promise<void> {
+  if (process.env['RUN_STARTUP_MIGRATIONS'] !== 'true') return;
   try {
-    if (process.env['RUN_STARTUP_MIGRATIONS'] !== 'true') return;
-    const migrationsDir = path.join(__dirname, 'database', 'migrations');
-    const phase11 = path.join(migrationsDir, 'phase11_rbac.sql');
-    if (fs.existsSync(phase11)) {
-      const sql = fs.readFileSync(phase11, 'utf8');
-      await pool.query(sql);
-      console.log('✅ Phase 11 migration executed at startup');
+    // Resolve possible migrations directories both in dev (ts) and prod (dist)
+    const candidates = [
+      path.join(__dirname, 'database', 'migrations'),
+      path.join(__dirname, 'migrations')
+    ];
+    const migrationsDir = candidates.find((p) => fs.existsSync(p));
+    if (!migrationsDir) {
+      console.warn('⚠️  No migrations directory found. Skipping startup migrations.');
+      return;
     }
+
+    // Ensure tracking table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS schema_migrations (
+        id SERIAL PRIMARY KEY,
+        name TEXT UNIQUE NOT NULL,
+        executed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    const files = fs
+      .readdirSync(migrationsDir)
+      .filter((f) => f.endsWith('.sql'))
+      .sort();
+
+    for (const file of files) {
+      const { rows } = await pool.query('SELECT 1 FROM schema_migrations WHERE name = $1', [file]);
+      if (rows.length) {
+        continue; // already applied
+      }
+      const abs = path.join(migrationsDir, file);
+      const sql = fs.readFileSync(abs, 'utf8');
+      console.log(`📦 Applying migration: ${file}`);
+      try {
+        await pool.query('BEGIN');
+        await pool.query(sql);
+        await pool.query('INSERT INTO schema_migrations (name) VALUES ($1)', [file]);
+        await pool.query('COMMIT');
+        console.log(`✅ Migration applied: ${file}`);
+      } catch (e) {
+        await pool.query('ROLLBACK');
+        console.error(`❌ Migration failed: ${file}`, e);
+        throw e;
+      }
+    }
+
+    console.log('✅ All pending migrations applied');
   } catch (err) {
-    console.error('⚠️  Startup migration failed (continuing):', err);
+    console.error('⚠️  Startup migrations failed (continuing):', err);
   }
 }
 
-runStartupMigrationIfNeeded().catch(() => void 0);
+runStartupMigrationsIfNeeded().catch(() => void 0);
 
 // API Routes
 app.use('/api/auth', authRoutes);
