@@ -6,6 +6,7 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { generateUUID } from '../../utils/uuid';
 import { MathTopic, MathDifficulty, PracticeSession } from '../../types';
 import { api } from '../../services/apiClient';
+import { streamingService } from '../../services/streamingService';
 import ChatSidebar from '../../components/chat/ChatSidebar';
 import ChatWindow from '../../components/chat/ChatWindow';
 import MessageInput from '../../components/chat/MessageInput';
@@ -240,12 +241,26 @@ const ChatPage: React.FC = () => {
         localStorage.removeItem('chatMessages');
       }
 
-      await api.post(`/conversations/${conversationId}/messages`, {
-        role: 'user',
-        content: content,
-        session_id: sessionId,
-        message_id: aiMessageId,
-      });
+      // Stream AI response
+      await streamingService.sendMessageStream(
+        content,
+        sessionId,
+        conversationId,
+        {
+          onChunk: (chunk) => {
+            setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, content: (m.content || '') + chunk } : m));
+          },
+          onEnd: ({ credits_balance }) => {
+            if (user) {
+              updateUser({ ...user, credits_balance });
+            }
+          },
+          onError: (msg) => {
+            setError(msg);
+            setMessages(prev => prev.filter(m => m.id !== aiMessageId));
+          }
+        }
+      );
     } catch (err: any) {
       if (err.response?.status === 402) {
         setError('Nemáte dostatek kreditů pro odeslání zprávy. Prosím, doplňte kredity.');
