@@ -1,9 +1,11 @@
 -- Phase 12: Library Transformation - Folders and Sharing
 -- Database Schema Migration
+-- Ensure UUID extension (uuid_generate_v4)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create folders table to organize materials
 CREATE TABLE IF NOT EXISTS folders (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     school_id UUID REFERENCES schools(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -16,7 +18,7 @@ CREATE TABLE IF NOT EXISTS folders (
 
 -- Create shared_materials table for school-wide sharing
 CREATE TABLE IF NOT EXISTS shared_materials (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     material_id UUID NOT NULL REFERENCES generated_files(id) ON DELETE CASCADE,
     shared_by_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     school_id UUID NOT NULL REFERENCES schools(id) ON DELETE CASCADE,
@@ -42,17 +44,8 @@ CREATE INDEX IF NOT EXISTS idx_shared_materials_folder_id ON shared_materials(fo
 
 CREATE INDEX IF NOT EXISTS idx_generated_files_folder_id ON generated_files(folder_id);
 
--- Add constraints
-ALTER TABLE folders 
-ADD CONSTRAINT folders_user_school_consistency
-CHECK (
-    (school_id IS NOT NULL AND user_id IN (
-        SELECT id FROM users WHERE school_id = folders.school_id
-    )) OR 
-    (school_id IS NULL AND user_id IN (
-        SELECT id FROM users WHERE role = 'teacher_individual'
-    ))
-);
+-- Note: We intentionally skip a cross-table CHECK constraint here (subqueries are not allowed in CHECK).
+-- If needed, enforce via application logic or triggers in a future migration.
 
 -- Add comments for documentation
 COMMENT ON TABLE folders IS 'Organizes materials into hierarchical folder structure';

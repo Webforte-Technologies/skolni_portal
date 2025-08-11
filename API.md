@@ -97,6 +97,43 @@ Note: Live chat uses the streaming AI endpoint below and persists messages when 
 ### Health
 - GET /health → { status: "OK", database: { connected: true } }
 
+### Admin (role: platform_admin)
+- Base: /api/admin (all require Authorization: Bearer and platform_admin role)
+- Users
+  - GET /admin/users?limit=&offset=&role=&school_id=&q=
+    - 200 → { success, data: { data: User[], total, limit, offset } }
+  - PUT /admin/users/:id { role?, is_active? }
+    - 200 → { success, data: User }
+  - POST /admin/users/:id/credits { type: 'add'|'deduct', amount: number, description?: string }
+    - 200 → { success, data: CreditTransaction }
+- Schools
+  - GET /admin/schools?limit=&offset=&q=
+    - 200 → { success, data: { data: School[], total, limit, offset } }
+- System
+  - GET /admin/system/health → { success, data: { status, process:{uptime_s,memory,node}, db:{roundtrip_ms, ok} } }
+  - GET /admin/system/metrics → { success, data: { total_requests, avg_response_ms, error_count_by_status, started_at } }
+- Audit
+  - GET /admin/audit-logs?from=&to=&user_id=&path=&limit=&offset=
+    - 200 → { success, data: { data: AuditLog[], total, limit, offset } }
+- Moderation
+  - GET /admin/moderation/queue?status=pending&limit=&offset=
+  - POST /admin/moderation/:id/decision { status: 'approved'|'rejected', notes?: string, quality_score?: number }
+- Quality
+  - GET /admin/quality/metrics → { success, data: { counts, avg_overall, by_type, trends:{d7,d30} } }
+- Credits Analytics
+  - GET /admin/credits/analytics → { success, data: { totals: { balance, purchased, used }, monthly: { purchases[], usage[] }, top_users[], top_schools[] } }
+- Subscriptions
+  - GET /admin/subscriptions?user_id=
+  - POST /admin/subscriptions { user_id, plan_type, credits_per_month, price_per_month, start_date, end_date?, auto_renew? }
+  - PUT /admin/subscriptions/:id { plan_type?, status?, credits_per_month?, price_per_month?, end_date?, auto_renew? }
+  - DELETE /admin/subscriptions/:id
+- Feature Flags
+  - GET /admin/feature-flags
+  - PUT /admin/feature-flags/:key { value: boolean, description?: string }
+- Dev tools
+  - GET /admin/docs → endpoints summary
+  - GET /admin/ping → { success, data: { pong: true } }
+
 Auth/CORS
 - Bearer JWT in Authorization header
 - CORS is open in production, restricted in development to `FRONTEND_URL` and local ports

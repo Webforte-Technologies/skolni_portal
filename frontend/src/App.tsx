@@ -19,6 +19,7 @@ const ChatPage = React.lazy(() => import('./pages/chat/ChatPage'));
 const MyMaterialsPage = React.lazy(() => import('./pages/materials/MyMaterialsPage'));
 const SharedMaterialsPage = React.lazy(() => import('./pages/materials/SharedMaterialsPage'));
 const SchoolAdminPage = React.lazy(() => import('./pages/dashboard/SchoolAdminPage'));
+const DeveloperAdminPage = React.lazy(() => import('./pages/dashboard/DeveloperAdminPage'));
 const UserProfilePage = React.lazy(() => import('./pages/dashboard/UserProfilePage'));
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
 import ErrorBoundary from './components/layout/ErrorBoundary';
@@ -95,6 +96,13 @@ function App() {
                   <PrivateRoute>
                     <RequireRole roles={['school_admin']}>
                       <SchoolAdminPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/dev-admin" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <DeveloperAdminPage />
                     </RequireRole>
                   </PrivateRoute>
                 } />

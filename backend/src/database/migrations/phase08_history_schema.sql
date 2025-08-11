@@ -1,5 +1,6 @@
--- Phase 8: Conversation History & Advanced File Generation
--- Database Schema Migration
+-- Phase 08: Conversation History & Generated Files (ordered early)
+-- Ensure UUID extension is available
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create conversations table to store individual chat sessions
 CREATE TABLE IF NOT EXISTS conversations (
@@ -43,12 +44,12 @@ CREATE INDEX IF NOT EXISTS idx_generated_files_user_id ON generated_files(user_i
 CREATE INDEX IF NOT EXISTS idx_generated_files_created_at ON generated_files(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_generated_files_file_type ON generated_files(file_type);
 
--- Add comments for documentation
+-- Comments
 COMMENT ON TABLE conversations IS 'Stores individual chat sessions for users';
 COMMENT ON TABLE messages IS 'Stores individual messages within conversations';
 COMMENT ON TABLE generated_files IS 'Stores generated worksheets and other materials in JSON format';
 
--- Create a function to update the updated_at timestamp
+-- Trigger to automatically update updated_at for conversations
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -57,7 +58,6 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Create trigger to automatically update updated_at for conversations
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -69,3 +69,5 @@ BEGIN
       EXECUTE FUNCTION update_updated_at_column();
   END IF;
 END $$;
+
+

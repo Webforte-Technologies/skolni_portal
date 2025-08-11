@@ -673,29 +673,29 @@ Goal: Build a comprehensive developer/admin dashboard for system management, mon
 Tasks:
 
 15.1 System Administration:
-    [ ] Backend: Create admin-only endpoints for system-wide user management.
-    [ ] Frontend: Build admin dashboard with user overview, school management, and system status.
-    [ ] Backend: Implement system health monitoring (API performance, database health, error rates).
+    [x] Backend: Create admin-only endpoints for system-wide user management.
+    [x] Frontend: Build admin dashboard with user overview, school management, and system status.
+    [x] Backend: Implement system health monitoring (API performance, database health, error rates).
     [ ] Backend: Add comprehensive audit logging for all system activities.
     [ ] Frontend: Create system health dashboard with real-time metrics and alerts.
 
 15.2 Credit & Business Management:
-    [ ] Backend: Implement system-wide credit management and distribution controls.
-    [ ] Frontend: Create credit analytics dashboard showing usage patterns and trends.
-    [ ] Backend: Add subscription management endpoints for different plan tiers.
+    [x] Backend: Implement system-wide credit management and distribution controls.
+    [x] Frontend: Create credit analytics dashboard showing usage patterns and trends.
+    [x] Backend: Add subscription management endpoints for different plan tiers.
     [ ] Frontend: Build business intelligence dashboard with revenue tracking and user growth metrics.
 
 15.3 Content Moderation & Quality:
-    [ ] Backend: Implement content moderation system for AI-generated materials.
-    [ ] Frontend: Create moderation interface for reviewing and approving content.
-    [ ] Backend: Add quality scoring system for AI responses and generated materials.
-    [ ] Frontend: Build quality metrics dashboard with performance indicators.
+    [x] Backend: Implement content moderation system for AI-generated materials.
+    [x] Frontend: Create moderation interface for reviewing and approving content.
+    [x] Backend: Add quality scoring system for AI responses and generated materials.
+    [x] Frontend: Build quality metrics dashboard with performance indicators.
 
 15.4 Developer Tools:
-    [ ] Backend: Create API documentation and testing endpoints.
-    [ ] Frontend: Build API testing interface for developers.
-    [ ] Backend: Implement feature flags and configuration management.
-    [ ] Frontend: Create system configuration panel for feature toggles and settings.
+    [x] Backend: Create API documentation and testing endpoints.
+    [x] Frontend: Build API testing interface for developers.
+    [x] Backend: Implement feature flags and configuration management.
+    [x] Frontend: Create system configuration panel for feature toggles and settings.
 
  Phase 16: Advanced Library & Content Management
 
@@ -732,3 +732,40 @@ Tasks:
     [ ] Frontend: Create personalized learning recommendations for students.
     [ ] Backend: Implement content export/import system for backup and migration.
     [ ] Frontend: Add offline content access with synchronization capabilities.
+
+
+📈 Phase 17: Advanced Admin Dashboard Overhaul
+
+Timeline: TBD
+Status: 📝 To-Do
+Goal: To transform the functional admin dashboard from a static data report into an interactive, analytical control panel that provides actionable insights and improves administrative efficiency.
+
+Tasks:
+
+    17.1: Layout Redesign & Prioritization:
+
+        [ ] Frontend: Refactor the dashboard layout from a single column to a multi-column grid (e.g., 2 or 3 columns) to improve information density on desktop screens.
+
+        [ ] Frontend: Create a primary "Mission Control" Key Performance Indicator (KPI) section at the top of the page to display the most critical, at-a-glance metrics (e.g., System Status, New Users Today, Active Users, Credits Used Today).
+
+    17.2: Interactive Data Visualization:
+
+        [ ] Frontend: Replace static numbers in the "Metrics" and "Credits Analytics" sections with interactive charts (e.g., using a library like Recharts or Chart.js) showing trends over time (last 7/30 days).
+
+        [ ] Frontend: Implement "drill-down" functionality. Make list items clickable. For example:
+
+            Clicking a user in the "User Management" table should open a detailed user profile modal/page.
+
+            Clicking a school in the "School Management" list should navigate to a dedicated detail page for that school.
+
+    17.3: User Management Enhancements:
+
+        [ ] Backend & Frontend: Add advanced filtering options to the user table (e.g., filter by role, filter by status).
+
+        [ ] Backend & Frontend: Implement bulk actions with checkboxes, allowing admins to perform actions on multiple users at once (e.g., "Add 100 credits to selected users," "Deactivate selected users").
+
+    17.4: New Core Admin Features:
+
+        [ ] Backend & Frontend: Implement an internal notification/alert system (e.g., a bell icon in the header) for critical events like system errors, payment failures, or security alerts.
+
+        [ ] Backend & Frontend: Make the "Feature Flags" section interactive, allowing admins to toggle features on or off directly from the UI, which would update the configuration in the backend.

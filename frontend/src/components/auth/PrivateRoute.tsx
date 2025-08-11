@@ -32,7 +32,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
 
 export default PrivateRoute; 
 
-export const RequireRole: React.FC<{ roles: Array<'school_admin' | 'teacher_school' | 'teacher_individual'>; children: React.ReactNode }>
+export const RequireRole: React.FC<{ roles: Array<'platform_admin' | 'school_admin' | 'teacher_school' | 'teacher_individual'>; children: React.ReactNode }>
   = ({ roles, children }) => {
   const { user, isLoading } = useAuth();
   if (isLoading) {

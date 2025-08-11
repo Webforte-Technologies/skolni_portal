@@ -59,7 +59,7 @@ export class GeneratedFileModel {
 
   // Update generated file
   static async update(id: string, updateData: Partial<GeneratedFile>): Promise<GeneratedFile> {
-    const allowedFields = ['title', 'content', 'file_type'];
+    const allowedFields = ['title', 'content', 'file_type', 'moderation_status', 'quality_score', 'reviewed_by', 'reviewed_at', 'moderation_notes'];
     const updates: string[] = [];
     const values: any[] = [];
     let paramCount = 1;
@@ -85,6 +85,44 @@ export class GeneratedFileModel {
       RETURNING *
     `;
 
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  }
+
+  // List for moderation queue by status
+  static async listForModeration(status: 'pending' | 'approved' | 'rejected' = 'pending', limit = 50, offset = 0): Promise<any[]> {
+    const query = `
+      SELECT gf.id, gf.title, gf.file_type, gf.created_at, 
+             u.id as user_id, u.email, u.first_name, u.last_name, u.school_id,
+             s.name as school_name
+      FROM generated_files gf
+      LEFT JOIN users u ON gf.user_id = u.id
+      LEFT JOIN schools s ON u.school_id = s.id
+      WHERE gf.moderation_status = $1
+      ORDER BY gf.created_at ASC
+      LIMIT $2 OFFSET $3
+    `;
+    const result = await pool.query(query, [status, limit, offset]);
+    return result.rows;
+  }
+
+  // Set moderation decision and optional quality score/notes
+  static async setModerationDecision(
+    id: string,
+    params: { status: 'approved' | 'rejected'; notes?: string; quality_score?: number },
+    reviewerId: string
+  ): Promise<GeneratedFile> {
+    const fields: string[] = [
+      `moderation_status = $1`,
+      `reviewed_by = $2`,
+      `reviewed_at = NOW()`
+    ];
+    const values: any[] = [params.status, reviewerId];
+    let i = 3;
+    if (params.notes !== undefined) { fields.push(`moderation_notes = $${i++}`); values.push(params.notes); }
+    if (params.quality_score !== undefined) { fields.push(`quality_score = $${i++}`); values.push(params.quality_score); }
+    values.push(id);
+    const query = `UPDATE generated_files SET ${fields.join(', ')} WHERE id = $${i} RETURNING *`;
     const result = await pool.query(query, values);
     return result.rows[0];
   }

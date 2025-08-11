@@ -105,7 +105,7 @@ const Header: React.FC = () => {
                 </button>
                 <button
                   onClick={toggleTheme}
-                  className="rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  className="rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                   aria-label="Toggle theme"
                   title="Přepnout téma (Ctrl+T)"
                 >
@@ -126,6 +126,11 @@ const Header: React.FC = () => {
                 {user.role === 'school_admin' && (
                   <Link to="/school" className="inline-flex items-center text-sm text-blue-600 dark:text-blue-400 hover:underline">
                     <Building2 className="h-4 w-4 mr-1" /> Správa školy
+                  </Link>
+                )}
+                {user.role === 'platform_admin' && (
+                  <Link to="/dev-admin" className="inline-flex items-center text-sm text-purple-600 dark:text-purple-400 hover:underline">
+                    <Settings className="h-4 w-4 mr-1" /> Dev Admin
                   </Link>
                 )}
                 <User className="h-5 w-5 text-gray-400 dark:text-neutral-400" />

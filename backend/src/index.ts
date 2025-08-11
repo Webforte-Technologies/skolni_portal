@@ -18,6 +18,8 @@ import usersRoutes from './routes/users';
 import foldersRoutes from './routes/folders';
 import sharedMaterialsRoutes from './routes/shared-materials';
 import uploadRoutes from './routes/upload';
+import adminRoutes from './routes/admin';
+import { metricsMiddleware } from './middleware/metrics';
 import fs from 'fs';
 import path from 'path';
 
@@ -70,6 +72,9 @@ app.use(limiter);
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Metrics middleware (must be before routes)
+app.use(metricsMiddleware);
 
 // Automatic SQL migrations runner (safe, idempotent).
 // Enable by setting RUN_STARTUP_MIGRATIONS=true
@@ -130,6 +135,25 @@ async function runStartupMigrationsIfNeeded(): Promise<void> {
 
 runStartupMigrationsIfNeeded().catch(() => void 0);
 
+// Bootstrap platform admins from env (comma-separated emails)
+async function bootstrapPlatformAdmins() {
+  try {
+    const emailsRaw = process.env['PLATFORM_ADMIN_EMAILS'];
+    if (!emailsRaw) return;
+    const emails = emailsRaw.split(',').map(e => e.trim()).filter(Boolean);
+    for (const email of emails) {
+      const result = await pool.query('UPDATE users SET role = $1, school_id = NULL WHERE email = $2 RETURNING id', ['platform_admin', email]);
+      if (result.rowCount) {
+        console.log(`🔒 Promoted platform admin: ${email}`);
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to bootstrap platform admins:', err);
+  }
+}
+
+bootstrapPlatformAdmins().catch(() => void 0);
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
@@ -140,6 +164,7 @@ app.use('/api/schools', schoolsRoutes);
 app.use('/api/folders', foldersRoutes);
 app.use('/api/shared-materials', sharedMaterialsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (_req, res) => {
