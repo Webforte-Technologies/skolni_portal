@@ -19,6 +19,7 @@ const ChatPage = React.lazy(() => import('./pages/chat/ChatPage'));
 const MaterialsIndexPage = React.lazy(() => import('./pages/materials/MaterialsIndexPage'));
 const MaterialCreatorPage = React.lazy(() => import('./pages/materials/MaterialCreatorPage'));
 const MyMaterialsPage = React.lazy(() => import('./pages/materials/MyMaterialsPage'));
+const AIGeneratorPage = React.lazy(() => import('./pages/ai/GeneratorPage'));
 const SharedMaterialsPage = React.lazy(() => import('./pages/materials/SharedMaterialsPage'));
 const SchoolAdminPage = React.lazy(() => import('./pages/dashboard/SchoolAdminPage'));
 const DeveloperAdminPage = React.lazy(() => import('./pages/dashboard/DeveloperAdminPage'));
@@ -99,6 +100,13 @@ function App() {
                 <Route path="/materials/shared" element={
                   <PrivateRoute>
                     <SharedMaterialsPage />
+                  </PrivateRoute>
+                } />
+
+                {/* AI Generator */}
+                <Route path="/ai-generator" element={
+                  <PrivateRoute>
+                    <AIGeneratorPage />
                   </PrivateRoute>
                 } />
                 

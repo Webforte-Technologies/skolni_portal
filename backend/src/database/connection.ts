@@ -4,23 +4,28 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Database configuration that works for both local development and production
+const useConnectionString = Boolean(process.env['DATABASE_URL']);
+const isProduction = process.env['NODE_ENV'] === 'production';
+
+// Allow explicit control via DB_SSL env: 'true' | 'false'.
+// Defaults: if using connection string in production → SSL on; otherwise off.
+const dbSslEnv = (process.env['DB_SSL'] || '').toLowerCase();
+const sslOption = dbSslEnv === 'true'
+  ? { rejectUnauthorized: false }
+  : dbSslEnv === 'false'
+    ? false
+    : (useConnectionString && isProduction)
+      ? { rejectUnauthorized: false }
+      : false;
+
 const pool = new Pool({
-  // For local development, use individual environment variables
   host: process.env['DB_HOST'] || 'localhost',
   port: parseInt(process.env['DB_PORT'] || '5432', 10),
   database: process.env['DB_NAME'] || 'eduai_asistent',
   user: process.env['DB_USER'] || 'postgres',
   password: process.env['DB_PASSWORD'],
-  // Only use SSL in production (when DATABASE_URL is provided)
-  ...(process.env['DATABASE_URL'] ? {
-    connectionString: process.env['DATABASE_URL'],
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  } : {
-    // Local development - no SSL
-    ssl: false,
-  }),
+  ...(useConnectionString ? { connectionString: process.env['DATABASE_URL'] } : {}),
+  ssl: sslOption,
 });
 
 // Test the connection

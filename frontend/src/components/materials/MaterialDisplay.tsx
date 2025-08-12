@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { FileText, BookOpen, Target, Sparkles, Users, Presentation, Calendar, Tag } from 'lucide-react';
+import { FileText, BookOpen, Target, Sparkles, Users, Presentation, Tag } from 'lucide-react';
 import Button from '../ui/Button';
+import { exportElementToPDF, exportStructuredToDocx } from '../../utils/exportUtils';
 
 interface MaterialDisplayProps {
   material: any;
@@ -22,6 +23,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
       case 'worksheet':
         return <FileText className="w-6 h-6" />;
       case 'lesson-plan':
+      case 'lesson_plan':
         return <BookOpen className="w-6 h-6" />;
       case 'quiz':
         return <Target className="w-6 h-6" />;
@@ -41,6 +43,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
       case 'worksheet':
         return 'Pracovní list';
       case 'lesson-plan':
+      case 'lesson_plan':
         return 'Plán hodiny';
       case 'quiz':
         return 'Kvíz';
@@ -112,12 +115,19 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
     );
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = () => window.print();
+
+  const handleExportPDF = async () => {
+    const root = document.querySelector('#material-root') as HTMLElement | null;
+    if (root) await exportElementToPDF(root, content.title || material.title || 'material');
+  };
+
+  const handleExportDocx = async () => {
+    await exportStructuredToDocx(content, content.title || material.title || 'material');
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 print:bg-white">
+    <div className="min-h-screen bg-neutral-50 print:bg-white" id="material-root">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6 mb-6 print:shadow-none">
@@ -138,6 +148,12 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
             <div className="flex space-x-2 print:hidden">
               <Button onClick={handlePrint} variant="outline">
                 Tisk
+              </Button>
+              <Button onClick={handleExportPDF} variant="outline">
+                Export PDF
+              </Button>
+              <Button onClick={handleExportDocx} variant="outline">
+                Export DOCX
               </Button>
               {onClose && (
                 <Button onClick={onClose} variant="ghost">
@@ -293,6 +309,70 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
                     </Button>
                   </div>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* Lesson Plan tailored view */}
+          {(content.template === 'lesson-plan' || content.template === 'lesson_plan') && (
+            <div className="mt-8 pt-6 border-t border-neutral-200">
+              <h3 className="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
+                <BookOpen className="w-5 h-5 mr-2" />
+                Struktura plánu hodiny
+              </h3>
+              {content.objectives && (
+                <div className="mb-4">
+                  <h4 className="font-medium mb-2">Cíle</h4>
+                  <ul className="list-disc pl-5 space-y-1">
+                    {content.objectives.map((o: string, i: number) => <li key={i}>{o}</li>)}
+                  </ul>
+                </div>
+              )}
+              {content.activities && (
+                <div className="space-y-3">
+                  <h4 className="font-medium mb-2">Aktivity</h4>
+                  {content.activities.map((a: any, i: number) => (
+                    <div key={i} className="border border-neutral-200 rounded-lg p-3">
+                      <div className="font-medium">{a.name}</div>
+                      <div className="text-sm text-neutral-700 mb-2">{a.description}</div>
+                      {Array.isArray(a.steps) && (
+                        <ol className="list-decimal pl-5 space-y-1 text-sm">
+                          {a.steps.map((s: string, j: number) => <li key={j}>{s}</li>)}
+                        </ol>
+                      )}
+                      {a.time && <div className="text-xs text-neutral-500 mt-2">Čas: {a.time}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quiz tailored view */}
+          {content.template === 'quiz' && (
+            <div className="mt-8 pt-6 border-t border-neutral-200">
+              <h3 className="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
+                <Target className="w-5 h-5 mr-2" />
+                Otázky kvízu
+              </h3>
+              {Array.isArray(content.questions) && content.questions.length > 0 ? (
+                <div className="space-y-4">
+                  {content.questions.map((q: any, i: number) => (
+                    <div key={i} className="border border-neutral-200 rounded-lg p-4 bg-white">
+                      <div className="text-sm font-medium mb-2">{i + 1}. {q.question}</div>
+                      {q.options && (
+                        <ul className="list-disc pl-5 space-y-1 text-sm">
+                          {q.options.map((opt: string, j: number) => <li key={j}>{opt}</li>)}
+                        </ul>
+                      )}
+                      {q.answer !== undefined && (
+                        <div className="text-xs text-neutral-600 mt-2">Správná odpověď: {String(q.answer)}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-neutral-600">Žádné otázky k zobrazení.</div>
               )}
             </div>
           )}

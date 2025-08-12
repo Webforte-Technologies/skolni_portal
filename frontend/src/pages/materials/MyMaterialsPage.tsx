@@ -10,12 +10,12 @@ import Header from '../../components/layout/Header';
 import { 
   FileText, Trash2, Eye, Search, Folder, Share2, Plus, 
   Filter, Grid, List, Tag, BookOpen, Target,
-  Lightbulb, BarChart3, Sparkles, Zap, ArrowLeft
+  Lightbulb, BarChart3, Sparkles, Zap, ArrowLeft, Presentation, Users
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import apiClient from '../../services/apiClient';
-import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
+// import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
 import MaterialDisplay from '../../components/materials/MaterialDisplay';
 import { GeneratedFile } from '../../types';
 
@@ -310,8 +310,11 @@ const MyMaterialsPage: React.FC = () => {
   const getFileIcon = (fileType: string) => {
     switch (fileType) {
       case 'worksheet': return <FileText className="w-5 h-5" />;
-      case 'lesson': return <BookOpen className="w-5 h-5" />;
-      case 'assessment': return <Target className="w-5 h-5" />;
+      case 'lesson_plan': return <BookOpen className="w-5 h-5" />;
+      case 'quiz': return <Target className="w-5 h-5" />;
+      case 'project': return <Sparkles className="w-5 h-5" />;
+      case 'presentation': return <Presentation className="w-5 h-5" />;
+      case 'activity': return <Users className="w-5 h-5" />;
       default: return <FileText className="w-5 h-5" />;
     }
   };
@@ -627,17 +630,19 @@ const MyMaterialsPage: React.FC = () => {
             <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Kategorie</label>
+                  <label className="block text-sm font-medium mb-1">Typ materiálu</label>
                   <select 
                     className="w-full border rounded-md p-2 bg-transparent"
-                    value={filterOptions.category}
-                    onChange={(e) => handleFilterChange('category', e.target.value)}
+                    value={filterOptions.fileType}
+                    onChange={(e) => handleFilterChange('fileType', e.target.value)}
                   >
-                    <option value="">Všechny kategorie</option>
-                    <option value="worksheet">Pracovní listy</option>
-                    <option value="lesson">Lekce</option>
-                    <option value="assessment">Hodnocení</option>
-                    <option value="exercise">Cvičení</option>
+                    <option value="">Všechny typy</option>
+                    <option value="worksheet">Pracovní list</option>
+                    <option value="lesson_plan">Plán hodiny</option>
+                    <option value="quiz">Kvíz</option>
+                    <option value="project">Projekt</option>
+                    <option value="presentation">Prezentace</option>
+                    <option value="activity">Aktivita</option>
                   </select>
                 </div>
                 

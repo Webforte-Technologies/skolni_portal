@@ -780,21 +780,21 @@ Tasks:
 
     18.1: Create Core Generator Endpoints:
 
-        [ ] Backend: Create new, dedicated API endpoints for generating Lesson Plans and Quizzes (e.g., POST /ai/generate-lesson-plan, POST /ai/generate-quiz).
+        [x] Backend: Create new, dedicated API endpoints for generating Lesson Plans and Quizzes (e.g., POST /ai/generate-lesson-plan, POST /ai/generate-quiz).
 
-        [ ] Backend: Develop high-quality, specialized system prompts for these two material types to ensure structured and relevant output.
+        [x] Backend: Develop high-quality, specialized system prompts for these two material types to ensure structured and relevant output.
 
     18.2: Build the Generator UI:
 
-        [ ] Frontend: Create a new page, /ai-generator, accessible from the main navigation.
+        [x] Frontend: Create a new page, /ai-generator, accessible from the main navigation.
 
-        [ ] Frontend: Design a clean dashboard on this page where users can select the type of material they want to create (Worksheet, Lesson Plan, Quiz).
+        [x] Frontend: Design a clean dashboard on this page where users can select the type of material they want to create (Worksheet, Lesson Plan, Quiz).
 
-        [ ] Frontend: For each type, implement a simple, wizard-style form that collects the necessary inputs from the teacher (e.g., topic, grade level, number of questions).
+        [x] Frontend: For each type, implement a simple, wizard-style form that collects the necessary inputs from the teacher (e.g., topic, grade level, number of questions).
 
     18.3: Integrate with Library:
 
-        [ ] Backend & Frontend: Ensure that all materials successfully generated via this new interface are saved correctly to the user's existing "My Materials" library.
+        [x] Backend & Frontend: Ensure that all materials successfully generated via this new interface are saved correctly to the user's existing "My Materials" library.
 
 ✨ Phase 19: Generator Enhancements & Workflow Improvements
 
@@ -806,21 +806,21 @@ Tasks:
 
     19.1: Expand Material Types:
 
-        [ ] Backend: Create the remaining API endpoints for generating Projects, Presentations, and Activities.
+        [x] Backend: Create the remaining API endpoints for generating Projects, Presentations, and Activities.
 
-        [ ] Frontend: Add these new options to the /ai-generator page.
+        [x] Frontend: Add these new options to the /ai-generator page.
 
     19.2: Add Content Customization:
 
-        [ ] Frontend: Enhance the generation forms with more detailed options, such as specifying teaching style, duration, or specific curriculum standards.
+        [x] Frontend: Enhance the generation forms with more detailed options, such as specifying teaching style, duration, or specific curriculum standards.
 
     19.3: Implement Advanced Export Options:
 
-        [ ] Frontend: Add functionality to export all generated materials into common formats, specifically PDF and Microsoft Word (.docx).
+        [x] Frontend: Add functionality to export all generated materials into common formats, specifically PDF and Microsoft Word (.docx).
 
     19.4: Introduce Power-User Features:
 
-        [ ] Frontend: Implement a "batch generation" feature, allowing a teacher to create multiple related materials at once (e.g., a lesson plan, a worksheet, and a quiz for the same topic from one form).
+        [x] Frontend: Implement a "batch generation" feature, allowing a teacher to create multiple related materials at once (e.g., a lesson plan, a worksheet, and a quiz for the same topic from one form).
 
 🧠 Phase 20: Advanced AI Capabilities & Quality Control
 
