@@ -1,27 +1,4 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
-import Header from '../../components/layout/Header';
-import Card from '../../components/ui/Card';
-
-const MaterialViewPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  return (
-    <div className="min-h-screen bg-white dark:bg-neutral-900">
-      <Header />
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <Card title={`Materiál ${id}`}>
-          <div className="text-neutral-700 dark:text-neutral-200">
-            Detail materiálu zatím není implementován.
-          </div>
-        </Card>
-      </main>
-    </div>
-  );
-};
-
-export default MaterialViewPage;
-
-import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import Header from '../../components/layout/Header';
