@@ -49,7 +49,7 @@ COMMENT ON COLUMN folders.parent_folder_id IS 'Self-referencing for nested folde
 COMMENT ON COLUMN folders.is_shared IS 'Whether the folder is shared within the school';
 
 -- Create trigger to automatically update updated_at for folders
-CREATE TRIGGER update_folders_updated_at 
+CREATE TRIGGER IF NOT EXISTS update_folders_updated_at 
     BEFORE UPDATE ON folders 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();

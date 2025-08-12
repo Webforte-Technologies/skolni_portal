@@ -1,9 +1,10 @@
 -- Phase 12: Library Transformation - Folders and Sharing
 -- Database Schema Migration
--- Ensure UUID extension (uuid_generate_v4)
+
+-- Ensure UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create folders table to organize materials
+-- Create folders table
 CREATE TABLE IF NOT EXISTS folders (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -16,7 +17,7 @@ CREATE TABLE IF NOT EXISTS folders (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create shared_materials table for school-wide sharing
+-- Create shared_materials table
 CREATE TABLE IF NOT EXISTS shared_materials (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     material_id UUID NOT NULL REFERENCES generated_files(id) ON DELETE CASCADE,
@@ -27,34 +28,10 @@ CREATE TABLE IF NOT EXISTS shared_materials (
     shared_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Add folder_id to generated_files table for organization
-ALTER TABLE generated_files 
-ADD COLUMN IF NOT EXISTS folder_id UUID REFERENCES folders(id) ON DELETE SET NULL;
+-- Add folder_id to generated_files table
+ALTER TABLE generated_files ADD COLUMN IF NOT EXISTS folder_id UUID REFERENCES folders(id) ON DELETE SET NULL;
 
--- Create indexes for better performance
+-- Create basic indexes
 CREATE INDEX IF NOT EXISTS idx_folders_user_id ON folders(user_id);
 CREATE INDEX IF NOT EXISTS idx_folders_school_id ON folders(school_id);
-CREATE INDEX IF NOT EXISTS idx_folders_parent_folder_id ON folders(parent_folder_id);
-CREATE INDEX IF NOT EXISTS idx_folders_shared ON folders(is_shared);
-
-CREATE INDEX IF NOT EXISTS idx_shared_materials_material_id ON shared_materials(material_id);
-CREATE INDEX IF NOT EXISTS idx_shared_materials_shared_by_user_id ON shared_materials(shared_by_user_id);
 CREATE INDEX IF NOT EXISTS idx_shared_materials_school_id ON shared_materials(school_id);
-CREATE INDEX IF NOT EXISTS idx_shared_materials_folder_id ON shared_materials(folder_id);
-
-CREATE INDEX IF NOT EXISTS idx_generated_files_folder_id ON generated_files(folder_id);
-
--- Note: We intentionally skip a cross-table CHECK constraint here (subqueries are not allowed in CHECK).
--- If needed, enforce via application logic or triggers in a future migration.
-
--- Add comments for documentation
-COMMENT ON TABLE folders IS 'Organizes materials into hierarchical folder structure';
-COMMENT ON TABLE shared_materials IS 'Tracks materials shared within schools or publicly';
-COMMENT ON COLUMN folders.parent_folder_id IS 'Self-referencing for nested folder structure';
-COMMENT ON COLUMN folders.is_shared IS 'Whether the folder is shared within the school';
-
--- Create trigger to automatically update updated_at for folders
-CREATE TRIGGER update_folders_updated_at 
-    BEFORE UPDATE ON folders 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();

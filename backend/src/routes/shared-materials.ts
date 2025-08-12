@@ -93,16 +93,43 @@ router.get('/browse', authenticateToken, requireRole(['school_admin', 'teacher_s
 
     const folderId = req.query['folder_id'] as string | undefined;
     const searchTerm = req.query['search'] as string | undefined;
+    const category = req.query['category'] as string | undefined;
+    const subject = req.query['subject'] as string | undefined;
+    const difficulty = req.query['difficulty'] as string | undefined;
+    const gradeLevel = req.query['grade_level'] as string | undefined;
+    const creator = req.query['creator'] as string | undefined;
+    const dateFrom = req.query['date_from'] as string | undefined;
+    const dateTo = req.query['date_to'] as string | undefined;
+    const sortBy = req.query['sort_by'] as string | undefined;
     
     console.log('🔍 Searching for shared materials in school:', req.user.school_id, 'folder:', folderId, 'search:', searchTerm);
     
-    let sharedMaterials;
+    const filters: {
+      category?: string;
+      subject?: string;
+      difficulty?: string;
+      gradeLevel?: string;
+      creator?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      sortBy?: string;
+    } = {};
+
+    if (category) filters.category = category;
+    if (subject) filters.subject = subject;
+    if (difficulty) filters.difficulty = difficulty;
+    if (gradeLevel) filters.gradeLevel = gradeLevel;
+    if (creator) filters.creator = creator;
+    if (dateFrom) filters.dateFrom = dateFrom;
+    if (dateTo) filters.dateTo = dateTo;
+    if (sortBy) filters.sortBy = sortBy;
     
-    if (searchTerm) {
-      sharedMaterials = await SharedMaterialModel.search(req.user.school_id, searchTerm, folderId);
-    } else {
-      sharedMaterials = await SharedMaterialModel.findBySchool(req.user.school_id, folderId);
-    }
+    const sharedMaterials = await SharedMaterialModel.browseWithStats(
+      req.user.school_id, 
+      folderId, 
+      searchTerm, 
+      filters
+    );
 
     console.log('✅ Found', sharedMaterials.length, 'shared materials');
 
@@ -456,6 +483,201 @@ router.get('/stats/:schoolId', authenticateToken, requireRole(['school_admin', '
     return res.status(500).json({
       success: false,
       error: 'Failed to retrieve sharing statistics'
+    });
+  }
+});
+
+// Get community statistics
+router.get('/community-stats', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const stats = await SharedMaterialModel.getCommunityStats();
+    
+    return res.status(200).json({
+      success: true,
+      data: stats,
+      message: 'Community statistics retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('Get community stats error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve community statistics'
+    });
+  }
+});
+
+// Get top contributors
+router.get('/top-contributors', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const limit = parseInt(req.query['limit'] as string) || 10;
+    const contributors = await SharedMaterialModel.getTopContributors(limit);
+    
+    return res.status(200).json({
+      success: true,
+      data: contributors,
+      message: 'Top contributors retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('Get top contributors error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve top contributors'
+    });
+  }
+});
+
+// Like a shared material
+router.post('/:id/like', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const materialId = req.params['id'];
+    if (!materialId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Material ID is required'
+      });
+    }
+    
+    const result = await SharedMaterialModel.likeMaterial(materialId);
+    
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Material liked successfully'
+    });
+
+  } catch (error) {
+    console.error('Like material error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to like material'
+    });
+  }
+});
+
+// Download a shared material
+router.post('/:id/download', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const materialId = req.params['id'];
+    if (!materialId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Material ID is required'
+      });
+    }
+    
+    const result = await SharedMaterialModel.recordDownload(materialId);
+    
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Download recorded successfully'
+    });
+
+  } catch (error) {
+    console.error('Record download error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to record download'
+    });
+  }
+});
+
+// Share a shared material (increase share count)
+router.post('/:id/share', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const materialId = req.params['id'];
+    if (!materialId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Material ID is required'
+      });
+    }
+    
+    const result = await SharedMaterialModel.recordShare(materialId);
+    
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Share recorded successfully'
+    });
+
+  } catch (error) {
+    console.error('Record share error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to record share'
+    });
+  }
+});
+
+// View a shared material (increase view count)
+router.post('/:id/view', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const materialId = req.params['id'];
+    if (!materialId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Material ID is required'
+      });
+    }
+    
+    const result = await SharedMaterialModel.recordView(materialId);
+    
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: 'View recorded successfully'
+    });
+
+  } catch (error) {
+    console.error('Record view error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to record view'
     });
   }
 });

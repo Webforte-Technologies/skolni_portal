@@ -44,7 +44,7 @@ const DashboardHero: React.FC<DashboardHeroProps> = ({ credits }) => {
             <Link to="/materials">
               <Button variant="outline">
                 <FileText className="h-4 w-4 mr-2" />
-                Moje materiály
+                Materiály
               </Button>
             </Link>
           </div>

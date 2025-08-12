@@ -4,6 +4,59 @@ import { GeneratedFileModel } from '../models/GeneratedFile';
 
 const router = Router();
 
+// Create a new generated file/material
+router.post('/', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const userId = req.user.id;
+    const { title, content, file_type = 'worksheet', ai_category, ai_subject, ai_difficulty, ai_grade_level, ai_tags } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title and content are required'
+      });
+    }
+
+    const material = await GeneratedFileModel.create({
+      user_id: userId,
+      title,
+      content,
+      file_type
+    });
+
+    // Update AI metadata if provided
+    if (ai_category || ai_subject || ai_difficulty || ai_grade_level || ai_tags) {
+      await GeneratedFileModel.updateAIMetadata(material.id, {
+        category: ai_category,
+        subject: ai_subject,
+        difficulty: ai_difficulty,
+        gradeLevel: ai_grade_level,
+        tags: ai_tags
+      });
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: material,
+      message: 'Material created successfully'
+    });
+
+  } catch (error) {
+    console.error('Create material error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to create material'
+    });
+  }
+});
+
 // Get all generated files for the current user
 router.get('/', authenticateToken, async (req: Request, res: Response) => {
   try {
@@ -90,6 +143,160 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       error: 'Failed to retrieve file statistics'
+    });
+  }
+});
+
+// AI-powered search with relevance scoring
+router.get('/search/ai', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const userId = req.user.id;
+    const { 
+      query, 
+      category, 
+      subject, 
+      difficulty, 
+      gradeLevel, 
+      tags, 
+      dateFrom, 
+      dateTo 
+    } = req.query;
+
+    const filters: any = {};
+    if (category) filters.category = category;
+    if (subject) filters.subject = subject;
+    if (difficulty) filters.difficulty = difficulty;
+    if (gradeLevel) filters.gradeLevel = gradeLevel;
+    if (tags) filters.tags = Array.isArray(tags) ? tags : [tags];
+    if (dateFrom) filters.dateFrom = dateFrom;
+    if (dateTo) filters.dateTo = dateTo;
+
+    const results = await GeneratedFileModel.searchWithRelevance(
+      userId,
+      query as string,
+      filters
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: results,
+      message: 'AI search completed successfully'
+    });
+
+  } catch (error) {
+    console.error('AI search error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'AI search failed'
+    });
+  }
+});
+
+// Get content recommendations
+router.get('/recommendations', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const userId = req.user.id;
+    const { limit = '10' } = req.query;
+
+    const recommendations = await GeneratedFileModel.getRecommendations(
+      userId,
+      parseInt(limit as string)
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: recommendations,
+      message: 'Content recommendations retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('Get recommendations error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve recommendations'
+    });
+  }
+});
+
+// Get content analytics
+router.get('/analytics/content', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const userId = req.user.id;
+
+    const analytics = await GeneratedFileModel.getContentAnalytics(userId);
+
+    return res.status(200).json({
+      success: true,
+      data: analytics,
+      message: 'Content analytics retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('Get content analytics error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve content analytics'
+    });
+  }
+});
+
+// Get files with AI categorization
+router.get('/categorized', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const userId = req.user.id;
+    const { category, subject, difficulty, gradeLevel } = req.query;
+
+    const filters: any = {};
+    if (category) filters.category = category;
+    if (subject) filters.subject = subject;
+    if (difficulty) filters.difficulty = difficulty;
+    if (gradeLevel) filters.gradeLevel = gradeLevel;
+
+    const files = await GeneratedFileModel.findWithCategorization(
+      userId,
+      50,
+      0
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: files,
+      message: 'Categorized files retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('Get categorized files error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve categorized files'
     });
   }
 });
@@ -193,6 +400,53 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
     return res.status(500).json({
       success: false,
       error: 'Failed to delete file'
+    });
+  }
+});
+
+// Update AI metadata for a file
+router.put('/:id/ai-metadata', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const fileId = req.params['id'];
+    if (!fileId) {
+      return res.status(400).json({
+        success: false,
+        error: 'File ID is required'
+      });
+    }
+    
+    const userId = req.user.id;
+    const metadata = req.body;
+
+    // Verify file ownership
+    const file = await GeneratedFileModel.findById(fileId);
+    if (!file || file.user_id !== userId) {
+      return res.status(404).json({
+        success: false,
+        error: 'File not found or access denied'
+      });
+    }
+
+    const updatedFile = await GeneratedFileModel.updateAIMetadata(fileId, metadata);
+
+    return res.status(200).json({
+      success: true,
+      data: updatedFile,
+      message: 'AI metadata updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Update AI metadata error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to update AI metadata'
     });
   }
 });

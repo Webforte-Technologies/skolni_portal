@@ -184,4 +184,250 @@ export class SharedMaterialModel {
     const result = await pool.query(query, values);
     return result.rows;
   }
+
+  // Get community statistics
+  static async getCommunityStats(): Promise<any> {
+    const query = `
+      SELECT 
+        COUNT(DISTINCT sm.id) as total_materials,
+        COUNT(DISTINCT sm.school_id) as total_schools,
+        COUNT(DISTINCT u.id) as total_contributors,
+        COALESCE(SUM(sm.stats->>'views'), '0')::int as total_views,
+        COALESCE(SUM(sm.stats->>'downloads'), '0')::int as total_downloads,
+        COALESCE(SUM(sm.stats->>'likes'), '0')::int as total_likes,
+        COALESCE(SUM(sm.stats->>'shares'), '0')::int as total_shares,
+        COALESCE(SUM(sm.stats->>'comments'), '0')::int as total_comments
+      FROM shared_materials sm
+      LEFT JOIN users u ON sm.material_id IN (
+        SELECT id FROM generated_files WHERE user_id = u.id
+      )
+      WHERE sm.is_public = true
+    `;
+    
+    const result = await pool.query(query);
+    return result.rows[0];
+  }
+
+  // Get top contributors
+  static async getTopContributors(limit: number = 10): Promise<any[]> {
+    const query = `
+      SELECT 
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        s.name as school_name,
+        COUNT(sm.id) as materials_count,
+        COALESCE(SUM((sm.stats->>'downloads')::int), 0) as total_downloads,
+        COALESCE(SUM((sm.stats->>'likes')::int), 0) as total_likes,
+        COALESCE(SUM((sm.stats->>'views')::int), 0) as total_views
+      FROM users u
+      LEFT JOIN schools s ON u.school_id = s.id
+      LEFT JOIN generated_files gf ON u.id = gf.user_id
+      LEFT JOIN shared_materials sm ON gf.id = sm.material_id
+      WHERE u.role IN ('teacher_school', 'school_admin')
+      GROUP BY u.id, u.first_name, u.last_name, u.email, s.name
+      HAVING COUNT(sm.id) > 0
+      ORDER BY materials_count DESC, total_downloads DESC
+      LIMIT $1
+    `;
+    
+    const result = await pool.query(query, [limit]);
+    return result.rows;
+  }
+
+  // Like a material
+  static async likeMaterial(materialId: string): Promise<any> {
+    const query = `
+      UPDATE shared_materials 
+      SET stats = jsonb_set(
+        COALESCE(stats, '{}'::jsonb),
+        '{likes}',
+        COALESCE((stats->>'likes')::int, 0) + 1
+      )
+      WHERE id = $1
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [materialId]);
+    return result.rows[0];
+  }
+
+  // Record a download
+  static async recordDownload(materialId: string): Promise<any> {
+    const query = `
+      UPDATE shared_materials 
+      SET stats = jsonb_set(
+        COALESCE(stats, '{}'::jsonb),
+        '{downloads}',
+        COALESCE((stats->>'downloads')::int, 0) + 1
+      )
+      WHERE id = $1
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [materialId]);
+    return result.rows[0];
+  }
+
+  // Record a share
+  static async recordShare(materialId: string): Promise<any> {
+    const query = `
+      UPDATE shared_materials 
+      SET stats = jsonb_set(
+        COALESCE(stats, '{}'::jsonb),
+        '{shares}',
+        COALESCE((stats->>'shares')::int, 0) + 1
+      )
+      WHERE id = $1
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [materialId]);
+    return result.rows[0];
+  }
+
+  // Record a view
+  static async recordView(materialId: string): Promise<any> {
+    const query = `
+      UPDATE shared_materials 
+      SET stats = jsonb_set(
+        COALESCE(stats, '{}'::jsonb),
+        '{views}',
+        COALESCE((stats->>'views')::int, 0) + 1
+      )
+      WHERE id = $1
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [materialId]);
+    return result.rows[0];
+  }
+
+  // Get materials with enhanced stats
+  static async browseWithStats(
+    schoolId: string, 
+    folderId?: string, 
+    searchTerm?: string,
+    filters?: {
+      category?: string;
+      subject?: string;
+      difficulty?: string;
+      gradeLevel?: string;
+      creator?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      sortBy?: string;
+    }
+  ): Promise<any[]> {
+    let query = `
+      SELECT 
+        sm.*,
+        gf.title,
+        gf.content,
+        gf.file_type,
+        gf.user_id,
+        gf.created_at,
+        gf.ai_category,
+        gf.ai_subject,
+        gf.ai_difficulty,
+        gf.ai_tags,
+        gf.moderation_status,
+        gf.quality_score,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.role,
+        s.name as school_name,
+        s.city as school_city,
+        f.name as folder_name,
+        f.description as folder_description,
+        COALESCE(sm.stats->>'views', '0')::int as views,
+        COALESCE(sm.stats->>'downloads', '0')::int as downloads,
+        COALESCE(sm.stats->>'likes', '0')::int as likes,
+        COALESCE(sm.stats->>'shares', '0')::int as shares,
+        COALESCE(sm.stats->>'comments', '0')::int as comments
+      FROM shared_materials sm
+      JOIN generated_files gf ON sm.material_id = gf.id
+      JOIN users u ON gf.user_id = u.id
+      JOIN schools s ON u.school_id = s.id
+      LEFT JOIN folders f ON sm.folder_id = f.id
+      WHERE sm.school_id = $1
+    `;
+    
+    const values: any[] = [schoolId];
+    let paramCount = 2;
+    
+    if (folderId) {
+      query += ` AND sm.folder_id = $${paramCount}`;
+      values.push(folderId);
+      paramCount++;
+    }
+    
+    if (searchTerm) {
+      query += ` AND (gf.title ILIKE $${paramCount} OR gf.content::text ILIKE $${paramCount})`;
+      values.push(`%${searchTerm}%`);
+      paramCount++;
+    }
+    
+    if (filters?.category) {
+      query += ` AND gf.ai_category = $${paramCount}`;
+      values.push(filters.category);
+      paramCount++;
+    }
+    
+    if (filters?.subject) {
+      query += ` AND gf.ai_subject = $${paramCount}`;
+      values.push(filters.subject);
+      paramCount++;
+    }
+    
+    if (filters?.difficulty) {
+      query += ` AND gf.ai_difficulty = $${paramCount}`;
+      values.push(filters.difficulty);
+      paramCount++;
+    }
+    
+    if (filters?.gradeLevel) {
+      query += ` AND gf.ai_grade_level = $${paramCount}`;
+      values.push(filters.gradeLevel);
+      paramCount++;
+    }
+    
+    if (filters?.creator) {
+      query += ` AND (u.first_name ILIKE $${paramCount} OR u.last_name ILIKE $${paramCount})`;
+      values.push(`%${filters.creator}%`);
+      paramCount++;
+    }
+    
+    if (filters?.dateFrom) {
+      query += ` AND gf.created_at >= $${paramCount}`;
+      values.push(filters.dateFrom);
+      paramCount++;
+    }
+    
+    if (filters?.dateTo) {
+      query += ` AND gf.created_at <= $${paramCount}`;
+      values.push(filters.dateTo);
+      paramCount++;
+    }
+    
+    // Add sorting
+    switch (filters?.sortBy) {
+      case 'popular':
+        query += ` ORDER BY COALESCE(sm.stats->>'downloads', '0')::int DESC, COALESCE(sm.stats->>'likes', '0')::int DESC`;
+        break;
+      case 'quality':
+        query += ` ORDER BY COALESCE(gf.quality_score, 0) DESC, gf.created_at DESC`;
+        break;
+      case 'views':
+        query += ` ORDER BY COALESCE(sm.stats->>'views', '0')::int DESC, gf.created_at DESC`;
+        break;
+      default: // recent
+        query += ` ORDER BY gf.created_at DESC`;
+    }
+    
+    const result = await pool.query(query, values);
+    return result.rows;
+  }
 }

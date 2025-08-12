@@ -16,6 +16,8 @@ const RegistrationPage = React.lazy(() => import('./pages/auth/RegistrationPage'
 const SchoolRegistrationPage = React.lazy(() => import('./pages/auth/SchoolRegistrationPage'));
 const DashboardPage = React.lazy(() => import('./pages/dashboard/DashboardPage'));
 const ChatPage = React.lazy(() => import('./pages/chat/ChatPage'));
+const MaterialsIndexPage = React.lazy(() => import('./pages/materials/MaterialsIndexPage'));
+const MaterialCreatorPage = React.lazy(() => import('./pages/materials/MaterialCreatorPage'));
 const MyMaterialsPage = React.lazy(() => import('./pages/materials/MyMaterialsPage'));
 const SharedMaterialsPage = React.lazy(() => import('./pages/materials/SharedMaterialsPage'));
 const SchoolAdminPage = React.lazy(() => import('./pages/dashboard/SchoolAdminPage'));
@@ -77,11 +79,30 @@ function App() {
                     <ChatPage />
                   </PrivateRoute>
                 } />
+                
+                {/* Materials routes */}
                 <Route path="/materials" element={
+                  <PrivateRoute>
+                    <MaterialsIndexPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/materials/create" element={
+                  <PrivateRoute>
+                    <MaterialCreatorPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/materials/my-materials" element={
                   <PrivateRoute>
                     <MyMaterialsPage />
                   </PrivateRoute>
                 } />
+                <Route path="/materials/shared" element={
+                  <PrivateRoute>
+                    <SharedMaterialsPage />
+                  </PrivateRoute>
+                } />
+                
+                {/* Legacy routes for backward compatibility */}
                 <Route path="/shared-materials" element={
                   <PrivateRoute>
                     <SharedMaterialsPage />

@@ -1,18 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { FileText, Download, Trash2, Eye, Calendar, Search, Folder, Share2, Plus, Filter, Grid, List, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import InputField from '../../components/ui/InputField';
+import ConfirmModal from '../../components/ui/ConfirmModal';
+import Breadcrumb from '../../components/ui/Breadcrumb';
+import Header from '../../components/layout/Header';
+import { 
+  FileText, Trash2, Eye, Search, Folder, Share2, Plus, 
+  Filter, Grid, List, Tag, BookOpen, Target,
+  Lightbulb, BarChart3, Sparkles, Zap, ArrowLeft
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import apiClient from '../../services/apiClient';
-import Button from '../../components/ui/Button';
-import Card from '../../components/ui/Card';
-import InputField from '../../components/ui/InputField';
-import ConfirmModal from '../../components/ui/ConfirmModal';
 import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
-import Header from '../../components/layout/Header';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { GeneratedFile, Folder as FolderType } from '../../types';
+import MaterialDisplay from '../../components/materials/MaterialDisplay';
+import { GeneratedFile } from '../../types';
 
 interface Worksheet {
   title: string;
@@ -28,7 +33,33 @@ interface FilterOptions {
   folderId: string;
   dateFrom: string;
   dateTo: string;
-  showSharedOnly: boolean; // New filter option
+  showSharedOnly: boolean;
+  // New AI-powered filters
+  category: string;
+  subject: string;
+  difficulty: string;
+  gradeLevel: string;
+  tags: string[];
+}
+
+interface ContentAnalytics {
+  total_files: number;
+  categorized_files: number;
+  tagged_files: number;
+  approved_files: number;
+  pending_files: number;
+  rejected_files: number;
+  avg_quality_score: number;
+  files_last_30_days: number;
+  files_last_7_days: number;
+}
+
+interface DistributionData {
+  category?: string;
+  subject?: string;
+  difficulty?: string;
+  count: number;
+  percentage: number;
 }
 
 const MyMaterialsPage: React.FC = () => {
@@ -58,23 +89,52 @@ const MyMaterialsPage: React.FC = () => {
     folderId: '',
     dateFrom: '',
     dateTo: '',
-    showSharedOnly: false // New filter option
+    showSharedOnly: false,
+    category: '',
+    subject: '',
+    difficulty: '',
+    gradeLevel: '',
+    tags: []
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [searchMode, setSearchMode] = useState<'basic' | 'ai'>('ai');
+  const [showRecommendations, setShowRecommendations] = useState(true);
+  const [showAnalytics, setShowAnalytics] = useState(true);
 
   // Queries
-  const { data: filesData, isLoading, error, refetch } = useQuery(
-    ['user-files', searchTerm, filterOptions],
+  const { data: filesData, isLoading, refetch } = useQuery(
+    ['user-files', searchTerm, filterOptions, searchMode],
     async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (filterOptions.fileType) params.append('file_type', filterOptions.fileType);
-      if (filterOptions.folderId) params.append('folder_id', filterOptions.folderId);
-      if (filterOptions.dateFrom) params.append('date_from', filterOptions.dateFrom);
-      if (filterOptions.dateTo) params.append('date_to', filterOptions.dateTo);
-      
-      const response = await apiClient.get(`/files?${params.toString()}`);
-      return response.data;
+      if (searchMode === 'ai' && searchTerm) {
+        // Use AI-powered search
+        const params = new URLSearchParams({
+          q: searchTerm,
+          limit: '50',
+          offset: '0'
+        });
+        
+        if (filterOptions.category) params.append('category', filterOptions.category);
+        if (filterOptions.subject) params.append('subject', filterOptions.subject);
+        if (filterOptions.difficulty) params.append('difficulty', filterOptions.difficulty);
+        if (filterOptions.gradeLevel) params.append('grade_level', filterOptions.gradeLevel);
+        if (filterOptions.tags.length > 0) params.append('tags', filterOptions.tags.join(','));
+        if (filterOptions.dateFrom) params.append('date_from', filterOptions.dateFrom);
+        if (filterOptions.dateTo) params.append('date_to', filterOptions.dateTo);
+        
+        const response = await apiClient.get(`/files/search/ai?${params.toString()}`);
+        return response.data;
+      } else {
+        // Use basic search
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (filterOptions.fileType) params.append('file_type', filterOptions.fileType);
+        if (filterOptions.folderId) params.append('folder_id', filterOptions.folderId);
+        if (filterOptions.dateFrom) params.append('date_from', filterOptions.dateFrom);
+        if (filterOptions.dateTo) params.append('date_to', filterOptions.dateTo);
+        
+        const response = await apiClient.get(`/files?${params.toString()}`);
+        return response.data;
+      }
     },
     {
       enabled: !!user,
@@ -82,15 +142,28 @@ const MyMaterialsPage: React.FC = () => {
     }
   );
 
-  // New query for shared materials
-  const { data: sharedMaterialsData } = useQuery(
-    ['shared-materials'],
+  // New query for content recommendations
+  const { data: recommendationsData } = useQuery(
+    ['content-recommendations'],
     async () => {
-      const response = await apiClient.get('/shared-materials/browse');
+      const response = await apiClient.get('/files/recommendations?limit=5');
       return response.data;
     },
     {
-      enabled: !!user,
+      enabled: !!user && showRecommendations,
+      retry: 2,
+    }
+  );
+
+  // New query for content analytics
+  const { data: analyticsData } = useQuery(
+    ['content-analytics'],
+    async () => {
+      const response = await apiClient.get('/files/analytics/content');
+      return response.data;
+    },
+    {
+      enabled: !!user && showAnalytics,
       retry: 2,
     }
   );
@@ -107,17 +180,28 @@ const MyMaterialsPage: React.FC = () => {
     }
   );
 
-  const { data: statsData } = useQuery(
-    ['user-stats'],
-    async () => {
-      const response = await apiClient.get('/files/stats');
-      return response.data;
-    },
-    {
-      enabled: !!user,
-      retry: 2,
+  // Removed unused statsData query
+
+  // Computed values
+  const files = useMemo(() => {
+    if (searchMode === 'ai' && filesData?.data?.files) {
+      return filesData.data.files;
     }
-  );
+    return filesData?.data?.data || [];
+  }, [filesData, searchMode]);
+
+  const totalFiles = useMemo(() => {
+    if (searchMode === 'ai' && filesData?.data?.pagination) {
+      return filesData.data.pagination.total;
+    }
+    return filesData?.data?.total || 0;
+  }, [filesData, searchMode]);
+
+  const recommendations = recommendationsData?.data || [];
+  const analytics: ContentAnalytics = analyticsData?.data?.analytics || {};
+  const categoryDistribution = analyticsData?.data?.distributions?.categories || [];
+  const subjectDistribution = analyticsData?.data?.distributions?.subjects || [];
+  const difficultyDistribution = analyticsData?.data?.distributions?.difficulties || [];
 
   // Mutations
   const deleteFileMutation = useMutation(
@@ -129,7 +213,8 @@ const MyMaterialsPage: React.FC = () => {
         showToast({ type: 'success', message: 'Soubor byl úspěšně smazán' });
         queryClient.invalidateQueries(['user-files']);
         queryClient.invalidateQueries(['user-stats']);
-        queryClient.invalidateQueries(['shared-materials']); // Invalidate shared materials too
+        queryClient.invalidateQueries(['shared-materials']);
+        queryClient.invalidateQueries(['content-analytics']);
       },
       onError: () => {
         showToast({ type: 'error', message: 'Chyba při mazání souboru' });
@@ -147,7 +232,6 @@ const MyMaterialsPage: React.FC = () => {
         showToast({ type: 'success', message: 'Materiál byl úspěšně sdílen' });
         setShowShareModal(false);
         setSelectedFile(null);
-        // Invalidate both queries to refresh the data
         queryClient.invalidateQueries(['user-files']);
         queryClient.invalidateQueries(['shared-materials']);
       },
@@ -170,7 +254,6 @@ const MyMaterialsPage: React.FC = () => {
         setNewFolderDescription('');
         setNewFolderParentId('');
         setNewFolderIsShared(false);
-        // Refresh folders data
         refetchFolders();
       },
       onError: (error: any) => {
@@ -192,7 +275,6 @@ const MyMaterialsPage: React.FC = () => {
         setShowMoveToFolderModal(false);
         setFileToMove(null);
         setSelectedFolderId('');
-        // Refresh files data
         queryClient.invalidateQueries(['user-files']);
       },
       onError: (error: any) => {
@@ -201,677 +283,569 @@ const MyMaterialsPage: React.FC = () => {
     }
   );
 
-  // Data
-  const files = filesData?.data?.files || [];
-  const sharedMaterials = sharedMaterialsData?.data || [];
-  const folders = (foldersData?.data || []) as FolderType[];
-  const stats = statsData?.data || {};
-
-  // Filter files based on search term and filters
-  const filteredFiles = files.filter((file: GeneratedFile) => {
-    if (searchTerm && !file.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false;
-    }
-    if (filterOptions.fileType && file.file_type !== filterOptions.fileType) {
-      return false;
-    }
-    if (filterOptions.folderId && file.folder_id !== filterOptions.folderId) {
-      return false;
-    }
-    if (filterOptions.dateFrom && new Date(file.created_at) < new Date(filterOptions.dateFrom)) {
-      return false;
-    }
-    if (filterOptions.dateTo && new Date(file.created_at) > new Date(filterOptions.dateTo)) {
-      return false;
-    }
-    // New filter: show only shared files
-    if (filterOptions.showSharedOnly) {
-      const isShared = sharedMaterials.some((shared: any) => shared.material_id === file.id);
-      if (!isShared) {
-        return false;
-      }
-    }
-    return true;
-  });
-
-  // Get shared count for the current user's materials
-  const userSharedCount = sharedMaterials.filter((shared: any) => 
-    files.some((file: GeneratedFile) => file.id === shared.material_id)
-  ).length;
-
   // Handlers
-  const handleViewWorksheet = async (file: GeneratedFile) => {
-    try {
-      console.log('File content type:', typeof file.content);
-      console.log('File content preview:', file.content?.substring(0, 200));
-      
-      let worksheet;
-      
-      // Try to parse as JSON first
-      if (typeof file.content === 'string') {
-        try {
-          worksheet = JSON.parse(file.content);
-        } catch (jsonError) {
-          console.log('JSON parsing failed, trying to handle as plain text');
-          // If JSON parsing fails, try to create a basic structure
-          worksheet = {
-            title: file.title,
-            instructions: 'Content loaded from file',
-            questions: [{
-              problem: file.content,
-              answer: 'Content loaded from file'
-            }]
-          };
-        }
-      } else if (typeof file.content === 'object' && file.content !== null) {
-        // Content is already an object
-        worksheet = file.content;
-      } else {
-        throw new Error('Invalid content format');
-      }
-      
-      // Validate worksheet structure
-      if (!worksheet.title || !worksheet.questions || !Array.isArray(worksheet.questions)) {
-        console.log('Invalid worksheet structure, creating fallback');
-        worksheet = {
-          title: file.title || 'Untitled',
-          instructions: 'Content loaded from file',
-          questions: [{
-            problem: typeof file.content === 'string' ? file.content : JSON.stringify(file.content, null, 2),
-            answer: 'Content loaded from file'
-          }]
-        };
-      }
-      
-      setWorksheetData(worksheet);
-      setShowWorksheet(true);
-    } catch (error) {
-      console.error('Error loading worksheet:', error);
-      console.error('File object:', file);
-      
-      // Create a fallback worksheet with raw content
-      const fallbackWorksheet = {
-        title: file.title || 'Untitled',
-        instructions: 'Content could not be parsed properly',
-        questions: [{
-          problem: `Raw content: ${typeof file.content === 'string' ? file.content : JSON.stringify(file.content, null, 2)}`,
-          answer: 'Please check the content format'
-        }]
-      };
-      
-      setWorksheetData(fallbackWorksheet);
-      setShowWorksheet(true);
-      
-      showToast({ type: 'warning', message: 'Obsah byl načten v základním formátu' });
+  const handleSearch = () => {
+    refetch();
+  };
+
+  const handleFilterChange = (key: keyof FilterOptions, value: any) => {
+    setFilterOptions(prev => ({ ...prev, [key]: value }));
+  };
+
+  const clearFilters = () => {
+    setFilterOptions({
+      fileType: '',
+      folderId: '',
+      dateFrom: '',
+      dateTo: '',
+      showSharedOnly: false,
+      category: '',
+      subject: '',
+      difficulty: '',
+      gradeLevel: '',
+      tags: []
+    });
+  };
+
+  const getFileIcon = (fileType: string) => {
+    switch (fileType) {
+      case 'worksheet': return <FileText className="w-5 h-5" />;
+      case 'lesson': return <BookOpen className="w-5 h-5" />;
+      case 'assessment': return <Target className="w-5 h-5" />;
+      default: return <FileText className="w-5 h-5" />;
     }
   };
 
-  const handleDeleteFile = async (file: GeneratedFile) => {
-    await deleteFileMutation.mutateAsync(file.id);
-    setFileToDelete(null);
-  };
-
-  const handleDownloadPDF = (file: GeneratedFile) => {
-    try {
-      console.log('Downloading file:', file.title);
-      console.log('File content type:', typeof file.content);
-      
-      let worksheet;
-      
-      // Try to parse as JSON first
-      if (typeof file.content === 'string') {
-        try {
-          worksheet = JSON.parse(file.content);
-        } catch (jsonError) {
-          console.log('JSON parsing failed for PDF, creating basic structure');
-          // If JSON parsing fails, try to create a basic structure
-          worksheet = {
-            title: file.title,
-            instructions: 'Content loaded from file',
-            questions: [{
-              problem: file.content,
-              answer: 'Content loaded from file'
-            }]
-          };
-        }
-      } else if (typeof file.content === 'object' && file.content !== null) {
-        // Content is already an object
-        worksheet = file.content;
-      } else {
-        throw new Error('Invalid content format');
-      }
-      
-      // Validate worksheet structure
-      if (!worksheet.title || !worksheet.questions || !Array.isArray(worksheet.questions)) {
-        console.log('Invalid worksheet structure for PDF, creating fallback');
-        worksheet = {
-          title: file.title || 'Untitled',
-          instructions: 'Content loaded from file',
-          questions: [{
-            problem: typeof file.content === 'string' ? file.content : JSON.stringify(file.content, null, 2),
-            answer: 'Content loaded from file'
-          }]
-        };
-      }
-      
-      setWorksheetData(worksheet);
-      setShowWorksheet(true);
-      
-      setTimeout(() => {
-        const pdfButton = document.querySelector('[data-pdf-download]') as HTMLButtonElement;
-        if (pdfButton) {
-          pdfButton.click();
-        } else {
-          console.log('PDF download button not found');
-          showToast({ type: 'info', message: 'Otevřete cvičení pro stažení PDF' });
-        }
-      }, 100);
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      
-      // Create a fallback worksheet with raw content
-      const fallbackWorksheet = {
-        title: file.title || 'Untitled',
-        instructions: 'Content could not be parsed properly',
-        questions: [{
-          problem: `Raw content: ${typeof file.content === 'string' ? file.content : JSON.stringify(file.content, null, 2)}`,
-          answer: 'Please check the content format'
-        }]
-      };
-      
-      setWorksheetData(fallbackWorksheet);
-      setShowWorksheet(true);
-      
-      showToast({ type: 'warning', message: 'Obsah byl načten v základním formátu pro PDF' });
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'beginner': return 'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-400';
+      case 'intermediate': return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-400';
+      case 'advanced': return 'text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-400';
+      default: return 'text-neutral-600 bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-400';
     }
   };
 
-  const handleShareMaterial = (file: GeneratedFile) => {
-    setSelectedFile(file);
-    setShowShareModal(true);
+  const getSubjectColor = (subject: string) => {
+    const colors = {
+      'mathematics': 'text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-400',
+      'physics': 'text-purple-600 bg-purple-100 dark:bg-purple-900 dark:text-purple-400',
+      'chemistry': 'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-400',
+      'biology': 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900 dark:text-emerald-400',
+      'history': 'text-amber-600 bg-amber-100 dark:bg-amber-900 dark:text-amber-400',
+      'literature': 'text-pink-600 bg-pink-100 dark:bg-pink-900 dark:text-pink-400',
+      'general': 'text-neutral-600 bg-neutral-100 dark:bg-neutral-900 dark:text-neutral-400'
+    };
+    return colors[subject as keyof typeof colors] || colors.general;
   };
-
-  const handleShare = async (folderId?: string, isPublic: boolean = false) => {
-    if (!selectedFile) return;
-    
-    await shareMaterialMutation.mutateAsync({
-      material_id: selectedFile.id,
-      folder_id: folderId,
-      is_public: isPublic
-    });
-  };
-
-  const handleCreateFolder = async () => {
-    if (!newFolderName.trim()) {
-      showToast({ type: 'error', message: 'Název složky je povinný' });
-      return;
-    }
-
-    await createFolderMutation.mutateAsync({
-      name: newFolderName.trim(),
-      description: newFolderDescription.trim() || undefined,
-      parent_folder_id: newFolderParentId || undefined,
-      is_shared: newFolderIsShared
-    });
-  };
-
-  const handleMoveToFolder = (file: GeneratedFile) => {
-    setFileToMove(file);
-    setSelectedFolderId(file.folder_id || '');
-    setShowMoveToFolderModal(true);
-  };
-
-  const handleMoveToFolderConfirm = async () => {
-    if (!fileToMove) return;
-    
-    // If no folder is selected, it means removing from folder
-    if (!selectedFolderId) {
-      // Remove from current folder by setting folder_id to null
-      await moveToFolderMutation.mutateAsync({
-        material_ids: [fileToMove.id],
-        folder_id: 'unorganized' // Special value to indicate removal
-      });
-      return;
-    }
-    
-    await moveToFolderMutation.mutateAsync({
-      material_ids: [fileToMove.id],
-      folder_id: selectedFolderId
-    });
-  };
-
-  const handleRemoveFromFolder = async (file: GeneratedFile) => {
-    if (!file.folder_id) return;
-    
-    await moveToFolderMutation.mutateAsync({
-      material_ids: [file.id],
-      folder_id: 'unorganized' // Special value to indicate removal
-    });
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('cs-CZ', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getFolderName = (folderId?: string) => {
-    if (!folderId) return 'Bez složky';
-    const folder = folders.find((f: FolderType) => f.id === folderId);
-    return folder ? folder.name : 'Neznámá složka';
-  };
-
-  // Check if a file is shared
-  const isFileShared = (fileId: string) => {
-    return sharedMaterials.some((shared: any) => shared.material_id === fileId);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-neutral-900">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-neutral-200 dark:bg-neutral-800 rounded w-1/4 mb-6"></div>
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-24 bg-neutral-200 dark:bg-neutral-800 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-neutral-900">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
-              Chyba při načítání materiálů
-            </h2>
-            <p className="text-neutral-600 dark:text-neutral-300 mb-4">
-              Nepodařilo se načíst vaše vygenerované materiály.
-            </p>
-            <Button onClick={() => refetch()}>
-              Zkusit znovu
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-900">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
       <Header />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation */}
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center space-x-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Zpět na dashboard</span>
-          </Button>
-        </div>
-
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
-                Moje materiály
-              </h1>
-              <p className="text-neutral-600 dark:text-neutral-300 mt-2">
-                Zde najdete všechny vaše vygenerované cvičení a materiály
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigate('/shared-materials')}
-                className="flex items-center space-x-2"
-              >
-                <Users className="h-4 w-4" />
-                <span>Zobrazit sdílené</span>
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowAddFolderModal(true)}
-                className="flex items-center space-x-2"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Nová složka</span>
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center space-x-2"
-              >
-                <Filter className="h-4 w-4" />
-                <span>Filtry</span>
-              </Button>
-              <div className="flex items-center space-x-2 border border-neutral-300 dark:border-neutral-600 rounded-lg p-1">
-                <Button
-                  variant={viewMode === 'grid' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className="p-1"
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'primary' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className="p-1"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/materials')}
+            className="mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Zpět na materiály
+          </Button>
+          
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
+              Moje materiály
+            </h1>
+            <p className="text-lg text-neutral-600 dark:text-neutral-400">
+              Spravujte a organizujte své vzdělávací materiály
+            </p>
           </div>
         </div>
 
+        {/* Breadcrumb */}
+        <Breadcrumb items={[
+          { label: 'Materiály', path: '/materials' },
+          { label: 'Moje materiály' }
+        ]} />
+
+        {/* Content Analytics Dashboard */}
+        {showAnalytics && analytics.total_files > 0 && (
+          <Card className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Přehled obsahu
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAnalytics(!showAnalytics)}
+              >
+                {showAnalytics ? 'Skrýt' : 'Zobrazit'}
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className="text-center p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {analytics.total_files}
+                </div>
+                <div className="text-sm text-blue-600 dark:text-blue-400">Celkem</div>
+              </div>
+              
+              <div className="text-center p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  {analytics.categorized_files}
+                </div>
+                <div className="text-sm text-green-600 dark:text-green-400">Kategorizováno</div>
+              </div>
+              
+              <div className="text-center p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  {analytics.tagged_files}
+                </div>
+                <div className="text-sm text-purple-600 dark:text-purple-400">Označeno</div>
+              </div>
+              
+              <div className="text-center p-3 bg-amber-50 dark:bg-amber-950 rounded-lg">
+                <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                  {analytics.approved_files}
+                </div>
+                <div className="text-sm text-amber-600 dark:text-amber-400">Schváleno</div>
+              </div>
+              
+              <div className="text-center p-3 bg-emerald-50 dark:bg-emerald-950 rounded-lg">
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                  {analytics.files_last_30_days}
+                </div>
+                <div className="text-sm text-emerald-600 dark:text-emerald-400">30 dní</div>
+              </div>
+              
+              <div className="text-center p-3 bg-rose-50 dark:bg-rose-950 rounded-lg">
+                <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+                  {analytics.files_last_7_days}
+                </div>
+                <div className="text-sm text-rose-600 dark:text-rose-400">7 dní</div>
+              </div>
+            </div>
+
+            {/* Distribution Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+              <div>
+                <h4 className="font-medium mb-3 text-neutral-700 dark:text-neutral-300">Kategorie</h4>
+                <div className="space-y-2">
+                  {categoryDistribution.slice(0, 5).map((item: DistributionData) => (
+                    <div key={item.category} className="flex items-center justify-between">
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                        {item.category}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
+                          <div 
+                            className="bg-blue-500 h-2 rounded-full" 
+                            style={{ width: `${item.percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                          {item.count}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-3 text-neutral-700 dark:text-neutral-300">Předměty</h4>
+                <div className="space-y-2">
+                  {subjectDistribution.slice(0, 5).map((item: DistributionData) => (
+                    <div key={item.subject} className="flex items-center justify-between">
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                        {item.subject}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full" 
+                            style={{ width: `${item.percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                          {item.count}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium mb-3 text-neutral-700 dark:text-neutral-300">Obtížnost</h4>
+                <div className="space-y-2">
+                  {difficultyDistribution.map((item: DistributionData) => (
+                    <div key={item.difficulty} className="flex items-center justify-between">
+                      <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                        {item.difficulty}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
+                          <div 
+                            className="bg-purple-500 h-2 rounded-full" 
+                            style={{ width: `${item.percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                          {item.count}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Content Recommendations */}
+        {showRecommendations && recommendations.length > 0 && (
+          <Card className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-yellow-500" />
+                Doporučené materiály
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowRecommendations(!showRecommendations)}
+              >
+                {showRecommendations ? 'Skrýt' : 'Zobrazit'}
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recommendations.map((rec: any) => (
+                <div key={rec.id} className="p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:border-neutral-300 dark:hover:border-neutral-600 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {getFileIcon(rec.file_type)}
+                      <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                        {rec.category}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Sparkles className="w-4 h-4 text-yellow-500" />
+                      <span className="text-xs text-neutral-500">
+                        {rec.match_score}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <h4 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                    {rec.title}
+                  </h4>
+                  
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSubjectColor(rec.subject)}`}>
+                      {rec.subject}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(rec.difficulty)}`}>
+                      {rec.difficulty}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-xs text-neutral-500">
+                    <span>{new Date(rec.created_at).toLocaleDateString()}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setWorksheetData(rec);
+                        setShowWorksheet(true);
+                      }}
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      Zobrazit
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
         {/* Search and Filters */}
-        <div className="mb-6 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
-            <InputField
-              name="materials_search"
-              label="Hledat"
-              type="text"
-              placeholder="Hledat materiály..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        <Card className="mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Search className="w-4 h-4 text-neutral-500" />
+                <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                  {searchMode === 'ai' ? 'AI-powered search' : 'Basic search'}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSearchMode(searchMode === 'ai' ? 'basic' : 'ai')}
+                  className="ml-auto"
+                >
+                  <Zap className={`w-4 h-4 ${searchMode === 'ai' ? 'text-yellow-500' : 'text-neutral-400'}`} />
+                  {searchMode === 'ai' ? 'AI' : 'Basic'}
+                </Button>
+              </div>
+              
+              <div className="flex gap-2">
+                <InputField
+                  label=""
+                  name="search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={searchMode === 'ai' ? "Hledej s AI pomocí klíčových slov, témat..." : "Hledej podle názvu..."}
+                  className="flex-1"
+                />
+                <Button onClick={handleSearch} isLoading={isLoading}>
+                  <Search className="w-4 h-4 mr-2" />
+                  Hledat
+                </Button>
+              </div>
+            </div>
+            
+            <Button
+              variant="secondary"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="w-4 h-4" />
+              Filtry
+            </Button>
           </div>
 
+          {/* Advanced Filters */}
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Typ souboru
-                </label>
-                <select
-                  value={filterOptions.fileType}
-                  onChange={(e) => setFilterOptions({...filterOptions, fileType: e.target.value})}
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md"
+            <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Kategorie</label>
+                  <select 
+                    className="w-full border rounded-md p-2 bg-transparent"
+                    value={filterOptions.category}
+                    onChange={(e) => handleFilterChange('category', e.target.value)}
+                  >
+                    <option value="">Všechny kategorie</option>
+                    <option value="worksheet">Pracovní listy</option>
+                    <option value="lesson">Lekce</option>
+                    <option value="assessment">Hodnocení</option>
+                    <option value="exercise">Cvičení</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Předmět</label>
+                  <select 
+                    className="w-full border rounded-md p-2 bg-transparent"
+                    value={filterOptions.subject}
+                    onChange={(e) => handleFilterChange('subject', e.target.value)}
+                  >
+                    <option value="">Všechny předměty</option>
+                    <option value="mathematics">Matematika</option>
+                    <option value="physics">Fyzika</option>
+                    <option value="chemistry">Chemie</option>
+                    <option value="biology">Biologie</option>
+                    <option value="history">Dějepis</option>
+                    <option value="literature">Literatura</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Obtížnost</label>
+                  <select 
+                    className="w-full border rounded-md p-2 bg-transparent"
+                    value={filterOptions.difficulty}
+                    onChange={(e) => handleFilterChange('difficulty', e.target.value)}
+                  >
+                    <option value="">Všechny obtížnosti</option>
+                    <option value="beginner">Začátečník</option>
+                    <option value="intermediate">Střední</option>
+                    <option value="advanced">Pokročilý</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Ročník</label>
+                  <select 
+                    className="w-full border rounded-md p-2 bg-transparent"
+                    value={filterOptions.gradeLevel}
+                    onChange={(e) => handleFilterChange('gradeLevel', e.target.value)}
+                  >
+                    <option value="">Všechny ročníky</option>
+                    <option value="elementary">Základní škola</option>
+                    <option value="high_school">Střední škola</option>
+                    <option value="university">Vysoká škola</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between mt-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
                 >
-                  <option value="">Všechny typy</option>
-                  <option value="worksheet">Cvičení</option>
-                  <option value="test">Test</option>
-                  <option value="lesson_plan">Plán hodiny</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Složka
-                </label>
-                <select
-                  value={filterOptions.folderId}
-                  onChange={(e) => setFilterOptions({...filterOptions, folderId: e.target.value})}
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md"
-                >
-                  <option value="">Všechny složky</option>
-                  <option value="unorganized">Bez složky</option>
-                  {folders.map((folder: FolderType) => (
-                    <option key={folder.id} value={folder.id}>{folder.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Od data
-                </label>
-                <input
-                  type="date"
-                  value={filterOptions.dateFrom}
-                  onChange={(e) => setFilterOptions({...filterOptions, dateFrom: e.target.value})}
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md dark:bg-neutral-800 dark:text-neutral-100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Do data
-                </label>
-                <input
-                  type="date"
-                  value={filterOptions.dateTo}
-                  onChange={(e) => setFilterOptions({...filterOptions, dateTo: e.target.value})}
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md dark:bg-neutral-800 dark:text-neutral-100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Zobrazit pouze sdílené
-                </label>
-                <div className="flex items-center h-10">
-                  <input
-                    type="checkbox"
-                    id="showSharedOnly"
-                    checked={filterOptions.showSharedOnly}
-                    onChange={(e) => setFilterOptions({...filterOptions, showSharedOnly: e.target.checked})}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-neutral-300 rounded"
-                  />
-                  <label htmlFor="showSharedOnly" className="ml-2 text-sm text-neutral-700 dark:text-neutral-300">
-                    Pouze sdílené materiály
-                  </label>
+                  Vymazat filtry
+                </Button>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-neutral-500">
+                    Nalezeno {totalFiles} materiálů
+                  </span>
                 </div>
               </div>
             </div>
           )}
+        </Card>
+
+        {/* View Mode Toggle */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'grid' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+            >
+              <Grid className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center">
-                <FileText className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">Celkem materiálů</p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">{stats.total_files || files.length}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center">
-                <Folder className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">Organizované</p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">{stats.organized_files || 0}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center">
-                <Calendar className="h-8 w-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">Vytvořeno tento měsíc</p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-                    {files.filter((file: GeneratedFile) => {
-                      const fileDate = new Date(file.created_at);
-                      const now = new Date();
-                      return fileDate.getMonth() === now.getMonth() && 
-                             fileDate.getFullYear() === now.getFullYear();
-                    }).length}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center">
-                <Share2 className="h-8 w-8 text-orange-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">Sdílené</p>
-                  <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">{userSharedCount}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Materials List */}
-        {filteredFiles.length === 0 ? (
-          <Card>
-            <div className="p-12 text-center">
-              <FileText className="h-12 w-12 text-neutral-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
-                {searchTerm || Object.values(filterOptions).some(v => v) ? 'Žádné materiály nenalezeny' : 'Zatím nemáte žádné materiály'}
-              </h3>
-              <p className="text-neutral-600 dark:text-neutral-300">
-                {searchTerm || Object.values(filterOptions).some(v => v)
-                  ? 'Zkuste změnit vyhledávací termín nebo filtry'
-                  : 'Začněte generovat cvičení v chat rozhraní'
-                }
-              </p>
-            </div>
+        {/* Materials Grid/List */}
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+            <p className="mt-4 text-neutral-600 dark:text-neutral-400">Načítání materiálů...</p>
+          </div>
+        ) : files.length === 0 ? (
+          <Card className="text-center py-12">
+            <FileText className="w-16 h-16 text-neutral-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+              Žádné materiály nenalezeny
+            </h3>
+            <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+              {searchTerm ? 'Zkuste upravit vyhledávání nebo filtry.' : 'Začněte vytvářet své první vzdělávací materiály.'}
+            </p>
+            {!searchTerm && (
+              <Button onClick={() => navigate('/chat')}>
+                <Plus className="w-4 h-4 mr-2" />
+                Vytvořit materiál
+              </Button>
+            )}
           </Card>
         ) : (
-          <div className={viewMode === 'grid' 
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            : "space-y-4"
-          }>
-            {filteredFiles.map((file: GeneratedFile) => (
+          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'space-y-4'}>
+            {files.map((file: any) => (
               <Card key={file.id} className="hover:shadow-lg transition-shadow">
-                <div className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center mb-2">
-                        <FileText className="h-5 w-5 text-blue-600 mr-2" />
-                        <span className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                          {file.file_type === 'worksheet' ? 'Cvičení' : file.file_type}
-                        </span>
-                        {file.folder_id && (
-                          <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded ml-2">
-                            {getFolderName(file.folder_id)}
-                          </span>
-                        )}
-                        {/* Show shared indicator */}
-                        {isFileShared(file.id) && (
-                          <span className="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-1 rounded ml-2">
-                            Sdílené
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2 line-clamp-2">
-                        {file.title}
-                      </h3>
-                      <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
-                        Vytvořeno: {formatDate(file.created_at)}
-                      </p>
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {getFileIcon(file.file_type)}
+                      <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                        {file.category || 'Nezarovnané'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      {file.ai_tags && file.ai_tags.length > 0 && (
+                        <Tag className="w-4 h-4 text-blue-500" />
+                      )}
+                      {file.moderation_status === 'approved' && (
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      )}
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <div className="flex space-x-1">
-                      <div className="relative group">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewWorksheet(file)}
-                          className="p-2 h-8 w-8 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
-                        >
-                          <Eye className="h-4 w-4 text-blue-600" />
-                        </Button>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-xs rounded opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 pointer-events-none whitespace-nowrap z-10 shadow-lg">
-                          Zobrazit
-                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-900 dark:border-t-neutral-100"></div>
-                        </div>
-                      </div>
-                      
-                      <div className="relative group">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDownloadPDF(file)}
-                          className="p-2 h-8 w-8 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200"
-                        >
-                          <Download className="h-4 w-4 text-green-600" />
-                        </Button>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-xs rounded opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 pointer-events-none whitespace-nowrap z-10 shadow-lg">
-                          PDF
-                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-900 dark:border-t-neutral-100"></div>
-                        </div>
-                      </div>
-                      
-                      <div className="relative group">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleShareMaterial(file)}
-                          className="p-2 h-8 w-8 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-200"
-                        >
-                          <Share2 className="h-4 w-4 text-purple-600" />
-                        </Button>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-xs rounded opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 pointer-events-none whitespace-nowrap z-10 shadow-lg">
-                          Sdílet
-                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-900 dark:border-t-neutral-100"></div>
-                        </div>
-                      </div>
-                      
-                      <div className="relative group">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleMoveToFolder(file)}
-                          className="p-2 h-8 w-8 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-200"
-                        >
-                          <Folder className="h-4 w-4 text-orange-600" />
-                        </Button>
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-xs rounded opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 pointer-events-none whitespace-nowrap z-10 shadow-lg">
-                          Přesunout
-                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-900 dark:border-t-neutral-100"></div>
-                        </div>
-                      </div>
-                      
-                      {file.folder_id && (
-                        <div className="relative group">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveFromFolder(file)}
-                            className="p-2 h-8 w-8 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
-                          >
-                            <Folder className="h-4 w-4 text-red-600" />
-                          </Button>
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 text-xs rounded opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 pointer-events-none whitespace-nowrap z-10 shadow-lg">
-                            Odstranit
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-neutral-900 dark:border-t-neutral-100"></div>
-                          </div>
-                        </div>
+                  <h4 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2 line-clamp-2">
+                    {file.title}
+                  </h4>
+                  
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {file.subject && (
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSubjectColor(file.subject)}`}>
+                        {file.subject}
+                      </span>
+                    )}
+                    {file.difficulty && (
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(file.difficulty)}`}>
+                        {file.difficulty}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {file.ai_tags && file.ai_tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {file.ai_tags.slice(0, 3).map((tag: string, index: number) => (
+                        <span key={index} className="px-2 py-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-full text-xs">
+                          {tag}
+                        </span>
+                      ))}
+                      {file.ai_tags.length > 3 && (
+                        <span className="px-2 py-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-full text-xs">
+                          +{file.ai_tags.length - 3}
+                        </span>
                       )}
                     </div>
+                  )}
+                  
+                  <div className="flex items-center justify-between text-xs text-neutral-500 mb-3">
+                    <span>{new Date(file.created_at).toLocaleDateString()}</span>
+                    {file.folder_id && (
+                      <span className="flex items-center gap-1">
+                        <Folder className="w-3 h-3" />
+                        {foldersData?.data?.find((f: any) => f.id === file.folder_id)?.name || 'Neznámé'}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => {
+                        setWorksheetData(file);
+                        setShowWorksheet(true);
+                      }}
+                      className="flex-1"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Zobrazit
+                    </Button>
+                    
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedFile(file);
+                        setShowShareModal(true);
+                      }}
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </Button>
+                    
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setFileToDelete(file)}
-                      className="p-2 h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+                      onClick={() => {
+                        setFileToDelete(file);
+                      }}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
@@ -879,203 +853,211 @@ const MyMaterialsPage: React.FC = () => {
             ))}
           </div>
         )}
-      </div>
 
-      {/* Worksheet Display Modal */}
-      {showWorksheet && worksheetData && (
-        <WorksheetDisplay
-          worksheet={worksheetData}
-          onClose={() => {
-            setShowWorksheet(false);
-            setWorksheetData(null);
-          }}
-        />
-      )}
+        {/* Modals */}
+        {showWorksheet && worksheetData && (
+          <MaterialDisplay
+            material={worksheetData}
+            onClose={() => setShowWorksheet(false)}
+          />
+        )}
 
-      {/* Delete Confirmation Modal */}
-      {fileToDelete && (
-        <ConfirmModal
-          isOpen={!!fileToDelete}
-          onClose={() => setFileToDelete(null)}
-          onConfirm={() => handleDeleteFile(fileToDelete)}
-          title="Smazat materiál"
-          message={`Opravdu chcete smazat materiál "${fileToDelete.title}"? Tato akce je nevratná.`}
-          confirmText="Smazat"
-          cancelText="Zrušit"
-          variant="danger"
-        />
-      )}
+        {fileToDelete && (
+          <ConfirmModal
+            isOpen={!!fileToDelete}
+            onClose={() => setFileToDelete(null)}
+            onConfirm={() => {
+              deleteFileMutation.mutate(fileToDelete.id);
+              setFileToDelete(null);
+            }}
+            title="Smazat materiál"
+            message={`Opravdu chcete smazat materiál "${fileToDelete.title}"? Tato akce je nevratná.`}
+          />
+        )}
 
-      {/* Share Modal */}
-      {showShareModal && selectedFile && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
-              Sdílet materiál
-            </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-300 mb-4">
-              "{selectedFile.title}" bude sdílen s ostatními učiteli ve vaší škole.
-            </p>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Složka (volitelné)
-                </label>
-                <select className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md">
-                  <option value="">Bez složky</option>
-                  {folders.map((folder: FolderType) => (
-                    <option key={folder.id} value={folder.id}>{folder.name}</option>
-                  ))}
-                </select>
-              </div>
+        {/* Add Folder Modal */}
+        {showAddFolderModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-4">Vytvořit novou složku</h3>
               
-              <div className="flex items-center space-x-2">
-                <input type="checkbox" id="isPublic" className="rounded" />
-                <label htmlFor="isPublic" className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Veřejně dostupné
-                </label>
-              </div>
-            </div>
-            
-            <div className="flex justify-end space-x-3 mt-6">
-              <Button
-                variant="secondary"
-                onClick={() => setShowShareModal(false)}
-              >
-                Zrušit
-              </Button>
-              <Button
-                onClick={() => handleShare(undefined, false)}
-                disabled={shareMaterialMutation.isLoading}
-              >
-                {shareMaterialMutation.isLoading ? 'Sdílím...' : 'Sdílet'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Folder Modal */}
-      {showAddFolderModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
-              Vytvořit novou složku
-            </h3>
-            <div className="space-y-4">
-              <div>
+              <div className="space-y-4">
                 <InputField
-                  name="new_folder_name"
+                  name="name"
                   label="Název složky"
-                  type="text"
-                  placeholder="Zadejte název složky"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
-                  className="mb-4"
+                  placeholder="Zadejte název složky"
                 />
-              </div>
-              <div>
+                
                 <InputField
-                  name="new_folder_description"
+                  name="description"
                   label="Popis (volitelné)"
-                  type="text"
-                  placeholder="Zadejte popis složky"
                   value={newFolderDescription}
                   onChange={(e) => setNewFolderDescription(e.target.value)}
-                  className="mb-4"
+                  placeholder="Krátký popis složky"
                 />
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Nadřazená složka</label>
+                  <select 
+                    className="w-full border rounded-md p-2 bg-transparent"
+                    value={newFolderParentId}
+                    onChange={(e) => setNewFolderParentId(e.target.value)}
+                  >
+                    <option value="">Žádná (kořenová složka)</option>
+                    {foldersData?.data?.map((folder: any) => (
+                      <option key={folder.id} value={folder.id}>
+                        {folder.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="shared"
+                    checked={newFolderIsShared}
+                    onChange={(e) => setNewFolderIsShared(e.target.checked)}
+                    className="rounded"
+                  />
+                  <label htmlFor="shared" className="text-sm">
+                    Sdílet ve škole
+                  </label>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Nadřazená složka (volitelné)
-                </label>
-                <select
-                  value={newFolderParentId}
-                  onChange={(e) => setNewFolderParentId(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md"
+              
+              <div className="flex gap-2 mt-6">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowAddFolderModal(false)}
+                  className="flex-1"
                 >
-                  <option value="">Bez nadřazené složky</option>
-                  {folders.map((folder: FolderType) => (
-                    <option key={folder.id} value={folder.id}>{folder.name}</option>
-                  ))}
-                </select>
+                  Zrušit
+                </Button>
+                <Button
+                  onClick={() => createFolderMutation.mutate({
+                    name: newFolderName,
+                    description: newFolderDescription,
+                    parent_folder_id: newFolderParentId || undefined,
+                    is_shared: newFolderIsShared
+                  })}
+                  disabled={!newFolderName.trim()}
+                  className="flex-1"
+                >
+                  Vytvořit
+                </Button>
               </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="newFolderIsShared"
-                  checked={newFolderIsShared}
-                  onChange={(e) => setNewFolderIsShared(e.target.checked)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-neutral-300 rounded"
-                />
-                <label htmlFor="newFolderIsShared" className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Sdílená v rámci školy
-                </label>
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3 mt-6">
-              <Button
-                variant="secondary"
-                onClick={() => setShowAddFolderModal(false)}
-              >
-                Zrušit
-              </Button>
-              <Button
-                onClick={handleCreateFolder}
-                disabled={createFolderMutation.isLoading}
-              >
-                {createFolderMutation.isLoading ? 'Vytvářím...' : 'Vytvořit složku'}
-              </Button>
-            </div>
+            </Card>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Move To Folder Modal */}
-      {showMoveToFolderModal && fileToMove && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
-              Přesunout materiál do složky
-            </h3>
-            <p className="text-sm text-neutral-600 dark:text-neutral-300 mb-4">
-              Materiál "{fileToMove.title}" bude přesunut do složky "{getFolderName(selectedFolderId)}".
-            </p>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Složka
-                </label>
-                <select
-                  value={selectedFolderId}
-                  onChange={(e) => setSelectedFolderId(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md"
-                >
-                  <option value="">Bez složky</option>
-                  {folders.map((folder: FolderType) => (
-                    <option key={folder.id} value={folder.id}>{folder.name}</option>
-                  ))}
-                </select>
+        {/* Share Modal */}
+        {showShareModal && selectedFile && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-4">Sdílet materiál</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Složka (volitelné)</label>
+                  <select 
+                    className="w-full border rounded-md p-2 bg-transparent"
+                    value={selectedFolderId}
+                    onChange={(e) => setSelectedFolderId(e.target.value)}
+                  >
+                    <option value="">Žádná složka</option>
+                    {foldersData?.data?.map((folder: any) => (
+                      <option key={folder.id} value={folder.id}>
+                        {folder.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="public"
+                    className="rounded"
+                  />
+                  <label htmlFor="public" className="text-sm">
+                    Veřejně dostupné
+                  </label>
+                </div>
               </div>
-            </div>
-            <div className="flex justify-end space-x-3 mt-6">
-              <Button
-                variant="secondary"
-                onClick={() => setShowMoveToFolderModal(false)}
-              >
-                Zrušit
-              </Button>
-              <Button
-                onClick={handleMoveToFolderConfirm}
-                disabled={moveToFolderMutation.isLoading}
-              >
-                {moveToFolderMutation.isLoading ? 'Přesouvám...' : 'Přesunout'}
-              </Button>
-            </div>
+              
+              <div className="flex gap-2 mt-6">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowShareModal(false)}
+                  className="flex-1"
+                >
+                  Zrušit
+                </Button>
+                <Button
+                  onClick={() => shareMaterialMutation.mutate({
+                    material_id: selectedFile.id,
+                    folder_id: selectedFolderId || undefined,
+                    is_public: false
+                  })}
+                  className="flex-1"
+                >
+                  Sdílet
+                </Button>
+              </div>
+            </Card>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Move to Folder Modal */}
+        {showMoveToFolderModal && fileToMove && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-4">Přesunout do složky</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Cílová složka</label>
+                  <select 
+                    className="w-full border rounded-md p-2 bg-transparent"
+                    value={selectedFolderId}
+                    onChange={(e) => setSelectedFolderId(e.target.value)}
+                  >
+                    <option value="">Vyberte složku</option>
+                    {foldersData?.data?.map((folder: any) => (
+                      <option key={folder.id} value={folder.id}>
+                        {folder.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 mt-6">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowMoveToFolderModal(false)}
+                  className="flex-1"
+                >
+                  Zrušit
+                </Button>
+                <Button
+                  onClick={() => moveToFolderMutation.mutate({
+                    material_ids: [fileToMove.id],
+                    folder_id: selectedFolderId
+                  })}
+                  disabled={!selectedFolderId}
+                  className="flex-1"
+                >
+                  Přesunout
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

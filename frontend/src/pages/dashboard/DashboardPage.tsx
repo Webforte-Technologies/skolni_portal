@@ -82,10 +82,10 @@ const DashboardPage: React.FC = () => {
             <Link to="/materials">
               <Button variant="outline" size="lg" className="shadow-sm">
                 <FileText className="h-4 w-4 mr-2" />
-                Moje materiály
+                Materiály
               </Button>
             </Link>
-            <Link to="/shared-materials">
+            <Link to="/materials/shared">
               <Button variant="outline" size="lg" className="shadow-sm">
                 <Users className="h-4 w-4 mr-2" />
                 Sdílené materiály

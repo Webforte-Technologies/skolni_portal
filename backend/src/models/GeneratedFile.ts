@@ -291,4 +291,287 @@ export class GeneratedFileModel {
     const result = await pool.query(query, [userId]);
     return result.rows[0];
   }
+
+  // Get files with AI-powered categorization and tags
+  static async findWithCategorization(userId: string, limit = 50, offset = 0): Promise<any[]> {
+    const query = `
+      SELECT 
+        gf.*,
+        COALESCE(gf.ai_tags, '[]'::jsonb) as tags,
+        COALESCE(gf.ai_category, 'Uncategorized') as category,
+        COALESCE(gf.ai_difficulty, 'medium') as difficulty,
+        COALESCE(gf.ai_subject, 'general') as subject,
+        COALESCE(gf.ai_grade_level, 'high_school') as grade_level
+      FROM generated_files gf
+      WHERE gf.user_id = $1 
+      ORDER BY gf.created_at DESC 
+      LIMIT $2 OFFSET $3
+    `;
+    
+    const result = await pool.query(query, [userId, limit, offset]);
+    return result.rows;
+  }
+
+  // Search files with AI-powered relevance scoring
+  static async searchWithRelevance(
+    userId: string, 
+    searchTerm: string, 
+    filters: {
+      category?: string;
+      subject?: string;
+      difficulty?: string;
+      gradeLevel?: string;
+      tags?: string[];
+      dateFrom?: string;
+      dateTo?: string;
+    } = {},
+    limit = 50,
+    offset = 0
+  ): Promise<any[]> {
+    let query = `
+      SELECT 
+        gf.*,
+        COALESCE(gf.ai_tags, '[]'::jsonb) as tags,
+        COALESCE(gf.ai_category, 'Uncategorized') as category,
+        COALESCE(gf.ai_difficulty, 'medium') as difficulty,
+        COALESCE(gf.ai_subject, 'general') as subject,
+        COALESCE(gf.ai_grade_level, 'high_school') as grade_level,
+        CASE 
+          WHEN gf.title ILIKE $1 THEN 3
+          WHEN gf.content::text ILIKE $1 THEN 2
+          WHEN gf.ai_tags::text ILIKE $1 THEN 1
+          ELSE 0
+        END as relevance_score
+      FROM generated_files gf
+      WHERE gf.user_id = $2
+    `;
+    
+    const values: any[] = [`%${searchTerm}%`, userId];
+    let paramCount = 3;
+    
+    // Add filters
+    if (filters.category) {
+      query += ` AND gf.ai_category = $${paramCount}`;
+      values.push(filters.category);
+      paramCount++;
+    }
+    
+    if (filters.subject) {
+      query += ` AND gf.ai_subject = $${paramCount}`;
+      values.push(filters.subject);
+      paramCount++;
+    }
+    
+    if (filters.difficulty) {
+      query += ` AND gf.ai_difficulty = $${paramCount}`;
+      values.push(filters.difficulty);
+      paramCount++;
+    }
+    
+    if (filters.gradeLevel) {
+      query += ` AND gf.ai_grade_level = $${paramCount}`;
+      values.push(filters.gradeLevel);
+      paramCount++;
+    }
+    
+    if (filters.tags && filters.tags.length > 0) {
+      query += ` AND gf.ai_tags ?| $${paramCount}`;
+      values.push(filters.tags);
+      paramCount++;
+    }
+    
+    if (filters.dateFrom) {
+      query += ` AND gf.created_at >= $${paramCount}`;
+      values.push(filters.dateFrom);
+      paramCount++;
+    }
+    
+    if (filters.dateTo) {
+      query += ` AND gf.created_at <= $${paramCount}`;
+      values.push(filters.dateTo);
+      paramCount++;
+    }
+    
+    query += ` ORDER BY relevance_score DESC, gf.created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+    values.push(limit, offset);
+    
+    const result = await pool.query(query, values);
+    return result.rows;
+  }
+
+  // Get content recommendations based on user preferences and usage patterns
+  static async getRecommendations(
+    userId: string, 
+    limit = 10
+  ): Promise<any[]> {
+    const query = `
+      WITH user_preferences AS (
+        SELECT 
+          COALESCE(gf.ai_category, 'Uncategorized') as preferred_category,
+          COALESCE(gf.ai_subject, 'general') as preferred_subject,
+          COALESCE(gf.ai_difficulty, 'medium') as preferred_difficulty,
+          COUNT(*) as usage_count
+        FROM generated_files gf
+        WHERE gf.user_id = $1
+        GROUP BY gf.ai_category, gf.ai_subject, gf.ai_difficulty
+        ORDER BY usage_count DESC
+        LIMIT 3
+      ),
+      recommendations AS (
+        SELECT 
+          gf.*,
+          COALESCE(gf.ai_tags, '{}'::text[]) as tags,
+          COALESCE(gf.ai_category, 'Uncategorized') as category,
+          COALESCE(gf.ai_difficulty, 'medium') as difficulty,
+          COALESCE(gf.ai_subject, 'general') as subject,
+          COALESCE(gf.ai_grade_level, 'high_school') as grade_level,
+          CASE 
+            WHEN up.preferred_category = gf.ai_category THEN 3
+            WHEN up.preferred_subject = gf.ai_subject THEN 2
+            WHEN up.preferred_difficulty = gf.ai_difficulty THEN 1
+            ELSE 0
+          END as match_score
+        FROM generated_files gf
+        CROSS JOIN user_preferences up
+        WHERE gf.user_id != $1
+        AND gf.moderation_status = 'approved'
+      )
+      SELECT DISTINCT ON (id) *
+      FROM recommendations
+      ORDER BY id, match_score DESC, created_at DESC
+      LIMIT $2
+    `;
+    
+    const result = await pool.query(query, [userId, limit]);
+    return result.rows;
+  }
+
+  // Update AI-generated metadata for a file
+  static async updateAIMetadata(
+    id: string, 
+    metadata: {
+      category?: string;
+      subject?: string;
+      difficulty?: string;
+      gradeLevel?: string;
+      tags?: string[];
+      qualityScore?: number;
+    }
+  ): Promise<GeneratedFile> {
+    const allowedFields = [
+      'ai_category', 'ai_subject', 'ai_difficulty', 
+      'ai_grade_level', 'ai_tags', 'ai_quality_score'
+    ];
+    
+    const updates: string[] = [];
+    const values: any[] = [];
+    let paramCount = 1;
+
+    for (const [key, value] of Object.entries(metadata)) {
+      if (allowedFields.includes(`ai_${key}`) && value !== undefined) {
+        const dbField = `ai_${key}`;
+        if (key === 'tags') {
+          updates.push(`${dbField} = $${paramCount}::text[]`);
+        } else {
+          updates.push(`${dbField} = $${paramCount}`);
+        }
+        values.push(value);
+        paramCount++;
+      }
+    }
+
+    if (updates.length === 0) {
+      throw new Error('No valid AI metadata fields to update');
+    }
+
+    values.push(id);
+
+    const query = `
+      UPDATE generated_files 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING *
+    `;
+
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  }
+
+  // Get content analytics and usage statistics
+  static async getContentAnalytics(userId: string): Promise<any> {
+    const query = `
+      SELECT 
+        COUNT(*) as total_files,
+        COUNT(CASE WHEN ai_category IS NOT NULL THEN 1 END) as categorized_files,
+        COUNT(CASE WHEN ai_tags IS NOT NULL AND array_length(ai_tags, 1) > 0 THEN 1 END) as tagged_files,
+        COUNT(CASE WHEN moderation_status = 'approved' THEN 1 END) as approved_files,
+        COUNT(CASE WHEN moderation_status = 'pending' THEN 1 END) as pending_files,
+        COUNT(CASE WHEN moderation_status = 'rejected' THEN 1 END) as rejected_files,
+        AVG(CASE WHEN ai_quality_score IS NOT NULL THEN ai_quality_score END) as avg_quality_score,
+        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '30 days' THEN 1 END) as files_last_30_days,
+        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as files_last_7_days
+      FROM generated_files
+      WHERE user_id = $1
+    `;
+    
+    const result = await pool.query(query, [userId]);
+    return result.rows[0];
+  }
+
+  // Get content by category distribution
+  static async getCategoryDistribution(userId: string): Promise<any[]> {
+    const query = `
+      SELECT 
+        COALESCE(ai_category, 'Uncategorized') as category,
+        COUNT(*) as count,
+        ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM generated_files WHERE user_id = $1), 2) as percentage
+      FROM generated_files
+      WHERE user_id = $1
+      GROUP BY ai_category
+      ORDER BY count DESC
+    `;
+    
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+  }
+
+  // Get content by subject distribution
+  static async getSubjectDistribution(userId: string): Promise<any[]> {
+    const query = `
+      SELECT 
+        COALESCE(ai_subject, 'general') as subject,
+        COUNT(*) as count,
+        ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM generated_files WHERE user_id = $1), 2) as percentage
+      FROM generated_files
+      WHERE user_id = $1
+      GROUP BY ai_subject
+      ORDER BY count DESC
+    `;
+    
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+  }
+
+  // Get content by difficulty distribution
+  static async getDifficultyDistribution(userId: string): Promise<any[]> {
+    const query = `
+      SELECT 
+        COALESCE(ai_difficulty, 'medium') as difficulty,
+        COUNT(*) as count,
+        ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM generated_files WHERE user_id = $1), 2) as percentage
+      FROM generated_files
+      WHERE user_id = $1
+      GROUP BY ai_difficulty
+      ORDER BY 
+        CASE ai_difficulty
+          WHEN 'beginner' THEN 1
+          WHEN 'intermediate' THEN 2
+          WHEN 'advanced' THEN 3
+          ELSE 4
+        END
+    `;
+    
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+  }
 } 
