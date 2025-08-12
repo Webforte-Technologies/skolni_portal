@@ -38,8 +38,7 @@ COPY --from=builder /app/dist .
 # Copy Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Validate nginx configuration
-RUN nginx -t
+# Note: Skipping nginx -t at build-time to avoid upstream DNS resolution
 
 # Expose Nginx port
 EXPOSE 80
