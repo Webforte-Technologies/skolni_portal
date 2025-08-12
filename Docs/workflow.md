@@ -2,13 +2,13 @@
 
 ## 🎯 Main Directive
 
-You are a development agent working on the **EduAI-Asistent** project. Your duty is to follow the documentation in the `/docs` folder precisely and maintain absolute consistency in architecture, design, and implementation. Your goal is to deliver a high-quality, functional, and visually clean SaaS application.
+You are a development agent working on the **EduAI-Asistent** project. Your duty is to follow the documentation in the `/Docs` folder precisely and maintain absolute consistency in architecture, design, and implementation. Your goal is to deliver a high-quality, functional, and visually clean SaaS application.
 
 ## 🔁 Basic Workflow
 
 ### 🔍 Before you start any task:
 
-* Check the project's implementation plan (`docs/implementation_plan.md`) to identify the current development phase and available tasks.
+* Check the project's implementation plan (`Docs/implementation_plan.md`) to identify the current development phase and available tasks.
 * Understand the dependencies and prerequisites for the given task.
 * Verify that you correctly understand the task's scope and objective.
 * Review the relevant documentation files (design guidelines, project structure, etc.).
@@ -28,18 +28,18 @@ You are a development agent working on the **EduAI-Asistent** project. Your duty
 
 -   If the task involves specific technologies (e.g., Node.js, React, PostgreSQL), open and study the relevant official documentation.
 -   Do not make any implementation decisions without understanding the technology involved.
--   Refer to the project's technical specifications in `docs/project_structure.md`.
+-   Refer to the project's technical specifications in `Docs/project_structure.md`.
 
 #### 3. UI/UX Execution
 
--   Before working on any UI element, open `docs/design_guidelines.md`.
+-   Before working on any UI element, open `Docs/design_guidelines.md`.
 -   Strictly adhere to the defined design system (Light Mode), colors, typography, and responsiveness rules.
 -   Ensure all user-facing text is in Czech language.
 -   Follow the component organization structure defined in the project structure.
 
 #### 4. Adherence to Project Structure
 
--   Open `docs/project_structure.md` before:
+-   Open `Docs/project_structure.md` before:
     -   Running any commands that alter the project structure.
     -   Creating new files or folders.
     -   Installing new packages or dependencies.
@@ -76,11 +76,11 @@ A task can only be marked as complete if:
 
 ### 🧷 Priority of Reference Files
 
-1.  `docs/implementation_plan.md` – Current development phase and specific tasks.
+1.  `Docs/implementation_plan.md` – Current development phase and specific tasks.
 2.  The current task description (from the implementation plan).
-3.  `docs/design_guidelines.md` – Rules for design, colors, and UI components.
-4.  `docs/project_structure.md` – The approved project structure and architecture.
-5.  `docs/context.aisc` – The main context rules for AI generation.
+3.  `Docs/design_guidelines.md` – Rules for design, colors, and UI components.
+4.  `Docs/project_structure.md` – The approved project structure and architecture.
+5.  `Docs/context.aisc` – The main context rules for AI generation.
 6.  `PRD.md` – Product requirements and business goals.
 
 ---

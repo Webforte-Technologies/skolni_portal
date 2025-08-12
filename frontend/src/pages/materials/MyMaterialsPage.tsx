@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
@@ -10,11 +10,12 @@ import Header from '../../components/layout/Header';
 import { 
   FileText, Trash2, Eye, Search, Folder, Share2, Plus, 
   Filter, Grid, List, Tag, BookOpen, Target,
-  Lightbulb, BarChart3, Sparkles, Zap, ArrowLeft, Presentation, Users
+  Lightbulb, BarChart3, Sparkles, Zap, ArrowLeft, Presentation, Users, Download
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import apiClient from '../../services/apiClient';
+import { exportStructuredToDocx } from '../../utils/exportUtils';
 // import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
 import MaterialDisplay from '../../components/materials/MaterialDisplay';
 import { GeneratedFile } from '../../types';
@@ -67,6 +68,10 @@ const MyMaterialsPage: React.FC = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const searchParams = new URLSearchParams(window.location.search);
+  const newParam = searchParams.get('new') || '';
+  const newIds = newParam ? newParam.split(',') : [];
+  const [hasAutoOpened, setHasAutoOpened] = useState(false);
   
   // State
   const [searchTerm, setSearchTerm] = useState('');
@@ -108,7 +113,7 @@ const MyMaterialsPage: React.FC = () => {
       if (searchMode === 'ai' && searchTerm) {
         // Use AI-powered search
         const params = new URLSearchParams({
-          q: searchTerm,
+          query: searchTerm,
           limit: '50',
           offset: '0'
         });
@@ -116,13 +121,13 @@ const MyMaterialsPage: React.FC = () => {
         if (filterOptions.category) params.append('category', filterOptions.category);
         if (filterOptions.subject) params.append('subject', filterOptions.subject);
         if (filterOptions.difficulty) params.append('difficulty', filterOptions.difficulty);
-        if (filterOptions.gradeLevel) params.append('grade_level', filterOptions.gradeLevel);
+        if (filterOptions.gradeLevel) params.append('gradeLevel', filterOptions.gradeLevel);
         if (filterOptions.tags.length > 0) params.append('tags', filterOptions.tags.join(','));
-        if (filterOptions.dateFrom) params.append('date_from', filterOptions.dateFrom);
-        if (filterOptions.dateTo) params.append('date_to', filterOptions.dateTo);
+        if (filterOptions.dateFrom) params.append('dateFrom', filterOptions.dateFrom);
+        if (filterOptions.dateTo) params.append('dateTo', filterOptions.dateTo);
         
         const response = await apiClient.get(`/files/search/ai?${params.toString()}`);
-        return response.data;
+        return Array.isArray(response.data?.data) ? response.data : { data: [] };
       } else {
         // Use basic search
         const params = new URLSearchParams();
@@ -184,18 +189,30 @@ const MyMaterialsPage: React.FC = () => {
 
   // Computed values
   const files = useMemo(() => {
-    if (searchMode === 'ai' && filesData?.data?.files) {
-      return filesData.data.files;
+    const d: any = filesData?.data;
+    if (d && Array.isArray(d.files)) return d.files;
+    if (Array.isArray(d)) return d;
+    return [] as any[];
+  }, [filesData]);
+
+  // Auto-open the newly created material if exactly one
+  useEffect(() => {
+    if (!hasAutoOpened && newIds.length === 1 && files.length > 0) {
+      const target = files.find((f: any) => f.id === newIds[0]);
+      if (target) {
+        setWorksheetData(target);
+        setShowWorksheet(true);
+        setHasAutoOpened(true);
+      }
     }
-    return filesData?.data?.data || [];
-  }, [filesData, searchMode]);
+  }, [files, newIds, hasAutoOpened]);
 
   const totalFiles = useMemo(() => {
-    if (searchMode === 'ai' && filesData?.data?.pagination) {
-      return filesData.data.pagination.total;
-    }
-    return filesData?.data?.total || 0;
-  }, [filesData, searchMode]);
+    const d: any = filesData?.data;
+    if (d?.pagination?.total !== undefined) return d.pagination.total as number;
+    if (Array.isArray(d)) return d.length;
+    return 0;
+  }, [filesData]);
 
   const recommendations = recommendationsData?.data || [];
   const analytics: ContentAnalytics = analyticsData?.data?.analytics || {};
@@ -747,7 +764,7 @@ const MyMaterialsPage: React.FC = () => {
               {searchTerm ? 'Zkuste upravit vyhledávání nebo filtry.' : 'Začněte vytvářet své první vzdělávací materiály.'}
             </p>
             {!searchTerm && (
-              <Button onClick={() => navigate('/chat')}>
+              <Button onClick={() => navigate('/materials/create')}>
                 <Plus className="w-4 h-4 mr-2" />
                 Vytvořit materiál
               </Button>
@@ -756,7 +773,7 @@ const MyMaterialsPage: React.FC = () => {
         ) : (
           <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'space-y-4'}>
             {files.map((file: any) => (
-              <Card key={file.id} className="hover:shadow-lg transition-shadow">
+              <Card key={file.id} className={`hover:shadow-lg transition-shadow ${newIds.includes(file.id) ? 'ring-2 ring-blue-500' : ''}`}>
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -822,14 +839,27 @@ const MyMaterialsPage: React.FC = () => {
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={() => {
-                        setWorksheetData(file);
-                        setShowWorksheet(true);
-                      }}
+                      onClick={() => navigate(`/materials/${file.id}`)}
                       className="flex-1"
                     >
                       <Eye className="w-4 h-4 mr-2" />
-                      Zobrazit
+                      Otevřít
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const content = typeof file.content === 'string' ? JSON.parse(file.content) : file.content;
+                          await exportStructuredToDocx(content, file.title || 'material');
+                        } catch (e) {
+                          showToast({ type: 'error', message: 'Nelze exportovat do DOCX' });
+                        }
+                      }}
+                      title="Stáhnout DOCX"
+                    >
+                      <Download className="w-4 h-4" />
                     </Button>
                     
                     <Button

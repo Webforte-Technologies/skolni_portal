@@ -20,17 +20,26 @@ const AIGeneratorPage: React.FC = () => {
   const [worksheetDifficulty, setWorksheetDifficulty] = useState('');
   const [batch, setBatch] = useState(false);
 
-  const canGenerate = type !== 'worksheet' || topic.trim().length >= 3;
+  // In batch mode we will generate a worksheet too, so ensure we have a usable topic
+  const derivedWorksheetTopic = (topic || '').trim() || (title || '').trim() || (subject || '').trim();
+  const canGenerate = batch
+    ? derivedWorksheetTopic.length >= 3
+    : (type !== 'worksheet' || topic.trim().length >= 3);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
     setStreamPreview('');
     try {
-      const runWorksheet = async () => streamingService.generateWorksheetStream(topic, {
+      const createdIds: string[] = [];
+      const runWorksheet = async () => streamingService.generateWorksheetStream(derivedWorksheetTopic, {
           onStart: () => setStreamPreview('Generuji pracovní list...'),
           onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: () => {
+          onEnd: (meta) => {
             showToast({ type: 'success', message: 'Pracovní list vygenerován a uložen do knihovny.' });
+            if (meta.file_id) createdIds.push(meta.file_id);
+            if (!batch && meta.file_id) {
+              window.location.href = `/materials/${meta.file_id}`;
+            }
           },
           onError: (m) => showToast({ type: 'error', message: m })
         }, { question_count: questionCount, difficulty: worksheetDifficulty, teaching_style: teachingStyle });
@@ -38,8 +47,12 @@ const AIGeneratorPage: React.FC = () => {
       const runLesson = async () => streamingService.generateLessonPlanStream({ title, subject, grade_level: gradeLevel }, {
           onStart: () => setStreamPreview('Generuji plán hodiny...'),
           onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: () => {
+          onEnd: (meta) => {
             showToast({ type: 'success', message: 'Plán hodiny vygenerován a uložen do knihovny.' });
+            if (meta.file_id) createdIds.push(meta.file_id);
+            if (!batch && meta.file_id) {
+              window.location.href = `/materials/${meta.file_id}`;
+            }
           },
           onError: (m) => showToast({ type: 'error', message: m })
         });
@@ -47,8 +60,12 @@ const AIGeneratorPage: React.FC = () => {
       const runQuiz = async () => streamingService.generateQuizStream({ title, subject, grade_level: gradeLevel, question_count: questionCount }, {
           onStart: () => setStreamPreview('Generuji kvíz...'),
           onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: () => {
+          onEnd: (meta) => {
             showToast({ type: 'success', message: 'Kvíz vygenerován a uložen do knihovny.' });
+            if (meta.file_id) createdIds.push(meta.file_id);
+            if (!batch && meta.file_id) {
+              window.location.href = `/materials/${meta.file_id}`;
+            }
           },
           onError: (m) => showToast({ type: 'error', message: m })
         });
@@ -56,8 +73,12 @@ const AIGeneratorPage: React.FC = () => {
       const runProject = async () => streamingService.generateProjectStream({ title, subject, grade_level: gradeLevel }, {
           onStart: () => setStreamPreview('Generuji projekt...'),
           onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: () => {
+          onEnd: (meta) => {
             showToast({ type: 'success', message: 'Projekt vygenerován a uložen do knihovny.' });
+            if (meta.file_id) createdIds.push(meta.file_id);
+            if (!batch && meta.file_id) {
+              window.location.href = `/materials/${meta.file_id}`;
+            }
           },
           onError: (m) => showToast({ type: 'error', message: m })
         });
@@ -65,8 +86,12 @@ const AIGeneratorPage: React.FC = () => {
       const runPresentation = async () => streamingService.generatePresentationStream({ title, subject, grade_level: gradeLevel }, {
           onStart: () => setStreamPreview('Generuji prezentaci...'),
           onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: () => {
+          onEnd: (meta) => {
             showToast({ type: 'success', message: 'Prezentace vygenerována a uložena do knihovny.' });
+            if (meta.file_id) createdIds.push(meta.file_id);
+            if (!batch && meta.file_id) {
+              window.location.href = `/materials/${meta.file_id}`;
+            }
           },
           onError: (m) => showToast({ type: 'error', message: m })
         });
@@ -74,8 +99,12 @@ const AIGeneratorPage: React.FC = () => {
       const runActivity = async () => streamingService.generateActivityStream({ title, subject, grade_level: gradeLevel, duration }, {
           onStart: () => setStreamPreview('Generuji aktivitu...'),
           onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: () => {
+          onEnd: (meta) => {
             showToast({ type: 'success', message: 'Aktivita vygenerována a uložena do knihovny.' });
+            if (meta.file_id) createdIds.push(meta.file_id);
+            if (!batch && meta.file_id) {
+              window.location.href = `/materials/my-materials?new=${meta.file_id}`;
+            }
           },
           onError: (m) => showToast({ type: 'error', message: m })
         });
@@ -85,6 +114,11 @@ const AIGeneratorPage: React.FC = () => {
         await runLesson();
         await runWorksheet();
         await runQuiz();
+        if (createdIds.length > 0) {
+          const first = createdIds[0];
+          showToast({ type: 'success', message: 'Balíček vygenerován. Otevírám první materiál…' });
+          window.location.href = `/materials/${first}`;
+        }
       } else {
         if (type === 'worksheet') await runWorksheet();
         else if (type === 'lesson_plan') await runLesson();
@@ -176,6 +210,9 @@ const AIGeneratorPage: React.FC = () => {
               Vygenerovat
             </Button>
           </div>
+          {batch && derivedWorksheetTopic.length < 3 && (
+            <div className="mt-2 text-xs text-red-600">Pro balíček prosím zadejte alespoň název, předmět nebo téma pracovního listu (min. 3 znaky), aby šlo vytvořit pracovní list.</div>
+          )}
           {type === 'worksheet' && topic.trim().length < 3 && (
             <div className="mt-2 text-xs text-red-600">Zadejte prosím téma alespoň o 3 znacích.</div>
           )}

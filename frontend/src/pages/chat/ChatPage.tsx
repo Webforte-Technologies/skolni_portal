@@ -19,7 +19,8 @@ import VoiceInput from '../../components/chat/VoiceInput';
 import Button from '../../components/ui/Button';
 import Tooltip from '../../components/ui/Tooltip';
 import { AlertCircle, Menu, Calculator, X, Download, BookOpen } from 'lucide-react';
-import { PDFExporter, ConversationExportData } from '../../utils/pdfExport';
+// Defer heavy PDF libs via dynamic import to reduce bundle size
+type ConversationExportData = import('../../utils/pdfExport').ConversationExportData;
 import MathToolsToolbar from '../../components/chat/MathToolsToolbar';
 import DifficultyProgression from '../../components/chat/DifficultyProgression';
 import PracticeMode from '../../components/chat/PracticeMode';
@@ -451,6 +452,7 @@ const ChatPage: React.FC = () => {
         date: new Date().toISOString()
       };
 
+      const { PDFExporter } = await import('../../utils/pdfExport');
       await PDFExporter.exportConversation(exportData);
       showToast({ type: 'success', message: 'Konverzace byla exportována do PDF' });
     } catch (error) {

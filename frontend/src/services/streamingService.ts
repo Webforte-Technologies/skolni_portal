@@ -20,42 +20,42 @@ export interface StreamingCallbacks {
 export interface WorksheetStreamingCallbacks {
   onStart?: () => void;
   onChunk?: (content: string) => void;
-  onEnd?: (metadata: { worksheet: any; credits_used: number; credits_balance: number }) => void;
+  onEnd?: (metadata: { worksheet: any; file_id?: string; file_type?: string; credits_used: number; credits_balance: number }) => void;
   onError?: (message: string) => void;
 }
 
 export interface LessonPlanStreamingCallbacks {
   onStart?: () => void;
   onChunk?: (content: string) => void;
-  onEnd?: (metadata: { lesson_plan: any; credits_used: number; credits_balance: number }) => void;
+  onEnd?: (metadata: { lesson_plan: any; file_id?: string; file_type?: string; credits_used: number; credits_balance: number }) => void;
   onError?: (message: string) => void;
 }
 
 export interface QuizStreamingCallbacks {
   onStart?: () => void;
   onChunk?: (content: string) => void;
-  onEnd?: (metadata: { quiz: any; credits_used: number; credits_balance: number }) => void;
+  onEnd?: (metadata: { quiz: any; file_id?: string; file_type?: string; credits_used: number; credits_balance: number }) => void;
   onError?: (message: string) => void;
 }
 
 export interface ProjectStreamingCallbacks {
   onStart?: () => void;
   onChunk?: (content: string) => void;
-  onEnd?: (metadata: { project: any; credits_used: number; credits_balance: number }) => void;
+  onEnd?: (metadata: { project: any; file_id?: string; file_type?: string; credits_used: number; credits_balance: number }) => void;
   onError?: (message: string) => void;
 }
 
 export interface PresentationStreamingCallbacks {
   onStart?: () => void;
   onChunk?: (content: string) => void;
-  onEnd?: (metadata: { presentation: any; credits_used: number; credits_balance: number }) => void;
+  onEnd?: (metadata: { presentation: any; file_id?: string; file_type?: string; credits_used: number; credits_balance: number }) => void;
   onError?: (message: string) => void;
 }
 
 export interface ActivityStreamingCallbacks {
   onStart?: () => void;
   onChunk?: (content: string) => void;
-  onEnd?: (metadata: { activity: any; credits_used: number; credits_balance: number }) => void;
+  onEnd?: (metadata: { activity: any; file_id?: string; file_type?: string; credits_used: number; credits_balance: number }) => void;
   onError?: (message: string) => void;
 }
 
@@ -206,7 +206,9 @@ export const streamingService = {
                 case 'end':
                   if (data.worksheet && data.credits_used !== undefined && data.credits_balance !== undefined) {
                     callbacks.onEnd?.({
-                      worksheet: data.worksheet,
+                      worksheet: (data as any).worksheet,
+                      file_id: (data as any).file_id,
+                      file_type: (data as any).file_type,
                       credits_used: data.credits_used,
                       credits_balance: data.credits_balance
                     });
@@ -259,7 +261,7 @@ export const streamingService = {
               case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
               case 'end':
                 if ((data as any).lesson_plan && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                  callbacks.onEnd?.({ lesson_plan: (data as any).lesson_plan, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
+                  callbacks.onEnd?.({ lesson_plan: (data as any).lesson_plan, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
                 }
                 break;
               case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
@@ -303,7 +305,7 @@ export const streamingService = {
               case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
               case 'end':
                 if ((data as any).quiz && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                  callbacks.onEnd?.({ quiz: (data as any).quiz, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
+                  callbacks.onEnd?.({ quiz: (data as any).quiz, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
                 }
                 break;
               case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
@@ -348,7 +350,7 @@ export const streamingService = {
               case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
               case 'end':
                 if ((data as any).project && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                  callbacks.onEnd?.({ project: (data as any).project, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
+                  callbacks.onEnd?.({ project: (data as any).project, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
                 }
                 break;
               case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
@@ -392,7 +394,7 @@ export const streamingService = {
               case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
               case 'end':
                 if ((data as any).presentation && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                  callbacks.onEnd?.({ presentation: (data as any).presentation, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
+                  callbacks.onEnd?.({ presentation: (data as any).presentation, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
                 }
                 break;
               case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
@@ -436,7 +438,7 @@ export const streamingService = {
               case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
               case 'end':
                 if ((data as any).activity && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                  callbacks.onEnd?.({ activity: (data as any).activity, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
+                  callbacks.onEnd?.({ activity: (data as any).activity, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
                 }
                 break;
               case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;

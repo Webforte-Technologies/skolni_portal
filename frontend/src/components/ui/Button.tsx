@@ -14,7 +14,9 @@ const Button: React.FC<ButtonProps> = ({
   className,
   children,
   fullWidth,
-  ...props
+  isLoading = false,
+  disabled,
+  ...rest
 }) => {
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed';
   
@@ -34,10 +36,14 @@ const Button: React.FC<ButtonProps> = ({
     icon: 'h-9 w-9 p-0',
   };
 
+  const isDisabled = disabled || isLoading;
+
   return (
     <button
       className={cn(baseClasses, variantClasses[variant], sizeClasses[size], fullWidth && 'w-full', className)}
-      {...props}
+      disabled={isDisabled}
+      aria-busy={isLoading || undefined}
+      {...rest}
     >
       {children}
     </button>

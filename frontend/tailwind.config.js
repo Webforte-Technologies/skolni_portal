@@ -143,25 +143,9 @@ export default {
         floating: '0 8px 24px -6px rgba(2, 8, 23, 0.2)',
         brand: '0 10px 30px -8px rgba(37, 99, 235, 0.35)',
       },
-      keyframes: {
-        'fade-in': {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        'slide-up': {
-          '0%': { transform: 'translateY(8px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
-        'scale-in': {
-          '0%': { transform: 'scale(0.98)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        },
-      },
-      animation: {
-        'fade-in': 'fade-in 200ms ease-out',
-        'slide-up': 'slide-up 200ms ease-out',
-        'scale-in': 'scale-in 150ms ease-out',
-      },
+      // Keep minimal custom animations to reduce CSS output
+      keyframes: {},
+      animation: {},
     },
   },
   plugins: [],

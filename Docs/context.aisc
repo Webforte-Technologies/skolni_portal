@@ -53,7 +53,7 @@ A multi-tenant SaaS portal for the Czech education sector. The core of the platf
 - **Database:** PostgreSQL
 - **Styling:** Tailwind CSS
 - **AI Integration:** OpenAI API / Google Gemini API via RESTful calls from the backend.
-- **Hosting / CI/CD:** Vercel (Frontend), Render / Google Cloud Platform (Backend & DB).
+- **Hosting / CI/CD:** Docker / Coolify (Frontend & Backend), external PostgreSQL.
 
 ## Main Application Components
 

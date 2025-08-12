@@ -14,10 +14,12 @@
     "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
     "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
     "test": "npm run test --prefix backend",
+    "test:smoke": "npm run test:health --prefix backend",
     "type-check": "npm run type-check --prefix frontend"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "husky": "^9.1.6"
   },
   "keywords": [
     "education",

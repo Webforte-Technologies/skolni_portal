@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from 'react-query';
+import apiClient from '../../services/apiClient';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Breadcrumb from '../../components/ui/Breadcrumb';
@@ -11,35 +13,15 @@ import {
 const MaterialsIndexPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const recentMaterials = [
-    {
-      id: '1',
-      title: 'Matematické cvičení pro 5. třídu',
-      type: 'Worksheet',
-      subject: 'Matematika',
-      grade: '5. třída',
-      createdAt: '2024-01-15',
-      status: 'Published'
+  const { data: recentData, isLoading } = useQuery(
+    ['recent-materials'],
+    async () => {
+      const res = await apiClient.get('/files?limit=5&offset=0');
+      return res.data;
     },
-    {
-      id: '2',
-      title: 'Fyzikální experimenty',
-      type: 'Lesson Plan',
-      subject: 'Fyzika',
-      grade: '8. třída',
-      createdAt: '2024-01-10',
-      status: 'Draft'
-    },
-    {
-      id: '3',
-      title: 'Slovní zásoba - 3. lekce',
-      type: 'Quiz',
-      subject: 'Čeština',
-      grade: '5. třída',
-      createdAt: '2024-01-05',
-      status: 'Published'
-    }
-  ];
+    { retry: 1 }
+  );
+  const recentMaterials = recentData?.data?.files || [];
 
   const getMaterialIcon = (type: string) => {
     switch (type) {
@@ -157,25 +139,33 @@ const MaterialsIndexPage: React.FC = () => {
         {/* Recent Materials */}
         <Card>
           <h2 className="text-2xl font-bold mb-6">Poslední materiály</h2>
-          {recentMaterials.length > 0 ? (
+           {isLoading ? (
+             <div className="text-neutral-600">Načítání…</div>
+           ) : recentMaterials.length > 0 ? (
             <div className="space-y-4">
-              {recentMaterials.map((material) => (
+              {recentMaterials.map((material: any) => (
                 <div key={material.id} className="flex items-center justify-between p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded-lg flex items-center justify-center">
-                      {getMaterialIcon(material.type)}
+                      {getMaterialIcon(
+                        material.file_type === 'lesson_plan' ? 'Lesson Plan' :
+                        material.file_type === 'quiz' ? 'Quiz' :
+                        material.file_type === 'project' ? 'Project' :
+                        material.file_type === 'presentation' ? 'Presentation' :
+                        'Worksheet'
+                      )}
                     </div>
                     <div>
                       <h4 className="font-medium">{material.title}</h4>
                       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        Vytvořeno {new Date(material.createdAt).toLocaleDateString('cs-CZ')}
+                        Vytvořeno {new Date(material.created_at).toLocaleDateString('cs-CZ')}
                       </p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate(`/materials/my-materials`)}
+                    onClick={() => navigate(`/materials/my-materials?new=${material.id}`)}
                   >
                     Zobrazit
                   </Button>
@@ -188,7 +178,7 @@ const MaterialsIndexPage: React.FC = () => {
               <p className="text-neutral-600 dark:text-neutral-400 mb-4">
                 Zatím nemáte žádné materiály
               </p>
-              <Button onClick={() => navigate('/materials/create')}>
+               <Button onClick={() => navigate('/materials/create')}>
                 Vytvořit první materiál
               </Button>
             </div>

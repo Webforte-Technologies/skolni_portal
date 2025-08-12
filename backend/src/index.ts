@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
+import morgan from 'morgan';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -28,6 +30,14 @@ const PORT = parseInt(process.env['PORT'] || '3001', 10);
 
 // Security middleware
 app.use(helmet());
+// Compression and logging (configurable)
+if ((process.env['ENABLE_COMPRESSION'] || 'true') === 'true') {
+  app.use(compression());
+}
+const logFormat = process.env['LOG_FORMAT'] || 'dev';
+if ((process.env['ENABLE_LOGGER'] || 'true') === 'true') {
+  app.use(morgan(logFormat));
+}
 
 // CORS configuration - more flexible for production
 const isDevelopment = process.env['NODE_ENV'] === 'development';
@@ -63,8 +73,8 @@ app.use(cors({
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || String(15 * 60 * 1000), 10),
+  max: parseInt(process.env['RATE_LIMIT_MAX_REQUESTS'] || '100', 10),
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter);
@@ -152,7 +162,9 @@ async function bootstrapPlatformAdmins() {
   }
 }
 
-bootstrapPlatformAdmins().catch(() => void 0);
+if (process.env['NODE_ENV'] !== 'test') {
+  bootstrapPlatformAdmins().catch(() => void 0);
+}
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -228,19 +240,26 @@ app.use('*', (_req, res) => {
   });
 });
 
-// CORRECTED: Start server listening on 0.0.0.0 to be reachable in Docker
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 EduAI-Asistent Backend server running on port ${PORT}`);
-  console.log(`📊 Health check available at http://localhost:${PORT}/api/health`);
-  console.log(`🔐 Auth endpoints available at http://localhost:${PORT}/api/auth`);
-  console.log(`🤖 AI endpoints available at http://localhost:${PORT}/api/ai`);
-  console.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
-  console.log(`🔒 CORS enabled for origins: ${allowedOrigins.join(', ')}`);
-  console.log(`🗄️ Database config: ${process.env['DB_HOST']}:${process.env['DB_PORT']}/${process.env['DB_NAME']}`);
-}).on('error', (error) => {
-  console.error('❌ Server failed to start:', error);
-  process.exit(1);
-});
+// Start server only when not running in tests
+if (process.env['NODE_ENV'] !== 'test') {
+  // CORRECTED: Start server listening on 0.0.0.0 to be reachable in Docker
+  app
+    .listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 EduAI-Asistent Backend server running on port ${PORT}`);
+      console.log(`📊 Health check available at http://localhost:${PORT}/api/health`);
+      console.log(`🔐 Auth endpoints available at http://localhost:${PORT}/api/auth`);
+      console.log(`🤖 AI endpoints available at http://localhost:${PORT}/api/ai`);
+      console.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
+      console.log(`🔒 CORS enabled for origins: ${allowedOrigins.join(', ')}`);
+      console.log(
+        `🗄️ Database config: ${process.env['DB_HOST']}:${process.env['DB_PORT']}/${process.env['DB_NAME']}`
+      );
+    })
+    .on('error', (error) => {
+      console.error('❌ Server failed to start:', error);
+      process.exit(1);
+    });
+}
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {

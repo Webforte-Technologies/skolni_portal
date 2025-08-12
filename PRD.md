@@ -47,7 +47,7 @@ Refer to the separate `DESIGN_GUIDELINES.md` document for detailed specification
 -   **Database**: PostgreSQL
 -   **Styling**: Tailwind CSS
 -   **AI Integration**: Backend integration with a major LLM provider (e.g., OpenAI API).
--   **Hosting**: Vercel (Frontend), Render/GCP (Backend).
+-   **Hosting**: Docker / Coolify (Frontend & Backend), external PostgreSQL.
 
 ## 🛠️ Features and Components (MVP)
 

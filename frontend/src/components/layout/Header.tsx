@@ -104,12 +104,12 @@ const Header: React.FC = () => {
                   <Settings className="h-4 w-4" />
                 </button>
                 <Link
-                  to="/ai-generator"
+                  to="/materials/create"
                   className="rounded-md px-3 py-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
-                  aria-label="AI Generátor"
-                  title="AI Generátor"
+                  aria-label="Vytvořit materiál"
+                  title="Vytvořit materiál"
                 >
-                  AI Generátor
+                  Vytvořit materiál
                 </Link>
                 <button
                   onClick={toggleTheme}

@@ -127,7 +127,7 @@ Tasks:
 
     [x] 1.5.1 Configure Gitignore:
 
-        Create a .gitignore file in the root directory to ignore node_modules, .env files, and build folders (dist, .vercel) across the entire project.
+        Create a .gitignore file in the root directory to ignore node_modules, .env files, and build folders (e.g., dist) across the entire project.
 
     [x] 1.5.2 Create Environment Variable Templates:
 
@@ -822,28 +822,56 @@ Tasks:
 
         [x] Frontend: Implement a "batch generation" feature, allowing a teacher to create multiple related materials at once (e.g., a lesson plan, a worksheet, and a quiz for the same topic from one form).
 
-🧠 Phase 20: Advanced AI Capabilities & Quality Control
+🧹 Phase 20: Codebase & Documentation Optimization
 
-Timeline: TBD
-Status: 📝 To-Do
-Goal: To implement advanced AI features that ensure the quality, reliability, and versatility of the generated content, establishing the platform as a top-tier tool.
+Timeline: Week 28–29
+Status: 🚧 In Progress
+Goal: Reduce technical debt, unify and streamline documentation, and align all hosting/deployment guidance with Coolify (Docker).
 
 Tasks:
 
-    20.1: AI-Powered Quality Control:
+20.1 Documentation consolidation & hosting alignment:
+    [x] Replace hosting references (Vercel/Render/GCP → Coolify/Docker) in:
+        - `Docs/context.aisc` (Hosting / CI/CD)
+        - `PRD.md` (Hosting section)
+        - `README.md` (Hosting section) — [x] updated to Docker/Coolify and env flags
+        - `Docs/implementation_plan.md`: remove `.vercel` from ignore examples (Phase 1.5.1)
+        - `Docs/workflow.md` updated to `Docs/` casing — [x]
+    [x] Unify path casing `docs/` → `Docs/` in references:
+        - `README.md`, `Docs/workflow.md`, and cross-doc references
+    [x] Remove redundant/conflicting docs:
+        - Delete `frontend/DESIGN_SYSTEM.md`
+        - Keep `Docs/design_guidelines.md` + `Docs/custom_component_styles.md` as the single source of truth
+    [x] Update `Docs/project_structure.md` to match current backend:
+        - Use `pg` (not Prisma); no `controllers/services` folders
+        - Reflect actual routes/models/middleware/database layout
+      [x] Healthcheck consistency to `/api/health`:
+          - `coolify.yaml` backend healthcheck CMD
+          - `DEPLOYMENT.md` Backend Service section — [x] updated
+          - Verify `backend/Dockerfile` already targets `/api/health` — [x]
+      [x] Coolify config consistency:
+          - `COOLIFY-DEPLOYMENT.md`: set branch to `production`; confirm build contexts/Dockerfile paths
+          - Confirm API proxy notes and env variable lists match current code
+    [x] Environment docs alignment:
+        - Ensure `env.example` files are referenced and variables are consistent (e.g., `OPENAI_*`, rate limit, log level, compression/logger flags)
 
-        [ ] Backend: Implement a content validation system to check generated materials for factual accuracy and alignment with general educational standards.
+20.2 Backend optimization & hardening:
+    [x] Add HTTP compression (`compression`) and request logging (`morgan`) with log level via env
+    [x] Parameterize rate limiter via env (`RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS`) and document defaults
+    [x] Validate upload hygiene (temp path, 10MB limit, post-OCR cleanup) and document behavior
+      [ ] Remove dead code/unused scripts; keep strict TypeScript settings
 
-        [ ] Backend: Add a plagiarism detection feature to ensure the originality of the content.
+20.3 Frontend performance & cleanup:
+      [x] Audit bundle size and code-split heavy routes (chat, worksheet generator)
+      [x] Purge unused CSS and remove any experimental effects not in design guidelines
+    [ ] Verify accessibility and keyboard navigation across pages
 
-    20.2: Multi-Modal Generation:
+20.4 Testing & CI hygiene:
+      [x] Add smoke tests: health
+      [ ] Add smoke tests: 404, CORS, rate limit
+      [ ] Expand Playwright for auth → chat → export
+      [x] Add pre-commit hooks (lint)
 
-        [ ] Backend: Enhance the AI service to support generating not just text, but also simple diagrams, charts, or image suggestions to enrich the materials.
-
-        [ ] Frontend: Update the material display components to properly render this new multi-modal content.
-
-    20.3: Performance & Scalability:
-
-        [ ] Backend: Implement a queuing system to handle long-running or resource-intensive generation tasks without making the user wait.
-
-        [ ] Frontend: Provide better progress indicators and estimated completion times for complex generation requests.
+20.5 Deployment & observability:
+    [x] Ensure Dockerfile/Coolify healthchecks align (`/api/health`)
+    [x] Document minimal runtime metrics/logging and log-level guidance (README)

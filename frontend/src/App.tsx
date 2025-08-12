@@ -19,6 +19,7 @@ const ChatPage = React.lazy(() => import('./pages/chat/ChatPage'));
 const MaterialsIndexPage = React.lazy(() => import('./pages/materials/MaterialsIndexPage'));
 const MaterialCreatorPage = React.lazy(() => import('./pages/materials/MaterialCreatorPage'));
 const MyMaterialsPage = React.lazy(() => import('./pages/materials/MyMaterialsPage'));
+const MaterialViewPage = React.lazy(() => import('./pages/materials/MaterialViewPage'));
 const AIGeneratorPage = React.lazy(() => import('./pages/ai/GeneratorPage'));
 const SharedMaterialsPage = React.lazy(() => import('./pages/materials/SharedMaterialsPage'));
 const SchoolAdminPage = React.lazy(() => import('./pages/dashboard/SchoolAdminPage'));
@@ -48,14 +49,8 @@ function App() {
                 <Router>
                   <KeyboardNavigation>
                     <div className="relative min-h-screen bg-surface-bg text-surface-text font-sans">
-                      {/* Global animated background shared across all pages */}
-                      <div className="pointer-events-none fixed inset-0 -z-10">
-                        <div className="absolute inset-0" />
-                        {/* Floating color blobs (dark theme biased) */}
-                        <div className="absolute -top-24 -left-16 w-72 h-72 bg-gradient-to-r from-blue-500/12 to-cyan-500/12 rounded-full blur-3xl animate-[float_10s_ease-in-out_infinite]" />
-                        <div className="absolute top-1/3 -right-10 w-96 h-96 bg-gradient-to-r from-purple-500/12 to-pink-500/12 rounded-full blur-3xl animate-[float-slow_14s_ease-in-out_infinite]" />
-                        <div className="absolute -bottom-24 left-1/4 w-64 h-64 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 rounded-full blur-3xl animate-[float_12s_ease-in-out_infinite]" />
-                      </div>
+                      {/* Subtle background (reduced effects to minimize bundle and purge unused CSS) */}
+                      <div className="pointer-events-none fixed inset-0 -z-10" />
                       <ErrorBoundary>
                         <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
                           <Routes>
@@ -95,6 +90,11 @@ function App() {
                 <Route path="/materials/my-materials" element={
                   <PrivateRoute>
                     <MyMaterialsPage />
+                  </PrivateRoute>
+                } />
+                <Route path="/materials/:id" element={
+                  <PrivateRoute>
+                    <MaterialViewPage />
                   </PrivateRoute>
                 } />
                 <Route path="/materials/shared" element={

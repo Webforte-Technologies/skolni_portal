@@ -37,7 +37,7 @@ docker-compose logs -f
 Ensure your repository contains:
 - `backend/Dockerfile`
 - `frontend/Dockerfile`
-- `coolify.yaml`
+- `coolify.yaml` (optional; Coolify Dockerfile services are also supported)
 - `env.template`
 
 ### 2. Set Up Database
@@ -108,8 +108,8 @@ Or add this to your deployment script.
 ## 🔧 Configuration Details
 
 ### Backend Service
-- **Port**: 3001
-- **Health Check**: `/health` endpoint
+- **Port**: 3001 (configurable via `PORT`)
+- **Health Check**: `/api/health` endpoint
 - **Environment**: Production
 - **Database**: PostgreSQL
 

@@ -571,8 +571,9 @@ router.post('/generate-worksheet', authenticateToken, [
     }
 
     // Save the generated worksheet to the database
+    let savedWorksheet: any | undefined;
     try {
-      await GeneratedFileModel.create({
+      savedWorksheet = await GeneratedFileModel.create({
         user_id: userId,
         title: worksheetData.title,
         content: JSON.stringify(worksheetData),
@@ -587,8 +588,8 @@ router.post('/generate-worksheet', authenticateToken, [
     // Get updated user balance
     const updatedUser = await UserModel.findById(userId);
 
-    // Send final response with metadata
-    res.write(`data: {"type":"end","worksheet":${JSON.stringify(worksheetData)},"credits_used":${creditsRequired},"credits_balance":${updatedUser?.credits_balance || 0}}\n\n`);
+    // Send final response with metadata, including saved file ID if available
+    res.write(`data: {"type":"end","worksheet":${JSON.stringify(worksheetData)},"file_id":"${savedWorksheet?.id || ''}","file_type":"worksheet","credits_used":${creditsRequired},"credits_balance":${updatedUser?.credits_balance || 0}}\n\n`);
     res.end();
     return;
 
@@ -666,7 +667,7 @@ router.post('/generate-lesson-plan', authenticateToken, [
       return;
     }
 
-    await GeneratedFileModel.create({
+    const savedLesson = await GeneratedFileModel.create({
       user_id: req.user.id,
       title: data.title || 'Plán hodiny',
       content: JSON.stringify(data),
@@ -674,7 +675,7 @@ router.post('/generate-lesson-plan', authenticateToken, [
     });
 
     const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","lesson_plan":${JSON.stringify(data)},"credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
+    res.write(`data: {"type":"end","lesson_plan":${JSON.stringify(data)},"file_id":"${savedLesson?.id || ''}","file_type":"lesson_plan","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
     res.end();
   } catch (error) {
     console.error('Lesson plan generation error:', error);
@@ -739,7 +740,7 @@ router.post('/generate-quiz', authenticateToken, [
       return;
     }
 
-    await GeneratedFileModel.create({
+    const savedQuiz = await GeneratedFileModel.create({
       user_id: req.user.id,
       title: data.title || 'Kvíz',
       content: JSON.stringify(data),
@@ -747,7 +748,7 @@ router.post('/generate-quiz', authenticateToken, [
     });
 
     const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","quiz":${JSON.stringify(data)},"credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
+    res.write(`data: {"type":"end","quiz":${JSON.stringify(data)},"file_id":"${savedQuiz?.id || ''}","file_type":"quiz","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
     res.end();
   } catch (error) {
     console.error('Quiz generation error:', error);
@@ -811,7 +812,7 @@ router.post('/generate-project', authenticateToken, [
       return;
     }
 
-    await GeneratedFileModel.create({
+    const savedProject = await GeneratedFileModel.create({
       user_id: req.user.id,
       title: data.title || 'Projekt',
       content: JSON.stringify(data),
@@ -819,7 +820,7 @@ router.post('/generate-project', authenticateToken, [
     });
 
     const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","project":${JSON.stringify(data)},"credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
+    res.write(`data: {"type":"end","project":${JSON.stringify(data)},"file_id":"${savedProject?.id || ''}","file_type":"project","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
     res.end();
   } catch (error) {
     console.error('Project generation error:', error);
@@ -883,7 +884,7 @@ router.post('/generate-presentation', authenticateToken, [
       return;
     }
 
-    await GeneratedFileModel.create({
+    const savedPresentation = await GeneratedFileModel.create({
       user_id: req.user.id,
       title: data.title || 'Prezentace',
       content: JSON.stringify(data),
@@ -891,7 +892,7 @@ router.post('/generate-presentation', authenticateToken, [
     });
 
     const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","presentation":${JSON.stringify(data)},"credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
+    res.write(`data: {"type":"end","presentation":${JSON.stringify(data)},"file_id":"${savedPresentation?.id || ''}","file_type":"presentation","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
     res.end();
   } catch (error) {
     console.error('Presentation generation error:', error);
@@ -956,7 +957,7 @@ router.post('/generate-activity', authenticateToken, [
       return;
     }
 
-    await GeneratedFileModel.create({
+    const savedActivity = await GeneratedFileModel.create({
       user_id: req.user.id,
       title: data.title || 'Aktivita',
       content: JSON.stringify(data),
@@ -964,7 +965,7 @@ router.post('/generate-activity', authenticateToken, [
     });
 
     const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","activity":${JSON.stringify(data)},"credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
+    res.write(`data: {"type":"end","activity":${JSON.stringify(data)},"file_id":"${savedActivity?.id || ''}","file_type":"activity","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
     res.end();
   } catch (error) {
     console.error('Activity generation error:', error);

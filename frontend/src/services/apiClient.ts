@@ -15,9 +15,9 @@ const getApiUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
   
-  // Production fallback - using actual backend URL
+  // Production fallback: rely on nginx proxy to /api
   if (window.location.hostname !== 'localhost') {
-    const productionBackendUrl = 'http://ak8gggwkc84o04o4wcwc4gc4.82.29.179.61.sslip.io/api';
+    const productionBackendUrl = '/api';
     console.log('Using production fallback API URL:', productionBackendUrl);
     return productionBackendUrl;
   }

@@ -14,7 +14,14 @@ export default defineConfig({
       input: {
         main: 'index.html',
       },
+      output: {
+        manualChunks: {
+          pdf: ['jspdf', 'html2canvas'],
+          charts: ['recharts'],
+        },
+      },
     },
+    chunkSizeWarningLimit: 900,
   },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),

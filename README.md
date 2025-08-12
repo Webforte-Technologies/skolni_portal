@@ -75,7 +75,7 @@ skolni_portal/
 - **Backend**: Node.js + Express + TypeScript
 - **Database**: PostgreSQL
 - **AI Integration**: OpenAI API
-- **Hosting**: Vercel (Frontend), Render/GCP (Backend)
+ - **Hosting**: Docker/Coolify
 
 ## 📝 Development Notes
 
@@ -87,3 +87,22 @@ skolni_portal/
 ---
 
 **Status**: Phase 1 - Project Foundation & Environment Setup 
+
+## Deployment Notes
+
+This project is designed for Docker/Coolify deployment. The backend exposes a healthcheck at `/api/health`.
+
+Environment flags:
+- `ENABLE_COMPRESSION=true` to enable gzip compression
+- `ENABLE_LOGGER=true` and `LOG_FORMAT=combined|dev|tiny` for request logging
+- `RATE_LIMIT_WINDOW_MS` and `RATE_LIMIT_MAX_REQUESTS` for rate limiting
+
+See `DEPLOYMENT.md` and `COOLIFY-DEPLOYMENT.md` for full guidance.
+
+## Tests
+
+Run a backend smoke test (healthcheck):
+
+```bash
+npm run test:smoke
+```

@@ -6,6 +6,7 @@ import Modal from '../../components/ui/Modal';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import { useToast } from '../../contexts/ToastContext';
 import { api } from '../../services/apiClient';
+import { streamingService } from '../../services/streamingService';
 import { 
   FileText, BookOpen, Target, Sparkles, Users, 
   Presentation, Share2, Download
@@ -207,42 +208,87 @@ const MaterialCreatorPage: React.FC = () => {
 
     setIsCreating(true);
     try {
-      // Prepare the material data
-      const materialData = {
-        title: formData.title || `Nový ${selectedTemplate.name}`,
-        content: JSON.stringify({
-          template: selectedTemplate.id,
-          ...formData,
-          created_at: new Date().toISOString(),
-          status: 'draft'
-        }),
-        file_type: 'worksheet',
-        ai_category: selectedTemplate.category,
-        ai_subject: selectedTemplate.subject,
-        ai_difficulty: selectedTemplate.difficulty,
-        ai_grade_level: selectedTemplate.gradeLevel,
-        ai_tags: formData.tags || []
-      };
+      const id = selectedTemplate.id;
+      const title = formData.title || selectedTemplate.name;
+      const subject = formData.subject || selectedTemplate.subject;
+      const gradeLevel = formData.gradeLevel || selectedTemplate.gradeLevel;
+      const difficulty = formData.difficulty;
+      const questionCount = formData.questionCount || 10;
+      const duration = formData.duration;
 
-      console.log('Creating material with data:', materialData);
-      
-      // Call the API to create the material using the configured API client
-      const result = await api.post('/files', materialData);
-      console.log('Material created successfully:', result.data);
-      
-      // Close the modal first
+      // Map template to AI generation endpoint (server also saves file and returns file_id)
+      if (id === 'worksheet') {
+        await streamingService.generateWorksheetStream(title, {
+          onStart: () => showToast({ type: 'info', message: 'Generuji pracovní list…' }),
+          onEnd: (meta) => {
+            showToast({ type: 'success', message: 'Pracovní list vygenerován.' });
+            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
+          },
+          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat pracovní list' })
+        }, { question_count: questionCount, difficulty });
+      } else if (id === 'lesson-plan' || id === 'lesson_plan') {
+        await streamingService.generateLessonPlanStream({ title, subject, grade_level: gradeLevel }, {
+          onStart: () => showToast({ type: 'info', message: 'Generuji plán hodiny…' }),
+          onEnd: (meta) => {
+            showToast({ type: 'success', message: 'Plán hodiny vygenerován.' });
+            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
+          },
+          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat plán hodiny' })
+        });
+      } else if (id === 'quiz') {
+        await streamingService.generateQuizStream({ title, subject, grade_level: gradeLevel, question_count: questionCount }, {
+          onStart: () => showToast({ type: 'info', message: 'Generuji kvíz…' }),
+          onEnd: (meta) => {
+            showToast({ type: 'success', message: 'Kvíz vygenerován.' });
+            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
+          },
+          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat kvíz' })
+        });
+      } else if (id === 'project') {
+        await streamingService.generateProjectStream({ title, subject, grade_level: gradeLevel }, {
+          onStart: () => showToast({ type: 'info', message: 'Generuji projekt…' }),
+          onEnd: (meta) => {
+            showToast({ type: 'success', message: 'Projekt vygenerován.' });
+            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
+          },
+          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat projekt' })
+        });
+      } else if (id === 'presentation') {
+        await streamingService.generatePresentationStream({ title, subject, grade_level: gradeLevel }, {
+          onStart: () => showToast({ type: 'info', message: 'Generuji prezentaci…' }),
+          onEnd: (meta) => {
+            showToast({ type: 'success', message: 'Prezentace vygenerována.' });
+            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
+          },
+          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat prezentaci' })
+        });
+      } else if (id === 'activity') {
+        await streamingService.generateActivityStream({ title, subject, grade_level: gradeLevel, duration }, {
+          onStart: () => showToast({ type: 'info', message: 'Generuji aktivitu…' }),
+          onEnd: (meta) => {
+            showToast({ type: 'success', message: 'Aktivita vygenerována.' });
+            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
+          },
+          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat aktivitu' })
+        });
+      } else {
+        // Fallback to manual creation if unknown template (should not happen)
+        const materialData = {
+          title: formData.title || `Nový ${selectedTemplate.name}`,
+          content: JSON.stringify({ template: selectedTemplate.id, ...formData, created_at: new Date().toISOString(), status: 'draft' }),
+          file_type: 'worksheet'
+        };
+        await api.post('/files', materialData);
+        showToast({ type: 'success', message: 'Materiál byl vytvořen.' });
+        navigate('/materials/my-materials');
+      }
+
+      // Close modal
       setSelectedTemplate(null);
-      
-      // Show success message and navigate to materials index
-      showToast({ type: 'success', message: 'Materiál byl úspěšně vytvořen!' });
-      
-      // Navigate to the materials index page
-      navigate('/materials');
-      
     } catch (error) {
-      console.error('Error creating material:', error);
+      console.error('Error creating material via AI:', error);
       const errorMessage = error instanceof Error ? error.message : 'Neznámá chyba';
-      showToast({ type: 'error', message: 'Chyba při vytváření materiálu: ' + errorMessage });
+      showToast({ type: 'error', message: 'Chyba při vytváření: ' + errorMessage });
     } finally {
       setIsCreating(false);
     }

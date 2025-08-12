@@ -8,7 +8,7 @@ The EduAI-Asistent project is organized as a monorepo containing both frontend a
 skolni_portal/
 ├── frontend/                 # React + Vite + TypeScript application
 ├── backend/                  # Node.js + Express + TypeScript API
-├── docs/                     # Project documentation
+├── Docs/                     # Project documentation
 ├── .cursor/                  # Cursor IDE configuration
 ├── .git/                     # Git repository
 ├── .gitignore               # Git ignore rules
@@ -48,7 +48,7 @@ frontend/
 ├── tsconfig.json            # TypeScript configuration
 ├── tailwind.config.js       # Tailwind CSS configuration
 ├── postcss.config.js        # PostCSS configuration
-└── vite.config.ts           # Vite build configuration
+└── vite.config.ts           # Vite build configuration (code-splitting for pdf/charts)
 ```
 
 ### Component Organization
@@ -77,43 +77,17 @@ The backend is a Node.js application built with Express, TypeScript, and Postgre
 
 ```
 backend/
-├── src/                      # Source code
-│   ├── controllers/          # Request handlers
-│   │   ├── auth/            # Authentication controllers
-│   │   ├── users/           # User management
-│   │   ├── credits/         # Credit system
-│   │   └── ai/              # AI assistant endpoints
-│   ├── middleware/           # Express middleware
-│   │   ├── auth.ts          # Authentication middleware
-│   │   ├── validation.ts    # Request validation
-│   │   └── errorHandler.ts  # Error handling
-│   ├── models/              # Database models
-│   │   ├── User.ts          # User model
-│   │   ├── School.ts        # School model
-│   │   └── Credit.ts        # Credit model
-│   ├── routes/              # API route definitions
-│   │   ├── auth.ts          # Authentication routes
-│   │   ├── users.ts         # User routes
-│   │   ├── credits.ts       # Credit routes
-│   │   └── ai.ts            # AI assistant routes
-│   ├── services/            # Business logic
-│   │   ├── authService.ts   # Authentication logic
-│   │   ├── creditService.ts # Credit management
-│   │   └── aiService.ts     # AI integration
-│   ├── types/               # TypeScript type definitions
-│   ├── utils/               # Utility functions
-│   ├── config/              # Configuration files
-│   │   ├── database.ts      # Database configuration
-│   │   └── environment.ts   # Environment variables
-│   └── index.ts             # Application entry point
-├── tests/                   # Test files
-│   ├── unit/                # Unit tests
-│   ├── integration/         # Integration tests
-│   └── fixtures/            # Test data
-├── package.json             # Dependencies and scripts
-├── tsconfig.json            # TypeScript configuration
-├── nodemon.json             # Development server configuration
-└── .env.example             # Environment variables template
+├── src/
+│   ├── database/            # DB connection, migrations, utilities
+│   ├── middleware/          # auth, metrics, audit, etc.
+│   ├── models/              # SQL-backed models (User, Message, GeneratedFile, ...)
+│   ├── routes/              # Express routes (auth, ai, files, users, folders, ...)
+│   ├── types/               # Shared types
+│   └── index.ts             # App entry point
+├── package.json
+├── tsconfig.json
+├── nodemon.json
+└── .env.example
 ```
 
 ### API Structure
@@ -138,10 +112,10 @@ backend/
 - `POST /purchase` - Purchase credits
 - `GET /history` - Get credit usage history
 
-## 📚 Documentation Structure (`docs/`)
+## 📚 Documentation Structure (`Docs/`)
 
 ```
-docs/
+Docs/
 ├── implementation_plan.md    # Detailed development phases
 ├── design_guidelines.md     # UI/UX design specifications
 ├── project_structure.md     # This file - project architecture
@@ -195,9 +169,9 @@ docs/
 
 ### Backend Dependencies
 - **Core**: Express, TypeScript, Node.js
-- **Database**: PostgreSQL, Prisma
+- **Database**: PostgreSQL (`pg`)
 - **Authentication**: JWT, bcrypt
-- **Validation**: Joi, Zod
+- **Validation**: express-validator
 - **Testing**: Jest, Supertest
 
 ## 🔒 Security Considerations

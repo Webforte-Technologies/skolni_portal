@@ -21,7 +21,7 @@ This guide provides step-by-step instructions for deploying the EduAI-Asistent a
 
 **Build Configuration:**
 - Source: Your Git repository
-- Branch: `main` (or your preferred branch)
+- Branch: `production` (stable)
 - Dockerfile Path: `backend/Dockerfile`
 - Build Context: `backend/`
 
@@ -38,6 +38,11 @@ DATABASE_URL=postgresql://your-db-user:your-db-password@your-postgres-host:5432/
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 JWT_EXPIRES_IN=7d
 FRONTEND_URL=https://your-frontend-domain.com
+ENABLE_COMPRESSION=true
+ENABLE_LOGGER=true
+LOG_FORMAT=combined
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 ```
 
 **Port Configuration:**
@@ -113,8 +118,8 @@ The frontend nginx configuration includes a proxy for `/api/*` requests to the b
 - The frontend serves as the main entry point
 
 ### Health Checks
-Both services include health checks:
-- Backend: `http://localhost:3001/api/health`
+Both services include health checks aligned to `/api/health` (backend) and `/health` (frontend):
+- Backend: `http://localhost:${PORT}/api/health` (Dockerfile uses `${PORT:-3001}`)
 - Frontend: `http://localhost/health`
 
 ### Environment Variables
@@ -158,7 +163,7 @@ docker logs eduai-frontend
 docker ps
 
 # Test backend health
-curl http://your-backend-domain:3001/api/health
+curl http://your-backend-domain/api/health
 
 # Test frontend health
 curl http://your-frontend-domain/health

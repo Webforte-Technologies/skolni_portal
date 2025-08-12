@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { FileText, BookOpen, Target, Sparkles, Users, Presentation, Tag } from 'lucide-react';
 import Button from '../ui/Button';
-import { exportElementToPDF, exportStructuredToDocx } from '../../utils/exportUtils';
+import { exportElementToPDFOptions, exportStructuredToDocxOptions } from '../../utils/exportUtils';
 
 interface MaterialDisplayProps {
   material: any;
@@ -17,7 +17,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
   // Parse the content JSON if it's a string
   const content = typeof material.content === 'string' ? JSON.parse(material.content) : material.content;
   
-  // Get template icon based on template ID
+  // Get template icon based on template ID or file_type fallback
   const getTemplateIcon = (templateId: string) => {
     switch (templateId) {
       case 'worksheet':
@@ -34,7 +34,15 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
       case 'activity':
         return <Users className="w-6 h-6" />;
       default:
-        return <FileText className="w-6 h-6" />;
+        // Fallback: use file_type if template missing
+        switch (material.file_type) {
+          case 'lesson_plan': return <BookOpen className="w-6 h-6" />;
+          case 'quiz': return <Target className="w-6 h-6" />;
+          case 'project': return <Sparkles className="w-6 h-6" />;
+          case 'presentation': return <Presentation className="w-6 h-6" />;
+          case 'activity': return <Users className="w-6 h-6" />;
+          default: return <FileText className="w-6 h-6" />;
+        }
     }
   };
 
@@ -54,7 +62,15 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
       case 'activity':
         return 'Aktivita';
       default:
-        return 'Materiál';
+        // Fallback: use file_type if template missing
+        switch (material.file_type) {
+          case 'lesson_plan': return 'Plán hodiny';
+          case 'quiz': return 'Kvíz';
+          case 'project': return 'Projekt';
+          case 'presentation': return 'Prezentace';
+          case 'activity': return 'Aktivita';
+          default: return 'Materiál';
+        }
     }
   };
 
@@ -66,6 +82,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
         title: 'Název',
         subject: 'Předmět',
         gradeLevel: 'Ročník',
+        grade_level: 'Ročník',
         difficulty: 'Obtížnost',
         learningObjectives: 'Výukové cíle',
         instructions: 'Instrukce',
@@ -81,8 +98,10 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
         visualElements: 'Vizuální prvky',
         groupSize: 'Velikost skupiny',
         questionCount: 'Počet otázek',
+        questions: 'Otázky',
         questionTypes: 'Typy otázek',
         timeLimit: 'Časový limit',
+        time_limit: 'Časový limit',
         tags: 'Štítky'
       };
       return labels[name] || name;
@@ -90,7 +109,26 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
 
     const renderValue = (val: any) => {
       if (Array.isArray(val)) {
+        // Display arrays of objects (e.g., quiz questions) as a readable list
+        if (val.length > 0 && typeof val[0] === 'object') {
+          return (
+            <ul className="list-disc pl-5 space-y-1">
+              {val.map((item: any, idx: number) => (
+                <li key={idx} className="text-sm text-neutral-700">
+                  {item.name || item.title || item.question || item.problem || JSON.stringify(item)}
+                </li>
+              ))}
+            </ul>
+          );
+        }
         return val.join(', ');
+      }
+      if (typeof val === 'object') {
+        return (
+          <pre className="text-xs bg-neutral-100 rounded p-2 overflow-auto max-h-48">
+            {JSON.stringify(val, null, 2)}
+          </pre>
+        );
       }
       if (typeof val === 'string' && val.length > 100) {
         return (
@@ -117,13 +155,17 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
 
   const handlePrint = () => window.print();
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = async (hideAnswers?: boolean) => {
     const root = document.querySelector('#material-root') as HTMLElement | null;
-    if (root) await exportElementToPDF(root, content.title || material.title || 'material');
+    if (root) await exportElementToPDFOptions(root, content.title || material.title || 'material', { hideAnswers });
   };
 
-  const handleExportDocx = async () => {
-    await exportStructuredToDocx(content, content.title || material.title || 'material');
+  const handleExportDocx = async (includeAnswers?: boolean) => {
+    await exportStructuredToDocxOptions(
+      content,
+      content.title || material.title || 'material',
+      { includeAnswers }
+    );
   };
 
   return (
@@ -145,15 +187,21 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
                 </p>
               </div>
             </div>
-            <div className="flex space-x-2 print:hidden">
+            <div className="flex space-x-2 print:hidden" data-export-hide="true">
               <Button onClick={handlePrint} variant="outline">
                 Tisk
               </Button>
-              <Button onClick={handleExportPDF} variant="outline">
-                Export PDF
+              <Button onClick={() => handleExportPDF(true)} variant="outline">
+                Export PDF (žák)
               </Button>
-              <Button onClick={handleExportDocx} variant="outline">
-                Export DOCX
+              <Button onClick={() => handleExportPDF(false)} variant="outline">
+                Export PDF (učitel)
+              </Button>
+              <Button onClick={() => handleExportDocx(false)} variant="outline">
+                Export DOCX (žák)
+              </Button>
+              <Button onClick={() => handleExportDocx(true)} variant="outline">
+                Export DOCX (učitel)
               </Button>
               {onClose && (
                 <Button onClick={onClose} variant="ghost">
@@ -189,18 +237,14 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
         {/* Content */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6 print:shadow-none">
           {/* Student/Teacher inputs */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-neutral-50 rounded-lg">
-            <div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-neutral-50 rounded-lg">
+            <div data-student-only="true">
               <label className="block text-sm font-medium text-neutral-700 mb-1">
                 Jméno žáka
               </label>
-              <input
-                type="text"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-                className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
-                placeholder="Vyplňte jméno žáka"
-              />
+              <div className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm bg-white text-neutral-500">
+                Vyplňte jméno žáka
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-1">
@@ -228,7 +272,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
           <div className="space-y-6">
             {Object.entries(content).map(([key, value]) => {
               // Skip certain fields that are already displayed in header
-              if (['template', 'title', 'subject', 'difficulty', 'gradeLevel', 'created_at', 'status'].includes(key)) {
+              if (['template', 'title', 'subject', 'difficulty', 'gradeLevel', 'created_at', 'status', 'questions', 'problems'].includes(key)) {
                 return null;
               }
               return renderField(key, value);
@@ -236,7 +280,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
           </div>
 
           {/* Worksheet Content Section */}
-          {content.template === 'worksheet' && (
+          {(content.template === 'worksheet' || material.file_type === 'worksheet' || Array.isArray(content.problems)) && (
             <div className="mt-8 pt-6 border-t border-neutral-200">
               <h3 className="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
                 <FileText className="w-5 h-5 mr-2" />
@@ -244,9 +288,9 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
               </h3>
               
               {/* If there are actual problems/questions, display them */}
-              {content.problems ? (
+              {Array.isArray(content.questions) || Array.isArray(content.problems) ? (
                 <div className="space-y-4">
-                  {content.problems.map((problem: any, index: number) => (
+                  {(content.questions || content.problems).map((problem: any, index: number) => (
                     <div key={index} className="border border-neutral-200 rounded-lg p-4 bg-white">
                       <div className="flex items-start space-x-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -264,7 +308,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
                             </p>
                           </div>
                           {problem.answer && (
-                            <div className="border-t border-neutral-100 pt-3">
+                            <div className="border-t border-neutral-100 pt-3" data-answer="true">
                               <h5 className="font-medium text-neutral-900 mb-2 flex items-center">
                                 <span className="text-success-600 mr-2">✓</span>
                                 Řešení:
@@ -272,6 +316,12 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
                               <p className="text-neutral-700 whitespace-pre-wrap">
                                 {problem.answer}
                               </p>
+                            </div>
+                          )}
+                          {!problem.answer && (
+                            <div className="pt-3" data-student-only="true">
+                              <div className="text-sm text-neutral-600 mb-2">Odpověď:</div>
+                              <div className="h-8 border-b border-dashed border-neutral-400" />
                             </div>
                           )}
                         </div>
