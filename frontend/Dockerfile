@@ -38,7 +38,8 @@ COPY --from=builder /app/dist .
 # Copy Nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Note: Skipping nginx -t at build-time to avoid upstream DNS resolution
+# Set default for backend origin; can be overridden via env at runtime
+ENV BACKEND_ORIGIN=http://backend:3001
 
 # Expose Nginx port
 EXPOSE 80
