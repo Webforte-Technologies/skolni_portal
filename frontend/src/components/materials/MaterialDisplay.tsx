@@ -11,7 +11,6 @@ interface MaterialDisplayProps {
 
 const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) => {
   const { user } = useAuth();
-  const [studentName, setStudentName] = useState('');
   const [teacherName, setTeacherName] = useState(user?.first_name + ' ' + user?.last_name || '');
 
   // Parse the content JSON if it's a string
