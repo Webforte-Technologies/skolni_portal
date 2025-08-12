@@ -770,123 +770,80 @@ Tasks:
 
         [x] Backend & Frontend: Make the "Feature Flags" section interactive, allowing admins to toggle features on or off directly from the UI, which would update the configuration in the backend.
 
-🎯 Phase 18: AI-Powered Educational Material Generation (Core Platform Feature)
+🎯 Phase 18: MVP - AI Material Generator
 
-Timeline: Week 28-29
-Status: 📝 Planned
-Goal: Transform the application into a comprehensive AI-powered educational content creation platform by implementing AI generation for all material types (worksheets, lesson plans, projects, quizzes, presentations, activities) without requiring users to use the main chat interface. This phase focuses on making AI content generation the core value proposition of the platform.
+Timeline: TBD
+Status: 📝 To-Do
+Goal: To launch the core functionality of the dedicated AI generator. The primary objective is to create a new, intuitive interface for generating the most critical material types, validating that this is a preferred workflow over the chat interface.
 
 Tasks:
 
-18.1: Backend AI Generation Endpoints (All Material Types):
+    18.1: Create Core Generator Endpoints:
 
-    [ ] Backend: Create new AI generation endpoints for each material type:
-        - POST /ai/generate-lesson-plan
-        - POST /ai/generate-project
-        - POST /ai/generate-quiz
-        - POST /ai/generate-presentation
-        - POST /ai/generate-activity
-    
-    [ ] Backend: Implement specialized system prompts for each material type (similar to existing WORKSHEET_SYSTEM_PROMPT):
-        - Lesson Plan: Structured format with learning objectives, materials, activities, assessment
-        - Project: Project description, steps, materials, evaluation criteria
-        - Quiz: Questions with answers, question types, difficulty levels
-        - Presentation: Slide structure, key points, visual elements
-        - Activity: Interactive instructions, group sizes, duration, materials
-    
-    [ ] Backend: Ensure all endpoints follow the same pattern: credit validation, streaming response, database saving, and proper error handling.
+        [ ] Backend: Create new, dedicated API endpoints for generating Lesson Plans and Quizzes (e.g., POST /ai/generate-lesson-plan, POST /ai/generate-quiz).
 
-18.2: Frontend AI Generation Interface (Dedicated Page):
+        [ ] Backend: Develop high-quality, specialized system prompts for these two material types to ensure structured and relevant output.
 
-    [ ] Frontend: Create a new "AI Generator" page (/ai-generator) accessible from the main navigation, completely separate from the chat interface.
-    
-    [ ] Frontend: Design an intuitive generation dashboard with categorized generation tools matching the existing MATERIAL_TEMPLATES:
-        - Worksheets (existing functionality)
-        - Lesson Plans
-        - Projects
-        - Quizzes
-        - Presentations
-        - Activities
-    
-    [ ] Frontend: Implement a wizard-style interface for each generation type, guiding teachers through the creation process step-by-step with relevant form fields.
+    18.2: Build the Generator UI:
 
-18.3: Enhanced Material Templates with AI Generation:
+        [ ] Frontend: Create a new page, /ai-generator, accessible from the main navigation.
 
-    [ ] Frontend: Update MaterialCreatorPage.tsx to integrate AI generation capabilities:
-        - Add "Generate with AI" button for each template type
-        - Implement AI generation forms with relevant fields for each material type
-        - Connect to the new backend AI generation endpoints
-    
-    [ ] Frontend: Enhance existing templates with AI-powered suggestions and auto-completion features.
-    
-    [ ] Frontend: Add AI generation progress indicators and real-time preview capabilities.
+        [ ] Frontend: Design a clean dashboard on this page where users can select the type of material they want to create (Worksheet, Lesson Plan, Quiz).
 
-18.4: Advanced AI Generation Features:
+        [ ] Frontend: For each type, implement a simple, wizard-style form that collects the necessary inputs from the teacher (e.g., topic, grade level, number of questions).
 
-    [ ] Backend: Implement AI-powered content validation to ensure generated materials meet educational standards and Czech curriculum requirements.
-    
-    [ ] Backend: Add content enhancement suggestions (e.g., "Consider adding visual aids for this concept" or "This topic could benefit from real-world examples").
-    
-    [ ] Backend: Create AI systems that learn from teacher preferences and previous generations to improve future content quality.
-    
-    [ ] Backend: Implement content adaptation tools for different learning styles, accessibility needs, and grade levels.
+    18.3: Integrate with Library:
 
-18.5: Content Customization & Personalization:
+        [ ] Backend & Frontend: Ensure that all materials successfully generated via this new interface are saved correctly to the user's existing "My Materials" library.
 
-    [ ] Frontend: Add content customization options (language, cultural context, specific curriculum standards, school-specific requirements).
-    
-    [ ] Frontend: Implement content versioning and branching for iterative improvements and teacher collaboration.
-    
-    [ ] Frontend: Create content adaptation tools for different learning styles and accessibility needs.
+✨ Phase 19: Generator Enhancements & Workflow Improvements
 
-18.6: Integration with Existing Library System:
+Timeline: TBD
+Status: 📝 To-Do
+Goal: To expand the generator's capabilities based on initial feedback, adding more material types and powerful workflow features that save teachers even more time.
 
-    [ ] Frontend: Seamlessly integrate AI-generated materials into the existing library system with automatic categorization, tagging, and organization.
-    
-    [ ] Backend: Implement AI-powered content organization that automatically sorts and groups related materials.
-    
-    [ ] Frontend: Add "Generate Similar" functionality that creates variations of existing materials.
-    
-    [ ] Backend: Enhance the content recommendation engine to suggest related materials and generation ideas based on AI analysis.
+Tasks:
 
-18.7: Performance & Scalability for AI Generation:
+    19.1: Expand Material Types:
 
-    [ ] Backend: Optimize AI generation endpoints for faster response times and better resource utilization.
-    
-    [ ] Backend: Implement intelligent caching for frequently requested generation types and parameters.
-    
-    [ ] Frontend: Add progress indicators and estimated completion times for complex generation tasks.
-    
-    [ ] Backend: Create generation queue system for handling high-demand periods and long-running generation tasks.
+        [ ] Backend: Create the remaining API endpoints for generating Projects, Presentations, and Activities.
 
-18.8: User Experience & Workflow Enhancements:
+        [ ] Frontend: Add these new options to the /ai-generator page.
 
-    [ ] Frontend: Design intuitive generation history and favorites system for quick access to previously generated content.
-    
-    [ ] Frontend: Implement batch generation capabilities allowing teachers to create multiple related materials simultaneously.
-    
-    [ ] Frontend: Add export options for various formats (PDF, Word, Google Docs, interactive HTML) for all generated materials.
-    
-    [ ] Frontend: Create generation templates and presets for common educational scenarios and subjects.
+    19.2: Add Content Customization:
 
-18.9: Quality Control & Enhancement:
+        [ ] Frontend: Enhance the generation forms with more detailed options, such as specifying teaching style, duration, or specific curriculum standards.
 
-    [ ] Backend: Add AI-powered content validation to ensure generated materials meet educational standards.
-    
-    [ ] Backend: Implement content enhancement suggestions and improvement recommendations.
-    
-    [ ] Frontend: Create content review workflow with AI-suggested improvements and teacher approval system.
-    
-    [ ] Backend: Add plagiarism detection and originality scoring for generated content.
+    19.3: Implement Advanced Export Options:
 
-18.10: Advanced AI Capabilities:
+        [ ] Frontend: Add functionality to export all generated materials into common formats, specifically PDF and Microsoft Word (.docx).
 
-    [ ] Backend: Implement multi-modal AI generation (text, diagrams, charts, graphs) for comprehensive educational materials.
-    
-    [ ] Backend: Add language-specific generation capabilities optimized for Czech educational context and terminology.
-    
-    [ ] Frontend: Create AI-powered content brainstorming tools that help teachers explore new topics and approaches.
-    
-    [ ] Backend: Implement collaborative AI generation where multiple teachers can contribute to and refine AI-generated content.
+    19.4: Introduce Power-User Features:
 
-This phase represents the core value proposition of the EduAI-Asistent platform, transforming it from a chat-based AI assistant into a comprehensive, AI-powered educational content creation suite that directly addresses the needs of Czech teachers and schools. The focus is on making AI content generation accessible, intuitive, and integrated into the existing materials workflow without requiring users to navigate through chat interfaces.
+        [ ] Frontend: Implement a "batch generation" feature, allowing a teacher to create multiple related materials at once (e.g., a lesson plan, a worksheet, and a quiz for the same topic from one form).
+
+🧠 Phase 20: Advanced AI Capabilities & Quality Control
+
+Timeline: TBD
+Status: 📝 To-Do
+Goal: To implement advanced AI features that ensure the quality, reliability, and versatility of the generated content, establishing the platform as a top-tier tool.
+
+Tasks:
+
+    20.1: AI-Powered Quality Control:
+
+        [ ] Backend: Implement a content validation system to check generated materials for factual accuracy and alignment with general educational standards.
+
+        [ ] Backend: Add a plagiarism detection feature to ensure the originality of the content.
+
+    20.2: Multi-Modal Generation:
+
+        [ ] Backend: Enhance the AI service to support generating not just text, but also simple diagrams, charts, or image suggestions to enrich the materials.
+
+        [ ] Frontend: Update the material display components to properly render this new multi-modal content.
+
+    20.3: Performance & Scalability:
+
+        [ ] Backend: Implement a queuing system to handle long-running or resource-intensive generation tasks without making the user wait.
+
+        [ ] Frontend: Provide better progress indicators and estimated completion times for complex generation requests.
