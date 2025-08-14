@@ -144,6 +144,10 @@ const MyMaterialsPage: React.FC = () => {
     {
       enabled: !!user,
       retry: 2,
+      onError: async (error) => {
+        const { errorToMessage } = await import('../../services/apiClient');
+        showToast({ type: 'error', message: errorToMessage(error) });
+      },
     }
   );
 
@@ -157,6 +161,10 @@ const MyMaterialsPage: React.FC = () => {
     {
       enabled: !!user && showRecommendations,
       retry: 2,
+      onError: async (error) => {
+        const { errorToMessage } = await import('../../services/apiClient');
+        showToast({ type: 'error', message: errorToMessage(error) });
+      },
     }
   );
 
@@ -170,6 +178,10 @@ const MyMaterialsPage: React.FC = () => {
     {
       enabled: !!user && showAnalytics,
       retry: 2,
+      onError: async (error) => {
+        const { errorToMessage } = await import('../../services/apiClient');
+        showToast({ type: 'error', message: errorToMessage(error) });
+      },
     }
   );
 

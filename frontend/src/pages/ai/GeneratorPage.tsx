@@ -128,8 +128,8 @@ const AIGeneratorPage: React.FC = () => {
         else if (type === 'activity') await runActivity();
       }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Nepodařilo se vygenerovat obsah';
-      showToast({ type: 'error', message: msg });
+      const { errorToMessage } = await import('../../services/apiClient');
+      showToast({ type: 'error', message: errorToMessage(e) });
     } finally {
       setIsGenerating(false);
     }
