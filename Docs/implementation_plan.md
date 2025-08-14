@@ -899,10 +899,10 @@ Tasks:
   [ ] E2E (Playwright): otestovat `Ctrl+K`, `Ctrl+L`, `Ctrl+Enter`, `Ctrl+/`.
 
 21.2 Nastavení (UserPreferences) – dokončení
-  [ ] Přidat `frontend/src/contexts/SettingsContext.tsx` (sloučí preference z `ThemeContext` a `AccessibilityContext`):
+  [x] Přidat `frontend/src/contexts/SettingsContext.tsx` (sloučí preference z `ThemeContext` a `AccessibilityContext`):
       - perzistence do `localStorage` (`eduai.settings.v1`)
       - přepínače: `theme`, `highContrast`, `fontSize`, `reducedMotion`, `focusIndicator`, tooltipy apod.
-  [ ] Propojit `frontend/src/components/ui/UserPreferences.tsx` s kontextem (Uložit/Reset) a zjednodušit props v `frontend/src/components/layout/Header.tsx`.
+  [x] Propojit `frontend/src/components/ui/UserPreferences.tsx` s kontextem (Uložit/Reset) a zjednodušit props v `frontend/src/components/layout/Header.tsx`.
   [ ] (Volitelné v2) Backend perzistence: tabulka `user_preferences(user_id uuid PK, data jsonb, updated_at)` + `GET/PUT /users/me/preferences`. Frontend použije localStorage jako fallback.
 
 21.3 Error handling – sjednocení

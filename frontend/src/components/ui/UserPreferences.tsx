@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSettings } from '../../contexts/SettingsContext';
 import { 
   X, Settings, Palette, Bell, Globe, Monitor,
   Sun, Moon, Save, RotateCcw, Eye,
@@ -40,24 +41,41 @@ export interface UserPreferences {
 interface UserPreferencesProps {
   isOpen: boolean;
   onClose: () => void;
-  onPreferencesChange: (preferences: UserPreferences) => void;
-  currentPreferences: UserPreferences;
 }
 
-const UserPreferences: React.FC<UserPreferencesProps> = ({
-  isOpen,
-  onClose,
-  onPreferencesChange,
-  currentPreferences
-}) => {
-  const [preferences, setPreferences] = useState<UserPreferences>(currentPreferences);
+const UserPreferences: React.FC<UserPreferencesProps> = ({ isOpen, onClose }) => {
+  const { settings, updateSettings, resetSettings } = useSettings();
+  const [preferences, setPreferences] = useState<UserPreferences>({
+    theme: settings.theme,
+    language: 'cs',
+    notifications: { email: true, push: true, sound: true, chat: true, updates: true },
+    accessibility: {
+      highContrast: settings.highContrast,
+      screenReader: false,
+      fontSize: settings.fontSize === 'sm' ? 'small' : settings.fontSize === 'lg' ? 'large' : 'medium',
+      reducedMotion: settings.reducedMotion,
+      focusIndicator: settings.focusIndicator,
+    },
+    display: { compactMode: false, sidebarCollapsed: false, showTooltips: true, showProgressBars: true },
+    privacy: { analytics: true, telemetry: false, shareUsage: false },
+  });
   const [activeTab, setActiveTab] = useState<'general' | 'accessibility' | 'notifications' | 'privacy' | 'display'>('general');
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    setPreferences(currentPreferences);
+    setPreferences(prev => ({
+      ...prev,
+      theme: settings.theme,
+      accessibility: {
+        ...prev.accessibility,
+        highContrast: settings.highContrast,
+        fontSize: settings.fontSize === 'sm' ? 'small' : settings.fontSize === 'lg' ? 'large' : 'medium',
+        reducedMotion: settings.reducedMotion,
+        focusIndicator: settings.focusIndicator,
+      },
+    }));
     setHasChanges(false);
-  }, [currentPreferences]);
+  }, [settings]);
 
   const updatePreference = <K extends keyof UserPreferences>(
     section: K,
@@ -86,13 +104,19 @@ const UserPreferences: React.FC<UserPreferencesProps> = ({
   };
 
   const handleSave = () => {
-    onPreferencesChange(preferences);
+    updateSettings({
+      theme: preferences.theme as any,
+      highContrast: preferences.accessibility.highContrast,
+      reducedMotion: preferences.accessibility.reducedMotion,
+      focusIndicator: preferences.accessibility.focusIndicator,
+      fontSize: preferences.accessibility.fontSize === 'small' ? 'sm' : preferences.accessibility.fontSize === 'large' ? 'lg' : 'md',
+    });
     setHasChanges(false);
     onClose();
   };
 
   const handleReset = () => {
-    setPreferences(currentPreferences);
+    resetSettings();
     setHasChanges(false);
   };
 
