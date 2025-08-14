@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
+import { errorToMessage } from '../../services/apiClient';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { AlertCircle, Loader2, UserPlus, Building2 } from 'lucide-react';
@@ -49,7 +50,7 @@ const RegistrationPage: React.FC = () => {
       });
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Registrace se nezdařila');
+      setError(errorToMessage(err));
     } finally {
       setIsLoading(false);
     }

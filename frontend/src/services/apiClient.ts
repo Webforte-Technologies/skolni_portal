@@ -13,10 +13,12 @@ export function errorToMessage(err: any): string {
   const status = err.response?.status;
   const dataMsg = err.response?.data?.error || err.response?.data?.message;
   if (status === 400) return dataMsg || 'Neplatný požadavek';
-  if (status === 401) return 'Přihlaste se prosím znovu';
+  if (status === 401) return dataMsg || 'Nesprávné přihlašovací údaje';
   if (status === 402) return 'Nemáte dostatek kreditů';
   if (status === 403) return 'Nemáte oprávnění k provedení akce';
   if (status === 404) return 'Požadovaný zdroj nebyl nalezen';
+  if (status === 409) return dataMsg || 'Konflikt – položka již existuje';
+  if (status === 422) return dataMsg || 'Neplatná vstupní data';
   if (status >= 500) return 'Na serveru došlo k chybě. Zkuste to prosím později.';
   return dataMsg || err.message || 'Nastala chyba';
 }
@@ -100,8 +102,10 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle 401 Unauthorized - redirect to login
-    if (error.response?.status === 401) {
+    // Handle 401 Unauthorized - redirect to login except on auth endpoints (login/register flows)
+    const requestUrl: string = error?.config?.url || '';
+    const isAuthFlow = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register') || requestUrl.includes('/auth/register-school');
+    if (error.response?.status === 401 && !isAuthFlow) {
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       window.location.href = '/login';

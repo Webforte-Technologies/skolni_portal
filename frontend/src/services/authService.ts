@@ -4,7 +4,7 @@ import { LoginRequest, RegisterRequest, AuthResponse, UserWithSchool } from '../
 export const authService = {
   // Login user
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/login', credentials);
+    const response = await api.post<AuthResponse>('/auth/login', credentials).catch((err) => { throw err; });
     
     if (response.data.success && response.data.data) {
       // Store token and user data in localStorage
@@ -18,7 +18,7 @@ export const authService = {
 
   // Register user
   register: async (userData: RegisterRequest): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/register', userData);
+    const response = await api.post<AuthResponse>('/auth/register', userData).catch((err) => { throw err; });
     
     if (response.data.success && response.data.data) {
       // Store token and user data in localStorage
@@ -35,7 +35,7 @@ export const authService = {
     school: { name: string; address?: string; city?: string; postal_code?: string; contact_email?: string; contact_phone?: string };
     admin: { email: string; password: string; first_name: string; last_name: string };
   }): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/register-school', payload);
+    const response = await api.post<AuthResponse>('/auth/register-school', payload).catch((err) => { throw err; });
     if (response.data.success && response.data.data) {
       localStorage.setItem('authToken', response.data.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.data.user));

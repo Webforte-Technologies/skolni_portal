@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../contexts/AuthContext';
+import { errorToMessage } from '../../services/apiClient';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { AlertCircle, Loader2, BookOpen } from 'lucide-react';
@@ -38,7 +39,7 @@ const LoginPage: React.FC = () => {
       await login(data.email, data.password);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Přihlášení se nezdařilo');
+      setError(errorToMessage(err));
     } finally {
       setIsLoading(false);
     }

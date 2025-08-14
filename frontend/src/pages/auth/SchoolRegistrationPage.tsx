@@ -8,6 +8,7 @@ import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
 import { AlertCircle, Loader2, Building2, UserPlus } from 'lucide-react';
 import { authService } from '../../services/authService';
+import { errorToMessage } from '../../services/apiClient';
 import { useNavigate } from 'react-router-dom';
 
 const schema = z.object({
@@ -51,7 +52,7 @@ const SchoolRegistrationPage: React.FC = () => {
       });
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Registrace školy se nezdařila');
+      setError(errorToMessage(err));
     } finally {
       setIsLoading(false);
     }
