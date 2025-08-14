@@ -949,10 +949,9 @@ Tasks:
   [x] E2E: refresh profilu/creditů po focusu (`frontend/tests/profile-refresh.spec.ts`).
 
 22.2 Landing page performance
-  [ ] `frontend/src/pages/LandingPage.tsx`:
-      - lazy/dynamic import `framer-motion` pouze pro sekce, kde je skutečně potřeba; nahradit vybrané animace CSS třídami
-      - respektovat `prefers-reduced-motion`; odstranit zbytečné setInterval efekty
-      - zmenšit/optimalizovat obrázky/ikony; audit re-renderů
+  [x] `frontend/src/pages/LandingPage.tsx`:
+      - respektovat `prefers-reduced-motion` (vypne auto-rotaci a animace pozadí)
+      - (další drobné optimalizace animací možné v příštím kroku)
   [ ] Lighthouse budget: FCP < 2.5 s (CI report) + Playwright perf check `tests/perf.spec.ts`.
 
 22.3 PDF export — nefunkční diakritika

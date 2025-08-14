@@ -36,6 +36,7 @@ const LandingPage: React.FC = () => {
   // State kept for future selection UX; unused at build to avoid errors
   // const [selectedPlan, setSelectedPlan] = useState('basic');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Animation hooks
@@ -55,13 +56,24 @@ const LandingPage: React.FC = () => {
   // const isTestimonialsInView = useInView(testimonialsRef, { once: true });
   // const isPricingInView = useInView(pricingRef, { once: true });
   
-  // Auto-rotate testimonials
+  // Detect prefers-reduced-motion
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia === 'undefined') return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReduceMotion(!!mq.matches);
+    update();
+    mq.addEventListener?.('change', update);
+    return () => mq.removeEventListener?.('change', update);
+  }, []);
+
+  // Auto-rotate testimonials (skip when reduced motion)
+  useEffect(() => {
+    if (reduceMotion) return;
     const interval = setInterval(() => {
       setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [reduceMotion]);
   
   // Theme toggle
   const toggleTheme = () => {
@@ -243,18 +255,18 @@ const LandingPage: React.FC = () => {
         {/* Base surface already applied on wrapper. Floating blobs for depth */}
         <motion.div
           className="absolute -top-24 -left-16 w-72 h-72 bg-gradient-to-r from-blue-400/15 to-cyan-400/15 rounded-full blur-3xl"
-          animate={{ y: [0, -20, 0], x: [0, 10, 0], scale: [1, 1.05, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          animate={reduceMotion ? undefined : { y: [0, -20, 0], x: [0, 10, 0], scale: [1, 1.05, 1] }}
+          transition={reduceMotion ? undefined : { duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
           className="absolute top-1/3 -right-10 w-96 h-96 bg-gradient-to-r from-purple-400/15 to-pink-400/15 rounded-full blur-3xl"
-          animate={{ y: [0, 25, 0], x: [0, -15, 0], scale: [1, 0.95, 1] }}
-          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          animate={reduceMotion ? undefined : { y: [0, 25, 0], x: [0, -15, 0], scale: [1, 0.95, 1] }}
+          transition={reduceMotion ? undefined : { duration: 14, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
         />
         <motion.div
           className="absolute -bottom-24 left-1/4 w-64 h-64 bg-gradient-to-r from-green-400/15 to-emerald-400/15 rounded-full blur-3xl"
-          animate={{ y: [0, -15, 0], x: [0, 20, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          animate={reduceMotion ? undefined : { y: [0, -15, 0], x: [0, 20, 0], scale: [1, 1.1, 1] }}
+          transition={reduceMotion ? undefined : { duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
         />
       </div>
 
@@ -479,14 +491,14 @@ const LandingPage: React.FC = () => {
         {/* Scroll Indicator */}
         <motion.div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          animate={reduceMotion ? undefined : { y: [0, 10, 0] }}
+          transition={reduceMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
           <div className="w-6 h-10 border-2 border-gray-400 dark:border-gray-600 rounded-full flex justify-center">
             <motion.div
               className="w-1 h-3 bg-gray-400 dark:bg-gray-600 rounded-full mt-2"
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              animate={reduceMotion ? undefined : { y: [0, 12, 0] }}
+              transition={reduceMotion ? undefined : { duration: 2, repeat: Infinity, ease: "easeInOut" }}
             />
           </div>
         </motion.div>
