@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
 import ConfirmModal from '../ui/ConfirmModal';
-import { LogOut, User, Sun, Moon, Building2, Settings, HelpCircle, Keyboard } from 'lucide-react';
+import { LogOut, User, Sun, Moon, Building2, Settings, HelpCircle, Keyboard, Bell } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Link } from 'react-router-dom';
 import { useAccessibility } from '../../contexts/AccessibilityContext';
 import UserPreferences from '../ui/UserPreferences';
 import HelpSystem from '../ui/HelpSystem';
 import KeyboardShortcuts from '../ui/KeyboardShortcuts';
+import NotificationsDropdown from '../ui/NotificationsDropdown';
 
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
@@ -18,6 +19,7 @@ const Header: React.FC = () => {
   const [showPreferences, setShowPreferences] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [activeShortcuts, setActiveShortcuts] = useState<string[]>([]);
 
   // Load active shortcuts from localStorage
@@ -75,6 +77,14 @@ const Header: React.FC = () => {
             <div className="flex items-center space-x-4">
               {/* Accessibility and Settings Buttons */}
               <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setShowNotifications(v => !v)}
+                  className="relative rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  aria-label="Notifikace"
+                  title="Notifikace"
+                >
+                  <Bell className="h-4 w-4" />
+                </button>
                 <button
                   onClick={() => setShowShortcuts(true)}
                   className="relative rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -227,6 +237,13 @@ const Header: React.FC = () => {
           refreshActiveShortcuts();
         }}
       />
+
+      {/* Notifications dropdown */}
+      {showNotifications && (
+        <div className="relative">
+          <NotificationsDropdown onClose={() => setShowNotifications(false)} />
+        </div>
+      )}
     </>
   );
 };

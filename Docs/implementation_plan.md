@@ -913,20 +913,20 @@ Tasks:
 
 21.4 Notifikace pro celý systém
   Backend
-  [ ] Tabulka `notifications`:
+  [x] Tabulka `notifications`:
       - sloupce: `id uuid`, `created_at timestamptz`, `user_id uuid null`, `school_id uuid null`,
         `severity ('info'|'warning'|'error')`, `type text`, `title text`, `message text`, `meta jsonb`, `read_at timestamptz null`
       - indexy: `created_at desc`, `user_id`, `school_id`
-  [ ] Pomocná funkce `createNotification({...})` a volání z:
+  [x] Pomocná funkce `createNotification({...})` a volání z:
       - úprav kreditů (`CreditTransactionModel.addCredits/deductCredits`)
       - vytvoření/odebrání učitele, chyb AI generování apod.
-  [ ] Endpoints:
+  [x] Endpoints:
       - `GET /notifications` (aktuální uživatel), `PUT /notifications/:id/read`
       - `GET /admin/notifications` (jen admin) s filtrováním a stránkováním
   Frontend
-  [ ] `Header.tsx`: zvoneček s odznakem (počet nepřečtených), dropdown `NotificationsDropdown.tsx`.
+  [x] `Header.tsx`: zvoneček s odznakem (počet nepřečtených), dropdown `NotificationsDropdown.tsx`.
   [ ] `pages/dashboard/DeveloperAdminPage.tsx` a `SchoolAdminPage.tsx`: panel „Notifikace“ s filtry.
-  [ ] Query polling 60 s (SSE/WebSocket v2), akce „Označit jako přečtené“.
+  [x] Query polling 60 s (SSE/WebSocket v2), akce „Označit jako přečtené“.
   QA
   [ ] Seed/demo notifikace a základní vizuální a e2e test.
 

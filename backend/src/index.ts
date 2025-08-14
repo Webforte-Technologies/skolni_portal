@@ -21,6 +21,7 @@ import foldersRoutes from './routes/folders';
 import sharedMaterialsRoutes from './routes/shared-materials';
 import uploadRoutes from './routes/upload';
 import adminRoutes from './routes/admin';
+import notificationsRoutes from './routes/notifications';
 import { metricsMiddleware } from './middleware/metrics';
 import fs from 'fs';
 import path from 'path';
@@ -177,6 +178,7 @@ app.use('/api/folders', foldersRoutes);
 app.use('/api/shared-materials', sharedMaterialsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // Health check endpoint
 app.get('/api/health', async (_req, res) => {
