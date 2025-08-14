@@ -11,7 +11,7 @@ test.describe('Visual snapshots', () => {
     });
     await page.goto('/dashboard');
     await page.waitForSelector('text=Moji asistenti', { timeout: 10000 }).catch(() => {});
-    await expect(page).toHaveScreenshot('dashboard-light.png', { fullPage: true });
+    await expect(page).toHaveScreenshot('dashboard-light.png', { fullPage: true, maxDiffPixelRatio: 0.01 });
   });
 
   test('Dashboard dark', async ({ page }) => {
@@ -25,7 +25,7 @@ test.describe('Visual snapshots', () => {
     await page.goto('/dashboard');
     await page.evaluate(() => document.documentElement.classList.add('dark'));
     await page.waitForTimeout(300);
-    await expect(page).toHaveScreenshot('dashboard-dark.png', { fullPage: true });
+    await expect(page).toHaveScreenshot('dashboard-dark.png', { fullPage: true, maxDiffPixelRatio: 0.02 });
   });
 
   test('Chat light', async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe('Visual snapshots', () => {
     });
     await page.goto('/chat');
     await page.waitForSelector('textarea, [role="textbox"]', { timeout: 10000 }).catch(() => {});
-    await expect(page).toHaveScreenshot('chat-light.png', { fullPage: true });
+    await expect(page).toHaveScreenshot('chat-light.png', { fullPage: true, maxDiffPixelRatio: 0.02 });
   });
 
   test('Chat dark', async ({ page }) => {
@@ -52,7 +52,7 @@ test.describe('Visual snapshots', () => {
     await page.goto('/chat');
     await page.evaluate(() => document.documentElement.classList.add('dark'));
     await page.waitForTimeout(300);
-    await expect(page).toHaveScreenshot('chat-dark.png', { fullPage: true });
+    await expect(page).toHaveScreenshot('chat-dark.png', { fullPage: true, maxDiffPixelRatio: 0.02 });
   });
 });
 

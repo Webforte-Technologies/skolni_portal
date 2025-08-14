@@ -5,7 +5,7 @@ import ConfirmModal from '../ui/ConfirmModal';
 import { LogOut, User, Sun, Moon, Building2, Settings, HelpCircle, Keyboard, Bell } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Link } from 'react-router-dom';
-import { useAccessibility } from '../../contexts/AccessibilityContext';
+// import { useAccessibility } from '../../contexts/AccessibilityContext';
 import UserPreferences from '../ui/UserPreferences';
 import HelpSystem from '../ui/HelpSystem';
 import KeyboardShortcuts from '../ui/KeyboardShortcuts';
@@ -14,7 +14,6 @@ import NotificationsDropdown from '../ui/NotificationsDropdown';
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { settings } = useAccessibility();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -82,6 +81,7 @@ const Header: React.FC = () => {
                   className="relative rounded-md p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
                   aria-label="Notifikace"
                   title="Notifikace"
+                  data-testid="notifications-bell"
                 >
                   <Bell className="h-4 w-4" />
                 </button>
@@ -186,41 +186,6 @@ const Header: React.FC = () => {
       <UserPreferences
         isOpen={showPreferences}
         onClose={() => setShowPreferences(false)}
-        onPreferencesChange={(preferences) => {
-          // Handle preferences change
-          if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
-            console.log('Preferences changed:', preferences);
-          }
-        }}
-        currentPreferences={{
-          theme: theme,
-          language: 'cs',
-          notifications: {
-            email: true,
-            push: true,
-            sound: true,
-            chat: true,
-            updates: true
-          },
-          accessibility: {
-            highContrast: settings.highContrast,
-            screenReader: settings.screenReader,
-            fontSize: settings.fontSize,
-            reducedMotion: settings.reducedMotion,
-            focusIndicator: settings.focusIndicator
-          },
-          display: {
-            compactMode: false,
-            sidebarCollapsed: false,
-            showTooltips: true,
-            showProgressBars: true
-          },
-          privacy: {
-            analytics: true,
-            telemetry: false,
-            shareUsage: false
-          }
-        }}
       />
 
       {/* Help System Modal */}

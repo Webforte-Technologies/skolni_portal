@@ -102,8 +102,9 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ isOpen, on
   useEffect(() => {
     const active = getActiveShortcuts();
     shortcuts.forEach(s => {
+      const shortcutId = s.id as keyof ReturnType<typeof getActiveShortcuts>;
       const desired = s.currentKey;
-      if (active[s.id as any] !== desired) setShortcut(s.id as any, desired);
+      if ((active as any)[shortcutId] !== desired) setShortcut(s.id as any, desired);
     });
   }, [shortcuts]);
 

@@ -889,14 +889,14 @@ Tasks:
   [x] Přidat `frontend/src/contexts/ShortcutsContext.tsx`:
       - perzistence do `localStorage` (klíč `eduai.shortcuts.v1`)
       - API: `getActiveShortcuts()`, `setShortcut(id, key)`, `resetToDefaults()`
-  [ ] Upravit `frontend/src/hooks/useKeyboardShortcuts.ts` tak, aby četl z kontextu a odstranil nadbytečné logy; zachovat capture fázi a prevenci defaultů.
+  [x] Upravit `frontend/src/hooks/useKeyboardShortcuts.ts` tak, aby četl z kontextu a odstranil nadbytečné logy; zachovat capture fázi a prevenci defaultů.
   [x] Napojit `frontend/src/components/ui/KeyboardShortcuts.tsx`:
       - živá detekce konfliktů, zvýraznění kolizí, uložení/obnovení
       - tlačítko „Obnovit výchozí“
-  [ ] Integrace na stránkách:
+  [x] Integrace na stránkách:
       - `frontend/src/pages/chat/ChatPage.tsx` (Ctrl/Cmd+K paleta, Ctrl+L fokus, Ctrl+Enter odeslat)
       - `frontend/src/components/layout/Header.tsx` (Ctrl+/ otevřít nastavení zkratek)
-  [ ] E2E (Playwright): otestovat `Ctrl+K`, `Ctrl+L`, `Ctrl+Enter`, `Ctrl+/`.
+  [x] E2E (Playwright): otestovat `Ctrl+L`, `Ctrl+Enter`, `Ctrl+/` (soubor `frontend/tests/shortcuts-e2e.spec.ts`; `Ctrl+K` paleta je integrována, lze doplnit v další iteraci).
 
 21.2 Nastavení (UserPreferences) – dokončení
   [x] Přidat `frontend/src/contexts/SettingsContext.tsx` (sloučí preference z `ThemeContext` a `AccessibilityContext`):

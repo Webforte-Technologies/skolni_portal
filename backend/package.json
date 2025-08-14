@@ -21,6 +21,8 @@
     "db:migrate:phase11": "ts-node src/database/run-migration.ts src/database/migrations/phase11_rbac.sql",
     "db:migrate:phase11:fix": "ts-node src/database/run-migration.ts src/database/migrations/phase11_fix_check.sql",
     "db:migrate:phase11:normalize": "ts-node src/database/run-migration.ts src/database/migrations/phase11_normalize_roles.sql",
+    "db:migrate:notifications": "ts-node src/database/run-migration.ts src/database/migrations/phase21_notifications.sql",
+    "db:seed:notifications": "ts-node src/database/add-notifications-demo.ts",
     "test:health": "cross-env NODE_ENV=test jest src/__tests__/health.test.ts --runInBand"
   },
   "keywords": [

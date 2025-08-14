@@ -9,6 +9,7 @@
     "test": "playwright test",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
+    "preview:build": "npm run build && vite preview",
     "type-check": "tsc --noEmit",
     "test:e2e": "playwright test",
     "test:update-snapshots": "playwright test --update-snapshots"
