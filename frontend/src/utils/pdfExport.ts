@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { registerCzechFonts } from './registerPdfFonts';
 import html2canvas from 'html2canvas';
 
 export interface ConversationExportData {
@@ -43,6 +44,7 @@ export class PDFExporter {
 
   static async exportConversation(data: ConversationExportData): Promise<void> {
     const doc = new jsPDF();
+    registerCzechFonts(doc as any);
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
@@ -116,6 +118,7 @@ export class PDFExporter {
 
   static async exportWorksheet(data: WorksheetExportData): Promise<void> {
     const doc = new jsPDF();
+    registerCzechFonts(doc as any);
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
@@ -217,6 +220,7 @@ export class PDFExporter {
 
       const imgData = canvas.toDataURL('image/png');
       const doc = new jsPDF();
+      registerCzechFonts(doc as any);
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       

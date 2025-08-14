@@ -21,25 +21,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserWithSchool | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize auth state on mount
+  // Initialize auth state on mount and keep it fresh
   useEffect(() => {
-    const initializeAuth = () => {
+    let isMounted = true;
+    let isRefreshing = false;
+    const initializeAuth = async () => {
       try {
-        const currentUser = authService.getCurrentUser();
         const token = authService.getToken();
-        
-        if (currentUser && token) {
-          setUser(currentUser);
+        const cachedUser = authService.getCurrentUser();
+        if (cachedUser) setUser(cachedUser);
+        if (token) {
+          // Fetch fresh profile
+          const fresh = await authService.getProfile();
+          if (isMounted) setUser(fresh);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
         authService.logout();
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    const refreshOnFocus = async () => {
+      if (isRefreshing) return;
+      try {
+        const token = authService.getToken();
+        if (!token) return;
+        isRefreshing = true;
+        const fresh = await authService.getProfile();
+        if (isMounted) setUser(fresh);
+      } catch (e) {
+        // noop
+      } finally {
+        isRefreshing = false;
       }
     };
 
     initializeAuth();
+    window.addEventListener('focus', refreshOnFocus);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') void refreshOnFocus();
+    });
+    return () => {
+      isMounted = false;
+      window.removeEventListener('focus', refreshOnFocus);
+    };
   }, []);
 
   const login = async (email: string, password: string) => {

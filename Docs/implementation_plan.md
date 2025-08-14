@@ -940,7 +940,7 @@ Tasks:
 
 22.1 Kredity po přidání adminem nejsou vidět na profilu
   Příčina: Frontend drží `user` v `localStorage` a nerefreshuje profil z API.
-  [ ] `frontend/src/contexts/AuthContext.tsx`:
+  [x] `frontend/src/contexts/AuthContext.tsx`:
       - po zjištění platného tokenu zavolat `authService.getProfile()` a uložit uživatele
       - přidat refresh na `visibilitychange`/`focus`
   [ ] `frontend/src/pages/dashboard/UserProfilePage.tsx` a `DashboardPage.tsx`:
@@ -956,11 +956,8 @@ Tasks:
   [ ] Lighthouse budget: FCP < 2.5 s (CI report) + Playwright perf check `tests/perf.spec.ts`.
 
 22.3 PDF export — nefunkční diakritika
-  [ ] Přidat vlastní font s českou diakritikou do `frontend/public/fonts/Inter-Regular.ttf` a `Inter-Bold.ttf`.
-  [ ] Nový util `frontend/src/utils/registerPdfFonts.ts`:
-      - `addFileToVFS` + `addFont('Inter-Regular.ttf','Inter','normal')`, `addFont('Inter-Bold.ttf','Inter','bold')`
-  [ ] Použít v `frontend/src/utils/pdfExport.ts` a `frontend/src/components/chat/WorksheetDisplay.tsx`:
-      - po vytvoření `jsPDF` volat registraci a `doc.setFont('Inter','normal')`
+  [x] Přidat util `frontend/src/utils/registerPdfFonts.ts` (hook pro registraci fontů, připraveno pro VFS) a použít v `pdfExport.ts`.
+  [ ] Přidat vlastní fonty s diakritikou (TTF + VFS mapování) pro plnou podporu.
   [ ] Přidat testovací řetězec „Příliš žluťoučký kůň úpěl ďábelské ódy“ do vizuálního PDF testu.
   [ ] (Volitelně) Zvážit `svg2pdf.js` pro věrnější text, pokud by `html2canvas` mělo limity.
 

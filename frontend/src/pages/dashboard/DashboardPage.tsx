@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQuery as useReactQuery } from 'react-query';
 import { useQuery } from 'react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import { assistantService } from '../../services/assistantService';
@@ -29,6 +30,11 @@ import { Link } from 'react-router-dom';
 
 const DashboardPage: React.FC = () => {
   const { user, updateUser } = useAuth();
+  useReactQuery('me-profile', authService.getProfile, {
+    enabled: !!user,
+    refetchOnWindowFocus: true,
+    onSuccess: (fresh) => updateUser(fresh),
+  });
   const { showToast } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddingCredits, setIsAddingCredits] = useState(false);

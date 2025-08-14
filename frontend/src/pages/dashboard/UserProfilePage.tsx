@@ -1,11 +1,18 @@
 import React from 'react';
+import { useQuery } from 'react-query';
+import { authService } from '../../services/authService';
 import EditProfileModal from '../../components/dashboard/EditProfileModal';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { useAuth } from '../../contexts/AuthContext';
 
 const UserProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  useQuery('me-profile', authService.getProfile, {
+    enabled: !!user,
+    refetchOnWindowFocus: true,
+    onSuccess: (fresh) => updateUser(fresh),
+  });
   const [open, setOpen] = React.useState(false);
 
   if (!user) return null;

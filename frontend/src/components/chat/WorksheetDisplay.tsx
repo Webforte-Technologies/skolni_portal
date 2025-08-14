@@ -3,6 +3,7 @@ import { FileText, Printer, X, CheckCircle, Download } from 'lucide-react';
 // Defer heavy libs via dynamic import for performance
 import Button from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 
 interface Question {
   problem: string;
@@ -22,6 +23,7 @@ interface WorksheetDisplayProps {
 
 const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose }) => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const defaultTeacher = useMemo(() => {
     if (!user) return '';
     const full = `${user.first_name || ''} ${user.last_name || ''}`.trim();
@@ -111,7 +113,7 @@ const WorksheetDisplay: React.FC<WorksheetDisplayProps> = ({ worksheet, onClose 
 
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Chyba při generování PDF. Zkuste to znovu.');
+      showToast({ type: 'error', message: 'Nepodařilo se exportovat do PDF.' });
     }
   };
 
