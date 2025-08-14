@@ -7,6 +7,8 @@ import { ToastProvider } from './contexts/ToastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import KeyboardNavigation from './components/ui/KeyboardNavigation';
+import { ShortcutsProvider } from './contexts/ShortcutsContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 
 import PrivateRoute, { RequireRole } from './components/auth/PrivateRoute';
 import PublicRoute from './components/auth/PublicRoute';
@@ -46,6 +48,8 @@ function App() {
           <ToastProvider>
             <AuthProvider>
               <AccessibilityProvider>
+                <SettingsProvider>
+                  <ShortcutsProvider>
                 <Router>
                   <KeyboardNavigation>
                     <div className="relative min-h-screen bg-surface-bg text-surface-text font-sans">
@@ -147,12 +151,14 @@ function App() {
             </Suspense>
           </ErrorBoundary>
         </div>
-      </KeyboardNavigation>
-    </Router>
-  </AccessibilityProvider>
-</AuthProvider>
-</ToastProvider>
-</ThemeProvider>
+                  </KeyboardNavigation>
+                </Router>
+                  </ShortcutsProvider>
+                </SettingsProvider>
+              </AccessibilityProvider>
+            </AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
 </HelmetProvider>
 </QueryClientProvider>
   );

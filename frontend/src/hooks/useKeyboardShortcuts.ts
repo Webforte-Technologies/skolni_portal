@@ -1,4 +1,5 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
+import { useShortcuts } from '../contexts/ShortcutsContext';
 
 export interface KeyboardShortcut {
   id: string;
@@ -51,6 +52,8 @@ export const useKeyboardShortcuts = (
   shortcuts: KeyboardShortcut[],
   onShortcutAction: (shortcutId: string) => void
 ) => {
+  const { getActiveShortcuts } = useShortcuts();
+  const activeMap = useMemo(() => getActiveShortcuts(), [getActiveShortcuts]);
   const normalizeKey = useCallback((event: KeyboardEvent): string => {
     const modifiers: string[] = [];
     
@@ -152,7 +155,7 @@ export const useKeyboardShortcuts = (
     }
 
     // Find matching shortcut
-    const shortcut = shortcuts.find(s => s.currentKey === pressedKey);
+    const shortcut = shortcuts.find(s => (activeMap as any)[s.id] === pressedKey || s.currentKey === pressedKey);
     
     if (shortcut) {
       if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
@@ -171,7 +174,7 @@ export const useKeyboardShortcuts = (
         console.log(`❌ No shortcut found for: ${pressedKey}`);
       }
     }
-  }, [shortcuts, normalizeKey, isBrowserReserved, executeShortcut]);
+  }, [shortcuts, normalizeKey, isBrowserReserved, executeShortcut, activeMap]);
 
   useEffect(() => {
     // Use capture phase to intercept events before they reach the browser

@@ -3,6 +3,7 @@ import Modal from './Modal';
 import Button from './Button';
 import Card from './Card';
 import { KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
+import { useShortcuts, defaultShortcuts } from '../../contexts/ShortcutsContext';
 
 interface KeyboardShortcutsProps {
   isOpen: boolean;
@@ -62,6 +63,7 @@ const SUGGESTED_ALTERNATIVES = {
 };
 
 export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ isOpen, onClose }) => {
+  const { getActiveShortcuts, setShortcut, resetToDefaults } = useShortcuts();
   const [shortcuts, setShortcuts] = useState<KeyboardShortcut[]>([
     { id: 'new-chat', name: 'Nový chat', description: 'Vytvořit novou konverzaci', defaultKey: 'Ctrl+N', currentKey: 'Ctrl+N', category: 'chat' },
     { id: 'focus-composer', name: 'Zaměřit kompozitor', description: 'Přesunout kurzor do vstupního pole', defaultKey: 'Ctrl+L', currentKey: 'Ctrl+L', category: 'chat' },
@@ -90,24 +92,19 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ isOpen, on
     }
   }, [shortcuts]);
 
-  // Load saved shortcuts from localStorage
+  // Load saved shortcuts from context/localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('customShortcuts');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setShortcuts(parsed);
-      } catch (error) {
-        console.error('Failed to parse saved shortcuts:', error);
-      }
-    }
+    const active = getActiveShortcuts();
+    setShortcuts(prev => prev.map(s => ({ ...s, currentKey: active[s.id as keyof typeof active] || s.defaultKey })));
   }, []);
 
-  // Save shortcuts to localStorage whenever they change
+  // Save changes through context store when a key changes
   useEffect(() => {
-    if (shortcuts.length > 0) {
-      localStorage.setItem('customShortcuts', JSON.stringify(shortcuts));
-    }
+    const active = getActiveShortcuts();
+    shortcuts.forEach(s => {
+      const desired = s.currentKey;
+      if (active[s.id as any] !== desired) setShortcut(s.id as any, desired);
+    });
   }, [shortcuts]);
 
   // Global listener for shortcut feedback
@@ -274,8 +271,8 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ isOpen, on
   };
 
   const handleReset = () => {
-    setShortcuts(prev => prev.map(s => ({ ...s, currentKey: s.defaultKey })));
-    localStorage.removeItem('customShortcuts');
+    setShortcuts(prev => prev.map(s => ({ ...s, currentKey: (defaultShortcuts as any)[s.id] || s.defaultKey })));
+    resetToDefaults();
     setTestResults({});
     setConflicts({});
   };

@@ -885,12 +885,12 @@ Goal: Dokončit systém klávesových zkratek, uživatelská nastavení a jednot
 Tasks:
 
 21.1 Klávesové zkratky (dokončení)
-  [ ] Vytvořit `frontend/src/utils/shortcuts.ts` se seznamem výchozích zkratek (ids: `new-chat`, `focus-composer`, `send-message`, `dashboard`, `help`, `shortcuts`, `toggle-theme`, `high-contrast`).
-  [ ] Přidat `frontend/src/contexts/ShortcutsContext.tsx`:
+  [x] Vytvořit `frontend/src/utils/shortcuts.ts` se seznamem výchozích zkratek (ids: `new-chat`, `focus-composer`, `send-message`, `dashboard`, `help`, `shortcuts`, `toggle-theme`, `high-contrast`).
+  [x] Přidat `frontend/src/contexts/ShortcutsContext.tsx`:
       - perzistence do `localStorage` (klíč `eduai.shortcuts.v1`)
       - API: `getActiveShortcuts()`, `setShortcut(id, key)`, `resetToDefaults()`
   [ ] Upravit `frontend/src/hooks/useKeyboardShortcuts.ts` tak, aby četl z kontextu a odstranil nadbytečné logy; zachovat capture fázi a prevenci defaultů.
-  [ ] Napojit `frontend/src/components/ui/KeyboardShortcuts.tsx`:
+  [x] Napojit `frontend/src/components/ui/KeyboardShortcuts.tsx`:
       - živá detekce konfliktů, zvýraznění kolizí, uložení/obnovení
       - tlačítko „Obnovit výchozí“
   [ ] Integrace na stránkách:
