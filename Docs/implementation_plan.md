@@ -896,7 +896,7 @@ Tasks:
   [x] Integrace na stránkách:
       - `frontend/src/pages/chat/ChatPage.tsx` (Ctrl/Cmd+K paleta, Ctrl+L fokus, Ctrl+Enter odeslat)
       - `frontend/src/components/layout/Header.tsx` (Ctrl+/ otevřít nastavení zkratek)
-  [x] E2E (Playwright): otestovat `Ctrl+L`, `Ctrl+Enter`, `Ctrl+/` (soubor `frontend/tests/shortcuts-e2e.spec.ts`; `Ctrl+K` paleta je integrována, lze doplnit v další iteraci).
+  [x] E2E (Playwright): otestovat `Ctrl+K`, `Ctrl+L`, `Ctrl+Enter`, `Ctrl+/` (soubor `frontend/tests/shortcuts.spec.ts` a `frontend/tests/shortcuts-e2e.spec.ts`).
 
 21.2 Nastavení (UserPreferences) – dokončení
   [x] Přidat `frontend/src/contexts/SettingsContext.tsx` (sloučí preference z `ThemeContext` a `AccessibilityContext`):
