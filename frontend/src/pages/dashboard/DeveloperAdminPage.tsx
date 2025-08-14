@@ -4,6 +4,7 @@ import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
 import { api } from '../../services/apiClient';
 import SparklineStatCard from '../../components/dashboard/SparklineStatCard';
+import { useToast } from '../../contexts/ToastContext';
 import { 
   AreaChart, Area, BarChart, Bar, 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -40,6 +41,8 @@ const DeveloperAdminPage: React.FC = () => {
   });
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotificationPanel, setShowNotificationPanel] = useState(false);
+  const { showToast } = useToast();
+  const [bulkMode, setBulkMode] = useState<'apiLoop' | 'bulkEndpoint'>('apiLoop');
 
   const pageSize = 20;
 
@@ -140,24 +143,74 @@ const DeveloperAdminPage: React.FC = () => {
 
   const handleBulkAction = async (action: 'activate' | 'deactivate' | 'addCredits' | 'delete') => {
     if (selectedUsers.size === 0) return;
-    
+
+    const affectedIds = Array.from(selectedUsers);
+
     if (action === 'delete') {
-      if (!confirm(`Are you sure you want to delete ${selectedUsers.size} users?`)) return;
+      if (!confirm(`Are you sure you want to delete ${affectedIds.length} users?`)) return;
+      // Assuming hard delete; undo not available
+      // TODO: If soft delete exists, implement restore here
+      for (const userId of affectedIds) {
+        await api.delete(`/admin/users/${userId}`).catch(() => {});
+      }
+      showToast({ type: 'warning', message: `Deleted ${affectedIds.length} users. Undo is not available.` });
+      setSelectedUsers(new Set());
+      fetchUsers();
+      return;
     }
-    
+
     if (action === 'addCredits') {
-      const amount = prompt('Enter credit amount to add:');
-      if (!amount || isNaN(Number(amount))) return;
-      
-      for (const userId of selectedUsers) {
-        await api.post(`/admin/users/${userId}/credits`, { type: 'add', amount: Number(amount) });
+      const amountStr = prompt('Enter credit amount to add:');
+      const amount = Number(amountStr);
+      if (!amountStr || isNaN(amount) || amount <= 0) return;
+      if (bulkMode === 'bulkEndpoint') {
+        await api.post('/admin/users/bulk', { action: 'addCredits', user_ids: affectedIds, amount });
+      } else {
+        for (const userId of affectedIds) {
+          await api.post(`/admin/users/${userId}/credits`, { type: 'add', amount });
+        }
       }
+      showToast({
+        type: 'info',
+        message: `Added ${amount} credits to ${affectedIds.length} user(s).`,
+        actionLabel: 'Undo',
+        onAction: async () => {
+          if (bulkMode === 'bulkEndpoint') {
+            await api.post('/admin/users/bulk', { action: 'deductCredits', user_ids: affectedIds, amount }).catch(() => {});
+          } else {
+            for (const userId of affectedIds) {
+              await api.post(`/admin/users/${userId}/credits`, { type: 'deduct', amount }).catch(() => {});
+            }
+          }
+          fetchUsers();
+        },
+      });
     } else if (action === 'activate' || action === 'deactivate') {
-      for (const userId of selectedUsers) {
-        await api.put(`/admin/users/${userId}`, { is_active: action === 'activate' });
+      const newState = action === 'activate';
+      if (bulkMode === 'bulkEndpoint') {
+        await api.post('/admin/users/bulk', { action: newState ? 'activate' : 'deactivate', user_ids: affectedIds });
+      } else {
+        for (const userId of affectedIds) {
+          await api.put(`/admin/users/${userId}`, { is_active: newState });
+        }
       }
+      showToast({
+        type: 'info',
+        message: `${newState ? 'Activated' : 'Deactivated'} ${affectedIds.length} user(s).`,
+        actionLabel: 'Undo',
+        onAction: async () => {
+          if (bulkMode === 'bulkEndpoint') {
+            await api.post('/admin/users/bulk', { action: !newState ? 'activate' : 'deactivate', user_ids: affectedIds }).catch(() => {});
+          } else {
+            for (const userId of affectedIds) {
+              await api.put(`/admin/users/${userId}`, { is_active: !newState }).catch(() => {});
+            }
+          }
+          fetchUsers();
+        },
+      });
     }
-    
+
     setSelectedUsers(new Set());
     fetchUsers();
   };
@@ -512,7 +565,11 @@ const DeveloperAdminPage: React.FC = () => {
               <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
                 {selectedUsers.size} user(s) selected
               </span>
-              <div className="flex gap-2">
+                <div className="flex items-center gap-3">
+                  <label className="text-xs flex items-center gap-1">
+                    <input type="checkbox" checked={bulkMode==='bulkEndpoint'} onChange={(e)=> setBulkMode(e.target.checked ? 'bulkEndpoint' : 'apiLoop')} />
+                    Use bulk API
+                  </label>
                 <Button size="sm" variant="secondary" onClick={() => handleBulkAction('activate')}>
                   Activate
                 </Button>

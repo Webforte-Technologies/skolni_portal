@@ -277,7 +277,7 @@ const LandingPage: React.FC = () => {
         animate={{ y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex justify-between items-center h-20">
             <motion.div 
               className="flex items-center"
@@ -422,7 +422,7 @@ const LandingPage: React.FC = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <Sparkles className="h-4 w-4 text-blue-500" />
-              <span className="text-sm font-medium text-gray-300">AI‑Powered Education</span>
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">AI‑Powered Education</span>
             </motion.div>
 
             {/* Main Heading */}
@@ -466,7 +466,7 @@ const LandingPage: React.FC = () => {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:bg-gray-800 text-lg px-8 py-4"
+                  className="flex items-center gap-2 border-2 border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 text-lg px-8 py-4"
                 >
                   <Play className="h-5 w-5" />
                   Zobrazit demo
@@ -481,9 +481,9 @@ const LandingPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
             >
-              <div className="flex items-center gap-2 text-gray-300"><CheckCircle2 className="h-4 w-4 text-green-500" /> Bezplatná zkušební verze</div>
-              <div className="flex items-center gap-2 text-gray-300"><Clock className="h-4 w-4 text-blue-400" /> Nastavení za 5 minut</div>
-              <div className="flex items-center gap-2 text-gray-300"><Headphones className="h-4 w-4 text-purple-400" /> 24/7 podpora</div>
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300"><CheckCircle2 className="h-4 w-4 text-green-500" /> Bezplatná zkušební verze</div>
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300"><Clock className="h-4 w-4 text-blue-400" /> Nastavení za 5 minut</div>
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300"><Headphones className="h-4 w-4 text-purple-400" /> 24/7 podpora</div>
             </motion.div>
           </motion.div>
             </div>
@@ -583,7 +583,7 @@ const LandingPage: React.FC = () => {
                 EduAI-Asistent?
               </span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
               Kombinujeme nejmodernější AI technologie s osvědčenými pedagogickými principy
             </p>
           </motion.div>
@@ -616,10 +616,10 @@ const LandingPage: React.FC = () => {
                     </div>
                     
                     {/* Content */}
-                    <h3 className="text-xl font-bold text-surface-text mb-4 group-hover:text-blue-400 transition-colors duration-300">
+                    <h3 className="text-xl font-bold text-surface-text mb-4 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors duration-300">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-300 leading-relaxed">
+                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                       {feature.description}
                     </p>
               </div>
@@ -686,19 +686,19 @@ const LandingPage: React.FC = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-surface-text mb-4 flex items-center justify-center gap-3">
               <Zap className="h-6 w-6 text-blue-400" /> Vyzkoušejte si AI asistenta
             </h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Podívejte se, jak snadno může AI pomoci s matematickými problémy
             </p>
           </div>
           <div className="bg-surface-card/80 border border-surface-border/60 backdrop-blur-xl rounded-2xl shadow-2xl p-8 max-w-4xl mx-auto">
-            <div className="bg-neutral-800/40 rounded-xl p-6 mb-6">
+            <div className="rounded-xl p-6 mb-6 bg-neutral-100 dark:bg-neutral-800/40 border border-neutral-200 dark:border-white/10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-bold">AI</span>
                 </div>
-                <span className="text-gray-700 font-medium">Matematický Asistent</span>
+                <span className="text-neutral-800 dark:text-gray-300 font-medium">Matematický Asistent</span>
               </div>
-              <p className="text-gray-200">
+              <p className="text-neutral-700 dark:text-gray-200 leading-relaxed">
                 "Ahoj! Jsem tu, abych ti pomohl s matematikou. Můžeš mi poslat jakýkoliv matematický problém - 
                 ať už jde o rovnici, geometrii, nebo cokoliv jiného. Vysvětlím ti to krok za krokem a můžu ti 
                 i vytvořit podobné příklady na procvičení. Co bys chtěl řešit?"
@@ -740,7 +740,7 @@ const LandingPage: React.FC = () => {
               <Star className="h-8 w-8 text-yellow-500" /> Co říkají{' '}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">učitelé</span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
               Připojte se k více než 100+ školám, které už používají EduAI-Asistent
             </p>
           </motion.div>
@@ -890,7 +890,7 @@ const LandingPage: React.FC = () => {
               <Award className="h-8 w-8 text-purple-400" /> Jednoduché a{' '}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">transparentní ceny</span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
               Vyberte si plán, který nejlépe vyhovuje potřebám vaší školy
             </p>
           </motion.div>
@@ -1077,7 +1077,7 @@ const LandingPage: React.FC = () => {
                 </span>
               </h2>
               
-               <p className="text-xl text-gray-300 mb-8 leading-relaxed">
+              <p className="text-xl text-gray-700 dark:text-gray-300 mb-8 leading-relaxed">
                 Domluvte si osobní demo prezentaci s našimi specialisty. Ukážeme vám, jak může AI transformovat výuku matematiky na vaší škole.
               </p>
               
@@ -1099,7 +1099,7 @@ const LandingPage: React.FC = () => {
                     <div className="w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center flex-shrink-0">
                       <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
             </div>
-                    <span className="text-gray-700 dark:text-gray-300 text-lg">{benefit}</span>
+                    <span className="text-gray-800 dark:text-gray-300 text-lg">{benefit}</span>
                   </motion.div>
                 ))}
               </div>
@@ -1137,7 +1137,7 @@ const LandingPage: React.FC = () => {
             >
               {/* Floating Form Container */}
               <div className="relative">
-                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-3xl blur-2xl transform rotate-3 scale-105" />
+                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-3xl blur-2xl transform rotate-3 scale-105 pointer-events-none" />
                  <div className="relative bg-surface-card/90 backdrop-blur-xl rounded-3xl p-8 border border-surface-border/60 shadow-2xl">
               <LeadCaptureForm
                 type="demo"
@@ -1181,7 +1181,7 @@ const LandingPage: React.FC = () => {
         </div>
 
         {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5 dark:opacity-10">
+        <div className="absolute inset-0 opacity-5 dark:opacity-10 pointer-events-none">
           <div className="absolute inset-0" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }} />
@@ -1231,14 +1231,14 @@ const LandingPage: React.FC = () => {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl md:text-6xl font-bold text-surface-text mb-6 leading-tight">
+            <h2 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
               Připraveni{' '}
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 začít?
               </span>
           </h2>
             
-            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
             Připojte se k tisícům učitelů, kteří už transformují výuku matematiky s pomocí AI
           </p>
             
@@ -1278,17 +1278,17 @@ const LandingPage: React.FC = () => {
           </div>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap items-center justify-center gap-8 text-blue-100">
+            <div className="flex flex-wrap items-center justify-center gap-8 text-gray-700 dark:text-blue-100">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-green-500 dark:bg-green-300 rounded-full animate-pulse"></div>
                 <span>Bezplatná zkušební verze</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-blue-500 dark:bg-blue-300 rounded-full animate-pulse"></div>
                 <span>Nastavení za 5 minut</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-300 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-purple-500 dark:bg-purple-300 rounded-full animate-pulse"></div>
                 <span>24/7 podpora</span>
               </div>
             </div>
@@ -1317,7 +1317,7 @@ const LandingPage: React.FC = () => {
                   EduAI-Asistent
                 </h3>
               </div>
-              <p className="text-gray-400 text-lg leading-relaxed max-w-md">
+              <p className="text-gray-700 dark:text-gray-400 text-lg leading-relaxed max-w-md">
                 Revoluce ve matematickém vzdělávání s pomocí umělé inteligence. Transformujeme způsob, jakým se učí a učí matematiku.
               </p>
               
@@ -1343,8 +1343,8 @@ const LandingPage: React.FC = () => {
 
             {/* Quick Links */}
             <div>
-              <h4 className="font-semibold text-lg mb-6 text-white">Produkt</h4>
-              <ul className="space-y-3 text-gray-400">
+              <h4 className="font-semibold text-lg mb-6 text-gray-900 dark:text-white">Produkt</h4>
+              <ul className="space-y-3 text-gray-600 dark:text-gray-400">
                 {[
                   { name: 'Funkce', href: '#features' },
                   { name: 'Ceny', href: '#pricing' },
@@ -1356,7 +1356,7 @@ const LandingPage: React.FC = () => {
                     whileHover={{ x: 5 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
-                    <a href={link.href} className="hover:text-white transition-colors duration-300">
+                    <a href={link.href} className="hover:text-gray-900 dark:hover:text-white transition-colors duration-300">
                       {link.name}
                     </a>
                   </motion.li>
@@ -1366,8 +1366,8 @@ const LandingPage: React.FC = () => {
 
             {/* Support Links */}
             <div>
-              <h4 className="font-semibold text-lg mb-6 text-white">Podpora</h4>
-              <ul className="space-y-3 text-gray-400">
+              <h4 className="font-semibold text-lg mb-6 text-gray-900 dark:text-white">Podpora</h4>
+              <ul className="space-y-3 text-gray-600 dark:text-gray-400">
                 {[
                   { name: 'Nápověda', href: '/help' },
                   { name: 'Kontakt', href: '/contact' },
@@ -1379,7 +1379,7 @@ const LandingPage: React.FC = () => {
                     whileHover={{ x: 5 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
-                    <a href={link.href} className="hover:text-white transition-colors duration-300">
+                    <a href={link.href} className="hover:text-gray-900 dark:hover:text-white transition-colors duration-300">
                       {link.name}
                     </a>
                   </motion.li>
@@ -1391,13 +1391,13 @@ const LandingPage: React.FC = () => {
           {/* Bottom Section */}
           <div className="border-t border-gray-800 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-gray-400 text-center md:text-left">
+              <p className="text-gray-600 dark:text-gray-400 text-center md:text-left">
                 &copy; 2024 EduAI-Asistent. Všechna práva vyhrazena.
               </p>
-              <div className="flex gap-6 text-sm text-gray-400">
-                <a href="/privacy" className="hover:text-white transition-colors duration-300">Ochrana osobních údajů</a>
-                <a href="/terms" className="hover:text-white transition-colors duration-300">Podmínky použití</a>
-                <a href="/cookies" className="hover:text-white transition-colors duration-300">Cookies</a>
+              <div className="flex gap-6 text-sm text-gray-600 dark:text-gray-400">
+                <a href="/privacy" className="hover:text-gray-900 dark:hover:text-white transition-colors duration-300">Ochrana osobních údajů</a>
+                <a href="/terms" className="hover:text-gray-900 dark:hover:text-white transition-colors duration-300">Podmínky použití</a>
+                <a href="/cookies" className="hover:text-gray-900 dark:hover:text-white transition-colors duration-300">Cookies</a>
               </div>
             </div>
           </div>

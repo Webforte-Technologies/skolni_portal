@@ -93,7 +93,7 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
             />
             <div className="absolute right-3 bottom-3 text-xs text-muted-foreground flex items-center space-x-1">
               <CornerDownLeft className="h-3 w-3" />
-              <span>Send</span>
+              <span>Odeslat</span>
             </div>
             {slashOpen && (
               <SlashCommandsMenu

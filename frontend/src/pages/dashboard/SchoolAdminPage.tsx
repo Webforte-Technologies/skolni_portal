@@ -32,6 +32,7 @@ const SchoolAdminPage: React.FC = () => {
   const [schoolForm, setSchoolForm] = useState<{ name?: string; address?: string; city?: string; postal_code?: string; contact_email?: string; contact_phone?: string }>({});
   const [form, setForm] = useState<TeacherForm>({ email: '', first_name: '', last_name: '', password: '' });
   const [searchTerm, setSearchTerm] = useState('');
+  const [teacherStatus, setTeacherStatus] = useState<'active' | 'inactive' | ''>('');
   const [creditUsage, setCreditUsage] = useState<CreditUsage[]>([]);
   const [subscriptionInfo, setSubscriptionInfo] = useState<{
     plan: string;
@@ -55,7 +56,11 @@ const SchoolAdminPage: React.FC = () => {
     if (!user?.school_id) return;
     setIsLoading(true);
     try {
-      const res = await api.get<any[]>(`/schools/${user.school_id}/teachers`);
+      const params = new URLSearchParams();
+      if (searchTerm.trim()) params.set('q', searchTerm.trim());
+      if (teacherStatus) params.set('is_active', teacherStatus === 'active' ? 'true' : 'false');
+      const query = params.toString();
+      const res = await api.get<any[]>(`/schools/${user.school_id}/teachers${query ? `?${query}` : ''}`);
       if (res.data.success) {
         const teachersData = res.data.data as any[];
         setTeachers(teachersData);
@@ -227,19 +232,8 @@ const SchoolAdminPage: React.FC = () => {
     return () => clearInterval(t);
   }, []);
 
-  // Filter teachers based on search term
-  useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredTeachers(teachers);
-    } else {
-      const filtered = teachers.filter(teacher =>
-        teacher.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        teacher.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        teacher.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredTeachers(filtered);
-    }
-  }, [searchTerm, teachers]);
+  // Server-side filtering; mirror server response to filteredTeachers
+  useEffect(() => { setFilteredTeachers(teachers); }, [teachers]);
 
   const addTeacher = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -789,19 +783,38 @@ const SchoolAdminPage: React.FC = () => {
               </div>
             </form>
 
-            {/* Search Input for Teachers */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+            {/* Filters for Teachers */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <InputField
+                  name="teacher_search"
+                  label="Hledat učitele"
+                  placeholder="Jméno nebo e-mail..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-              <InputField
-                name="teacher_search"
-                label="Hledat učitele"
-                placeholder="Hledat učitele..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Stav</label>
+                <select
+                  value={teacherStatus}
+                  onChange={(e) => setTeacherStatus(e.target.value as any)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 dark:bg-neutral-800 dark:text-neutral-100"
+                >
+                  <option value="">Všichni</option>
+                  <option value="active">Aktivní</option>
+                  <option value="inactive">Neaktivní</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <Button onClick={loadTeachers} disabled={isLoading} className="w-full">
+                  Hledat
+                </Button>
+              </div>
             </div>
 
             <div className="border-t border-gray-200 dark:border-neutral-800 pt-4">

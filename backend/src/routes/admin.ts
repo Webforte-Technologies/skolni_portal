@@ -24,6 +24,7 @@ router.get('/users', async (req: RequestWithUser, res: express.Response) => {
     const offset = parseInt(String((req.query as any)['offset'] || '0'));
     const role = (req.query as any)['role'] as string | undefined;
     const schoolId = (req.query as any)['school_id'] as string | undefined;
+    const isActive = (req.query as any)['is_active'] as string | undefined;
     const q = ((req.query as any)['q'] as string | undefined)?.trim();
 
     const conditions: string[] = [];
@@ -31,6 +32,7 @@ router.get('/users', async (req: RequestWithUser, res: express.Response) => {
     let i = 1;
     if (role) { conditions.push(`u.role = $${i++}`); values.push(role); }
     if (schoolId) { conditions.push(`u.school_id = $${i++}`); values.push(schoolId); }
+    if (typeof isActive === 'string') { conditions.push(`u.is_active = $${i++}`); values.push(isActive === 'true'); }
     if (q) {
       conditions.push(`(u.email ILIKE $${i} OR u.first_name ILIKE $${i} OR u.last_name ILIKE $${i})`);
       values.push(`%${q}%`);
@@ -93,6 +95,47 @@ router.post('/users/:id/credits', async (req: RequestWithUser, res: express.Resp
     return;
   } catch (e) {
     bad(res, 500, 'Failed to adjust credits');
+    return;
+  }
+});
+
+// Bulk operations on users
+router.post('/users/bulk', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const { action, user_ids, amount } = req.body as { action: string; user_ids: string[]; amount?: number };
+    if (!Array.isArray(user_ids) || user_ids.length === 0) { bad(res, 400, 'user_ids array required'); return; }
+
+    if (action === 'activate' || action === 'deactivate') {
+      const state = action === 'activate';
+      const placeholders = user_ids.map((_, idx) => `$${idx + 2}`).join(',');
+      await pool.query(`UPDATE users SET is_active = $1 WHERE id IN (${placeholders})`, [state, ...user_ids]);
+      ok(res, { processed: user_ids.length });
+      return;
+    }
+
+    if (action === 'addCredits' || action === 'deductCredits') {
+      const amt = Number(amount);
+      if (!Number.isFinite(amt) || amt <= 0) return bad(res, 400, 'Positive amount required');
+      const finalAmount = action === 'addCredits' ? amt : amt; // model handles sign by type
+      for (const id of user_ids) {
+        await CreditTransactionModel[action === 'addCredits' ? 'addCredits' : 'deductCredits'](id, finalAmount, `Bulk ${action}`);
+      }
+      ok(res, { processed: user_ids.length });
+      return;
+    }
+
+    if (action === 'delete') {
+      // Perform soft-delete as deactivate
+      const placeholders = user_ids.map((_, idx) => `$${idx + 1}`).join(',');
+      await pool.query(`UPDATE users SET is_active = false WHERE id IN (${placeholders})`, [...user_ids]);
+      ok(res, { processed: user_ids.length });
+      return;
+    }
+
+    bad(res, 400, 'Unsupported action');
+    return;
+  } catch (e) {
+    bad(res, 500, 'Failed to run bulk operation');
     return;
   }
 });

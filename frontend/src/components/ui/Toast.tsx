@@ -7,6 +7,8 @@ export interface Toast {
   type: 'success' | 'error' | 'warning' | 'info';
   message: string;
   duration?: number;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 interface ToastProps {
@@ -39,9 +41,16 @@ const Toast: React.FC<ToastProps> = ({ toast, onRemove }) => {
         {toast.type === 'info' && <Info className="h-4 w-4" />}
         <span className="text-sm font-medium">{toast.message}</span>
       </div>
-      <button onClick={() => onRemove(toast.id)} className="ml-4 text-neutral-400 hover:text-neutral-600">
+      <div className="ml-4 flex items-center gap-2">
+        {toast.onAction && toast.actionLabel && (
+          <button onClick={toast.onAction} className="text-primary-600 hover:underline text-sm">
+            {toast.actionLabel}
+          </button>
+        )}
+        <button onClick={() => onRemove(toast.id)} className="text-neutral-400 hover:text-neutral-600">
         <X className="h-4 w-4" />
-      </button>
+        </button>
+      </div>
     </div>
   );
 };

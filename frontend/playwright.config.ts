@@ -16,10 +16,10 @@ export default defineConfig({
     video: 'off',
   },
   webServer: {
-    command: 'npm run preview:build',
+    command: process.env.PW_PREVIEW_CMD || 'npm run preview:build',
     port: 4173,
-    reuseExistingServer: false,
-    timeout: 60_000,
+    reuseExistingServer: true,
+    timeout: 120_000,
   },
   projects: [
     {

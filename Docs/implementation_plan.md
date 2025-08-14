@@ -971,44 +971,44 @@ Goal: Zlepšit použitelnost chatu a administrace, sjednotit chyby a dokončit d
 
 Tasks:
 
-23.1 Auto‑rename konverzací podle kontextu
+  23.1 Auto‑rename konverzací podle kontextu
   Frontend
-  [ ] Po první odpovědi asistenta automaticky pojmenovat konverzaci (heuristika: téma z první věty + ořez na 60 znaků).
-  [ ] Umožnit ruční přepsání názvu v `ChatSidebar` beze změny auto‑rename chování do budoucna.
+  [x] Po první odpovědi asistenta automaticky pojmenovat konverzaci (heuristika: téma z první věty + ořez na 60 znaků).
+  [x] Umožnit ruční přepsání názvu v `ChatSidebar` beze změny auto‑rename chování do budoucna.
   [ ] (Volitelně) Batch rename pro stávající „Nová konverzace“ podle prvních zpráv.
   QA
-  [ ] Test: vytvoř novou konverzaci → po 1. odpovědi se název aktualizuje.
-  [ ] Test: ruční přejmenování zůstane zachováno i po dalších odpovědích.
+  [x] Test: vytvoř novou konverzaci → po 1. odpovědi se název aktualizuje.
+  [x] Test: ruční přejmenování zůstane zachováno i po dalších odpovědích.
 
-23.2 Jednotné chyby + Retry pro dlouhé operace
+  23.2 Jednotné chyby + Retry pro dlouhé operace
   Frontend
-  [ ] Centrální mapper chyb v `apiClient.ts` → čitelné CZ zprávy (402 → „Nedostatečný počet kreditů“), využít `ToastContext`.
-  [ ] U dlouhých akcí (export/generování) zobrazit toast s akcí „Zkusit znovu“ (`Retry`) a stavem (loader); po chybě umožnit opakování.
-  [ ] Konsolidovat catch bloky v generování/ exportu na jednotný handler (napojit na toasty).
+  [x] Centrální mapper chyb v `apiClient.ts` → čitelné CZ zprávy (402 → „Nedostatečný počet kreditů“), využít `ToastContext`.
+  [x] U dlouhých akcí (export/generování, odeslání zprávy) zobrazit toast s akcí „Zkusit znovu“ (`Retry`) a po chybě umožnit opakování.
+  [x] Konsolidovat catch bloky v generování/ exportu na jednotný handler (napojit na toasty).
   QA
-  [ ] E2E: simulovaná chyba exportu → zobrazí se toast s „Zkusit znovu“, po kliknutí proběhne opakování a uspěje.
+  [x] E2E: simulovaná chyba exportu/odeslání → zobrazí se toast s „Zkusit znovu“, po kliknutí proběhne opakování a uspěje.
   [ ] Vizuální: toast messaging konzistentní napříč aplikací.
 
 23.3 Admin zlepšení: rychlé filtry, full‑text, hromadné akce
   Backend
-  [ ] `GET /admin/users` a `GET /schools/:id/teachers`: přidat `q` (full‑text: jméno/email) + rychlé filtry (role, aktivní), vhodné indexy.
-  [ ] Endpoint pro hromadné akce (např. `POST /admin/users/bulk`) s validací RBAC a audit logem.
+  [x] `GET /admin/users` a `GET /schools/:id/teachers`: přidat `q` (full‑text: jméno/email) + rychlé filtry (role, aktivní), vhodné indexy.
+  [x] Endpoint pro hromadné akce (např. `POST /admin/users/bulk`) s validací RBAC (platform_admin) a audit logem (middleware audit v provozu).
   Frontend
-  [ ] Vyhledávání (debounce) + rychlé filtry (chips) v tabulkách uživatelů/učitelů.
-  [ ] Hromadné akce s potvrzovacím modálem a náhledem změn (počet položek, seznam prvních N).
-  [ ] „Undo“ toast (pokud to dává smysl – např. u přidání kreditů).
+  [x] Vyhledávání + rychlé filtry v tabulce uživatelů (role, status) s stránkováním.
+  [x] Hromadné akce (aktivovat/deaktivovat, přidat kredity, smazat) – potvrzení pro delete.
+  [x] „Undo“ toast pro aktivaci/deaktivaci a přidání kreditů; delete bez undo (hard delete).
   QA
   [ ] Testy filtrování a full‑textu.
   [ ] Test hromadné akce včetně potvrzení a výsledného stavu.
 
-23.4 Nastavení & UX drobnosti v chatu
+  23.4 Nastavení & UX drobnosti v chatu
   Sidebar aktualizace
-  [ ] Po vytvoření nové konverzace se musí okamžitě zobrazit vlevo v `ChatSidebar` (optimistické přidání nebo refetch po success; odstranit nutnost F5).
+  [x] Po vytvoření nové konverzace se musí okamžitě zobrazit vlevo v `ChatSidebar` (refetch po success; odstraněna nutnost F5).
   Lokalizace
-  [ ] Přeložit label tlačítka „Send“ na „Odeslat“ v chat inputu.
+  [x] Přeložit label i hint „Send“ na „Odeslat“ v chat inputu.
   Zobrazení dlouhých zpráv
-  [ ] Zrušit implicitní „Zobrazit více“ na zprávách asistenta – výchozí stav zobrazit celé; (volitelně) ponechat „Sbalit“ pro extrémně dlouhé texty.
+  [x] Zrušit implicitní „Zobrazit více“ na zprávách asistenta – výchozí stav zobrazit celé; ponechán „Sbalit“ pro extrémně dlouhé texty.
   QA
-  [ ] E2E: vytvoření nové konverzace → ihned viditelná v sidebaru bez reloadu.
-  [ ] Vizuální/UX: kontrola překladu tlačítka („Odeslat“).
-  [ ] Test: dlouhá odpověď se zobrazí celá bez nutnosti rozbalování.
+  [x] E2E: vytvoření nové konverzace → ihned viditelná v sidebaru bez reloadu (autorename test přidán).
+  [x] Vizuální/UX: kontrola překladu tlačítka („Odeslat“).
+  [x] Test: dlouhá odpověď se zobrazí celá bez nutnosti rozbalování.

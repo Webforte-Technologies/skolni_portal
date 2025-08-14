@@ -83,7 +83,7 @@ const getTopicName = (topic: MathTopic) => {
 const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, copiedMessageId, onDeleteMessage, onRegenerate, showLeftAvatar = true, showRightAvatar = true }) => {
   const isUser = message.isUser;
   const isCopied = copiedMessageId === message.id;
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
 
   // Consider content "long" when above threshold to enable collapse
   const isLong = useMemo(() => (message.content?.length || 0) > 800, [message.content]);
@@ -241,7 +241,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
               size="sm"
               className="text-xs px-2 py-1"
             >
-              {isExpanded ? 'Zobrazit méně' : 'Zobrazit více'}
+              {isExpanded ? 'Sbalit' : 'Zobrazit více'}
             </Button>
           </div>
         )}

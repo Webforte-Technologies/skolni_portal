@@ -6,6 +6,7 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { generateUUID } from '../../utils/uuid';
 import { MathTopic, MathDifficulty, PracticeSession } from '../../types';
 import { api } from '../../services/apiClient';
+import { conversationService } from '../../services/conversationService';
 import { streamingService } from '../../services/streamingService';
 import ChatSidebar from '../../components/chat/ChatSidebar';
 import ChatWindow from '../../components/chat/ChatWindow';
@@ -49,6 +50,7 @@ const ChatPage: React.FC = () => {
   const [isGeneratingWorksheet, setIsGeneratingWorksheet] = useState(false);
   const [generatedWorksheet, setGeneratedWorksheet] = useState<any>(null);
   const [currentConversation, setCurrentConversation] = useState<any | null>(null);
+  const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
   const [isImageUploadOpen, setIsImageUploadOpen] = useState(false);
@@ -246,6 +248,7 @@ const ChatPage: React.FC = () => {
         setSessionId(convId);
         localStorage.setItem('chatSessionId', convId);
         localStorage.removeItem('chatMessages');
+        setSidebarRefreshKey((k) => k + 1);
       }
 
       // Stream AI response
@@ -257,14 +260,44 @@ const ChatPage: React.FC = () => {
           onChunk: (chunk) => {
             setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, content: (m.content || '') + chunk } : m));
           },
-          onEnd: ({ credits_balance }) => {
+          onEnd: async ({ credits_balance }) => {
             if (user) {
               updateUser({ ...user, credits_balance });
+            }
+            // Sidebar may need refresh after auto-rename on backend
+            setSidebarRefreshKey((k) => k + 1);
+
+            // Auto-rename conversation by heuristic after first assistant response
+            try {
+              const currentTitle: string = (currentConversation?.title || '');
+              const isDefaultTitle = /new conversation|nová konverzace/i.test(currentTitle || 'New Conversation') || currentTitle === '' || currentTitle === 'New Conversation';
+              if (isDefaultTitle && conversationId) {
+                // Derive from AI reply if available, otherwise from user's prompt
+                const aiMsg = (m => m)(messages.find((m) => m.id === aiMessageId)) as any;
+                const full = (aiMsg?.content || '') as string;
+                const basis = (full && full.trim().length > 0) ? full : userMessage.content;
+                let title = basis.replace(/\s+/g, ' ').trim();
+                const sentenceEnd = title.search(/[.!?]/);
+                if (sentenceEnd > 10) {
+                  title = title.slice(0, sentenceEnd);
+                }
+                if (title.length > 60) {
+                  title = title.slice(0, 60).trimEnd() + '…';
+                }
+                if (title.length >= 3) {
+                  await conversationService.updateConversationTitle(conversationId, title);
+                  setCurrentConversation((prev) => prev ? { ...prev, title } : prev);
+                  setSidebarRefreshKey((k) => k + 1);
+                }
+              }
+            } catch {
+              // silent; auto-rename best-effort only
             }
           },
           onError: (msg) => {
             setError(msg);
             setMessages(prev => prev.filter(m => m.id !== aiMessageId));
+            showToast({ type: 'error', message: msg || 'Nastala chyba při odeslání zprávy', actionLabel: 'Zkusit znovu', onAction: () => handleSendMessage(userMessage.content) });
           }
         }
       );
@@ -309,6 +342,7 @@ const ChatPage: React.FC = () => {
       setSessionId(conv.id);
       localStorage.setItem('chatSessionId', conv.id);
       localStorage.removeItem('chatMessages');
+      setSidebarRefreshKey((k) => k + 1);
       
       showToast({ type: 'success', message: 'Nová konverzace vytvořena!' });
     } catch (error) {
@@ -365,7 +399,7 @@ const ChatPage: React.FC = () => {
         message: `Cvičení vygenerováno! Použito ${(response.data as any).credits_used} kreditů.` 
       });
     } catch (error) {
-      showToast({ type: 'error', message: 'Nepodařilo se vygenerovat cvičení' });
+      showToast({ type: 'error', message: 'Nepodařilo se vygenerovat cvičení', actionLabel: 'Zkusit znovu', onAction: () => handleGenerateWorksheet(topic) });
     } finally {
       setIsGeneratingWorksheet(false);
     }
@@ -466,7 +500,7 @@ const ChatPage: React.FC = () => {
       showToast({ type: 'success', message: 'Konverzace byla exportována do PDF' });
     } catch (error) {
       console.error('Error exporting conversation:', error);
-      showToast({ type: 'error', message: 'Nepodařilo se exportovat konverzaci' });
+      showToast({ type: 'error', message: 'Nepodařilo se exportovat konverzaci', actionLabel: 'Zkusit znovu', onAction: handleExportConversation });
     }
   };
 
@@ -526,6 +560,7 @@ const ChatPage: React.FC = () => {
             onConversationSelect={handleConversationSelect}
             onNewConversation={startNewChat}
             selectedConversationId={currentConversation?.id}
+            refreshKey={sidebarRefreshKey}
           />
           
           {/* Sidebar - mobile drawer */}

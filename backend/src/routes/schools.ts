@@ -46,7 +46,17 @@ router.get('/:schoolId/teachers', authenticateToken, requireRole(['school_admin'
   try {
     const schoolId = ensureOwnSchool(req, res);
     if (!schoolId) return;
-    const result = await pool.query('SELECT id, email, first_name, last_name, role, is_active, created_at FROM users WHERE school_id = $1 AND role = \'teacher_school\' ORDER BY created_at DESC', [schoolId]);
+    const q = (req.query as any)['q'] as string | undefined;
+    const isActiveParam = (req.query as any)['is_active'] as string | undefined;
+    const isActive = typeof isActiveParam === 'string' ? (isActiveParam === 'true') : undefined;
+
+    const conditions: string[] = ["school_id = $1", "role = 'teacher_school'"];
+    const values: any[] = [schoolId];
+    let i = 2;
+    if (typeof isActive === 'boolean') { conditions.push(`is_active = $${i++}`); values.push(isActive); }
+    if (q && q.trim()) { conditions.push(`(email ILIKE $${i} OR first_name ILIKE $${i} OR last_name ILIKE $${i})`); values.push(`%${q.trim()}%`); i++; }
+    const sql = `SELECT id, email, first_name, last_name, role, is_active, created_at FROM users WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC`;
+    const result = await pool.query(sql, values);
     return res.status(200).json({ success: true, data: result.rows });
   } catch (error) {
     console.error('List teachers error:', error);

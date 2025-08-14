@@ -10,12 +10,14 @@ interface ChatSidebarProps {
   onConversationSelect: (conversationId: string) => void;
   onNewConversation: () => void;
   selectedConversationId?: string;
+  refreshKey?: number;
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onConversationSelect,
   onNewConversation,
-  selectedConversationId
+  selectedConversationId,
+  refreshKey
 }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   useEffect(() => {
     loadConversations();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   const loadConversations = async () => {
     try {

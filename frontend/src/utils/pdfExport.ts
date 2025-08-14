@@ -43,7 +43,7 @@ export class PDFExporter {
   }
 
   static async exportConversation(data: ConversationExportData): Promise<void> {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ compress: true, putOnlyUsedFonts: true });
     const registered = await registerCzechFonts(doc as any);
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
@@ -65,7 +65,7 @@ export class PDFExporter {
 
     // Messages
     doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(registered ? 'Inter' : 'helvetica', registered ? 'bold' : 'bold');
     doc.text('Průběh konverzace:', margin, yPosition);
     yPosition += 15;
 
@@ -78,7 +78,7 @@ export class PDFExporter {
 
       // Message header
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont(registered ? 'Inter' : 'helvetica', 'bold');
       const sender = message.isUser ? 'Uživatel' : 'AI Asistent';
       const time = this.formatTimestamp(message.timestamp);
       doc.text(`${sender} - ${time}`, margin, yPosition);
@@ -86,7 +86,7 @@ export class PDFExporter {
 
       // Message content
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont(registered ? 'Inter' : 'helvetica', 'normal');
       
       // Split content into lines that fit the page width
       const lines = doc.splitTextToSize(message.content, contentWidth);
@@ -117,7 +117,7 @@ export class PDFExporter {
   }
 
   static async exportWorksheet(data: WorksheetExportData): Promise<void> {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ compress: true, putOnlyUsedFonts: true });
     const registered = await registerCzechFonts(doc as any);
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
@@ -144,7 +144,7 @@ export class PDFExporter {
     doc.setFont(registered ? 'Inter' : 'helvetica', 'normal');
     const instructionLines = doc.splitTextToSize(data.instructions, contentWidth);
     for (const line of instructionLines) {
-      doc.text(line, margin, yPosition);
+      doc.text(line, margin, yPosition, { baseline: 'alphabetic' });
       yPosition += 5;
     }
     yPosition += 15;
