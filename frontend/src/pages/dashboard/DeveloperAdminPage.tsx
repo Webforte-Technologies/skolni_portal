@@ -101,13 +101,17 @@ const DeveloperAdminPage: React.FC = () => {
     }
   };
 
-  // Mock notifications for demo
+  // Load notifications
   useEffect(() => {
-    setNotifications([
-      { id: 1, type: 'warning', message: 'High error rate detected in API', time: '2 min ago' },
-      { id: 2, type: 'info', message: 'New school registration: Gymnasium Praha', time: '15 min ago' },
-      { id: 3, type: 'success', message: 'System backup completed successfully', time: '1 hour ago' }
-    ]);
+    const load = async () => {
+      try {
+        const res = await api.get<any>('/notifications?limit=20');
+        setNotifications(res.data.data || []);
+      } catch {}
+    };
+    load();
+    const t = setInterval(load, 60000);
+    return () => clearInterval(t);
   }, []);
 
   useEffect(() => {

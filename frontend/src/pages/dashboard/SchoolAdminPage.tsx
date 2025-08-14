@@ -6,7 +6,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
 import { api } from '../../services/apiClient';
-import { ArrowLeft, Search, CreditCard, Users, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Search, CreditCard, Users, TrendingUp, Bell } from 'lucide-react';
 
 interface TeacherForm {
   email: string;
@@ -48,6 +48,8 @@ const SchoolAdminPage: React.FC = () => {
   const [allocationAmount, setAllocationAmount] = useState('');
   const [allocationDescription, setAllocationDescription] = useState('');
   const [creditAllocation, setCreditAllocation] = useState<any>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const loadTeachers = async () => {
     if (!user?.school_id) return;
@@ -62,6 +64,13 @@ const SchoolAdminPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadNotifications = async () => {
+    try {
+      const res = await api.get<any>('/notifications?limit=20');
+      setNotifications(res.data.data || []);
+    } catch {}
   };
 
   const loadSchool = async () => {
@@ -213,6 +222,9 @@ const SchoolAdminPage: React.FC = () => {
     loadCreditUsage();
     loadSubscriptionInfo();
     loadCreditAllocation();
+    loadNotifications();
+    const t = setInterval(loadNotifications, 60000);
+    return () => clearInterval(t);
   }, []);
 
   // Filter teachers based on search term
@@ -322,7 +334,32 @@ const SchoolAdminPage: React.FC = () => {
             </Button>
             <h1 className="text-2xl font-semibold text-gray-900 dark:text-neutral-100">Správa školy</h1>
           </div>
+          <div>
+            <Button variant="secondary" onClick={() => setShowNotifications(v => !v)} className="relative">
+              <Bell className="w-5 h-5" />
+              {notifications.filter(n => !n.read_at).length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {notifications.filter(n => !n.read_at).length}
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
+        {showNotifications && (
+          <Card title="Notifikace">
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="text-sm text-neutral-600">Žádné notifikace</div>
+              ) : notifications.map((n: any) => (
+                <div key={n.id} className="p-2 border rounded-md">
+                  <div className="text-sm font-medium">{n.title || n.type}</div>
+                  <div className="text-sm text-neutral-700">{n.message}</div>
+                  <div className="text-xs text-neutral-500">{new Date(n.created_at).toLocaleString('cs-CZ')}</div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* Credit Allocation Section */}
         <Card title="Správa přidělení kreditů">
