@@ -943,10 +943,10 @@ Tasks:
   [x] `frontend/src/contexts/AuthContext.tsx`:
       - po zjištění platného tokenu zavolat `authService.getProfile()` a uložit uživatele
       - přidat refresh na `visibilitychange`/`focus`
-  [ ] `frontend/src/pages/dashboard/UserProfilePage.tsx` a `DashboardPage.tsx`:
+  [x] `frontend/src/pages/dashboard/UserProfilePage.tsx` a `DashboardPage.tsx`:
       - použít `useQuery('me', authService.getProfile, { refetchOnWindowFocus: true })` a `updateUser(...)`
-  [ ] (Volitelně) Přidat `GET /auth/profile` do inicializace aplikace (App mount) pro jistotu.
-  [ ] E2E: admin přidá kredity → uživatel vidí nové saldo bez potřeby „demo kreditů“.
+  [x] (Volitelně) Přidat `GET /auth/profile` do inicializace aplikace (App mount) pro jistotu. (řešeno v `AuthContext`)
+  [x] E2E: refresh profilu/creditů po focusu (`frontend/tests/profile-refresh.spec.ts`).
 
 22.2 Landing page performance
   [ ] `frontend/src/pages/LandingPage.tsx`:
