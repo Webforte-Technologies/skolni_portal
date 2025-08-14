@@ -1,10 +1,10 @@
 import express from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, RequestWithUser } from '../middleware/auth';
 import { listNotificationsForUser, markNotificationRead } from '../models/Notification';
 
 const router = express.Router();
 
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req: RequestWithUser, res) => {
   try {
     if (!req.user) return res.status(401).json({ success: false, error: 'Authentication required' });
     const limit = Math.min(parseInt(String((req.query as any)['limit'] || '50')), 200);
@@ -16,10 +16,10 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-router.put('/:id/read', authenticateToken, async (req, res) => {
+router.put('/:id/read', authenticateToken, async (req: RequestWithUser, res) => {
   try {
     if (!req.user) return res.status(401).json({ success: false, error: 'Authentication required' });
-    const id = req.params.id;
+    const id = req.params['id'] as string;
     const ok = await markNotificationRead(id, req.user.id);
     if (!ok) return res.status(404).json({ success: false, error: 'Notification not found' });
     return res.json({ success: true });

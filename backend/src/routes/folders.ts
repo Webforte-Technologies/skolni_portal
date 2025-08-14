@@ -1,5 +1,5 @@
-import { Router, Request, Response } from 'express';
-import { authenticateToken, requireRole } from '../middleware/auth';
+import { Router, Response } from 'express';
+import { authenticateToken, requireRole, RequestWithUser } from '../middleware/auth';
 import { FolderModel } from '../models/Folder';
 import { GeneratedFileModel } from '../models/GeneratedFile';
 import { CreateFolderRequest } from '../types/database';
@@ -7,7 +7,7 @@ import { CreateFolderRequest } from '../types/database';
 const router = Router();
 
 // Get all folders for the current user
-router.get('/', authenticateToken, async (req: Request, res: Response) => {
+router.get('/', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -36,7 +36,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Get folder hierarchy
-router.get('/hierarchy', authenticateToken, async (req: Request, res: Response) => {
+router.get('/hierarchy', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -65,7 +65,7 @@ router.get('/hierarchy', authenticateToken, async (req: Request, res: Response) 
 });
 
 // Get shared folders for a school
-router.get('/shared/:schoolId', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.get('/shared/:schoolId', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     const schoolId = req.params['schoolId'];
     
@@ -102,7 +102,7 @@ router.get('/shared/:schoolId', authenticateToken, requireRole(['school_admin', 
 });
 
 // Create a new folder
-router.post('/', authenticateToken, async (req: Request, res: Response) => {
+router.post('/', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -147,7 +147,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Update a folder
-router.put('/:folderId', authenticateToken, async (req: Request, res: Response) => {
+router.put('/:folderId', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -208,7 +208,7 @@ router.put('/:folderId', authenticateToken, async (req: Request, res: Response) 
 });
 
 // Delete a folder
-router.delete('/:folderId', authenticateToken, async (req: Request, res: Response) => {
+router.delete('/:folderId', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -267,7 +267,7 @@ router.delete('/:folderId', authenticateToken, async (req: Request, res: Respons
 });
 
 // Get materials in a folder
-router.get('/:folderId/materials', authenticateToken, async (req: Request, res: Response) => {
+router.get('/:folderId/materials', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -321,7 +321,7 @@ router.get('/:folderId/materials', authenticateToken, async (req: Request, res: 
 });
 
 // Move materials to a folder
-router.post('/:folderId/move-materials', authenticateToken, async (req: Request, res: Response) => {
+router.post('/:folderId/move-materials', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({

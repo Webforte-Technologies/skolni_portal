@@ -72,11 +72,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rate limiting
+// Rate limiting (configurable / skippable in development)
+const rateWindowMs = parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || String(15 * 60 * 1000), 10);
+const rateMax = parseInt(process.env['RATE_LIMIT_MAX_REQUESTS'] || '100', 10);
 const limiter = rateLimit({
-  windowMs: parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || String(15 * 60 * 1000), 10),
-  max: parseInt(process.env['RATE_LIMIT_MAX_REQUESTS'] || '100', 10),
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: rateWindowMs,
+  max: rateMax,
+  message: 'Too many requests from this IP, please try again later.',
+  skip: () => (process.env['NODE_ENV'] !== 'production') || rateMax <= 0,
 });
 app.use(limiter);
 

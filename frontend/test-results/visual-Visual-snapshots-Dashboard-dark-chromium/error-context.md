@@ -1,0 +1,95 @@
+# Page snapshot
+
+```yaml
+- navigation "Přeskočit navigaci":
+  - link "Přeskočit na hlavní obsah":
+    - /url: "#main-content"
+  - link "Přeskočit na navigaci":
+    - /url: "#navigation"
+- main "Hlavní obsah":
+  - link "EduAI-Asistent":
+    - /url: /dashboard
+    - heading "EduAI-Asistent" [level=1]
+  - button "Notifikace":
+    - img
+  - button "Klávesové zkratky":
+    - img
+  - button "Nápověda":
+    - img
+  - button "Nastavení":
+    - img
+  - link "Vytvořit materiál":
+    - /url: /materials/create
+  - button "Toggle theme":
+    - img
+  - link "Dashboard":
+    - /url: /dashboard
+    - img
+  - img
+  - text: Test User
+  - button "Odhlásit se":
+    - img
+    - text: Odhlásit se
+  - main:
+    - heading "Vítejte zpět!" [level=1]
+    - paragraph: Vyberte si AI asistenta nebo začněte nový chat. Materiály, cvičení a výpočty na jednom místě.
+    - img
+    - text: 100 dostupné kredity
+    - button "Začít nový chat":
+      - img
+      - text: Začít nový chat
+    - link "Materiály":
+      - /url: /materials
+      - button "Materiály":
+        - img
+        - text: Materiály
+    - link "Chat s AI":
+      - /url: /chat
+      - button "Chat s AI":
+        - img
+        - text: Chat s AI
+    - link "Materiály":
+      - /url: /materials
+      - button "Materiály":
+        - img
+        - text: Materiály
+    - link "Sdílené materiály":
+      - /url: /materials/shared
+      - button "Sdílené materiály":
+        - img
+        - text: Sdílené materiály
+    - heading "AI Asistenti" [level=3]
+    - img
+    - heading "AI Asistenti" [level=3]
+    - paragraph: Vyberte si asistenta podle vašich potřeb
+    - img
+    - text: Načítání asistentů...
+    - heading "Vaše kredity" [level=3]
+    - text: 100 dostupné kreditů Každá zpráva stojí 1 kredit
+    - button "+ Přidat 100 Demo Kreditů":
+      - img
+      - text: + Přidat 100 Demo Kreditů
+    - heading "Informace o účtu" [level=3]
+    - img
+    - heading "Informace o účtu" [level=3]
+    - button:
+      - img
+    - text: TU
+    - paragraph: Test User
+    - paragraph: test@example.com
+    - separator
+    - img
+    - paragraph: Invalid Date
+    - paragraph: Člen od
+    - heading "Rychlé statistiky" [level=3]
+    - img
+    - heading "Rychlé statistiky" [level=3]
+    - text: Dostupné kredity 100 Dostupné asistenty 0 Status účtu
+    - img
+    - text: Aktivní Týdenní aktivita 42
+    - img
+    - text: Počet zpráv 128
+    - img
+    - text: Vytvořená cvičení 8
+    - img
+```

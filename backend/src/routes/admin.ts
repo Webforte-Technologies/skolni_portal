@@ -1,6 +1,6 @@
 import express from 'express';
 import pool from '../database/connection';
-import { authenticateToken, requireRole } from '../middleware/auth';
+import { authenticateToken, requireRole, RequestWithUser } from '../middleware/auth';
 import { auditLoggerForAdmin } from '../middleware/audit';
 import { getMetricsSnapshot } from '../middleware/metrics';
 import { CreditTransactionModel } from '../models/CreditTransaction';
@@ -18,7 +18,7 @@ const ok = (res: express.Response, data: any) => res.status(200).json({ success:
 const bad = (res: express.Response, code: number, error: string, details?: any) => res.status(code).json({ success: false, error, details });
 
 // Users listing with filters
-router.get('/users', async (req, res) => {
+router.get('/users', async (req: RequestWithUser, res: express.Response) => {
   try {
     const limit = Math.min(parseInt(String((req.query as any)['limit'] || '50')), 200);
     const offset = parseInt(String((req.query as any)['offset'] || '0'));
@@ -56,9 +56,9 @@ router.get('/users', async (req, res) => {
 });
 
 // Update user (role, is_active)
-router.put('/users/:id', async (req, res) => {
+router.put('/users/:id', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const id = req.params.id;
+    const id = req.params['id'] as string;
     const { role, is_active } = req.body as { role?: string; is_active?: boolean };
     const allowedRoles = ['platform_admin','school_admin','teacher_school','teacher_individual'];
     const updates: string[] = [];
@@ -81,14 +81,14 @@ router.put('/users/:id', async (req, res) => {
 });
 
 // Credit operations
-router.post('/users/:id/credits', async (req, res) => {
+router.post('/users/:id/credits', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const id = req.params.id;
+    const id = req.params['id'] as string;
     const { type, amount, description } = req.body as { type: 'add'|'deduct'; amount: number; description?: string };
     if (!['add','deduct'].includes(type)) return bad(res, 400, 'Invalid type');
     const amt = Number(amount);
     if (!Number.isFinite(amt) || amt <= 0) return bad(res, 400, 'Amount must be positive');
-    const tx = type === 'add' ? await CreditTransactionModel.addCredits(id, amt, description) : await CreditTransactionModel.deductCredits(id, amt, description);
+    const tx = type === 'add' ? await CreditTransactionModel.addCredits(id as string, amt, description) : await CreditTransactionModel.deductCredits(id as string, amt, description);
     ok(res, tx);
     return;
   } catch (e) {
@@ -98,7 +98,7 @@ router.post('/users/:id/credits', async (req, res) => {
 });
 
 // Schools list
-router.get('/schools', async (req, res) => {
+router.get('/schools', async (req: RequestWithUser, res: express.Response) => {
   try {
     const limit = Math.min(parseInt(String((req.query as any)['limit'] || '50')), 200);
     const offset = parseInt(String((req.query as any)['offset'] || '0'));
@@ -126,7 +126,7 @@ router.get('/schools', async (req, res) => {
 });
 
 // System health
-router.get('/system/health', async (_req, res) => {
+router.get('/system/health', async (_req: RequestWithUser, res: express.Response) => {
   try {
     const before = Date.now();
     const dbRes = await pool.query('SELECT 1');
@@ -145,7 +145,7 @@ router.get('/system/health', async (_req, res) => {
   }
 });
 
-router.get('/system/metrics', async (_req, res) => {
+router.get('/system/metrics', async (_req: RequestWithUser, res: express.Response) => {
   try {
     ok(res, getMetricsSnapshot());
   } catch (e) {
@@ -154,7 +154,7 @@ router.get('/system/metrics', async (_req, res) => {
 });
 
 // Audit logs
-router.get('/audit-logs', async (req, res) => {
+router.get('/audit-logs', async (req: RequestWithUser, res: express.Response) => {
   try {
     const limit = Math.min(parseInt(String((req.query as any)['limit'] || '50')), 200);
     const offset = parseInt(String((req.query as any)['offset'] || '0'));
@@ -185,7 +185,7 @@ router.get('/audit-logs', async (req, res) => {
 });
 
 // Moderation
-router.get('/moderation/queue', async (req, res) => {
+router.get('/moderation/queue', async (req: RequestWithUser, res: express.Response) => {
   try {
     const status = ((req.query as any)['status'] as 'pending'|'approved'|'rejected') || 'pending';
     const limit = Math.min(parseInt(String((req.query as any)['limit'] || '50')), 200);
@@ -197,15 +197,15 @@ router.get('/moderation/queue', async (req, res) => {
   }
 });
 
-router.post('/moderation/:id/decision', async (req, res) => {
+router.post('/moderation/:id/decision', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const id = req.params.id;
+    const id = req.params['id'] as string;
     const { status, notes, quality_score } = req.body as { status: 'approved'|'rejected'; notes?: string | undefined; quality_score?: number | undefined };
     if (!['approved','rejected'].includes(status)) return bad(res, 400, 'Invalid status');
     const payload: { status: 'approved'|'rejected'; notes?: string; quality_score?: number } = { status };
     if (notes !== undefined) payload.notes = notes;
     if (quality_score !== undefined) payload.quality_score = quality_score;
-    const updated = await GeneratedFileModel.setModerationDecision(id, payload, req.user!.id);
+    const updated = await GeneratedFileModel.setModerationDecision(id as string, payload, req.user!.id);
     ok(res, updated);
     return;
   } catch (e) {
@@ -215,7 +215,7 @@ router.post('/moderation/:id/decision', async (req, res) => {
 });
 
 // Quality metrics (basic aggregates)
-router.get('/quality/metrics', async (_req, res) => {
+router.get('/quality/metrics', async (_req: RequestWithUser, res: express.Response) => {
   try {
     const counts = (await pool.query(`
       SELECT moderation_status, COUNT(*) as count
@@ -254,7 +254,7 @@ router.get('/quality/metrics', async (_req, res) => {
 });
 
 // Subscriptions CRUD (basic)
-router.get('/subscriptions', async (req, res) => {
+router.get('/subscriptions', async (req: RequestWithUser, res: express.Response) => {
   try {
     const userId = (req.query as any)['user_id'] as string | undefined;
     const where = userId ? 'WHERE user_id = $1' : '';
@@ -266,7 +266,7 @@ router.get('/subscriptions', async (req, res) => {
   }
 });
 
-router.post('/subscriptions', async (req, res) => {
+router.post('/subscriptions', async (req: RequestWithUser, res: express.Response) => {
   try {
     const { user_id, plan_type, credits_per_month, price_per_month, start_date, end_date, auto_renew } = req.body;
     const row = (await pool.query(
@@ -280,9 +280,9 @@ router.post('/subscriptions', async (req, res) => {
   }
 });
 
-router.put('/subscriptions/:id', async (req, res) => {
+router.put('/subscriptions/:id', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const id = req.params.id;
+    const id = req.params['id'] as string;
     const allowed = ['plan_type','status','credits_per_month','price_per_month','end_date','auto_renew'];
     const updates: string[] = [];
     const vals: any[] = [];
@@ -301,9 +301,9 @@ router.put('/subscriptions/:id', async (req, res) => {
   }
 });
 
-router.delete('/subscriptions/:id', async (req, res) => {
+router.delete('/subscriptions/:id', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const id = req.params.id;
+    const id = req.params['id'] as string;
     await pool.query('DELETE FROM subscriptions WHERE id = $1', [id]);
     ok(res, { deleted: true });
   } catch (e) {
@@ -312,20 +312,20 @@ router.delete('/subscriptions/:id', async (req, res) => {
 });
 
 // Feature flags
-router.get('/feature-flags', async (_req, res) => {
+router.get('/feature-flags', async (_req: RequestWithUser, res: express.Response) => {
   try { ok(res, await FeatureFlagModel.list()); } catch { bad(res, 500, 'Failed to list flags'); }
 });
-router.put('/feature-flags/:key', async (req, res) => {
+router.put('/feature-flags/:key', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const key = req.params.key; const { value, description } = req.body as { value: boolean; description?: string };
+    const key = req.params['key'] as string; const { value, description } = req.body as { value: boolean; description?: string };
     if (typeof value !== 'boolean') return bad(res, 400, 'value must be boolean');
-    ok(res, await FeatureFlagModel.set(key, value, description));
+    ok(res, await FeatureFlagModel.set(key as string, value, description));
     return;
   } catch (e) { bad(res, 500, 'Failed to set flag'); return; }
 });
 
 // Developer tools
-router.get('/docs', async (_req, res) => {
+router.get('/docs', async (_req: RequestWithUser, res: express.Response) => {
   ok(res, {
     info: 'Admin API docs',
     base: '/api/admin',
@@ -343,10 +343,10 @@ router.get('/docs', async (_req, res) => {
   });
 });
 
-router.get('/ping', (_req, res) => ok(res, { pong: true, now: new Date().toISOString() }));
+router.get('/ping', (_req: RequestWithUser, res: express.Response) => ok(res, { pong: true, now: new Date().toISOString() }));
 
 // Credits analytics
-router.get('/credits/analytics', async (_req, res) => {
+router.get('/credits/analytics', async (_req: RequestWithUser, res: express.Response) => {
   try {
     const totalBalance = (await pool.query(`SELECT COALESCE(SUM(credits_balance), 0) AS sum FROM users`)).rows[0].sum;
     const totalPurchased = (await pool.query(`SELECT COALESCE(SUM(amount), 0) AS sum FROM credit_transactions WHERE transaction_type = 'purchase'`)).rows[0].sum;

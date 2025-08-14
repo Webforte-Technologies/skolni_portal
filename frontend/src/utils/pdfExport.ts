@@ -44,7 +44,7 @@ export class PDFExporter {
 
   static async exportConversation(data: ConversationExportData): Promise<void> {
     const doc = new jsPDF();
-    registerCzechFonts(doc as any);
+    const registered = await registerCzechFonts(doc as any);
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
@@ -52,12 +52,12 @@ export class PDFExporter {
 
     // Header
     doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(registered ? 'Inter' : 'helvetica', registered ? 'bold' : 'bold');
     doc.text('Konverzace s AI Asistentem', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 15;
 
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(registered ? 'Inter' : 'helvetica', 'normal');
     doc.text(`Téma: ${data.title}`, margin, yPosition);
     yPosition += 10;
     doc.text(`Datum: ${this.formatDate(data.date)}`, margin, yPosition);
@@ -118,7 +118,7 @@ export class PDFExporter {
 
   static async exportWorksheet(data: WorksheetExportData): Promise<void> {
     const doc = new jsPDF();
-    registerCzechFonts(doc as any);
+    const registered = await registerCzechFonts(doc as any);
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
     const contentWidth = pageWidth - (margin * 2);
@@ -126,7 +126,7 @@ export class PDFExporter {
 
     // Header
     doc.setFontSize(20);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(registered ? 'Inter' : 'helvetica', 'bold');
     doc.text('Matematické cvičení', pageWidth / 2, yPosition, { align: 'center' });
     yPosition += 15;
 
@@ -136,12 +136,12 @@ export class PDFExporter {
 
     // Instructions
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont(registered ? 'Inter' : 'helvetica', 'bold');
     doc.text('Instrukce:', margin, yPosition);
     yPosition += 10;
 
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(registered ? 'Inter' : 'helvetica', 'normal');
     const instructionLines = doc.splitTextToSize(data.instructions, contentWidth);
     for (const line of instructionLines) {
       doc.text(line, margin, yPosition);
@@ -220,7 +220,7 @@ export class PDFExporter {
 
       const imgData = canvas.toDataURL('image/png');
       const doc = new jsPDF();
-      registerCzechFonts(doc as any);
+      await registerCzechFonts(doc as any);
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       

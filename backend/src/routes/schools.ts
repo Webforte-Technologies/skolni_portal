@@ -1,12 +1,12 @@
 import express from 'express';
-import { authenticateToken, requireRole } from '../middleware/auth';
+import { authenticateToken, requireRole, RequestWithUser } from '../middleware/auth';
 import pool from '../database/connection';
 import { UserModel } from '../models/User';
 
 const router = express.Router();
 
 // Get school details (admin only)
-router.get('/:schoolId', authenticateToken, requireRole(['school_admin']), async (req, res) => {
+router.get('/:schoolId', authenticateToken, requireRole(['school_admin']), async (req: RequestWithUser, res) => {
   try {
     const schoolId = ensureOwnSchool(req, res);
     if (!schoolId) return;
@@ -20,7 +20,7 @@ router.get('/:schoolId', authenticateToken, requireRole(['school_admin']), async
 });
 
 // Update school details (admin only)
-router.put('/:schoolId', authenticateToken, requireRole(['school_admin']), async (req, res) => {
+router.put('/:schoolId', authenticateToken, requireRole(['school_admin']), async (req: RequestWithUser, res) => {
   try {
     const schoolId = ensureOwnSchool(req, res);
     if (!schoolId) return;
@@ -42,7 +42,7 @@ router.put('/:schoolId', authenticateToken, requireRole(['school_admin']), async
 });
 
 // Get teachers for a school (admin only)
-router.get('/:schoolId/teachers', authenticateToken, requireRole(['school_admin']), async (req, res) => {
+router.get('/:schoolId/teachers', authenticateToken, requireRole(['school_admin']), async (req: RequestWithUser, res) => {
   try {
     const schoolId = ensureOwnSchool(req, res);
     if (!schoolId) return;
@@ -55,7 +55,7 @@ router.get('/:schoolId/teachers', authenticateToken, requireRole(['school_admin'
 });
 
 // Add a teacher to a school (admin only)
-router.post('/:schoolId/teachers', authenticateToken, requireRole(['school_admin']), async (req, res) => {
+router.post('/:schoolId/teachers', authenticateToken, requireRole(['school_admin']), async (req: RequestWithUser, res) => {
   try {
     const schoolId = ensureOwnSchool(req, res);
     if (!schoolId) return;
@@ -85,7 +85,7 @@ router.post('/:schoolId/teachers', authenticateToken, requireRole(['school_admin
 });
 
 // Remove/deactivate a teacher (admin only)
-router.delete('/:schoolId/teachers/:userId', authenticateToken, requireRole(['school_admin']), async (req, res) => {
+router.delete('/:schoolId/teachers/:userId', authenticateToken, requireRole(['school_admin']), async (req: RequestWithUser, res) => {
   try {
     const schoolId = ensureOwnSchool(req, res);
     if (!schoolId) return;
@@ -117,7 +117,7 @@ router.delete('/:schoolId/teachers/:userId', authenticateToken, requireRole(['sc
 });
 
 // Add credits to school (admin only) - Demo/Paywall function
-router.post('/:schoolId/add-credits', authenticateToken, requireRole(['school_admin']), async (req, res) => {
+router.post('/:schoolId/add-credits', authenticateToken, requireRole(['school_admin']), async (req: RequestWithUser, res) => {
   try {
     const schoolId = ensureOwnSchool(req, res);
     if (!schoolId) return;
@@ -240,7 +240,7 @@ router.post('/:schoolId/add-credits', authenticateToken, requireRole(['school_ad
 });
 
 // Allocate credits to a specific teacher (admin only)
-router.post('/:schoolId/allocate-credits', authenticateToken, requireRole(['school_admin']), async (req, res) => {
+router.post('/:schoolId/allocate-credits', authenticateToken, requireRole(['school_admin']), async (req: RequestWithUser, res) => {
   try {
     const schoolId = ensureOwnSchool(req, res);
     if (!schoolId) return;
@@ -381,7 +381,7 @@ router.post('/:schoolId/allocate-credits', authenticateToken, requireRole(['scho
 });
 
 // Get credit allocation status for school (admin only)
-router.get('/:schoolId/credit-allocation', authenticateToken, requireRole(['school_admin']), async (req, res) => {
+router.get('/:schoolId/credit-allocation', authenticateToken, requireRole(['school_admin']), async (req: RequestWithUser, res) => {
   try {
     const schoolId = ensureOwnSchool(req, res);
     if (!schoolId) return;
@@ -437,7 +437,7 @@ router.get('/:schoolId/credit-allocation', authenticateToken, requireRole(['scho
 });
 
 // Get school credit statistics (admin only)
-router.get('/:schoolId/credit-stats', authenticateToken, requireRole(['school_admin']), async (req, res) => {
+router.get('/:schoolId/credit-stats', authenticateToken, requireRole(['school_admin']), async (req: RequestWithUser, res) => {
   try {
     const schoolId = ensureOwnSchool(req, res);
     if (!schoolId) return;
@@ -524,7 +524,7 @@ router.get('/:schoolId/credit-stats', authenticateToken, requireRole(['school_ad
 });
 
 // Helper to ensure the requester can only manage their own school
-const ensureOwnSchool = (req: any, res: any): string | null => {
+const ensureOwnSchool = (req: RequestWithUser, res: express.Response): string | null => {
   const { schoolId } = req.params;
   if (!schoolId) {
     res.status(400).json({ success: false, error: 'School ID is required' });

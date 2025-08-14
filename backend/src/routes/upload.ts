@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, RequestWithUser } from '../middleware/auth';
 import { createWorker } from 'tesseract.js';
 import path from 'path';
 import fs from 'fs';
@@ -38,7 +38,7 @@ const upload = multer({
 });
 
 // Image upload endpoint
-router.post('/image', authenticateToken, upload.single('image'), async (req: Request, res: Response) => {
+router.post('/image', authenticateToken, upload.single('image'), async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -77,7 +77,7 @@ router.post('/image', authenticateToken, upload.single('image'), async (req: Req
 });
 
 // OCR processing endpoint
-router.post('/ocr/process', authenticateToken, async (req: Request, res: Response) => {
+router.post('/ocr/process', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({

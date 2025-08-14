@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, RequestWithUser } from '../middleware/auth';
 import { CreditTransactionModel } from '../models/CreditTransaction';
 import { UserModel } from '../models/User';
 import { ConversationModel } from '../models/Conversation';
@@ -191,7 +191,7 @@ const validateChatMessage = [
 ];
 
 // Send message to AI assistant (live OpenAI implementation)
-router.post('/chat', authenticateToken, validateChatMessage, async (req: Request, res: Response) => {
+router.post('/chat', authenticateToken, validateChatMessage, async (req: RequestWithUser, res: Response) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -347,7 +347,7 @@ router.post('/chat', authenticateToken, validateChatMessage, async (req: Request
 });
 
 // Get AI usage statistics
-router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
+router.get('/stats', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -450,7 +450,7 @@ router.post('/generate-worksheet', authenticateToken, [
   body('question_count').optional().isInt({ min: 5, max: 100 }),
   body('difficulty').optional().isString().isLength({ max: 20 }),
   body('teaching_style').optional().isString().isLength({ max: 50 })
-], async (req: Request, res: Response) => {
+], async (req: RequestWithUser, res: Response) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -610,7 +610,7 @@ router.post('/generate-lesson-plan', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
-], async (req: Request, res: Response) => {
+], async (req: RequestWithUser, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -690,7 +690,7 @@ router.post('/generate-quiz', authenticateToken, [
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
   body('question_count').optional().isInt({ min: 5, max: 100 })
-], async (req: Request, res: Response) => {
+], async (req: RequestWithUser, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) { res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() }); return; }
@@ -762,7 +762,7 @@ router.post('/generate-project', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
-], async (req: Request, res: Response) => {
+], async (req: RequestWithUser, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) { res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() }); return; }
@@ -834,7 +834,7 @@ router.post('/generate-presentation', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
-], async (req: Request, res: Response) => {
+], async (req: RequestWithUser, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) { res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() }); return; }
@@ -907,7 +907,7 @@ router.post('/generate-activity', authenticateToken, [
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
   body('duration').optional().isLength({ min: 2, max: 20 }),
-], async (req: Request, res: Response) => {
+], async (req: RequestWithUser, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) { res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() }); return; }

@@ -1,11 +1,11 @@
-import { Router, Request, Response } from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { Router, Response } from 'express';
+import { authenticateToken, RequestWithUser } from '../middleware/auth';
 import { GeneratedFileModel } from '../models/GeneratedFile';
 
 const router = Router();
 
 // Create a new generated file/material
-router.post('/', authenticateToken, async (req: Request, res: Response) => {
+router.post('/', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -58,7 +58,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Get all generated files for the current user
-router.get('/', authenticateToken, async (req: Request, res: Response) => {
+router.get('/', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -118,7 +118,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Get file statistics for the current user
-router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
+router.get('/stats', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -148,7 +148,7 @@ router.get('/stats', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // AI-powered search with relevance scoring
-router.get('/search/ai', authenticateToken, async (req: Request, res: Response) => {
+router.get('/search/ai', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -200,7 +200,7 @@ router.get('/search/ai', authenticateToken, async (req: Request, res: Response) 
 });
 
 // Get content recommendations
-router.get('/recommendations', authenticateToken, async (req: Request, res: Response) => {
+router.get('/recommendations', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -233,7 +233,7 @@ router.get('/recommendations', authenticateToken, async (req: Request, res: Resp
 });
 
 // Get content analytics
-router.get('/analytics/content', authenticateToken, async (req: Request, res: Response) => {
+router.get('/analytics/content', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -262,7 +262,7 @@ router.get('/analytics/content', authenticateToken, async (req: Request, res: Re
 });
 
 // Get files with AI categorization
-router.get('/categorized', authenticateToken, async (req: Request, res: Response) => {
+router.get('/categorized', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -302,7 +302,7 @@ router.get('/categorized', authenticateToken, async (req: Request, res: Response
 });
 
 // Get a specific file by ID
-router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
+router.get('/:id', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -353,7 +353,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Delete a file by ID
-router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
+router.delete('/:id', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -405,7 +405,7 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
 });
 
 // Update AI metadata for a file
-router.put('/:id/ai-metadata', authenticateToken, async (req: Request, res: Response) => {
+router.put('/:id/ai-metadata', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({

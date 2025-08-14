@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { UserModel } from '../models/User';
 import { CreditTransactionModel } from '../models/CreditTransaction';
-import { generateToken, authenticateToken } from '../middleware/auth';
+import { generateToken, authenticateToken, RequestWithUser } from '../middleware/auth';
 import pool from '../database/connection';
 import { CreateUserRequest, LoginRequest, AuthResponse, CreateSchoolRequest, User } from '../types/database';
 
@@ -220,7 +220,7 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
 });
 
 // Get current user profile
-router.get('/profile', authenticateToken, async (req: Request, res: Response) => {
+router.get('/profile', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -252,7 +252,7 @@ router.put('/profile', authenticateToken, [
   body('first_name').optional().trim().isLength({ min: 2 }).withMessage('First name must be at least 2 characters'),
   body('last_name').optional().trim().isLength({ min: 2 }).withMessage('Last name must be at least 2 characters'),
   body('school_id').optional().isUUID().withMessage('Invalid school ID format')
-], async (req: Request, res: Response) => {
+], async (req: RequestWithUser, res: Response) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -297,7 +297,7 @@ router.put('/profile', authenticateToken, [
 router.put('/change-password', authenticateToken, [
   body('current_password').notEmpty().withMessage('Current password is required'),
   body('new_password').isLength({ min: 8 }).withMessage('New password must be at least 8 characters long')
-], async (req: Request, res: Response) => {
+], async (req: RequestWithUser, res: Response) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -366,7 +366,7 @@ router.put('/change-password', authenticateToken, [
 });
 
 // Add demo credits endpoint
-router.post('/me/add-credits', authenticateToken, async (req: Request, res: Response) => {
+router.post('/me/add-credits', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({

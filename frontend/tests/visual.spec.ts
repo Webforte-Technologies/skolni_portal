@@ -2,6 +2,10 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Visual snapshots', () => {
   test('Dashboard light', async ({ page }) => {
+    await page.route('**/auth/profile', async (route) => {
+      const user = { id: 'u1', email: 'test@example.com', first_name: 'Test', last_name: 'User', credits_balance: 100, is_active: true, created_at: '', updated_at: '', role: 'teacher_school' };
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: user }) });
+    });
     await page.addInitScript(() => {
       localStorage.setItem('authToken', 'e2e-token');
       localStorage.setItem('user', JSON.stringify({
@@ -15,6 +19,10 @@ test.describe('Visual snapshots', () => {
   });
 
   test('Dashboard dark', async ({ page }) => {
+    await page.route('**/auth/profile', async (route) => {
+      const user = { id: 'u1', email: 'test@example.com', first_name: 'Test', last_name: 'User', credits_balance: 100, is_active: true, created_at: '', updated_at: '', role: 'teacher_school' };
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: user }) });
+    });
     await page.addInitScript(() => {
       localStorage.setItem('authToken', 'e2e-token');
       localStorage.setItem('user', JSON.stringify({
@@ -29,6 +37,10 @@ test.describe('Visual snapshots', () => {
   });
 
   test('Chat light', async ({ page }) => {
+    await page.route('**/auth/profile', async (route) => {
+      const user = { id: 'u1', email: 'test@example.com', first_name: 'Test', last_name: 'User', credits_balance: 100, is_active: true, created_at: '', updated_at: '', role: 'teacher_school' };
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: user }) });
+    });
     await page.addInitScript(() => {
       localStorage.setItem('authToken', 'e2e-token');
       localStorage.setItem('user', JSON.stringify({
@@ -42,6 +54,10 @@ test.describe('Visual snapshots', () => {
   });
 
   test('Chat dark', async ({ page }) => {
+    await page.route('**/auth/profile', async (route) => {
+      const user = { id: 'u1', email: 'test@example.com', first_name: 'Test', last_name: 'User', credits_balance: 100, is_active: true, created_at: '', updated_at: '', role: 'teacher_school' };
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: user }) });
+    });
     await page.addInitScript(() => {
       localStorage.setItem('authToken', 'e2e-token');
       localStorage.setItem('user', JSON.stringify({

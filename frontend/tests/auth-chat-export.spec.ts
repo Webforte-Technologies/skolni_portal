@@ -2,6 +2,13 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Auth → Chat → Export flow', () => {
   test('login mock → chat page loads → export button disabled/enabled', async ({ page }) => {
+    await page.route('**/auth/profile', async (route) => {
+      const user = {
+        id: 'u1', email: 'teacher@example.com', first_name: 'Test', last_name: 'Učitel',
+        credits_balance: 100, is_active: true, created_at: '', updated_at: '', role: 'teacher_school'
+      };
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: user }) });
+    });
     // Seed auth in localStorage (mock login)
     await page.addInitScript(() => {
       localStorage.setItem('authToken', 'e2e-token');

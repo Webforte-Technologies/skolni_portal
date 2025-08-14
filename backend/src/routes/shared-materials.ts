@@ -1,12 +1,12 @@
-import { Router, Request, Response } from 'express';
-import { authenticateToken, requireRole } from '../middleware/auth';
+import { Router, Response } from 'express';
+import { authenticateToken, requireRole, RequestWithUser } from '../middleware/auth';
 import { SharedMaterialModel } from '../models/SharedMaterial';
 import pool from '../database/connection';
 
 const router = Router();
 
 // Share a material
-router.post('/share', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.post('/share', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     console.log('🔗 Share material called by user:', req.user?.id, 'role:', req.user?.role, 'school:', req.user?.school_id);
     console.log('🔗 Share request body:', req.body);
@@ -72,7 +72,7 @@ router.post('/share', authenticateToken, requireRole(['school_admin', 'teacher_s
 });
 
 // Get all shared materials in the user's school (including their own) - MUST COME FIRST!
-router.get('/browse', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.get('/browse', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     console.log('🔍 Browse shared materials called by user:', req.user?.id, 'role:', req.user?.role, 'school:', req.user?.school_id);
     
@@ -149,7 +149,7 @@ router.get('/browse', authenticateToken, requireRole(['school_admin', 'teacher_s
 });
 
 // Get shared materials for the current user's school
-router.get('/my-school', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.get('/my-school', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -184,7 +184,7 @@ router.get('/my-school', authenticateToken, requireRole(['school_admin', 'teache
 });
 
 // Get shared materials for a specific school (for admins or cross-school access)
-router.get('/school/:schoolId', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.get('/school/:schoolId', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     const schoolId = req.params['schoolId'];
     const folderId = req.query['folder_id'] as string | undefined;
@@ -224,7 +224,7 @@ router.get('/school/:schoolId', authenticateToken, requireRole(['school_admin', 
 
 
 // DEBUG: Get all shared materials (for testing purposes)
-router.get('/debug/all', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.get('/debug/all', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     console.log('🔍 DEBUG: Get all shared materials called by user:', req.user?.id, 'role:', req.user?.role, 'school:', req.user?.school_id);
     
@@ -269,7 +269,7 @@ router.get('/debug/all', authenticateToken, requireRole(['school_admin', 'teache
 });
 
 // Get shared materials by the current user
-router.get('/my-shared', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.get('/my-shared', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -298,7 +298,7 @@ router.get('/my-shared', authenticateToken, requireRole(['school_admin', 'teache
 });
 
 // Unshare a material
-router.delete('/unshare/:materialId', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.delete('/unshare/:materialId', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -347,7 +347,7 @@ router.delete('/unshare/:materialId', authenticateToken, requireRole(['school_ad
 });
 
 // Update sharing settings
-router.put('/:materialId/settings', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.put('/:materialId/settings', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -402,7 +402,7 @@ router.put('/:materialId/settings', authenticateToken, requireRole(['school_admi
 });
 
 // Search shared materials
-router.get('/search/:schoolId', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.get('/search/:schoolId', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     const schoolId = req.params['schoolId'];
     const { q: searchTerm, folder_id } = req.query;
@@ -451,7 +451,7 @@ router.get('/search/:schoolId', authenticateToken, requireRole(['school_admin', 
 });
 
 // Get sharing statistics for a school
-router.get('/stats/:schoolId', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: Request, res: Response) => {
+router.get('/stats/:schoolId', authenticateToken, requireRole(['school_admin', 'teacher_school']), async (req: RequestWithUser, res: Response) => {
   try {
     const schoolId = req.params['schoolId'];
     
@@ -488,7 +488,7 @@ router.get('/stats/:schoolId', authenticateToken, requireRole(['school_admin', '
 });
 
 // Get community statistics
-router.get('/community-stats', authenticateToken, async (req: Request, res: Response) => {
+router.get('/community-stats', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -515,7 +515,7 @@ router.get('/community-stats', authenticateToken, async (req: Request, res: Resp
 });
 
 // Get top contributors
-router.get('/top-contributors', authenticateToken, async (req: Request, res: Response) => {
+router.get('/top-contributors', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -543,7 +543,7 @@ router.get('/top-contributors', authenticateToken, async (req: Request, res: Res
 });
 
 // Like a shared material
-router.post('/:id/like', authenticateToken, async (req: Request, res: Response) => {
+router.post('/:id/like', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -578,7 +578,7 @@ router.post('/:id/like', authenticateToken, async (req: Request, res: Response) 
 });
 
 // Download a shared material
-router.post('/:id/download', authenticateToken, async (req: Request, res: Response) => {
+router.post('/:id/download', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -613,7 +613,7 @@ router.post('/:id/download', authenticateToken, async (req: Request, res: Respon
 });
 
 // Share a shared material (increase share count)
-router.post('/:id/share', authenticateToken, async (req: Request, res: Response) => {
+router.post('/:id/share', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -648,7 +648,7 @@ router.post('/:id/share', authenticateToken, async (req: Request, res: Response)
 });
 
 // View a shared material (increase view count)
-router.post('/:id/view', authenticateToken, async (req: Request, res: Response) => {
+router.post('/:id/view', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({

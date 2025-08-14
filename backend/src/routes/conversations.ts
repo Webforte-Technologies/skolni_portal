@@ -1,6 +1,6 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, RequestWithUser } from '../middleware/auth';
 import { ConversationModel } from '../models/Conversation';
 import { MessageModel } from '../models/Message';
 
@@ -18,7 +18,7 @@ const validateMessageRequest = [
 ];
 
 // Get all conversations for the authenticated user
-router.get('/', authenticateToken, async (req: Request, res: Response) => {
+router.get('/', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -58,7 +58,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Get a specific conversation with its messages
-router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
+router.get('/:id', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -111,7 +111,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Create a new conversation
-router.post('/', authenticateToken, validateConversationRequest, async (req: Request, res: Response) => {
+router.post('/', authenticateToken, validateConversationRequest, async (req: RequestWithUser, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -156,7 +156,7 @@ router.post('/', authenticateToken, validateConversationRequest, async (req: Req
 // Update conversation title
 router.put('/:id', authenticateToken, [
   body('title').trim().isLength({ min: 1, max: 255 }).withMessage('Title must be between 1 and 255 characters')
-], async (req: Request, res: Response) => {
+], async (req: RequestWithUser, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -219,7 +219,7 @@ router.put('/:id', authenticateToken, [
 });
 
 // Delete a conversation
-router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
+router.delete('/:id', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -271,7 +271,7 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
 });
 
 // Add a message to a conversation
-router.post('/:id/messages', authenticateToken, validateMessageRequest, async (req: Request, res: Response) => {
+router.post('/:id/messages', authenticateToken, validateMessageRequest, async (req: RequestWithUser, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

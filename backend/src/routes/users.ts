@@ -1,11 +1,11 @@
-import { Router, Request, Response } from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { Router, Response } from 'express';
+import { authenticateToken, RequestWithUser } from '../middleware/auth';
 import { UserModel } from '../models/User';
 
 const router = Router();
 
 // GET /api/users/me - return current user's basic profile
-router.get('/me', authenticateToken, async (req: Request, res: Response) => {
+router.get('/me', authenticateToken, async (req: RequestWithUser, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Unauthorized' });

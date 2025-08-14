@@ -2,6 +2,13 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Notifications dropdown', () => {
   test('opens from header and marks item as read', async ({ page }) => {
+    await page.route('**/auth/profile', async (route) => {
+      const user = {
+        id: 'u1', email: 'admin@example.com', first_name: 'Admin', last_name: 'User',
+        role: 'platform_admin', credits_balance: 1000, is_active: true, created_at: '', updated_at: ''
+      };
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: user }) });
+    });
     // Platform admin to ensure Dev Admin link is present; dashboard header always has bell
     await page.addInitScript(() => {
       localStorage.setItem('authToken', 'e2e-token');

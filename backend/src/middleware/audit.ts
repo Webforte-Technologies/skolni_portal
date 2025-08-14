@@ -1,7 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
+import { RequestWithUser } from './auth';
 import pool from '../database/connection';
 
-export const auditLoggerForAdmin = async (req: Request, res: Response, next: NextFunction) => {
+export const auditLoggerForAdmin = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   const start = Date.now();
   const originalEnd = res.end;
   let statusCode = 200;

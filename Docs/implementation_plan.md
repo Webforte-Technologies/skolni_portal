@@ -955,10 +955,60 @@ Tasks:
   [ ] Lighthouse budget: FCP < 2.5 s (CI report) + Playwright perf check `tests/perf.spec.ts`.
 
 22.3 PDF export — nefunkční diakritika
-  [x] Přidat util `frontend/src/utils/registerPdfFonts.ts` (hook pro registraci fontů, připraveno pro VFS) a použít v `pdfExport.ts`.
-  [ ] Přidat vlastní fonty s diakritikou (TTF + VFS mapování) pro plnou podporu.
+  [x] Přidat util `frontend/src/utils/registerPdfFonts.ts` a použít v `pdfExport.ts` (dynamicky načítá `public/fonts/Inter-*.ttf`, pokud jsou dostupné, jinak fallback na vestavěné fonty).
+  [ ] Přidat TTF do `frontend/public/fonts/Inter-Regular.ttf` a `Inter-Bold.ttf` (repo-friendly), ověřit diakritiku.
   [ ] Přidat testovací řetězec „Příliš žluťoučký kůň úpěl ďábelské ódy“ do vizuálního PDF testu.
   [ ] (Volitelně) Zvážit `svg2pdf.js` pro věrnější text, pokud by `html2canvas` mělo limity.
 
 22.4 Chybové stavy exportu
   [ ] Při chybě exportu volat `showToast({ type: 'error', message: 'Nepodařilo se exportovat do PDF.' })` a zobrazit návrh kroku „Zkusit znovu“.
+
+✨ Phase 23: UX & Admin polish II
+
+Timeline: Week 33  
+Status: 📝 Planned  
+Goal: Zlepšit použitelnost chatu a administrace, sjednotit chyby a dokončit drobné UX nedostatky.
+
+Tasks:
+
+23.1 Auto‑rename konverzací podle kontextu
+  Frontend
+  [ ] Po první odpovědi asistenta automaticky pojmenovat konverzaci (heuristika: téma z první věty + ořez na 60 znaků).
+  [ ] Umožnit ruční přepsání názvu v `ChatSidebar` beze změny auto‑rename chování do budoucna.
+  [ ] (Volitelně) Batch rename pro stávající „Nová konverzace“ podle prvních zpráv.
+  QA
+  [ ] Test: vytvoř novou konverzaci → po 1. odpovědi se název aktualizuje.
+  [ ] Test: ruční přejmenování zůstane zachováno i po dalších odpovědích.
+
+23.2 Jednotné chyby + Retry pro dlouhé operace
+  Frontend
+  [ ] Centrální mapper chyb v `apiClient.ts` → čitelné CZ zprávy (402 → „Nedostatečný počet kreditů“), využít `ToastContext`.
+  [ ] U dlouhých akcí (export/generování) zobrazit toast s akcí „Zkusit znovu“ (`Retry`) a stavem (loader); po chybě umožnit opakování.
+  [ ] Konsolidovat catch bloky v generování/ exportu na jednotný handler (napojit na toasty).
+  QA
+  [ ] E2E: simulovaná chyba exportu → zobrazí se toast s „Zkusit znovu“, po kliknutí proběhne opakování a uspěje.
+  [ ] Vizuální: toast messaging konzistentní napříč aplikací.
+
+23.3 Admin zlepšení: rychlé filtry, full‑text, hromadné akce
+  Backend
+  [ ] `GET /admin/users` a `GET /schools/:id/teachers`: přidat `q` (full‑text: jméno/email) + rychlé filtry (role, aktivní), vhodné indexy.
+  [ ] Endpoint pro hromadné akce (např. `POST /admin/users/bulk`) s validací RBAC a audit logem.
+  Frontend
+  [ ] Vyhledávání (debounce) + rychlé filtry (chips) v tabulkách uživatelů/učitelů.
+  [ ] Hromadné akce s potvrzovacím modálem a náhledem změn (počet položek, seznam prvních N).
+  [ ] „Undo“ toast (pokud to dává smysl – např. u přidání kreditů).
+  QA
+  [ ] Testy filtrování a full‑textu.
+  [ ] Test hromadné akce včetně potvrzení a výsledného stavu.
+
+23.4 Nastavení & UX drobnosti v chatu
+  Sidebar aktualizace
+  [ ] Po vytvoření nové konverzace se musí okamžitě zobrazit vlevo v `ChatSidebar` (optimistické přidání nebo refetch po success; odstranit nutnost F5).
+  Lokalizace
+  [ ] Přeložit label tlačítka „Send“ na „Odeslat“ v chat inputu.
+  Zobrazení dlouhých zpráv
+  [ ] Zrušit implicitní „Zobrazit více“ na zprávách asistenta – výchozí stav zobrazit celé; (volitelně) ponechat „Sbalit“ pro extrémně dlouhé texty.
+  QA
+  [ ] E2E: vytvoření nové konverzace → ihned viditelná v sidebaru bez reloadu.
+  [ ] Vizuální/UX: kontrola překladu tlačítka („Odeslat“).
+  [ ] Test: dlouhá odpověď se zobrazí celá bez nutnosti rozbalování.
