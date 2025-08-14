@@ -89,7 +89,7 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
               placeholder="Napište svůj dotaz..."
               className="w-full px-4 py-3 border border-border dark:border-neutral-800 bg-background dark:bg-neutral-900 text-foreground dark:text-neutral-100 rounded-lg shadow-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none pr-12"
               rows={rows}
-              disabled={isLoading || disabled}
+              disabled={isLoading}
             />
             <div className="absolute right-3 bottom-3 text-xs text-muted-foreground flex items-center space-x-1">
               <CornerDownLeft className="h-3 w-3" />

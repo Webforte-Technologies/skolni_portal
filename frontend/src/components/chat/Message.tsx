@@ -145,8 +145,8 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
         )}
 
         <div className={cn(
-          'text-sm leading-relaxed markdown-body transition-[max-height] duration-300 ease-in-out',
-          !isUser && isLong && !isExpanded ? 'max-h-56 overflow-hidden pr-2' : 'max-h-fit'
+          'relative text-sm leading-relaxed markdown-body',
+          !isUser && isLong && !isExpanded ? 'max-h-56 overflow-hidden pr-2' : 'max-h-none'
         )}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
@@ -189,7 +189,7 @@ const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, co
           </ReactMarkdown>
           {/* Gradient fade when collapsed */}
           {!isUser && isLong && !isExpanded && (
-            <div className="pointer-events-none absolute bottom-10 left-0 right-0 h-16 bg-gradient-to-t from-primary-50 dark:from-primary-900/20 to-transparent" />
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-primary-50 dark:from-primary-900/20 to-transparent" />
           )}
         </div>
 

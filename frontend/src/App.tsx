@@ -107,6 +107,15 @@ function App() {
                   </PrivateRoute>
                 } />
 
+                {/* Tools (Math practice & helpers) - moved from chat */}
+                <Route path="/tools" element={
+                  <PrivateRoute>
+                    <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                      {React.createElement((React.lazy(() => import('./pages/tools/ToolsPage')) as any))}
+                    </Suspense>
+                  </PrivateRoute>
+                } />
+
                 {/* AI Generator */}
                 <Route path="/ai-generator" element={
                   <PrivateRoute>

@@ -11,14 +11,27 @@ export function errorToMessage(err: any): string {
   if (!err) return 'Neznámá chyba';
   if (err instanceof InsufficientCreditsError) return err.message;
   const status = err.response?.status;
-  const dataMsg = err.response?.data?.error || err.response?.data?.message;
+  const dataMsg: string | undefined = err.response?.data?.error || err.response?.data?.message;
+  const url: string = err?.config?.url || '';
+
+  // Try to translate common backend English messages to Czech
+  const m = (dataMsg || '').toLowerCase();
+  if (m.includes('invalid email or password')) return 'Nesprávný e‑mail nebo heslo';
+  if (m.includes('email already exists') || m.includes('already registered')) return 'Tento e‑mail je již registrován';
+  if (m.includes('validation error') || m.includes('invalid input')) return 'Neplatná vstupní data';
+
   if (status === 400) return dataMsg || 'Neplatný požadavek';
-  if (status === 401) return dataMsg || 'Nesprávné přihlašovací údaje';
+  if (status === 401) {
+    // For auth endpoints show friendly localized message
+    if (url.includes('/auth/login')) return 'Nesprávný e‑mail nebo heslo';
+    return dataMsg || 'Přihlaste se prosím znovu';
+  }
   if (status === 402) return 'Nemáte dostatek kreditů';
   if (status === 403) return 'Nemáte oprávnění k provedení akce';
   if (status === 404) return 'Požadovaný zdroj nebyl nalezen';
   if (status === 409) return dataMsg || 'Konflikt – položka již existuje';
   if (status === 422) return dataMsg || 'Neplatná vstupní data';
+  if (status === 429) return 'Příliš mnoho požadavků. Zkuste to prosím později.';
   if (status >= 500) return 'Na serveru došlo k chybě. Zkuste to prosím později.';
   return dataMsg || err.message || 'Nastala chyba';
 }

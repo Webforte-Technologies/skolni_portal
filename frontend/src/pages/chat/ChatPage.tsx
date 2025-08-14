@@ -286,7 +286,7 @@ const ChatPage: React.FC = () => {
                 }
                 if (title.length >= 3) {
                   await conversationService.updateConversationTitle(conversationId, title);
-                  setCurrentConversation((prev) => prev ? { ...prev, title } : prev);
+                  setCurrentConversation((prev: any) => prev ? { ...prev, title } : prev);
                   setSidebarRefreshKey((k) => k + 1);
                 }
               }
@@ -667,18 +667,7 @@ const ChatPage: React.FC = () => {
                 Export
               </Button>
               
-              {/* Math Tools Button */}
-              <Tooltip content="Zobrazit nebo skrýt matematické nástroje a cvičení">
-                <Button
-                  onClick={() => setShowMathTools(!showMathTools)}
-                  variant="secondary"
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <Calculator className="h-4 w-4" />
-                  {showMathTools ? 'Skrýt' : 'Nástroje'}
-                </Button>
-              </Tooltip>
+              {/* Math Tools Button - removed from chat per teacher use-case */}
               
               {/* Credit Balance */}
               <div className="flex items-center gap-2">
@@ -688,20 +677,7 @@ const ChatPage: React.FC = () => {
             </div>
             </div>
 
-            {/* Math Tools Toolbar */}
-            {showMathTools && (
-              <div className="border-b border-border dark:border-neutral-800 bg-card dark:bg-neutral-950">
-                <MathToolsToolbar
-                  selectedTopic={selectedMathTopic}
-                  selectedDifficulty={selectedDifficulty}
-                  onTopicChange={handleMathTopicChange}
-                  onDifficultyChange={handleDifficultyChange}
-                  onStartPractice={handleStartPractice}
-                  onShowProgression={handleShowProgression}
-                  className="mx-4 my-4"
-                />
-              </div>
-            )}
+            {/* Math Tools Toolbar removed from chat */}
 
             {/* Error message */}
             {error && (
@@ -748,27 +724,33 @@ const ChatPage: React.FC = () => {
                   isTyping={isLoading}
                 />
                 
-                                            <ComposerToolbar
+                {/* Tools Section */}
+                <div className="mt-2 px-4">
+                  <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1">Nástroje</div>
+                  <ComposerToolbar
                 onUpload={handleImageUpload}
                 onGenerateWorksheet={() => setIsWorksheetModalOpen(true)}
                 onInsertText={(text) => composerRef.current?.insertText(text)}
                 onOpenHelp={() => setIsCmdPaletteOpen(true)}
                 disabled={!user || user.credits_balance < 2}
-              />
+                  />
+                </div>
 
               {/* Voice Input */}
+              <div className="px-4">
               <VoiceInput
                 onTranscript={handleVoiceTranscript}
                 onError={handleVoiceError}
                 disabled={!user || user.credits_balance < 1}
               />
+              </div>
               
               <MessageInput
                   ref={composerRef}
                   onSendMessage={handleSendMessage}
                   isLoading={isLoading}
-                  disabled={!user || user.credits_balance <= 0}
-                  disabledReason={!user ? 'Musíte se přihlásit' : user.credits_balance <= 0 ? 'Nemáte dostatek kreditů' : undefined}
+                  disabled={!user}
+                  disabledReason={!user ? 'Musíte se přihlásit' : undefined}
                 />
               </>
             )}

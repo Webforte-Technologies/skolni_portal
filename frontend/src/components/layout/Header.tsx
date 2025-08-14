@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
 import ConfirmModal from '../ui/ConfirmModal';
-import { LogOut, User, Sun, Moon, Building2, Settings, HelpCircle, Keyboard, Bell } from 'lucide-react';
+import { LogOut, User, Sun, Moon, Building2, Settings, HelpCircle, Keyboard, Bell, Calculator } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Link } from 'react-router-dom';
 // import { useAccessibility } from '../../contexts/AccessibilityContext';
@@ -120,6 +120,15 @@ const Header: React.FC = () => {
                   title="Vytvořit materiál"
                 >
                   Vytvořit materiál
+                </Link>
+                <Link
+                  to="/tools"
+                  className="rounded-md px-3 py-2 text-sm font-medium border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center gap-2"
+                  aria-label="Nástroje a cvičení"
+                  title="Nástroje a cvičení"
+                >
+                  <Calculator className="h-4 w-4" />
+                  Nástroje
                 </Link>
                 <button
                   onClick={toggleTheme}
