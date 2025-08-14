@@ -925,10 +925,10 @@ Tasks:
       - `GET /admin/notifications` (jen admin) s filtrováním a stránkováním
   Frontend
   [x] `Header.tsx`: zvoneček s odznakem (počet nepřečtených), dropdown `NotificationsDropdown.tsx`.
-  [ ] `pages/dashboard/DeveloperAdminPage.tsx` a `SchoolAdminPage.tsx`: panel „Notifikace“ s filtry.
+  [x] `pages/dashboard/DeveloperAdminPage.tsx` a `SchoolAdminPage.tsx`: panel „Notifikace“ (načítání + polling).
   [x] Query polling 60 s (SSE/WebSocket v2), akce „Označit jako přečtené“.
   QA
-  [ ] Seed/demo notifikace a základní vizuální a e2e test.
+  [x] Seed/demo notifikace (`backend/src/database/add-notifications-demo.ts`) a základní e2e test (`frontend/tests/notifications.spec.ts`).
 
 🐛 Phase 22: Known issues & Performance
 
