@@ -269,10 +269,13 @@ const ChatPage: React.FC = () => {
         }
       );
     } catch (err: any) {
-      if (err.response?.status === 402) {
+      const { errorToMessage, InsufficientCreditsError } = await import('../../services/apiClient');
+      if (err instanceof InsufficientCreditsError) {
         setError('Nemáte dostatek kreditů pro odeslání zprávy. Prosím, doplňte kredity.');
+        showToast({ type: 'warning', message: 'Nedostatek kreditů' });
       } else {
-        setError(err.response?.data?.message || 'Nepodařilo se odeslat zprávu');
+        setError(errorToMessage(err));
+        showToast({ type: 'error', message: errorToMessage(err) });
       }
       // Remove the pending AI message on error
       setMessages(prev => prev.filter(msg => msg.id !== aiMessageId));

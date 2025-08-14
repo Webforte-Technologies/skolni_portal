@@ -1,4 +1,25 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+
+export class InsufficientCreditsError extends Error {
+  constructor(message = 'Nedostatek kreditů') {
+    super(message);
+    this.name = 'InsufficientCreditsError';
+  }
+}
+
+export function errorToMessage(err: any): string {
+  if (!err) return 'Neznámá chyba';
+  if (err instanceof InsufficientCreditsError) return err.message;
+  const status = err.response?.status;
+  const dataMsg = err.response?.data?.error || err.response?.data?.message;
+  if (status === 400) return dataMsg || 'Neplatný požadavek';
+  if (status === 401) return 'Přihlaste se prosím znovu';
+  if (status === 402) return 'Nemáte dostatek kreditů';
+  if (status === 403) return 'Nemáte oprávnění k provedení akce';
+  if (status === 404) return 'Požadovaný zdroj nebyl nalezen';
+  if (status >= 500) return 'Na serveru došlo k chybě. Zkuste to prosím později.';
+  return dataMsg || err.message || 'Nastala chyba';
+}
 import { ApiResponse } from '../types';
 
 // Get API URL from runtime config or environment variables
@@ -88,8 +109,7 @@ apiClient.interceptors.response.use(
     
     // Handle 402 Payment Required - insufficient credits
     if (error.response?.status === 402) {
-      // This will be handled by the specific components
-      return Promise.reject(error);
+      return Promise.reject(new InsufficientCreditsError());
     }
     
     return Promise.reject(error);

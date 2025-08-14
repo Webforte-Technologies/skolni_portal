@@ -906,9 +906,9 @@ Tasks:
   [ ] (Volitelné v2) Backend perzistence: tabulka `user_preferences(user_id uuid PK, data jsonb, updated_at)` + `GET/PUT /users/me/preferences`. Frontend použije localStorage jako fallback.
 
 21.3 Error handling – sjednocení
-  [ ] `frontend/src/services/apiClient.ts`: přidat util `errorToMessage(err)` a vracet čitelné zprávy; 402 mapovat na `InsufficientCreditsError`.
-  [ ] Globální toaster: využít `ToastContext` k jednotnému zobrazování chyb (síť, validace, 402).
-  [ ] `frontend/src/components/layout/ErrorBoundary.tsx`: přidat „Zkusit znovu“ + jemnější texty; logovat do auditu (server běží s `middleware/audit.ts`).
+  [x] `frontend/src/services/apiClient.ts`: přidat util `errorToMessage(err)` a vracet čitelné zprávy; 402 mapovat na `InsufficientCreditsError`.
+  [x] Globální toaster: využít `ToastContext` k jednotnému zobrazování chyb (síť, validace, 402).
+  [x] `frontend/src/components/layout/ErrorBoundary.tsx`: přidat „Zkusit znovu“ + jemnější texty; logovat do auditu (server běží s `middleware/audit.ts`).
   [ ] Sjednotit catch bloky v `DashboardPage.tsx` a `ChatPage.tsx` na `showToast({ type: 'error', ... })`.
 
 21.4 Notifikace pro celý systém

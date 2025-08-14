@@ -38,9 +38,9 @@ const DashboardPage: React.FC = () => {
     'aiFeatures',
     assistantService.getFeatures,
     {
-      onError: (error) => {
-        console.error('Failed to load AI features:', error);
-        showToast({ type: 'error', message: 'Nepodařilo se načíst AI asistenty.' });
+      onError: async (error) => {
+        const { errorToMessage } = await import('../../services/apiClient');
+        showToast({ type: 'error', message: errorToMessage(error) });
       },
     }
   );
@@ -53,8 +53,8 @@ const DashboardPage: React.FC = () => {
       updateUser(result.user);
       showToast({ type: 'success', message: `Přidáno ${result.credits_added} demo kreditů!` });
     } catch (error) {
-      console.error('Failed to add credits:', error);
-      showToast({ type: 'error', message: 'Nepodařilo se přidat kredity. Zkuste to prosím znovu.' });
+      const { errorToMessage } = await import('../../services/apiClient');
+      showToast({ type: 'error', message: errorToMessage(error) });
     } finally {
       setIsAddingCredits(false);
     }

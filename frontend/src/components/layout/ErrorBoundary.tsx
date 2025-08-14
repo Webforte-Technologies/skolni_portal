@@ -1,4 +1,5 @@
 import React from 'react';
+import { useToast } from '../../contexts/ToastContext';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -27,7 +28,7 @@ class ErrorBoundary extends React.Component<React.PropsWithChildren<{}>, ErrorBo
           <div className="max-w-lg w-full bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl p-6 shadow-soft text-center">
             <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Something went wrong</h2>
             <p className="text-neutral-600 dark:text-neutral-300 mb-4">An unexpected error occurred. Please refresh the page. If the problem persists, contact support.</p>
-            <button onClick={() => window.location.reload()} className="inline-flex items-center justify-center bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">Reload</button>
+            <button onClick={() => window.location.reload()} className="inline-flex items-center justify-center bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">Zkusit znovu</button>
           </div>
         </div>
       );
