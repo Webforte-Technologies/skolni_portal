@@ -14,7 +14,8 @@
     "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
     "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
     "test": "npm run test --prefix backend",
-    "test:smoke": "npm run test:health --prefix backend",
+    "test:smoke": "npm run test:smoke --prefix backend",
+    "prepare": "husky install",
     "type-check": "npm run type-check --prefix frontend"
   },
   "devDependencies": {

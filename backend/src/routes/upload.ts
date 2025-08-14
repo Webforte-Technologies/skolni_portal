@@ -138,7 +138,8 @@ router.post('/ocr/process', authenticateToken, async (req: Request, res: Respons
 });
 
 // Error handling middleware for multer
-router.use((error: any, _req: Request, res: Response, _next: any) => {
+router.use((error: any, _req: Request, res: Response, _next: unknown) => {
+  void _next;
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({

@@ -4,13 +4,8 @@ import { UserModel } from '../models/User';
 import { User } from '../types/database';
 
 // Extend Express Request interface to include user
-declare global {
-  namespace Express {
-    interface Request {
-      user?: Omit<User, 'password_hash'>;
-    }
-  }
-}
+// Add `user` to Express Request in a safe way for lint rules
+export type RequestWithUser = Request & { user?: Omit<User, 'password_hash'> };
 
 export interface JWTPayload {
   userId: string;
@@ -38,7 +33,7 @@ export const generateToken = (user: User): string => {
 };
 
 // Verify JWT token middleware
-export const authenticateToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const authenticateToken = async (req: RequestWithUser, res: Response, next: NextFunction): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
@@ -65,7 +60,8 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     }
 
     // Remove password_hash from user object
-    const { password_hash, ...userWithoutPassword } = user;
+    const userWithoutPassword = { ...(user as any) } as any;
+    delete userWithoutPassword.password_hash;
     req.user = userWithoutPassword;
     
     next();
@@ -91,7 +87,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
 
 // Require specific role middleware
 export const requireRole = (roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req: RequestWithUser, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({
         success: false,
@@ -113,7 +109,7 @@ export const requireRole = (roles: string[]) => {
 };
 
 // Optional authentication middleware (doesn't fail if no token)
-export const optionalAuth = async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+export const optionalAuth = async (req: RequestWithUser, _res: Response, next: NextFunction): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1];
@@ -128,7 +124,8 @@ export const optionalAuth = async (req: Request, _res: Response, next: NextFunct
     
     const user = await UserModel.findById(decoded.userId);
     if (user && user.is_active) {
-      const { password_hash, ...userWithoutPassword } = user;
+      const userWithoutPassword = { ...(user as any) } as any;
+      delete userWithoutPassword.password_hash;
       req.user = userWithoutPassword;
     }
     

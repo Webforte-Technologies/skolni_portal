@@ -34,7 +34,7 @@ export class FolderModel {
       SELECT * FROM folders 
       WHERE user_id = $1
     `;
-    let values = [userId];
+    const values = [userId] as any[];
 
     if (schoolId) {
       query += ` AND (school_id = $2 OR school_id IS NULL)`;

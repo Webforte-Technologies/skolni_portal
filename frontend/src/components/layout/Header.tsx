@@ -178,7 +178,9 @@ const Header: React.FC = () => {
         onClose={() => setShowPreferences(false)}
         onPreferencesChange={(preferences) => {
           // Handle preferences change
-          console.log('Preferences changed:', preferences);
+          if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+            console.log('Preferences changed:', preferences);
+          }
         }}
         currentPreferences={{
           theme: theme,

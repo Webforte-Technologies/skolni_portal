@@ -60,7 +60,7 @@ export class SharedMaterialModel {
       WHERE sm.school_id = $1
     `;
     
-    let values = [schoolId];
+    const values = [schoolId] as any[];
     
     if (folderId) {
       query += ` AND sm.folder_id = $2`;
@@ -85,7 +85,7 @@ export class SharedMaterialModel {
       WHERE shared_by_user_id = $1
     `;
     
-    let values = [userId];
+    const values = [userId] as any[];
     
     if (schoolId) {
       query += ` AND school_id = $2`;
@@ -172,7 +172,7 @@ export class SharedMaterialModel {
         AND (gf.title ILIKE $2 OR gf.content::text ILIKE $2)
     `;
     
-    let values = [schoolId, `%${searchTerm}%`];
+    const values = [schoolId, `%${searchTerm}%`] as any[];
     
     if (folderId) {
       query += ` AND sm.folder_id = $3`;

@@ -275,7 +275,7 @@ skolni_portal/
 │   │   └── index.ts         # Server entry point
 │   ├── package.json
 │   └── tsconfig.json
-├── docs/                    # Project documentation
+├── Docs/                    # Project documentation
 ├── package.json             # Root package.json
 ├── README.md               # Project overview
 └── SETUP.md               # This file
@@ -336,7 +336,7 @@ If you encounter any issues during setup:
 1. Check the troubleshooting section above
 2. Verify all prerequisites are installed
 3. Ensure all environment variables are properly configured
-4. Check the project documentation in the `docs/` folder
+4. Check the project documentation in the `Docs/` folder
 
 ---
 

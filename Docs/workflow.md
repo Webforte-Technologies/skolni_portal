@@ -67,7 +67,7 @@ A task can only be marked as complete if:
 
 -   Everything functions according to the requirements and is error-free.
 -   The code complies with the project structure and coding standards.
--   The UI/UX is 100% consistent with the specifications in `docs/design_guidelines.md`.
+-   The UI/UX is 100% consistent with the specifications in `Docs/design_guidelines.md`.
 -   There are no warnings or errors in the browser console or server logs.
 -   All items on the TODO list (if one was created) are checked off.
 -   The implementation follows the language rules (Czech UI, English code).
@@ -90,7 +90,7 @@ A task can only be marked as complete if:
 -   **NEVER** start writing code without reading the relevant documentation.
 -   **NEVER** mark a task as done without thoroughly testing its functionality.
 -   **NEVER** violate the defined folder structure or code conventions.
--   **NEVER** make a design decision that conflicts with `docs/design_guidelines.md`.
+-   **NEVER** make a design decision that conflicts with `Docs/design_guidelines.md`.
 -   **NEVER** use English text in user-facing UI elements.
 -   **NEVER** use Czech text in code, comments, or technical documentation.
 -   **ALWAYS** follow the defined workflow and reference the correct documentation.

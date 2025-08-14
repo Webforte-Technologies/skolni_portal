@@ -59,7 +59,8 @@ router.post('/register-school', [
     const adminUser: User = user as any;
 
     const token = generateToken(adminUser);
-    const { password_hash, ...userWithoutPassword } = adminUser;
+    const userWithoutPassword: any = { ...(adminUser as any) };
+    delete userWithoutPassword.password_hash;
 
     const response: AuthResponse = { user: userWithoutPassword, token };
 
@@ -122,7 +123,8 @@ router.post('/register', validateRegistration, async (req: Request, res: Respons
     const token = generateToken(user);
 
     // Remove password_hash from response
-    const { password_hash, ...userWithoutPassword } = user;
+    const userWithoutPassword: any = { ...(user as any) };
+    delete userWithoutPassword.password_hash;
 
     const response: AuthResponse = {
       user: userWithoutPassword,
@@ -194,7 +196,8 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
     const token = generateToken(user);
 
     // Remove password_hash from response
-    const { password_hash, ...userWithoutPassword } = user;
+    const userWithoutPassword: any = { ...(user as any) };
+    delete userWithoutPassword.password_hash;
 
     const response: AuthResponse = {
       user: userWithoutPassword,
@@ -272,7 +275,8 @@ router.put('/profile', authenticateToken, [
     const updatedUser = await UserModel.updateProfile(req.user.id, updateData);
 
     // Remove password_hash from response
-    const { password_hash, ...userWithoutPassword } = updatedUser;
+    const userWithoutPassword: any = { ...(updatedUser as any) };
+    delete userWithoutPassword.password_hash;
 
     return res.status(200).json({
       success: true,
@@ -333,9 +337,9 @@ router.put('/change-password', authenticateToken, [
     }
 
     // Hash new password
-    const bcrypt = require('bcryptjs');
+    const bcrypt = await import('bcryptjs');
     const saltRounds = 12;
-    const newPasswordHash = await bcrypt.hash(new_password, saltRounds);
+    const newPasswordHash = await bcrypt.default.hash(new_password, saltRounds);
 
     // Update password
     const query = `
@@ -345,7 +349,7 @@ router.put('/change-password', authenticateToken, [
       RETURNING *
     `;
     
-    await require('../database/connection').default.query(query, [newPasswordHash, req.user.id]);
+    await pool.query(query, [newPasswordHash, req.user.id]);
 
     return res.status(200).json({
       success: true,
@@ -391,7 +395,8 @@ router.post('/me/add-credits', authenticateToken, async (req: Request, res: Resp
     }
 
     // Remove password_hash from response
-    const { password_hash, ...userWithoutPassword } = updatedUser;
+    const userWithoutPassword: any = { ...(updatedUser as any) };
+    delete userWithoutPassword.password_hash;
 
     return res.status(200).json({
       success: true,

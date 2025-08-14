@@ -859,19 +859,110 @@ Tasks:
     [x] Add HTTP compression (`compression`) and request logging (`morgan`) with log level via env
     [x] Parameterize rate limiter via env (`RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX_REQUESTS`) and document defaults
     [x] Validate upload hygiene (temp path, 10MB limit, post-OCR cleanup) and document behavior
-      [ ] Remove dead code/unused scripts; keep strict TypeScript settings
+      [x] Remove dead code/unused scripts; keep strict TypeScript settings
 
 20.3 Frontend performance & cleanup:
       [x] Audit bundle size and code-split heavy routes (chat, worksheet generator)
       [x] Purge unused CSS and remove any experimental effects not in design guidelines
-    [ ] Verify accessibility and keyboard navigation across pages
+    [x] Verify accessibility and keyboard navigation across pages
 
-20.4 Testing & CI hygiene:
+  20.4 Testing & CI hygiene:
       [x] Add smoke tests: health
-      [ ] Add smoke tests: 404, CORS, rate limit
-      [ ] Expand Playwright for auth → chat → export
+      [x] Add smoke tests: 404, CORS, rate limit
+      [x] Expand Playwright for auth → chat → export
       [x] Add pre-commit hooks (lint)
 
 20.5 Deployment & observability:
     [x] Ensure Dockerfile/Coolify healthchecks align (`/api/health`)
     [x] Document minimal runtime metrics/logging and log-level guidance (README)
+
+✨ Phase 21: UX polish — Shortcuts, Settings, Errors, Notifications
+
+Timeline: Week 30–31
+Status: 📝 Planned
+Goal: Dokončit systém klávesových zkratek, uživatelská nastavení a jednotné chybové stavy. Přidat systémové notifikace a jejich zobrazení v administraci.
+
+Tasks:
+
+21.1 Klávesové zkratky (dokončení)
+  [ ] Vytvořit `frontend/src/utils/shortcuts.ts` se seznamem výchozích zkratek (ids: `new-chat`, `focus-composer`, `send-message`, `dashboard`, `help`, `shortcuts`, `toggle-theme`, `high-contrast`).
+  [ ] Přidat `frontend/src/contexts/ShortcutsContext.tsx`:
+      - perzistence do `localStorage` (klíč `eduai.shortcuts.v1`)
+      - API: `getActiveShortcuts()`, `setShortcut(id, key)`, `resetToDefaults()`
+  [ ] Upravit `frontend/src/hooks/useKeyboardShortcuts.ts` tak, aby četl z kontextu a odstranil nadbytečné logy; zachovat capture fázi a prevenci defaultů.
+  [ ] Napojit `frontend/src/components/ui/KeyboardShortcuts.tsx`:
+      - živá detekce konfliktů, zvýraznění kolizí, uložení/obnovení
+      - tlačítko „Obnovit výchozí“
+  [ ] Integrace na stránkách:
+      - `frontend/src/pages/chat/ChatPage.tsx` (Ctrl/Cmd+K paleta, Ctrl+L fokus, Ctrl+Enter odeslat)
+      - `frontend/src/components/layout/Header.tsx` (Ctrl+/ otevřít nastavení zkratek)
+  [ ] E2E (Playwright): otestovat `Ctrl+K`, `Ctrl+L`, `Ctrl+Enter`, `Ctrl+/`.
+
+21.2 Nastavení (UserPreferences) – dokončení
+  [ ] Přidat `frontend/src/contexts/SettingsContext.tsx` (sloučí preference z `ThemeContext` a `AccessibilityContext`):
+      - perzistence do `localStorage` (`eduai.settings.v1`)
+      - přepínače: `theme`, `highContrast`, `fontSize`, `reducedMotion`, `focusIndicator`, tooltipy apod.
+  [ ] Propojit `frontend/src/components/ui/UserPreferences.tsx` s kontextem (Uložit/Reset) a zjednodušit props v `frontend/src/components/layout/Header.tsx`.
+  [ ] (Volitelné v2) Backend perzistence: tabulka `user_preferences(user_id uuid PK, data jsonb, updated_at)` + `GET/PUT /users/me/preferences`. Frontend použije localStorage jako fallback.
+
+21.3 Error handling – sjednocení
+  [ ] `frontend/src/services/apiClient.ts`: přidat util `errorToMessage(err)` a vracet čitelné zprávy; 402 mapovat na `InsufficientCreditsError`.
+  [ ] Globální toaster: využít `ToastContext` k jednotnému zobrazování chyb (síť, validace, 402).
+  [ ] `frontend/src/components/layout/ErrorBoundary.tsx`: přidat „Zkusit znovu“ + jemnější texty; logovat do auditu (server běží s `middleware/audit.ts`).
+  [ ] Sjednotit catch bloky v `DashboardPage.tsx` a `ChatPage.tsx` na `showToast({ type: 'error', ... })`.
+
+21.4 Notifikace pro celý systém
+  Backend
+  [ ] Tabulka `notifications`:
+      - sloupce: `id uuid`, `created_at timestamptz`, `user_id uuid null`, `school_id uuid null`,
+        `severity ('info'|'warning'|'error')`, `type text`, `title text`, `message text`, `meta jsonb`, `read_at timestamptz null`
+      - indexy: `created_at desc`, `user_id`, `school_id`
+  [ ] Pomocná funkce `createNotification({...})` a volání z:
+      - úprav kreditů (`CreditTransactionModel.addCredits/deductCredits`)
+      - vytvoření/odebrání učitele, chyb AI generování apod.
+  [ ] Endpoints:
+      - `GET /notifications` (aktuální uživatel), `PUT /notifications/:id/read`
+      - `GET /admin/notifications` (jen admin) s filtrováním a stránkováním
+  Frontend
+  [ ] `Header.tsx`: zvoneček s odznakem (počet nepřečtených), dropdown `NotificationsDropdown.tsx`.
+  [ ] `pages/dashboard/DeveloperAdminPage.tsx` a `SchoolAdminPage.tsx`: panel „Notifikace“ s filtry.
+  [ ] Query polling 60 s (SSE/WebSocket v2), akce „Označit jako přečtené“.
+  QA
+  [ ] Seed/demo notifikace a základní vizuální a e2e test.
+
+🐛 Phase 22: Known issues & Performance
+
+Timeline: Week 32
+Status: 📝 Planned
+Goal: Opravit hlášené problémy (kredity na profilu, diakritika v PDF) a zrychlit landing page.
+
+Tasks:
+
+22.1 Kredity po přidání adminem nejsou vidět na profilu
+  Příčina: Frontend drží `user` v `localStorage` a nerefreshuje profil z API.
+  [ ] `frontend/src/contexts/AuthContext.tsx`:
+      - po zjištění platného tokenu zavolat `authService.getProfile()` a uložit uživatele
+      - přidat refresh na `visibilitychange`/`focus`
+  [ ] `frontend/src/pages/dashboard/UserProfilePage.tsx` a `DashboardPage.tsx`:
+      - použít `useQuery('me', authService.getProfile, { refetchOnWindowFocus: true })` a `updateUser(...)`
+  [ ] (Volitelně) Přidat `GET /auth/profile` do inicializace aplikace (App mount) pro jistotu.
+  [ ] E2E: admin přidá kredity → uživatel vidí nové saldo bez potřeby „demo kreditů“.
+
+22.2 Landing page performance
+  [ ] `frontend/src/pages/LandingPage.tsx`:
+      - lazy/dynamic import `framer-motion` pouze pro sekce, kde je skutečně potřeba; nahradit vybrané animace CSS třídami
+      - respektovat `prefers-reduced-motion`; odstranit zbytečné setInterval efekty
+      - zmenšit/optimalizovat obrázky/ikony; audit re-renderů
+  [ ] Lighthouse budget: FCP < 2.5 s (CI report) + Playwright perf check `tests/perf.spec.ts`.
+
+22.3 PDF export — nefunkční diakritika
+  [ ] Přidat vlastní font s českou diakritikou do `frontend/public/fonts/Inter-Regular.ttf` a `Inter-Bold.ttf`.
+  [ ] Nový util `frontend/src/utils/registerPdfFonts.ts`:
+      - `addFileToVFS` + `addFont('Inter-Regular.ttf','Inter','normal')`, `addFont('Inter-Bold.ttf','Inter','bold')`
+  [ ] Použít v `frontend/src/utils/pdfExport.ts` a `frontend/src/components/chat/WorksheetDisplay.tsx`:
+      - po vytvoření `jsPDF` volat registraci a `doc.setFont('Inter','normal')`
+  [ ] Přidat testovací řetězec „Příliš žluťoučký kůň úpěl ďábelské ódy“ do vizuálního PDF testu.
+  [ ] (Volitelně) Zvážit `svg2pdf.js` pro věrnější text, pokud by `html2canvas` mělo limity.
+
+22.4 Chybové stavy exportu
+  [ ] Při chybě exportu volat `showToast({ type: 'error', message: 'Nepodařilo se exportovat do PDF.' })` a zobrazit návrh kroku „Zkusit znovu“.

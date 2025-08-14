@@ -28,15 +28,17 @@ import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
 import Header from '../../components/layout/Header';
 
 const ChatPage: React.FC = () => {
-  console.log('ChatPage: Component is rendering'); // Debug log
+  if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('ChatPage: Component is rendering');
   
   const { user, updateUser } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   
-  console.log('ChatPage: Auth context loaded, user:', user); // Debug log
-  console.log('ChatPage: Toast context loaded:', showToast); // Debug log
-  console.log('ChatPage: Navigate function loaded:', navigate); // Debug log
+  if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+    console.log('ChatPage: Auth context loaded, user:', user);
+    console.log('ChatPage: Toast context loaded:', showToast);
+    console.log('ChatPage: Navigate function loaded:', navigate);
+  }
   
   const [messages, setMessages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -77,45 +79,47 @@ const ChatPage: React.FC = () => {
 
   // Global keyboard shortcut handler
   const handleGlobalShortcut = (shortcutId: string) => {
-    console.log('🎯 ChatPage: Global shortcut triggered:', shortcutId);
-    console.log('🎯 ChatPage: Current state - messages:', messages.length, 'sessionId:', sessionId);
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+      console.log('🎯 ChatPage: Global shortcut triggered:', shortcutId);
+      console.log('🎯 ChatPage: Current state - messages:', messages.length, 'sessionId:', sessionId);
+    }
     
     switch (shortcutId) {
       case 'new-chat':
-        console.log('🎯 ChatPage: Starting new chat');
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('🎯 ChatPage: Starting new chat');
         startNewChat();
         break;
       case 'focus-composer':
-        console.log('🎯 ChatPage: Focusing composer');
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('🎯 ChatPage: Focusing composer');
         composerRef.current?.focus();
         break;
       case 'send-message':
-        console.log('🎯 ChatPage: Focusing composer for send');
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('🎯 ChatPage: Focusing composer for send');
         // Focus composer and let user press Enter
         composerRef.current?.focus();
         break;
       case 'dashboard':
-        console.log('🎯 ChatPage: Navigating to dashboard');
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('🎯 ChatPage: Navigating to dashboard');
         navigate('/dashboard');
         break;
       case 'help':
-        console.log('🎯 ChatPage: Help shortcut - handled by global system');
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('🎯 ChatPage: Help shortcut - handled by global system');
         // This will be handled by the global help system
         break;
       case 'shortcuts':
-        console.log('🎯 ChatPage: Shortcuts shortcut - handled by global system');
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('🎯 ChatPage: Shortcuts shortcut - handled by global system');
         // This will be handled by the global shortcuts system
         break;
       case 'toggle-theme':
-        console.log('🎯 ChatPage: Theme toggle - handled by global system');
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('🎯 ChatPage: Theme toggle - handled by global system');
         // This will be handled by the global theme system
         break;
       case 'high-contrast':
-        console.log('🎯 ChatPage: High contrast - handled by global system');
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('🎯 ChatPage: High contrast - handled by global system');
         // This will be handled by the global accessibility system
         break;
       default:
-        console.log('🎯 ChatPage: Unhandled shortcut:', shortcutId);
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('🎯 ChatPage: Unhandled shortcut:', shortcutId);
         break;
     }
   };
@@ -137,19 +141,21 @@ const ChatPage: React.FC = () => {
 
   // Load conversation history from localStorage
   useEffect(() => {
-    console.log('ChatPage: useEffect for localStorage is running'); // Debug log
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('ChatPage: useEffect for localStorage is running');
     const savedSessionId = localStorage.getItem('chatSessionId');
     const savedMessages = localStorage.getItem('chatMessages');
     
-    console.log('ChatPage: Saved session ID:', savedSessionId); // Debug log
-    console.log('ChatPage: Saved messages:', savedMessages); // Debug log
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+      console.log('ChatPage: Saved session ID:', savedSessionId);
+      console.log('ChatPage: Saved messages:', savedMessages);
+    }
     
     if (savedSessionId && savedMessages) {
       setSessionId(savedSessionId);
       try {
         const parsedMessages = JSON.parse(savedMessages);
         setMessages(parsedMessages);
-        console.log('ChatPage: Messages loaded from localStorage:', parsedMessages); // Debug log
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('ChatPage: Messages loaded from localStorage:', parsedMessages);
       } catch (error) {
         console.error('Error parsing saved messages:', error);
       }
@@ -158,7 +164,7 @@ const ChatPage: React.FC = () => {
       const newSessionId = generateUUID();
       setSessionId(newSessionId);
       localStorage.setItem('chatSessionId', newSessionId);
-      console.log('ChatPage: New session ID generated:', newSessionId); // Debug log
+      if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('ChatPage: New session ID generated:', newSessionId);
     }
   }, []);
 
@@ -177,7 +183,7 @@ const ChatPage: React.FC = () => {
       
       // Ctrl/Cmd + K to open command palette (page-specific)
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        console.log('ChatPage: Command palette shortcut triggered');
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('ChatPage: Command palette shortcut triggered');
         e.preventDefault();
         e.stopPropagation();
         setIsCmdPaletteOpen(true);
@@ -185,7 +191,7 @@ const ChatPage: React.FC = () => {
 
       // Ctrl/Cmd + Enter to send message (when composer is focused)
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        console.log('ChatPage: Send message shortcut triggered');
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('ChatPage: Send message shortcut triggered');
         e.preventDefault();
         e.stopPropagation();
         // Focus the composer and let the user press Enter to send
@@ -496,15 +502,17 @@ const ChatPage: React.FC = () => {
   };
 
   if (!user) {
-    console.log('ChatPage: No user, returning null'); // Debug log
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('ChatPage: No user, returning null');
     return null;
   }
 
-  console.log('ChatPage: User authenticated, rendering main content'); // Debug log
-  console.log('ChatPage: Current state - messages:', messages.length, 'isLoading:', isLoading, 'error:', error); // Debug log
+  if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+    console.log('ChatPage: User authenticated, rendering main content');
+    console.log('ChatPage: Current state - messages:', messages.length, 'isLoading:', isLoading, 'error:', error);
+  }
 
   try {
-    console.log('ChatPage: Starting to render JSX'); // Debug log
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('ChatPage: Starting to render JSX');
     return (
       <div className="min-h-screen bg-background dark:bg-neutral-900">
         <Header />

@@ -10,7 +10,7 @@ export const debugConfig = () => {
   console.log('=============================');
   
   // Test backend connectivity
-  const backendUrl = import.meta.env.VITE_API_URL || 'http://ak8gggwkc84o04o4wcwc4gc4.82.29.179.61.sslip.io/api';
+  const backendUrl = import.meta.env.VITE_API_URL || '/api';
   fetch(`${backendUrl.replace('/api', '')}/api/health`)
     .then(response => response.json())
     .then(data => {

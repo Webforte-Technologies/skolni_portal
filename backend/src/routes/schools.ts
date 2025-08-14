@@ -75,7 +75,8 @@ router.post('/:schoolId/teachers', authenticateToken, requireRole(['school_admin
       school_id: schoolId,
       role: 'teacher_school'
     });
-    const { password_hash, ...userSafe } = user as any;
+    const userSafe: any = { ...(user as any) };
+    delete userSafe.password_hash;
     return res.status(201).json({ success: true, data: userSafe, message: 'Teacher added' });
   } catch (error) {
     console.error('Add teacher error:', error);

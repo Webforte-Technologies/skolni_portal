@@ -144,9 +144,9 @@ Use this Markdown structure for a feature plan file, e.g., `PLAN_CreditSystem.md
 ## Reference Documents
 
 Always refer to these documents when making implementation decisions:
-- `docs/implementation_plan.md` - Current development phase and tasks
-- `docs/design_guidelines.md` - UI/UX specifications
-- `docs/project_structure.md` - Architecture and file organization
+- `Docs/implementation_plan.md` - Current development phase and tasks
+- `Docs/design_guidelines.md` - UI/UX specifications
+- `Docs/project_structure.md` - Architecture and file organization
 - `PRD.md` - Product requirements and business goals
 
 ## Quality Assurance

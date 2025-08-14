@@ -709,7 +709,7 @@ router.post('/generate-quiz', authenticateToken, [
     res.write('data: {"type":"start","message":"Starting quiz generation..."}\n\n');
 
     const { title, subject, grade_level, question_count } = req.body;
-    const prompt = `Vytvoř kvíz${title ? ` s názvem \"${title}\"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}. Dodrž předepsanou JSON strukturu.`;
+  const prompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}. Dodrž předepsanou JSON strukturu.`;
 
     const stream = await openai.chat.completions.create({
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
@@ -926,7 +926,7 @@ router.post('/generate-activity', authenticateToken, [
     res.write('data: {"type":"start","message":"Starting activity generation..."}\n\n');
 
     const { title, subject, grade_level, duration } = req.body;
-    const prompt = `Vytvoř krátkou aktivitu${title ? ` s názvem \"${title}\"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${duration ? ` na dobu ${duration}` : ''}. Dodrž předepsanou JSON strukturu.`;
+  const prompt = `Vytvoř krátkou aktivitu${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${duration ? ` na dobu ${duration}` : ''}. Dodrž předepsanou JSON strukturu.`;
 
     const stream = await openai.chat.completions.create({
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',

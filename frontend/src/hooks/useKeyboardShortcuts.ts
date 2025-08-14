@@ -85,7 +85,9 @@ export const useKeyboardShortcuts = (
     const resultParts = [...modifiers, key].filter(Boolean); // Filter out empty string if key was a modifier
     const result = resultParts.join('+');
     
-    console.log(`🔑 Normalized key: ${result} (original: ${event.key}, ctrl: ${event.ctrlKey}, shift: ${event.shiftKey}, alt: ${event.altKey}, meta: ${event.metaKey})`);
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+      console.log(`🔑 Normalized key: ${result} (original: ${event.key}, ctrl: ${event.ctrlKey}, shift: ${event.shiftKey}, alt: ${event.altKey}, meta: ${event.metaKey})`);
+    }
     return result;
   }, []);
 
@@ -107,7 +109,9 @@ export const useKeyboardShortcuts = (
   }, []);
 
   const executeShortcut = useCallback((shortcutId: string) => {
-    console.log(`🎯 Executing shortcut: ${shortcutId}`);
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+      console.log(`🎯 Executing shortcut: ${shortcutId}`);
+    }
     
     // Call the callback for all shortcuts - let individual pages handle their own logic
     onShortcutAction(shortcutId);
@@ -123,18 +127,24 @@ export const useKeyboardShortcuts = (
       (event.target as HTMLElement).tagName === 'INPUT' ||
       (event.target as HTMLElement).tagName === 'TEXTAREA'
     ) {
-      console.log(`🚫 Skipping shortcut in input element: ${(event.target as HTMLElement).tagName}`);
+      if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+        console.log(`🚫 Skipping shortcut in input element: ${(event.target as HTMLElement).tagName}`);
+      }
       return;
     }
 
     const pressedKey = normalizeKey(event);
-    console.log(`⌨️ Key pressed: ${pressedKey}`);
-    console.log(`⌨️ Event details: key=${event.key}, ctrl=${event.ctrlKey}, shift=${event.shiftKey}, alt=${event.altKey}, meta=${event.metaKey}`);
-    console.log(`⌨️ Available shortcuts:`, shortcuts.map(s => `${s.id}: ${s.currentKey}`));
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+      console.log(`⌨️ Key pressed: ${pressedKey}`);
+      console.log(`⌨️ Event details: key=${event.key}, ctrl=${event.ctrlKey}, shift=${event.shiftKey}, alt=${event.altKey}, meta=${event.metaKey}`);
+      console.log(`⌨️ Available shortcuts:`, shortcuts.map(s => `${s.id}: ${s.currentKey}`));
+    }
 
     // Check if this is a browser-reserved shortcut
     if (isBrowserReserved(pressedKey)) {
-      console.log(`⚠️ Browser-reserved shortcut detected: ${pressedKey}`);
+      if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+        console.log(`⚠️ Browser-reserved shortcut detected: ${pressedKey}`);
+      }
       // Still try to prevent it, but it may not work
       event.preventDefault();
       event.stopPropagation();
@@ -145,7 +155,9 @@ export const useKeyboardShortcuts = (
     const shortcut = shortcuts.find(s => s.currentKey === pressedKey);
     
     if (shortcut) {
-      console.log(`✅ Shortcut matched: ${shortcut.id} (${shortcut.name})`);
+      if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+        console.log(`✅ Shortcut matched: ${shortcut.id} (${shortcut.name})`);
+      }
       
       // Aggressively prevent default behavior and propagation
       event.preventDefault();
@@ -155,7 +167,9 @@ export const useKeyboardShortcuts = (
       // Execute the shortcut
       executeShortcut(shortcut.id);
     } else {
-      console.log(`❌ No shortcut found for: ${pressedKey}`);
+      if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+        console.log(`❌ No shortcut found for: ${pressedKey}`);
+      }
     }
   }, [shortcuts, normalizeKey, isBrowserReserved, executeShortcut]);
 

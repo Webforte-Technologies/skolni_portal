@@ -10,7 +10,7 @@ This is a monorepo containing both frontend and backend applications:
 skolni_portal/
 ├── frontend/          # React + Vite + TypeScript application
 ├── backend/           # Node.js + Express + TypeScript API
-├── docs/             # Project documentation
+├── Docs/             # Project documentation
 ├── PRD.md            # Product Requirements Document
 └── README.md         # This file
 ```
@@ -65,9 +65,9 @@ skolni_portal/
 ## 📚 Documentation
 
 - `PRD.md` - Product Requirements Document
-- `docs/` - Technical documentation and implementation plans
-- `docs/design_guidelines.md` - UI/UX design specifications
-- `docs/project_structure.md` - Detailed project architecture
+- `Docs/` - Technical documentation and implementation plans
+- `Docs/design_guidelines.md` - UI/UX design specifications
+- `Docs/project_structure.md` - Detailed project architecture
 
 ## 🛠️ Technology Stack
 
@@ -81,12 +81,12 @@ skolni_portal/
 
 - All user-facing content is in Czech (`cs-CZ`)
 - All code, comments, and technical documentation are in English
-- Follow the design guidelines in `docs/design_guidelines.md`
-- Refer to `docs/workflow.md` for development protocols
+- Follow the design guidelines in `Docs/design_guidelines.md`
+- Refer to `Docs/workflow.md` for development protocols
 
 ---
 
-**Status**: Phase 1 - Project Foundation & Environment Setup 
+**Status**: Actively developed. See `Docs/implementation_plan.md` for current phase.
 
 ## Deployment Notes
 
@@ -96,12 +96,18 @@ Environment flags:
 - `ENABLE_COMPRESSION=true` to enable gzip compression
 - `ENABLE_LOGGER=true` and `LOG_FORMAT=combined|dev|tiny` for request logging
 - `RATE_LIMIT_WINDOW_MS` and `RATE_LIMIT_MAX_REQUESTS` for rate limiting
+- `RUN_STARTUP_MIGRATIONS=true` to auto-apply SQL migrations on boot (idempotent)
 
 See `DEPLOYMENT.md` and `COOLIFY-DEPLOYMENT.md` for full guidance.
 
+## Observability
+
+- Minimal in-process metrics via `middleware/metrics.ts` exposed at `GET /api/admin/system/metrics` (admin only)
+- Request logging via `morgan` (configurable by env); log level via `LOG_LEVEL`
+
 ## Tests
 
-Run a backend smoke test (healthcheck):
+Run backend smoke tests (health, 404, CORS, rate limit):
 
 ```bash
 npm run test:smoke

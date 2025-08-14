@@ -95,7 +95,7 @@ Note: Live chat uses the streaming AI endpoint below and persists messages when 
 - GET /users/me → { success, data: { id, name, email, credits, createdAt } }
 
 ### Health
-- GET /health → { status: "OK", database: { connected: true } }
+- GET /api/health → { status: "OK", database: { connected: true } }
 
 ### Admin (role: platform_admin)
 - Base: /api/admin (all require Authorization: Bearer and platform_admin role)

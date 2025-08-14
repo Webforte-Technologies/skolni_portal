@@ -224,7 +224,8 @@ app.get('/', (_req, res) => {
 });
 
 // Error handling middleware
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: Error, _req: express.Request, res: express.Response, _next: unknown): void => {
+  void _next;
   console.error('Error:', err);
   res.status(500).json({
     error: 'Internal Server Error',

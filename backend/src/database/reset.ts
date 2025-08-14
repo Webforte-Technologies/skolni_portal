@@ -36,8 +36,8 @@ async function resetDatabase() {
     console.log('✅ Sample school data inserted');
 
     // Insert sample admin user (must have school_id due to constraint)
-    const bcrypt = require('bcryptjs');
-    const adminPasswordHash = await bcrypt.hash('admin123', 12);
+    const bcrypt = await import('bcryptjs');
+    const adminPasswordHash = await bcrypt.default.hash('admin123', 12);
     
     await pool.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role, credits_balance, email_verified, school_id)
@@ -56,7 +56,7 @@ async function resetDatabase() {
     console.log('✅ Sample admin user created (admin@eduai.cz / admin123)');
 
     // Insert sample teacher user
-    const teacherPasswordHash = await bcrypt.hash('teacher123', 12);
+    const teacherPasswordHash = await bcrypt.default.hash('teacher123', 12);
     
     await pool.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role, credits_balance, email_verified, school_id)
