@@ -72,14 +72,23 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rate limiting (configurable / skippable in development)
+// Rate limiting (configurable / skippable in development, enforced in tests)
 const rateWindowMs = parseInt(process.env['RATE_LIMIT_WINDOW_MS'] || String(15 * 60 * 1000), 10);
 const rateMax = parseInt(process.env['RATE_LIMIT_MAX_REQUESTS'] || '100', 10);
+const isTestEnv = process.env['NODE_ENV'] === 'test';
 const limiter = rateLimit({
   windowMs: rateWindowMs,
   max: rateMax,
   message: 'Too many requests from this IP, please try again later.',
-  skip: () => (process.env['NODE_ENV'] !== 'production') || rateMax <= 0,
+  // In production always enforce. In development enforce only if explicitly enabled.
+  // In tests always enforce (so we can assert behavior).
+  skip: () => {
+    if (isTestEnv) return false;
+    const isProd = process.env['NODE_ENV'] === 'production';
+    const enableInDev = process.env['ENABLE_RATE_LIMIT_IN_DEV'] === 'true';
+    if (!isProd && !enableInDev) return true;
+    return rateMax <= 0;
+  },
 });
 app.use(limiter);
 
@@ -147,7 +156,9 @@ async function runStartupMigrationsIfNeeded(): Promise<void> {
   }
 }
 
-runStartupMigrationsIfNeeded().catch(() => void 0);
+if (process.env['NODE_ENV'] !== 'test') {
+  runStartupMigrationsIfNeeded().catch(() => void 0);
+}
 
 // Bootstrap platform admins from env (comma-separated emails)
 async function bootstrapPlatformAdmins() {

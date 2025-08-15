@@ -77,12 +77,15 @@ PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
       "time": "10 min"
     }
   ],
+  "differentiation": "Úpravy pro slabší/silnější žáky",
+  "homework": "Domácí úkol",
   "assessment": "Metody hodnocení"
 }
 
 POŽADAVKY:
 - Vždy odpovídej česky
 - Dbej na jasnost, přiměřenou obtížnost a praktické aktivity
+- Součet všech hodnot v poli activities[*].time (v minutách) MUSÍ přesně odpovídat hodnotě "duration" (v minutách)
 - Výstup musí být platný JSON přesně dle struktury bez komentářů a bez vysvětlujícího textu.`;
 
 // Specialized system prompt for quiz generation (used below)
@@ -124,6 +127,7 @@ const PROJECT_SYSTEM_PROMPT: string = `Jsi zkušený český učitel. Vytvoř pr
 
 PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
 {
+  "template": "project",
   "title": "Název projektu",
   "subject": "Předmět",
   "grade_level": "Ročník",
@@ -146,6 +150,7 @@ const PRESENTATION_SYSTEM_PROMPT: string = `Jsi zkušený český učitel. Vytvo
 
 PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
 {
+  "template": "presentation",
   "title": "Název prezentace",
   "subject": "Předmět",
   "grade_level": "Ročník",
@@ -185,6 +190,26 @@ void PRESENTATION_SYSTEM_PROMPT;
 void ACTIVITY_SYSTEM_PROMPT;
 
 // Validation middleware
+// Simple tag derivation from user inputs/content
+function deriveTags(...parts: Array<string | undefined>): string[] {
+  const text = parts.filter(Boolean).join(' ').toLowerCase();
+  const candidates = new Set<string>();
+  const addIf = (word: string, cond: boolean) => { if (cond) candidates.add(word); };
+  addIf('matematika', /mat(ematika)?/.test(text));
+  addIf('fyzika', /fyzik/.test(text));
+  addIf('chemie', /chem/.test(text));
+  addIf('biologie', /biolog/.test(text));
+  addIf('dějepis', /dějepis|histor/.test(text));
+  addIf('algebra', /algebra|rovnic|lineárn|kvadratick/.test(text));
+  addIf('geometrie', /geometri|trojúheln|kruh|kružnic|úhel/.test(text));
+  addIf('pravděpodobnost', /pravděpodobnost|statistik/.test(text));
+  addIf('zlomky', /zlomek|zlomk/.test(text));
+  addIf('derivace', /derivac/.test(text));
+  addIf('integrály', /integrál/.test(text));
+  addIf('prezentace', /prezentac/.test(text));
+  addIf('projekt', /projekt/.test(text));
+  return Array.from(candidates).slice(0, 8);
+}
 const validateChatMessage = [
   body('message').trim().isLength({ min: 1, max: 2000 }).withMessage('Message must be between 1 and 2000 characters'),
   body('session_id').optional().isUUID().withMessage('Invalid session ID format')
@@ -444,7 +469,7 @@ router.get('/features', authenticateToken, async (_req: Request, res: Response) 
   }
 });
 
-// Generate worksheet endpoint with streaming
+// Generate worksheet endpoint with streaming (validated JSON + metadata)
 router.post('/generate-worksheet', authenticateToken, [
   body('topic').trim().isLength({ min: 3, max: 200 }).withMessage('Topic must be between 3 and 200 characters'),
   body('question_count').optional().isInt({ min: 5, max: 100 }),
@@ -508,12 +533,7 @@ router.post('/generate-worksheet', authenticateToken, [
       });
     }
 
-    // Deduct credits before starting the stream
-    await CreditTransactionModel.deductCredits(
-      userId, 
-      creditsRequired, 
-      `Worksheet generation: "${topic}"`
-    );
+    // Do NOT deduct before success; deduct after successful parse/save
 
     // Set headers for streaming
     res.setHeader('Content-Type', 'text/event-stream');
@@ -539,7 +559,7 @@ router.post('/generate-worksheet', authenticateToken, [
         }
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '3000'),
-      temperature: 0.7,
+      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
       stream: true,
     });
 
@@ -554,15 +574,17 @@ router.post('/generate-worksheet', authenticateToken, [
       }
     }
 
-    // Parse JSON response
+    // Parse JSON response and validate
     let worksheetData;
     try {
       worksheetData = JSON.parse(fullResponse);
       
       // Validate the structure
-      if (!worksheetData.title || !worksheetData.instructions || !Array.isArray(worksheetData.questions)) {
-        throw new Error('Invalid worksheet structure');
-      }
+      if (!worksheetData.title || typeof worksheetData.title !== 'string') throw new Error('Invalid worksheet.title');
+      if (!worksheetData.instructions || typeof worksheetData.instructions !== 'string') throw new Error('Invalid worksheet.instructions');
+      if (!Array.isArray(worksheetData.questions) || worksheetData.questions.length < 1) throw new Error('Invalid worksheet.questions');
+      const invalidQuestion = worksheetData.questions.find((q: any) => !q || typeof q.problem !== 'string' || typeof q.answer !== 'string');
+      if (invalidQuestion) throw new Error('Invalid worksheet question item');
     } catch (parseError) {
       console.error('Failed to parse worksheet JSON:', parseError);
       res.write('data: {"type":"error","message":"The AI response could not be parsed as a valid worksheet."}\n\n');
@@ -579,13 +601,26 @@ router.post('/generate-worksheet', authenticateToken, [
         content: JSON.stringify(worksheetData),
         file_type: 'worksheet'
       });
-      console.log('✅ Worksheet saved to database successfully');
+      // Tag basics (subject/difficulty from text heuristics minimal)
+      try {
+        await GeneratedFileModel.updateAIMetadata(savedWorksheet.id, {
+          metadata: { raw: fullResponse, prompt: 'WORKSHEET_SYSTEM_PROMPT' },
+          tags: Array.isArray(worksheetData.tags) ? worksheetData.tags : [],
+        });
+      } catch (e) {
+        console.warn('Failed to update AI metadata for worksheet:', e);
+      }
     } catch (saveError) {
       console.error('Failed to save worksheet to database:', saveError);
       // Don't fail the request if database save fails, but log the error
     }
 
-    // Get updated user balance
+    // Deduct credits only after successful parse (and attempted save)
+    await CreditTransactionModel.deductCredits(
+      userId,
+      creditsRequired,
+      `Worksheet generation: "${topic}"`
+    );
     const updatedUser = await UserModel.findById(userId);
 
     // Send final response with metadata, including saved file ID if available
@@ -605,7 +640,7 @@ router.post('/generate-worksheet', authenticateToken, [
 
 export default router;
 
-// Generate lesson plan (streaming)
+// Generate lesson plan (streaming) with basic JSON validation and post-success deduction
 router.post('/generate-lesson-plan', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
   body('subject').optional().isLength({ min: 2, max: 100 }),
@@ -626,8 +661,7 @@ router.post('/generate-lesson-plan', authenticateToken, [
       res.status(402).json({ success: false, error: 'Insufficient credits' });
       return;
     }
-
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Lesson plan generation');
+    // Deduct after success
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -645,7 +679,7 @@ router.post('/generate-lesson-plan', authenticateToken, [
         { role: 'user', content: prompt }
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2500'),
-      temperature: 0.7,
+      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
       stream: true,
     });
 
@@ -661,6 +695,27 @@ router.post('/generate-lesson-plan', authenticateToken, [
     let data;
     try {
       data = JSON.parse(full);
+      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
+      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid lesson_plan.title');
+      if (!Array.isArray(data.activities)) throw new Error('Invalid lesson_plan.activities');
+      if (Array.isArray(data.activities)) {
+        data.activities.forEach((a: any) => {
+          if (!a || typeof a.name !== 'string' || typeof a.time !== 'string') {
+            throw new Error('Invalid activity item');
+          }
+        });
+      }
+      // Validate total time matches duration
+      const durationStr: string = data.duration || '45 min';
+      const durationMatch = /([0-9]+)\s*min/.exec(durationStr);
+      const targetMinutes = durationMatch && durationMatch[1] ? parseInt(durationMatch[1] as string, 10) : 45;
+      const sumMinutes = (data.activities || []).reduce((sum: number, a: any) => {
+        const m = /([0-9]+)\s*min/.exec(String(a.time || '0'));
+        return sum + (m && m[1] ? parseInt(m[1] as string, 10) : 0);
+      }, 0);
+      if (sumMinutes !== targetMinutes) {
+        throw new Error(`Duration mismatch: activities total ${sumMinutes} min != duration ${targetMinutes} min`);
+      }
     } catch (e) {
       res.write('data: {"type":"error","message":"Failed to parse lesson plan JSON"}\n\n');
       res.end();
@@ -673,7 +728,14 @@ router.post('/generate-lesson-plan', authenticateToken, [
       content: JSON.stringify(data),
       file_type: 'lesson_plan'
     });
+    try {
+      await GeneratedFileModel.updateAIMetadata(savedLesson.id, {
+        metadata: { raw: full, prompt: 'LESSON_PLAN_SYSTEM_PROMPT' },
+        tags: Array.isArray(data.tags) ? data.tags : [],
+      });
+    } catch {}
 
+    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Lesson plan generation');
     const updated = await UserModel.findById(req.user.id);
     res.write(`data: {"type":"end","lesson_plan":${JSON.stringify(data)},"file_id":"${savedLesson?.id || ''}","file_type":"lesson_plan","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
     res.end();
@@ -684,7 +746,7 @@ router.post('/generate-lesson-plan', authenticateToken, [
   }
 });
 
-// Generate quiz (streaming)
+// Generate quiz (streaming) with validation and post-success deduction
 router.post('/generate-quiz', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
   body('subject').optional().isLength({ min: 2, max: 100 }),
@@ -701,15 +763,16 @@ router.post('/generate-quiz', authenticateToken, [
     const creditsRequired = 2;
     if ((user.credits_balance ?? 0) < creditsRequired) { res.status(402).json({ success: false, error: 'Insufficient credits' }); return; }
 
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Quiz generation');
+    // Deduct after success
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.write('data: {"type":"start","message":"Starting quiz generation..."}\n\n');
 
-    const { title, subject, grade_level, question_count } = req.body;
-  const prompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}. Dodrž předepsanou JSON strukturu.`;
+    const { title, subject, grade_level, question_count, time_limit } = req.body;
+    const timeLimitPart = time_limit ? ` s časovým limitem ${time_limit}` : '';
+    const prompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}${timeLimitPart}. Dodrž předepsanou JSON strukturu.`;
 
     const stream = await openai.chat.completions.create({
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
@@ -718,7 +781,7 @@ router.post('/generate-quiz', authenticateToken, [
         { role: 'user', content: prompt }
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2500'),
-      temperature: 0.7,
+      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
       stream: true,
     });
 
@@ -734,6 +797,27 @@ router.post('/generate-quiz', authenticateToken, [
     let data;
     try {
       data = JSON.parse(full);
+      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
+      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid quiz.title');
+      // accept time_limit like "20 min" or number of minutes
+      if (data.time_limit === undefined || (typeof data.time_limit !== 'string' && typeof data.time_limit !== 'number')) {
+        throw new Error('Invalid quiz.time_limit');
+      }
+      if (!Array.isArray(data.questions) || data.questions.length < 1) throw new Error('Invalid quiz.questions');
+      for (const q of data.questions) {
+        if (!q || typeof q.question !== 'string') throw new Error('Invalid quiz question text');
+        if (!q.type || typeof q.type !== 'string') throw new Error('Invalid quiz question type');
+        const type = String(q.type);
+        if (type === 'multiple_choice') {
+          if (!Array.isArray(q.options) || q.options.length < 2) throw new Error('Invalid quiz question options');
+          if (typeof q.answer !== 'string') throw new Error('Invalid quiz question answer');
+          if (!q.options.includes(q.answer)) throw new Error('Answer must be one of the options');
+        } else if (type === 'true_false') {
+          if (typeof q.answer !== 'boolean') throw new Error('Invalid true/false answer');
+        } else if (type === 'short_answer') {
+          if (typeof q.answer !== 'string') throw new Error('Invalid short answer');
+        }
+      }
     } catch (e) {
       res.write('data: {"type":"error","message":"Failed to parse quiz JSON"}\n\n');
       res.end();
@@ -746,7 +830,9 @@ router.post('/generate-quiz', authenticateToken, [
       content: JSON.stringify(data),
       file_type: 'quiz'
     });
+    try { await GeneratedFileModel.updateAIMetadata(savedQuiz.id, { metadata: { raw: full, prompt: 'QUIZ_SYSTEM_PROMPT' }, tags: Array.isArray(data.tags) ? data.tags : [] }); } catch {}
 
+    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Quiz generation');
     const updated = await UserModel.findById(req.user.id);
     res.write(`data: {"type":"end","quiz":${JSON.stringify(data)},"file_id":"${savedQuiz?.id || ''}","file_type":"quiz","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
     res.end();
@@ -757,7 +843,7 @@ router.post('/generate-quiz', authenticateToken, [
   }
 });
 
-// Generate project (streaming)
+// Generate project (streaming) with validation and post-success deduction
 router.post('/generate-project', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
   body('subject').optional().isLength({ min: 2, max: 100 }),
@@ -773,15 +859,15 @@ router.post('/generate-project', authenticateToken, [
     const creditsRequired = 2;
     if ((user.credits_balance ?? 0) < creditsRequired) { res.status(402).json({ success: false, error: 'Insufficient credits' }); return; }
 
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Project generation');
+    // Deduct after success
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.write('data: {"type":"start","message":"Starting project generation..."}\n\n');
 
-    const { title, subject, grade_level } = req.body;
-    const prompt = `Vytvoř projekt${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. Dodrž předepsanou JSON strukturu.`;
+    const { title, subject, grade_level, template_style } = req.body;
+    const prompt = `Vytvoř projekt${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. ${template_style === 'story' ? 'Preferuj příběhové zadání s kroky.' : 'Preferuj strukturované odrážky a jasná kritéria.'} Dodrž předepsanou JSON strukturu.`;
 
     const stream = await openai.chat.completions.create({
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
@@ -790,7 +876,7 @@ router.post('/generate-project', authenticateToken, [
         { role: 'user', content: prompt }
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2500'),
-      temperature: 0.7,
+      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
       stream: true,
     });
 
@@ -806,6 +892,18 @@ router.post('/generate-project', authenticateToken, [
     let data;
     try {
       data = JSON.parse(full);
+      // Basic schema validation for project
+      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
+      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid project.title');
+      if (!data.description || typeof data.description !== 'string') throw new Error('Invalid project.description');
+      if (!Array.isArray(data.objectives)) throw new Error('Invalid project.objectives');
+      if (!Array.isArray(data.deliverables)) throw new Error('Invalid project.deliverables');
+      if (!Array.isArray(data.rubric)) throw new Error('Invalid project.rubric');
+      for (const r of data.rubric) {
+        if (!r || typeof r.criteria !== 'string' || !Array.isArray(r.levels) || r.levels.length === 0) {
+          throw new Error('Invalid project.rubric item');
+        }
+      }
     } catch (e) {
       res.write('data: {"type":"error","message":"Failed to parse project JSON"}\n\n');
       res.end();
@@ -818,7 +916,14 @@ router.post('/generate-project', authenticateToken, [
       content: JSON.stringify(data),
       file_type: 'project'
     });
+    try {
+      await GeneratedFileModel.updateAIMetadata(savedProject.id, {
+        metadata: { raw: full, prompt: 'PROJECT_SYSTEM_PROMPT' },
+        tags: Array.isArray(data.tags) && data.tags.length ? data.tags : deriveTags(title, subject, grade_level, data.description)
+      });
+    } catch {}
 
+    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Project generation');
     const updated = await UserModel.findById(req.user.id);
     res.write(`data: {"type":"end","project":${JSON.stringify(data)},"file_id":"${savedProject?.id || ''}","file_type":"project","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
     res.end();
@@ -829,7 +934,7 @@ router.post('/generate-project', authenticateToken, [
   }
 });
 
-// Generate presentation (streaming)
+// Generate presentation (streaming) with validation and post-success deduction
 router.post('/generate-presentation', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
   body('subject').optional().isLength({ min: 2, max: 100 }),
@@ -845,15 +950,15 @@ router.post('/generate-presentation', authenticateToken, [
     const creditsRequired = 2;
     if ((user.credits_balance ?? 0) < creditsRequired) { res.status(402).json({ success: false, error: 'Insufficient credits' }); return; }
 
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Presentation generation');
+    // Deduct after success
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.write('data: {"type":"start","message":"Starting presentation generation..."}\n\n');
 
-    const { title, subject, grade_level } = req.body;
-    const prompt = `Vytvoř osnovu prezentace${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. Dodrž předepsanou JSON strukturu.`;
+    const { title, subject, grade_level, template_style } = req.body;
+    const prompt = `Vytvoř osnovu prezentace${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. ${template_style === 'story' ? 'Použij narativní flow se stručnými body.' : 'Použij jasné sekce a krátké odrážky.'} Dodrž předepsanou JSON strukturu.`;
 
     const stream = await openai.chat.completions.create({
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
@@ -862,7 +967,7 @@ router.post('/generate-presentation', authenticateToken, [
         { role: 'user', content: prompt }
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2200'),
-      temperature: 0.7,
+      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
       stream: true,
     });
 
@@ -878,6 +983,15 @@ router.post('/generate-presentation', authenticateToken, [
     let data;
     try {
       data = JSON.parse(full);
+      // Basic schema validation for presentation
+      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
+      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid presentation.title');
+      if (!Array.isArray(data.slides) || data.slides.length < 1) throw new Error('Invalid presentation.slides');
+      for (const s of data.slides) {
+        if (!s || typeof s.heading !== 'string' || !Array.isArray(s.bullets)) {
+          throw new Error('Invalid presentation slide item');
+        }
+      }
     } catch (e) {
       res.write('data: {"type":"error","message":"Failed to parse presentation JSON"}\n\n');
       res.end();
@@ -890,7 +1004,14 @@ router.post('/generate-presentation', authenticateToken, [
       content: JSON.stringify(data),
       file_type: 'presentation'
     });
+    try {
+      await GeneratedFileModel.updateAIMetadata(savedPresentation.id, {
+        metadata: { raw: full, prompt: 'PRESENTATION_SYSTEM_PROMPT' },
+        tags: Array.isArray(data.tags) && data.tags.length ? data.tags : deriveTags(title, subject, grade_level, (data.slides || []).map((s:any)=>s.heading).join(' '))
+      });
+    } catch {}
 
+    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Presentation generation');
     const updated = await UserModel.findById(req.user.id);
     res.write(`data: {"type":"end","presentation":${JSON.stringify(data)},"file_id":"${savedPresentation?.id || ''}","file_type":"presentation","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
     res.end();
@@ -901,7 +1022,7 @@ router.post('/generate-presentation', authenticateToken, [
   }
 });
 
-// Generate classroom activity (streaming)
+// Generate classroom activity (streaming) with validation and post-success deduction
 router.post('/generate-activity', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
   body('subject').optional().isLength({ min: 2, max: 100 }),
@@ -918,7 +1039,7 @@ router.post('/generate-activity', authenticateToken, [
     const creditsRequired = 2;
     if ((user.credits_balance ?? 0) < creditsRequired) { res.status(402).json({ success: false, error: 'Insufficient credits' }); return; }
 
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Activity generation');
+    // Deduct after success
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -935,7 +1056,7 @@ router.post('/generate-activity', authenticateToken, [
         { role: 'user', content: prompt }
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2000'),
-      temperature: 0.7,
+      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
       stream: true,
     });
 
@@ -951,6 +1072,12 @@ router.post('/generate-activity', authenticateToken, [
     let data;
     try {
       data = JSON.parse(full);
+      // Basic schema validation for activity
+      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
+      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid activity.title');
+      if (!data.duration || typeof data.duration !== 'string') throw new Error('Invalid activity.duration');
+      if (!Array.isArray(data.instructions)) throw new Error('Invalid activity.instructions');
+      if (!Array.isArray(data.materials)) throw new Error('Invalid activity.materials');
     } catch (e) {
       res.write('data: {"type":"error","message":"Failed to parse activity JSON"}\n\n');
       res.end();
@@ -963,7 +1090,14 @@ router.post('/generate-activity', authenticateToken, [
       content: JSON.stringify(data),
       file_type: 'activity'
     });
+    try {
+      await GeneratedFileModel.updateAIMetadata(savedActivity.id, {
+        metadata: { raw: full, prompt: 'ACTIVITY_SYSTEM_PROMPT' },
+        tags: Array.isArray(data.tags) && data.tags.length ? data.tags : deriveTags(title, subject, grade_level, duration, (data.instructions || []).join(' '))
+      });
+    } catch {}
 
+    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Activity generation');
     const updated = await UserModel.findById(req.user.id);
     res.write(`data: {"type":"end","activity":${JSON.stringify(data)},"file_id":"${savedActivity?.id || ''}","file_type":"activity","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
     res.end();

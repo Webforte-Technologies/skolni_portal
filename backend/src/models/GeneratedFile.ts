@@ -455,12 +455,14 @@ export class GeneratedFileModel {
       difficulty?: string;
       gradeLevel?: string;
       tags?: string[];
+      // raw JSON metadata (e.g., raw AI response, prompts)
+      metadata?: Record<string, any>;
       qualityScore?: number;
     }
   ): Promise<GeneratedFile> {
     const allowedFields = [
       'ai_category', 'ai_subject', 'ai_difficulty', 
-      'ai_grade_level', 'ai_tags', 'ai_quality_score'
+      'ai_grade_level', 'ai_tags', 'ai_quality_score', 'ai_metadata'
     ];
     
     const updates: string[] = [];
@@ -468,7 +470,13 @@ export class GeneratedFileModel {
     let paramCount = 1;
 
     for (const [key, value] of Object.entries(metadata)) {
-      if (allowedFields.includes(`ai_${key}`) && value !== undefined) {
+      if (key === 'metadata' && value !== undefined) {
+        // map `metadata` input to `ai_metadata` column
+        const dbField = 'ai_metadata';
+        updates.push(`${dbField} = $${paramCount}`);
+        values.push(value);
+        paramCount++;
+      } else if (allowedFields.includes(`ai_${key}`) && value !== undefined) {
         const dbField = `ai_${key}`;
         if (key === 'tags') {
           updates.push(`${dbField} = $${paramCount}::text[]`);
