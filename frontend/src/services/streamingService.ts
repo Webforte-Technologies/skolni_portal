@@ -159,14 +159,26 @@ export const streamingService = {
 
     // Get the base URL from the API client
     const baseURL = apiClient.defaults.baseURL;
-    const response = await fetch(`${baseURL}/ai/generate-worksheet`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ topic, ...(options || {}) }),
-    });
+    const doRequest = async (signal?: AbortSignal): Promise<Response> => {
+      return fetch(`${baseURL}/ai/generate-worksheet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ topic, ...(options || {}) }),
+        signal,
+      });
+    };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+    let response = await doRequest(controller.signal);
+    if (!response.ok && response.status >= 500) {
+      // backoff then retry once for transient server errors
+      await new Promise((r) => setTimeout(r, 500));
+      response = await doRequest(controller.signal);
+    }
+    clearTimeout(timeout);
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -238,11 +250,22 @@ export const streamingService = {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('No authentication token found');
     const baseURL = apiClient.defaults.baseURL;
-    const response = await fetch(`${baseURL}/ai/generate-lesson-plan`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(params),
-    });
+    const doRequest = async (signal?: AbortSignal): Promise<Response> => {
+      return fetch(`${baseURL}/ai/generate-lesson-plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(params),
+        signal,
+      });
+    };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+    let response = await doRequest(controller.signal);
+    if (!response.ok && response.status >= 500) {
+      await new Promise((r) => setTimeout(r, 500));
+      response = await doRequest(controller.signal);
+    }
+    clearTimeout(timeout);
     if (!response.ok) throw new Error((await response.json()).error || 'Failed to generate lesson plan');
     if (!response.body) throw new Error('No response body');
     const reader = response.body.getReader();
@@ -276,17 +299,28 @@ export const streamingService = {
 
   // Generate quiz with streaming response
   generateQuizStream: async (
-    params: { title?: string; subject?: string; grade_level?: string; question_count?: number },
+    params: { title?: string; subject?: string; grade_level?: string; question_count?: number; time_limit?: string | number },
     callbacks: QuizStreamingCallbacks
   ): Promise<void> => {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('No authentication token found');
     const baseURL = apiClient.defaults.baseURL;
-    const response = await fetch(`${baseURL}/ai/generate-quiz`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(params),
-    });
+    const doRequest = async (signal?: AbortSignal): Promise<Response> => {
+      return fetch(`${baseURL}/ai/generate-quiz`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(params),
+        signal,
+      });
+    };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+    let response = await doRequest(controller.signal);
+    if (!response.ok && response.status >= 500) {
+      await new Promise((r) => setTimeout(r, 500));
+      response = await doRequest(controller.signal);
+    }
+    clearTimeout(timeout);
     if (!response.ok) throw new Error((await response.json()).error || 'Failed to generate quiz');
     if (!response.body) throw new Error('No response body');
     const reader = response.body.getReader();
@@ -321,17 +355,28 @@ export const streamingService = {
 
   // Generate project
   generateProjectStream: async (
-    params: { title?: string; subject?: string; grade_level?: string },
+    params: { title?: string; subject?: string; grade_level?: string; template_style?: 'structured' | 'story' },
     callbacks: ProjectStreamingCallbacks
   ): Promise<void> => {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('No authentication token found');
     const baseURL = apiClient.defaults.baseURL;
-    const response = await fetch(`${baseURL}/ai/generate-project`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(params),
-    });
+    const doRequest = async (signal?: AbortSignal): Promise<Response> => {
+      return fetch(`${baseURL}/ai/generate-project`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(params),
+        signal,
+      });
+    };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+    let response = await doRequest(controller.signal);
+    if (!response.ok && response.status >= 500) {
+      await new Promise((r) => setTimeout(r, 500));
+      response = await doRequest(controller.signal);
+    }
+    clearTimeout(timeout);
     if (!response.ok) throw new Error((await response.json()).error || 'Failed to generate project');
     if (!response.body) throw new Error('No response body');
     const reader = response.body.getReader();
@@ -365,17 +410,28 @@ export const streamingService = {
 
   // Generate presentation
   generatePresentationStream: async (
-    params: { title?: string; subject?: string; grade_level?: string },
+    params: { title?: string; subject?: string; grade_level?: string; template_style?: 'structured' | 'story' },
     callbacks: PresentationStreamingCallbacks
   ): Promise<void> => {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('No authentication token found');
     const baseURL = apiClient.defaults.baseURL;
-    const response = await fetch(`${baseURL}/ai/generate-presentation`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(params),
-    });
+    const doRequest = async (signal?: AbortSignal): Promise<Response> => {
+      return fetch(`${baseURL}/ai/generate-presentation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(params),
+        signal,
+      });
+    };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+    let response = await doRequest(controller.signal);
+    if (!response.ok && response.status >= 500) {
+      await new Promise((r) => setTimeout(r, 500));
+      response = await doRequest(controller.signal);
+    }
+    clearTimeout(timeout);
     if (!response.ok) throw new Error((await response.json()).error || 'Failed to generate presentation');
     if (!response.body) throw new Error('No response body');
     const reader = response.body.getReader();
@@ -415,11 +471,22 @@ export const streamingService = {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('No authentication token found');
     const baseURL = apiClient.defaults.baseURL;
-    const response = await fetch(`${baseURL}/ai/generate-activity`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(params),
-    });
+    const doRequest = async (signal?: AbortSignal): Promise<Response> => {
+      return fetch(`${baseURL}/ai/generate-activity`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(params),
+        signal,
+      });
+    };
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60000);
+    let response = await doRequest(controller.signal);
+    if (!response.ok && response.status >= 500) {
+      await new Promise((r) => setTimeout(r, 500));
+      response = await doRequest(controller.signal);
+    }
+    clearTimeout(timeout);
     if (!response.ok) throw new Error((await response.json()).error || 'Failed to generate activity');
     if (!response.body) throw new Error('No response body');
     const reader = response.body.getReader();

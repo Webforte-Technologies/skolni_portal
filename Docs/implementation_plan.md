@@ -1012,3 +1012,70 @@ Tasks:
   [x] E2E: vytvoření nové konverzace → ihned viditelná v sidebaru bez reloadu (autorename test přidán).
   [x] Vizuální/UX: kontrola překladu tlačítka („Odeslat“).
   [x] Test: dlouhá odpověď se zobrazí celá bez nutnosti rozbalování.
+
+✨ Phase 24: Stabilizace generátoru a knihovny materiálů
+
+Timeline: Week 34–35  
+Status: 📝 Planned  
+Goal: Opravit rozbité generování (kvízy, projekty, prezentace), zjednodušit a zpřesnit formuláře, stabilizovat složky/otevírání/sdílení materiálů a zlepšit napojení na AI tak, aby se obsah spolehlivě generoval.
+
+Tasks:
+
+  24.1 Generátory obsahu – opravy a validace
+  [ ] Kvíz negeneruje obsah:
+      - [x] Backend: přísná validace JSON pro kvíz (`title`, `time_limit`, `questions[{type, question, options?, answer}]`) a odmítnutí nevalidního výstupu bez odečtení kreditů.
+      - [x] Backend: fallback/repair – při nevalidním výstupu vrátit srozumitelnou chybu a neodečítat kredity.
+      - [x] Frontend: náhled kvízu před uložením; přidat loader + chyby do toastů (MaterialDisplay pro „quiz“ vylepšen, GeneratorPage doplněn o `time_limit`).
+  [ ] Duplicitní „Časový limit“ v kvízu:
+      - [x] Frontend: sloučit na jeden ovládací prvek (select); odstranit druhé pole (GeneratorPage `quizTimeLimit`).
+      - [ ] E2E: test, že je dostupný pouze jeden input a hodnota se propíše do výsledku.
+  [ ] Optimalizovat „Plán hodiny“ (AKUTNĚ):
+      - [x] Prompt: vynutit sekce (Cíle, Materiály, Postup s minutáží, Differenciace, Domácí úkol).
+      - [x] Validace: kontrola, že součet minut odpovídá trvání; chybová hláška při nesouladu.
+      - [x] UI: přehledný náhled struktury + export do PDF.
+  [ ] Projekty a Prezentace:
+      - [x] Backend: doplnit validace JSON výstupů (projekt: objectives/deliverables/rubric; prezentace: slides{heading, bullets}).
+      - [x] Vylepšit systémové prompty + šablony (přidán `template`, respektováno `template_style`).
+      - [x] UI: přepínání šablony („strukturovaná“ vs „story“) v generátoru; parametr se posílá do API.
+  [ ] Štítky u generace materiálu:
+      - [x] Frontend: UI pro ruční přidání/odebrání štítků (chips). (auto‑návrh textem)
+      - [x] Backend: automatické štítkování dle tématu/obsahu a uložení do `ai_tags` (heuristiky `deriveTags`).
+
+  24.2 Napojení na AI – spolehlivost a determinismus
+  [ ] Každý typ materiálu má vlastní system prompt a schéma; teplota/seed upravené pro stabilnější výstupy.
+  [x] Retries s exponenciálním backoffem při síťové chybě; timeout a jasné chybové hlášky.
+  [x] Audit výstupů: uložit raw odpověď AI do `meta` (pro ladění); logovat nevalidní výstupy.
+
+  24.3 Knihovna materiálů – složky, sdílení, otevírání
+  [ ] Složky nefungují:
+      - Backend/Frontend: revidovat CRUD přesuny materiálů mezi složkami; zjednodušit drag‑n‑drop, přidat „Přesunout do…“.
+      - E2E: vytvořit složku → přesunout materiál → přetrvá po reloadu.
+  [x] Sdílení materiálu „rozbité“:
+      - Backend: zkontrolovat práva (ve škole) a jednotné stavy `shared_with_school`.
+      - Frontend: jasný přepínač „Veřejně dostupné“ v modalu sdílení; parametr `is_public` napojen na share endpoint.
+  [x] Otevírání materiálu „otevře se pod materiálama“:
+      - Přesměrování na detail (`/materials/:id`) místo embed pod seznamem (MyMaterialsPage).
+      - QA: rychlý vizuální test, že detail má nejvyšší vrstvu a scroll lock.
+
+  24.4 Chat – „Generace cvičení“
+  [x] Dočasně skrýt/odstranit tlačítko „Generovat cvičení“ v chatu, nebo ho přesměrovat na dedikovaný generátor, dokud nebude spolehlivé.
+  [x] Feature flag `enableChatExerciseGeneration` (default off) a fallback toast s odkazem na generátor.
+
+  24.5 UX zlepšení formulářů
+  [x] Konsolidace povinných polí, pomocné texty a validace v reálném čase (GeneratorPage – helper texty).
+  [x] Jednotný loader, stav „Zrušit“ u dlouhých operací (GeneratorPage).
+  [x] Uložit poslední volby (třída, časový limit) do `localStorage`.
+
+  24.6 Testy a kvalita
+  [ ] Jednotkové testy validátorů (kvíz/lekce/projekt/prezentace).
+  [ ] Playwright scénáře:
+      - Generace kvízu → náhled → uložení → zobrazení v knihovně.
+      - Složky: vytvořit/přesunout/otevřít; Sdílení: zapnout/vypnout a ověřit zobrazení ve „Školní knihovně“.
+      - Otevírání detailu: vždy nad seznamem (modal/stránka).
+  [ ] Metriky neúspěšných generací a nevalidních výstupů (dashboard admin).
+
+Deliverables:
+  - Opravené UI formuláře (bez duplicit, s auto‑štítky).
+  - Validované a spolehlivé generování (kvízy/lekce/projekty/prezentace).
+  - Stabilní knihovna: funkční složky, sdílení a zobrazení detailu.
+  - E2E a jednotkové testy pokrývající hlavní toky.

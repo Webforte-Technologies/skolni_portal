@@ -9,9 +9,10 @@ interface ComposerToolbarProps {
   disabled?: boolean;
   onInsertText?: (text: string) => void;
   onOpenHelp?: () => void;
+  exerciseEnabled?: boolean;
 }
 
-const ComposerToolbar: React.FC<ComposerToolbarProps> = ({ onUpload, onTemplates, onGenerateWorksheet, disabled, onInsertText, onOpenHelp }) => {
+const ComposerToolbar: React.FC<ComposerToolbarProps> = ({ onUpload, onTemplates, onGenerateWorksheet, disabled, onInsertText, onOpenHelp, exerciseEnabled = false }) => {
   return (
     <div className="flex items-center gap-2 px-1 pt-2 text-xs text-muted-foreground dark:text-neutral-400">
       <Button variant="ghost" size="icon" onClick={onUpload} title="Nahrát obrázek matematického problému">
@@ -20,7 +21,13 @@ const ComposerToolbar: React.FC<ComposerToolbarProps> = ({ onUpload, onTemplates
       <Button variant="ghost" size="icon" onClick={onTemplates} title="Šablony / příkazy">
         <Wand2 className="h-4 w-4" />
       </Button>
-      <Button variant="ghost" size="icon" disabled={disabled} onClick={onGenerateWorksheet} title="Vygenerovat cvičení">
+      <Button
+        variant="ghost"
+        size="icon"
+        disabled={disabled || !exerciseEnabled}
+        onClick={onGenerateWorksheet}
+        title={exerciseEnabled ? "Vygenerovat cvičení" : "Vygenerovat cvičení (dočasně přesunuto do AI Generátoru)"}
+      >
         <FileText className="h-4 w-4" />
       </Button>
       <div className="mx-2 h-5 w-px bg-border dark:bg-neutral-700" />

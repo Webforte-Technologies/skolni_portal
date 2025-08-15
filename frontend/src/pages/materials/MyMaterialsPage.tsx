@@ -17,17 +17,10 @@ import { useToast } from '../../contexts/ToastContext';
 import apiClient from '../../services/apiClient';
 import { exportStructuredToDocx } from '../../utils/exportUtils';
 // import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
-import MaterialDisplay from '../../components/materials/MaterialDisplay';
+// import MaterialDisplay from '../../components/materials/MaterialDisplay';
 import { GeneratedFile } from '../../types';
 
-interface Worksheet {
-  title: string;
-  instructions: string;
-  questions: Array<{
-    problem: string;
-    answer: string;
-  }>;
-}
+// Removed inline Worksheet interface (unused)
 
 interface FilterOptions {
   fileType: string;
@@ -76,8 +69,7 @@ const MyMaterialsPage: React.FC = () => {
   // State
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showWorksheet, setShowWorksheet] = useState(false);
-  const [worksheetData, setWorksheetData] = useState<Worksheet | null>(null);
+  // Open detail on its dedicated page to avoid layering issues
   const [fileToDelete, setFileToDelete] = useState<GeneratedFile | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<GeneratedFile | null>(null);
@@ -85,6 +77,7 @@ const MyMaterialsPage: React.FC = () => {
   const [showMoveToFolderModal, setShowMoveToFolderModal] = useState(false);
   const [fileToMove, setFileToMove] = useState<GeneratedFile | null>(null);
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
+  const [shareIsPublic, setShareIsPublic] = useState<boolean>(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [newFolderDescription, setNewFolderDescription] = useState('');
   const [newFolderParentId, setNewFolderParentId] = useState<string>('');
@@ -212,12 +205,11 @@ const MyMaterialsPage: React.FC = () => {
     if (!hasAutoOpened && newIds.length === 1 && files.length > 0) {
       const target = files.find((f: any) => f.id === newIds[0]);
       if (target) {
-        setWorksheetData(target);
-        setShowWorksheet(true);
+        navigate(`/materials/${target.id}`);
         setHasAutoOpened(true);
       }
     }
-  }, [files, newIds, hasAutoOpened]);
+  }, [files, newIds, hasAutoOpened, navigate]);
 
   const totalFiles = useMemo(() => {
     const d: any = filesData?.data;
@@ -593,10 +585,7 @@ const MyMaterialsPage: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        setWorksheetData(rec);
-                        setShowWorksheet(true);
-                      }}
+                      onClick={() => navigate(`/materials/${rec.id}`)}
                     >
                       <Eye className="w-3 h-3 mr-1" />
                       Zobrazit
@@ -859,6 +848,16 @@ const MyMaterialsPage: React.FC = () => {
                     </Button>
 
                     <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => { setFileToMove(file); setSelectedFolderId(''); setShowMoveToFolderModal(true); }}
+                      title="Přesunout do…"
+                    >
+                      <Folder className="w-4 h-4 mr-2" />
+                      Přesunout
+                    </Button>
+
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={async () => {
@@ -902,12 +901,7 @@ const MyMaterialsPage: React.FC = () => {
         )}
 
         {/* Modals */}
-        {showWorksheet && worksheetData && (
-          <MaterialDisplay
-            material={worksheetData}
-            onClose={() => setShowWorksheet(false)}
-          />
-        )}
+        {/* Detail zobrazený na samostatné stránce /materials/:id */}
 
         {fileToDelete && (
           <ConfirmModal
@@ -1028,6 +1022,8 @@ const MyMaterialsPage: React.FC = () => {
                     type="checkbox"
                     id="public"
                     className="rounded"
+                    checked={shareIsPublic}
+                    onChange={(e) => setShareIsPublic(e.target.checked)}
                   />
                   <label htmlFor="public" className="text-sm">
                     Veřejně dostupné
@@ -1047,7 +1043,7 @@ const MyMaterialsPage: React.FC = () => {
                   onClick={() => shareMaterialMutation.mutate({
                     material_id: selectedFile.id,
                     folder_id: selectedFolderId || undefined,
-                    is_public: false
+                    is_public: shareIsPublic
                   })}
                   className="flex-1"
                 >

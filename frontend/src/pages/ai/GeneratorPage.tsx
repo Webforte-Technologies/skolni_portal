@@ -12,6 +12,7 @@ const AIGeneratorPage: React.FC = () => {
   const [subject, setSubject] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
   const [questionCount, setQuestionCount] = useState<number>(10);
+  const [quizTimeLimit, setQuizTimeLimit] = useState<string>('20 min');
   const [topic, setTopic] = useState('');
   const [duration, setDuration] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -19,12 +20,43 @@ const AIGeneratorPage: React.FC = () => {
   const [teachingStyle, setTeachingStyle] = useState('');
   const [worksheetDifficulty, setWorksheetDifficulty] = useState('');
   const [batch, setBatch] = useState(false);
+  const [templateStyle, setTemplateStyle] = useState<'structured' | 'story'>('structured');
+  const [tagInput, setTagInput] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // In batch mode we will generate a worksheet too, so ensure we have a usable topic
   const derivedWorksheetTopic = (topic || '').trim() || (title || '').trim() || (subject || '').trim();
   const canGenerate = batch
     ? derivedWorksheetTopic.length >= 3
     : (type !== 'worksheet' || topic.trim().length >= 3);
+
+  // Persist last choices (time_limit, grade_level)
+  React.useEffect(() => {
+    const saved = localStorage.getItem('eduai.generator.v1');
+    if (saved) {
+      try {
+        const obj = JSON.parse(saved);
+        if (obj.quizTimeLimit) setQuizTimeLimit(obj.quizTimeLimit);
+        if (obj.gradeLevel) setGradeLevel(obj.gradeLevel);
+      } catch {}
+    }
+  }, []);
+  React.useEffect(() => {
+    const obj = { quizTimeLimit, gradeLevel };
+    localStorage.setItem('eduai.generator.v1', JSON.stringify(obj));
+  }, [quizTimeLimit, gradeLevel]);
+
+  const addTag = (t: string) => {
+    const tag = t.trim();
+    if (!tag) return;
+    setSelectedTags(prev => (prev.includes(tag) ? prev : [...prev, tag]));
+    setTagInput('');
+  };
+  const removeTag = (t: string) => setSelectedTags(prev => prev.filter(x => x !== t));
+
+  const helper = (text: string) => (
+    <div className="text-xs text-neutral-500 mt-1">{text}</div>
+  );
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -57,7 +89,7 @@ const AIGeneratorPage: React.FC = () => {
           onError: (m) => showToast({ type: 'error', message: m })
         });
 
-      const runQuiz = async () => streamingService.generateQuizStream({ title, subject, grade_level: gradeLevel, question_count: questionCount }, {
+      const runQuiz = async () => streamingService.generateQuizStream({ title, subject, grade_level: gradeLevel, question_count: questionCount, time_limit: quizTimeLimit }, {
           onStart: () => setStreamPreview('Generuji kvíz...'),
           onChunk: (c) => setStreamPreview((p) => p + c),
           onEnd: (meta) => {
@@ -70,7 +102,7 @@ const AIGeneratorPage: React.FC = () => {
           onError: (m) => showToast({ type: 'error', message: m })
         });
 
-      const runProject = async () => streamingService.generateProjectStream({ title, subject, grade_level: gradeLevel }, {
+      const runProject = async () => streamingService.generateProjectStream({ title, subject, grade_level: gradeLevel, template_style: templateStyle }, {
           onStart: () => setStreamPreview('Generuji projekt...'),
           onChunk: (c) => setStreamPreview((p) => p + c),
           onEnd: (meta) => {
@@ -83,7 +115,7 @@ const AIGeneratorPage: React.FC = () => {
           onError: (m) => showToast({ type: 'error', message: m })
         });
 
-      const runPresentation = async () => streamingService.generatePresentationStream({ title, subject, grade_level: gradeLevel }, {
+      const runPresentation = async () => streamingService.generatePresentationStream({ title, subject, grade_level: gradeLevel, template_style: templateStyle }, {
           onStart: () => setStreamPreview('Generuji prezentaci...'),
           onChunk: (c) => setStreamPreview((p) => p + c),
           onEnd: (meta) => {
@@ -157,10 +189,12 @@ const AIGeneratorPage: React.FC = () => {
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-1">Téma pracovního listu</label>
                 <input value={topic} onChange={(e) => setTopic(e.target.value)} className="w-full px-3 py-2 border rounded-md dark:bg-neutral-800 dark:text-neutral-100" placeholder="např. Kvadratické rovnice" />
+                {helper('Zadejte jasné téma, např. „Lineární rovnice“ nebo „Pythagorova věta“.')}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
                   <div>
                     <label className="block text-sm font-medium mb-1">Počet otázek</label>
                     <input type="number" min={5} max={100} value={questionCount} onChange={(e) => setQuestionCount(parseInt(e.target.value || '10', 10))} className="w-full px-3 py-2 border rounded-md dark:bg-neutral-800 dark:text-neutral-100" />
+                    {helper('Rozmezí 5–100. Výchozí je 10.')}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Obtížnost (volitelné)</label>
@@ -177,6 +211,7 @@ const AIGeneratorPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium mb-1">Název</label>
                   <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 border rounded-md dark:bg-neutral-800 dark:text-neutral-100" placeholder="např. Úvod do zlomků" />
+                  {helper('Krátký a srozumitelný název materiálu.')}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Předmět</label>
@@ -185,14 +220,38 @@ const AIGeneratorPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium mb-1">Ročník</label>
                   <input value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)} className="w-full px-3 py-2 border rounded-md dark:bg-neutral-800 dark:text-neutral-100" placeholder="např. 7. třída" />
+                  {helper('Např. „7. třída“, „SŠ“, „ZŠ“ apod. Uloží se pro příště.')}
                 </div>
+                {(type === 'project' || type === 'presentation') && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Šablona</label>
+                    <select value={templateStyle} onChange={(e) => setTemplateStyle(e.target.value as any)} className="w-full px-3 py-2 border rounded-md dark:bg-neutral-800 dark:text-neutral-100">
+                      <option value="structured">Strukturovaná</option>
+                      <option value="story">Story</option>
+                    </select>
+                    {helper('Vyberte styl výstupu: Strukturovaná (sekce/odrážky) nebo Story (narativní flow).')}
+                  </div>
+                )}
               </>
             )}
             {type === 'quiz' && (
-              <div>
-                <label className="block text-sm font-medium mb-1">Počet otázek</label>
-                <input type="number" min={5} max={100} value={questionCount} onChange={(e) => setQuestionCount(parseInt(e.target.value || '10', 10))} className="w-full px-3 py-2 border rounded-md dark:bg-neutral-800 dark:text-neutral-100" />
-              </div>
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Počet otázek</label>
+                  <input type="number" min={5} max={100} value={questionCount} onChange={(e) => setQuestionCount(parseInt(e.target.value || '10', 10))} className="w-full px-3 py-2 border rounded-md dark:bg-neutral-800 dark:text-neutral-100" />
+                  {helper('Rozmezí 5–100.')}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Časový limit</label>
+                  <select value={quizTimeLimit} onChange={(e) => setQuizTimeLimit(e.target.value)} className="w-full px-3 py-2 border rounded-md dark:bg-neutral-800 dark:text-neutral-100">
+                    <option value="15 min">15 min</option>
+                    <option value="20 min">20 min</option>
+                    <option value="30 min">30 min</option>
+                    <option value="45 min">45 min</option>
+                  </select>
+                  {helper('Pouze jeden ovladač pro časový limit; hodnota se propíše do výstupu.')}
+                </div>
+              </>
             )}
             {type === 'activity' && (
               <div>
@@ -200,15 +259,37 @@ const AIGeneratorPage: React.FC = () => {
                 <input value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full px-3 py-2 border rounded-md dark:bg-neutral-800 dark:text-neutral-100" placeholder="např. 10 min" />
               </div>
             )}
+
+            {/* 24.1 – štítky */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1">Štítky (volitelné)</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedTags.map((t) => (
+                  <button key={t} type="button" onClick={() => removeTag(t)} className="px-2 py-1 text-xs rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+                    {t} ×
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(tagInput); } }} className="flex-1 px-3 py-2 border rounded-md dark:bg-neutral-800 dark:text-neutral-100" placeholder="Přidejte štítek a stiskněte Enter" />
+                <Button variant="secondary" onClick={() => addTag(tagInput)}>Přidat</Button>
+              </div>
+              {helper('Návrhy: dle tématu mohou být „algebra“, „geometrie“, „derivace“, „zlomky“…')}
+            </div>
           </div>
           <div className="mt-4 flex items-center justify-between">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={batch} onChange={(e) => setBatch(e.target.checked)} />
               Vygenerovat balíček (Plán hodiny + Pracovní list + Kvíz)
             </label>
-            <Button onClick={handleGenerate} isLoading={isGenerating} disabled={!canGenerate}>
-              Vygenerovat
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => { setStreamPreview(''); setIsGenerating(false); }} disabled={!isGenerating && !streamPreview}>
+                Zrušit
+              </Button>
+              <Button onClick={handleGenerate} isLoading={isGenerating} disabled={!canGenerate}>
+                Vygenerovat
+              </Button>
+            </div>
           </div>
           {batch && derivedWorksheetTopic.length < 3 && (
             <div className="mt-2 text-xs text-red-600">Pro balíček prosím zadejte alespoň název, předmět nebo téma pracovního listu (min. 3 znaky), aby šlo vytvořit pracovní list.</div>

@@ -19,10 +19,9 @@ import ChatTemplates from '../../components/chat/ChatTemplates';
 import VoiceInput from '../../components/chat/VoiceInput';
 import Button from '../../components/ui/Button';
 import Tooltip from '../../components/ui/Tooltip';
-import { AlertCircle, Menu, Calculator, X, Download, BookOpen } from 'lucide-react';
+import { AlertCircle, Menu, X, Download, BookOpen } from 'lucide-react';
 // Defer heavy PDF libs via dynamic import to reduce bundle size
 type ConversationExportData = import('../../utils/pdfExport').ConversationExportData;
-import MathToolsToolbar from '../../components/chat/MathToolsToolbar';
 import DifficultyProgression from '../../components/chat/DifficultyProgression';
 import PracticeMode from '../../components/chat/PracticeMode';
 import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
@@ -57,11 +56,11 @@ const ChatPage: React.FC = () => {
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   
   // Phase 13.1: Math Assistant State
-  const [selectedMathTopic, setSelectedMathTopic] = useState<MathTopic>('basic_math');
+  const [selectedMathTopic] = useState<MathTopic>('basic_math');
   const [selectedDifficulty, setSelectedDifficulty] = useState<MathDifficulty>('basic');
-  const [showMathTools, setShowMathTools] = useState(false);
+  // deprecated toolbar in chat; keeping state removed to avoid unused warnings
   const [showPracticeMode, setShowPracticeMode] = useState(false);
-  const [showDifficultyProgression, setShowDifficultyProgression] = useState(false);
+  const [showDifficultyProgression] = useState(false);
   const [userMathProgress, setUserMathProgress] = useState<Record<MathTopic, number>>({
     basic_math: 75,
     algebra: 60,
@@ -415,33 +414,15 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  // Phase 13.1: Math Assistant Handlers
-  const handleMathTopicChange = (topic: MathTopic) => {
-    setSelectedMathTopic(topic);
-    // Update difficulty based on user progress
-    const progress = userMathProgress[topic];
-    if (progress >= 90) {
-      setSelectedDifficulty('advanced');
-    } else if (progress >= 70) {
-      setSelectedDifficulty('intermediate');
-    } else {
-      setSelectedDifficulty('basic');
-    }
-  };
-
   const handleDifficultyChange = (difficulty: MathDifficulty) => {
     setSelectedDifficulty(difficulty);
   };
 
   const handleStartPractice = () => {
     setShowPracticeMode(true);
-    setShowMathTools(false);
   };
 
-  const handleShowProgression = () => {
-    setShowDifficultyProgression(true);
-    setShowMathTools(false);
-  };
+  // kept for future use
 
   const handlePracticeComplete = (session: PracticeSession) => {
     // Update user progress based on practice results
@@ -460,12 +441,10 @@ const ChatPage: React.FC = () => {
     });
     
     setShowPracticeMode(false);
-    setShowMathTools(true);
   };
 
   const handleClosePractice = () => {
     setShowPracticeMode(false);
-    setShowMathTools(true);
   };
 
   // Image upload handlers
@@ -727,13 +706,30 @@ const ChatPage: React.FC = () => {
                 {/* Tools Section */}
                 <div className="mt-2 px-4">
                   <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1">Nástroje</div>
-                  <ComposerToolbar
-                onUpload={handleImageUpload}
-                onGenerateWorksheet={() => setIsWorksheetModalOpen(true)}
-                onInsertText={(text) => composerRef.current?.insertText(text)}
-                onOpenHelp={() => setIsCmdPaletteOpen(true)}
-                disabled={!user || user.credits_balance < 2}
-                  />
+                  {(() => {
+                    const exerciseEnabled = import.meta.env.VITE_ENABLE_CHAT_EXERCISE === 'true';
+                    const onGenerate = exerciseEnabled
+                      ? () => setIsWorksheetModalOpen(true)
+                      : () => {
+                          showToast({
+                            type: 'info',
+                            message: 'Generování cvičení je dočasně v AI Generátoru.',
+                            actionLabel: 'Otevřít',
+                            onAction: () => navigate('/ai-generator')
+                          });
+                          navigate('/ai-generator');
+                        };
+                    return (
+                      <ComposerToolbar
+                        onUpload={handleImageUpload}
+                        onGenerateWorksheet={onGenerate}
+                        onInsertText={(text) => composerRef.current?.insertText(text)}
+                        onOpenHelp={() => setIsCmdPaletteOpen(true)}
+                        disabled={!user || user.credits_balance < 2}
+                        exerciseEnabled={exerciseEnabled}
+                      />
+                    );
+                  })()}
                 </div>
 
               {/* Voice Input */}
