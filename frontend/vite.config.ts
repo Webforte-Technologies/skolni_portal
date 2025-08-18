@@ -22,9 +22,10 @@ export default defineConfig({
             if (id.includes('jspdf') || id.includes('html2canvas')) {
               return 'pdf-desktop';
             }
-            if (id.includes('recharts')) {
-              return 'charts-desktop';
-            }
+            // Note: recharts temporarily removed to fix React compatibility issues
+            // if (id.includes('recharts')) {
+            //   return 'charts-desktop';
+            // }
             if (id.includes('katex')) {
               return 'math-rendering';
             }
