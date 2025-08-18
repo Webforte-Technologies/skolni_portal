@@ -22,7 +22,7 @@ export default defineConfig({
             if (id.includes('jspdf') || id.includes('html2canvas')) {
               return 'pdf-desktop';
             }
-            if (id.includes('recharts') || id.includes('react-sparklines')) {
+            if (id.includes('recharts')) {
               return 'charts-desktop';
             }
             if (id.includes('katex')) {
