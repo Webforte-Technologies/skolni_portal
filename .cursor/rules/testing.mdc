@@ -1,0 +1,15 @@
+---
+globs: frontend/tests/**/*.ts,backend/src/__tests__/**/*.ts
+description: Testing rules and expectations for EduAI-Asistent
+---
+
+## Testing Rules
+
+- After substantive code edits, run the relevant test suites and ensure they pass without flakiness.
+- Validate there are no warnings or errors in browser console (frontend) or server logs (backend).
+
+## References
+
+- Full test plan: [Docs/TEST_PLAN_FULL.md](mdc:Docs/TEST_PLAN_FULL.md)
+- Frontend Playwright config: [frontend/playwright.config.ts](mdc:frontend/playwright.config.ts)
+- Backend Jest config: [backend/jest.config.js](mdc:backend/jest.config.js)

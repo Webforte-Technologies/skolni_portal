@@ -1,0 +1,244 @@
+/* Responsive font loading with proper fallbacks */
+
+/* Font face declarations with responsive loading strategy */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyeMZhrib2Bg-4.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ5hjb2Bg-4.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ5hjb2Bg-4.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ5hjb2Bg-4.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ5hjb2Bg-4.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Responsive font stack with system fallbacks */
+:root {
+  /* Base font stacks with responsive scaling */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  
+  /* Responsive font sizes - mobile first */
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+  
+  /* Responsive line heights */
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  
+  /* Font loading optimization */
+  --font-loading-delay: 100ms;
+}
+
+/* Tablet responsive font scaling */
+@media (min-width: 768px) {
+  :root {
+    --text-xs: 0.75rem;     /* 12px */
+    --text-sm: 0.875rem;    /* 14px */
+    --text-base: 1rem;      /* 16px */
+    --text-lg: 1.125rem;    /* 18px */
+    --text-xl: 1.25rem;     /* 20px */
+    --text-2xl: 1.5rem;     /* 24px */
+    --text-3xl: 2rem;       /* 32px */
+    --text-4xl: 2.5rem;     /* 40px */
+  }
+}
+
+/* Desktop responsive font scaling */
+@media (min-width: 1024px) {
+  :root {
+    --text-xs: 0.75rem;     /* 12px */
+    --text-sm: 0.875rem;    /* 14px */
+    --text-base: 1rem;      /* 16px */
+    --text-lg: 1.125rem;    /* 18px */
+    --text-xl: 1.25rem;     /* 20px */
+    --text-2xl: 1.5rem;     /* 24px */
+    --text-3xl: 2.25rem;    /* 36px */
+    --text-4xl: 3rem;       /* 48px */
+  }
+}
+
+/* Large desktop font scaling */
+@media (min-width: 1280px) {
+  :root {
+    --text-3xl: 2.5rem;     /* 40px */
+    --text-4xl: 3.5rem;     /* 56px */
+  }
+}
+
+/* Font loading optimization classes */
+.font-loading {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  transition: font-family var(--font-loading-delay) ease;
+}
+
+.font-loaded {
+  font-family: var(--font-sans);
+}
+
+/* Responsive typography utility classes */
+.text-responsive-xs { font-size: var(--text-xs); }
+.text-responsive-sm { font-size: var(--text-sm); }
+.text-responsive-base { font-size: var(--text-base); }
+.text-responsive-lg { font-size: var(--text-lg); }
+.text-responsive-xl { font-size: var(--text-xl); }
+.text-responsive-2xl { font-size: var(--text-2xl); }
+.text-responsive-3xl { font-size: var(--text-3xl); }
+.text-responsive-4xl { font-size: var(--text-4xl); }
+
+/* Responsive line height utilities */
+.leading-responsive-tight { line-height: var(--leading-tight); }
+.leading-responsive-normal { line-height: var(--leading-normal); }
+.leading-responsive-relaxed { line-height: var(--leading-relaxed); }
+
+/* Font weight responsive adjustments */
+@media (max-width: 640px) {
+  /* Slightly reduce font weights on mobile for better readability */
+  .font-semibold {
+    font-weight: 500;
+  }
+  
+  .font-bold {
+    font-weight: 600;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .font-loading {
+    transition: none;
+  }
+}
+
+/* Font loading performance optimization */
+.font-preload {
+  font-display: optional;
+}
+
+/* Critical font loading for above-the-fold content */
+.font-critical {
+  font-display: block;
+}
+
+/* Non-critical font loading for below-the-fold content */
+.font-lazy {
+  font-display: swap;
+}
+
+/* Responsive text scaling for different content types */
+.heading-responsive {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-tight);
+  font-weight: 600;
+}
+
+.subheading-responsive {
+  font-size: var(--text-lg);
+  line-height: var(--leading-normal);
+  font-weight: 500;
+}
+
+.body-responsive {
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  font-weight: 400;
+}
+
+.caption-responsive {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  font-weight: 400;
+}
+
+/* Math content font optimization */
+.math-content {
+  font-family: 'KaTeX_Main', 'Times New Roman', serif;
+  font-display: swap;
+}
+
+/* Code content font optimization */
+.code-content {
+  font-family: var(--font-mono);
+  font-display: swap;
+  font-size: 0.875em;
+}
+
+/* Responsive font size adjustments for specific components */
+@media (max-width: 640px) {
+  .heading-responsive {
+    font-size: var(--text-xl);
+  }
+  
+  .subheading-responsive {
+    font-size: var(--text-base);
+  }
+  
+  .body-responsive {
+    font-size: var(--text-sm);
+  }
+  
+  .caption-responsive {
+    font-size: var(--text-xs);
+  }
+}
+
+/* Font loading error fallbacks */
+@supports not (font-display: swap) {
+  @font-face {
+    font-family: 'Inter-Fallback';
+    src: local('Arial'), local('Helvetica'), local('sans-serif');
+  }
+  
+  .font-fallback {
+    font-family: 'Inter-Fallback', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}

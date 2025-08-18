@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
 import { api } from '../../services/apiClient';
 import { ArrowLeft, Search, CreditCard, Users, TrendingUp, Bell } from 'lucide-react';
+import { ResponsiveTable, TableColumn } from '../../components/ui/ResponsiveTable';
 
 interface TeacherForm {
   email: string;
@@ -506,44 +507,43 @@ const SchoolAdminPage: React.FC = () => {
 
           <div className="border-t border-gray-200 dark:border-neutral-800 pt-4">
             <h4 className="text-lg font-medium text-gray-900 dark:text-neutral-100 mb-4">Přehled přidělení kreditů učitelům</h4>
-            {creditAllocation?.teachers && creditAllocation.teachers.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-800">
-                  <thead className="bg-gray-50 dark:bg-neutral-800">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Učitel</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Přidělené kredity</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Použité kredity</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Dostupné kredity</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white dark:bg-neutral-900 divide-y divide-gray-200 dark:divide-neutral-800">
-                    {creditAllocation.teachers.map((teacher: any) => (
-                      <tr key={teacher.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-neutral-100">
-                          {teacher.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-400">
-                          {teacher.allocated_credits}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-400">
-                          {teacher.credits_used}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-400">
-                          <span className={`font-semibold ${teacher.available_credits > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {teacher.available_credits}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-sm text-neutral-500 text-center py-4">
-                Žádní učitelé nebyli nalezeni nebo nemají přidělené kredity.
-              </p>
-            )}
+            <ResponsiveTable
+              data={creditAllocation?.teachers || []}
+              columns={[
+                {
+                  key: 'name',
+                  header: 'Učitel',
+                  accessor: 'name',
+                  mobileLabel: 'Učitel',
+                },
+                {
+                  key: 'allocated_credits',
+                  header: 'Přidělené kredity',
+                  accessor: 'allocated_credits',
+                  mobileLabel: 'Přidělené',
+                },
+                {
+                  key: 'credits_used',
+                  header: 'Použité kredity',
+                  accessor: 'credits_used',
+                  mobileLabel: 'Použité',
+                },
+                {
+                  key: 'available_credits',
+                  header: 'Dostupné kredity',
+                  accessor: (teacher: any) => (
+                    <span className={`font-semibold ${teacher.available_credits > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {teacher.available_credits}
+                    </span>
+                  ),
+                  mobileLabel: 'Dostupné',
+                },
+              ] as TableColumn<any>[]}
+              emptyMessage="Žádní učitelé nebyli nalezeni nebo nemají přidělené kredity."
+              keyExtractor={(teacher, index) => teacher.id || index.toString()}
+              mobileCardView={true}
+              mobileStackedView={true}
+            />
           </div>
         </Card>
 
@@ -681,32 +681,34 @@ const SchoolAdminPage: React.FC = () => {
                   </div>
                 </div>
               ) : (
-              <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-neutral-800">
-                <thead className="bg-gray-50 dark:bg-neutral-800">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Učitel</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Použité kredity</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Poslední použití</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-neutral-900 divide-y divide-gray-200 dark:divide-neutral-800">
-                  {creditUsage.map((usage) => (
-                    <tr key={usage.teacher_id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-neutral-100">
-                        {usage.teacher_name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-400">
-                        {usage.credits_used}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-neutral-400">
-                        {new Date(usage.last_used).toLocaleDateString('cs-CZ')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                <ResponsiveTable
+                  data={creditUsage}
+                  columns={[
+                    {
+                      key: 'teacher_name',
+                      header: 'Učitel',
+                      accessor: 'teacher_name',
+                      mobileLabel: 'Učitel',
+                    },
+                    {
+                      key: 'credits_used',
+                      header: 'Použité kredity',
+                      accessor: 'credits_used',
+                      mobileLabel: 'Kredity',
+                    },
+                    {
+                      key: 'last_used',
+                      header: 'Poslední použití',
+                      accessor: (usage: CreditUsage) => new Date(usage.last_used).toLocaleDateString('cs-CZ'),
+                      mobileLabel: 'Poslední použití',
+                      mobileHidden: true,
+                    },
+                  ] as TableColumn<CreditUsage>[]}
+                  emptyMessage="Žádné údaje o použití kreditů."
+                  keyExtractor={(usage) => usage.teacher_id}
+                  mobileCardView={true}
+                  mobileStackedView={true}
+                />
               )}
           </div>
         </Card>

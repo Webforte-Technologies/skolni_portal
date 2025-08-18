@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useImperativeHandle } from 'react
 import { Send, Loader2, CornerDownLeft, Wand2 } from 'lucide-react';
 import Button from '../ui/Button';
 import SlashCommandsMenu from './SlashCommandsMenu';
+import { useResponsive } from '../../hooks/useViewport';
 
 export interface MessageInputHandle {
   focus: () => void;
@@ -21,6 +22,7 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [slashOpen, setSlashOpen] = useState(false);
   const [slashQuery, setSlashQuery] = useState('');
+  const { isMobile } = useResponsive();
 
   useImperativeHandle(ref, () => ({
     focus: () => textareaRef.current?.focus(),
@@ -62,8 +64,8 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
   }, [handleSubmit]);
 
   return (
-    <div className="border-t border-border dark:border-neutral-800 p-4 bg-card dark:bg-neutral-950">
-      <form onSubmit={handleSubmit} className="flex items-end space-x-3">
+    <div className={`border-t border-border dark:border-neutral-800 bg-card dark:bg-neutral-950 sticky bottom-0 pb-[env(safe-area-inset-bottom)] ${isMobile ? 'p-2' : 'p-3 sm:p-4'}`}>
+      <form onSubmit={handleSubmit} className={`flex items-end ${isMobile ? 'gap-2' : 'gap-2 sm:space-x-3'}`}>
         <div className="flex-1">
           <div className="relative">
             <textarea
@@ -71,9 +73,11 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
               value={message}
               onChange={(e) => {
                 setMessage(e.target.value);
-                // simple auto-grow up to 7 lines
+                // simple auto-grow up to 7 lines (fewer on mobile)
                 const lineBreaks = (e.target.value.match(/\n/g) || []).length + 1;
-                const next = Math.min(7, Math.max(3, lineBreaks));
+                const maxRows = isMobile ? 4 : 7;
+                const minRows = isMobile ? 2 : 3;
+                const next = Math.min(maxRows, Math.max(minRows, lineBreaks));
                 setRows(next);
                 const val = e.target.value;
                 const cursor = e.target.selectionStart || val.length;
@@ -87,13 +91,22 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
               }}
               onKeyPress={handleKeyPress}
               placeholder="Napište svůj dotaz..."
-              className="w-full px-4 py-3 border border-border dark:border-neutral-800 bg-background dark:bg-neutral-900 text-foreground dark:text-neutral-100 rounded-lg shadow-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none pr-12"
+              className={`w-full border border-border dark:border-neutral-800 bg-background dark:bg-neutral-900 text-foreground dark:text-neutral-100 rounded-lg shadow-sm placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none ${
+                isMobile 
+                  ? 'px-3 py-2 text-sm pr-10' 
+                  : 'px-3 sm:px-4 py-3 pr-12'
+              }`}
               rows={rows}
               disabled={isLoading}
+              style={{
+                fontSize: isMobile ? '16px' : undefined, // Prevent zoom on iOS
+              }}
             />
-            <div className="absolute right-3 bottom-3 text-xs text-muted-foreground flex items-center space-x-1">
-              <CornerDownLeft className="h-3 w-3" />
-              <span>Odeslat</span>
+            <div className={`absolute right-3 bottom-3 flex items-center space-x-1 text-muted-foreground ${
+              isMobile ? 'text-[10px]' : 'text-[10px] sm:text-xs'
+            }`}>
+              <CornerDownLeft className={isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'} />
+              <span className={isMobile ? 'hidden' : 'inline'}>Odeslat</span>
             </div>
             {slashOpen && (
               <SlashCommandsMenu
@@ -106,23 +119,29 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
               />
             )}
           </div>
-          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground dark:text-neutral-400">
-            <Wand2 className="h-3 w-3" />
-            <span>Tip: Shift+Enter = nový řádek • Ctrl/Cmd+K (coming soon)</span>
-          </div>
+          {!isMobile && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground dark:text-neutral-400">
+              <Wand2 className="h-3 w-3" />
+              <span>Tip: Shift+Enter = nový řádek • Ctrl/Cmd+K (coming soon)</span>
+            </div>
+          )}
         </div>
         <Button
           type="submit"
           disabled={!message.trim() || isLoading || disabled}
-          className="flex items-center space-x-2"
+          className={`flex items-center w-auto ${
+            isMobile 
+              ? 'px-3 py-2 min-h-[44px] min-w-[44px]' 
+              : 'space-x-2'
+          }`}
           title={disabled ? (disabledReason || 'Odeslání je dočasně nedostupné') : undefined}
         >
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
           ) : (
-            <Send className="h-4 w-4" />
+            <Send className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
           )}
-          <span>Odeslat</span>
+          {!isMobile && <span>Odeslat</span>}
         </Button>
       </form>
     </div>
