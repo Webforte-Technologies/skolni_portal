@@ -45,23 +45,23 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','
  */
 export const criticalFontPreloads = [
   {
-    href: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ5hjb2Bg-4.woff2',
+    href: '/fonts/Inter-Regular.ttf',
     as: 'font',
-    type: 'font/woff2',
+    type: 'font/ttf',
     crossorigin: 'anonymous',
     weight: '400',
   },
   {
-    href: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ5hjb2Bg-4.woff2',
+    href: '/fonts/Inter-Medium.ttf',
     as: 'font',
-    type: 'font/woff2',
+    type: 'font/ttf',
     crossorigin: 'anonymous',
     weight: '500',
   },
   {
-    href: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ5hjb2Bg-4.woff2',
+    href: '/fonts/Inter-SemiBold.ttf',
     as: 'font',
-    type: 'font/woff2',
+    type: 'font/ttf',
     crossorigin: 'anonymous',
     weight: '600',
   },
