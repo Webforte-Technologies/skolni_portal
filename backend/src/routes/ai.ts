@@ -751,7 +751,9 @@ router.post('/generate-quiz', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
-  body('question_count').optional().isInt({ min: 5, max: 100 })
+  body('question_count').optional().isInt({ min: 5, max: 100 }),
+  body('time_limit').optional().isString().isLength({ min: 1, max: 50 }),
+  body('prompt_hint').optional().isString().isLength({ max: 500 })
 ], async (req: RequestWithUser, res: Response) => {
   try {
     const errors = validationResult(req);
@@ -770,9 +772,10 @@ router.post('/generate-quiz', authenticateToken, [
     res.setHeader('Connection', 'keep-alive');
     res.write('data: {"type":"start","message":"Starting quiz generation..."}\n\n');
 
-    const { title, subject, grade_level, question_count, time_limit } = req.body;
+    const { title, subject, grade_level, question_count, time_limit, prompt_hint } = req.body;
     const timeLimitPart = time_limit ? ` s časovým limitem ${time_limit}` : '';
-    const prompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}${timeLimitPart}. Dodrž předepsanou JSON strukturu.`;
+    const hintPart = prompt_hint ? ` ${prompt_hint}` : '';
+    const prompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}${timeLimitPart}${hintPart}. Dodrž předepsanou JSON strukturu.`;
 
     const stream = await openai.chat.completions.create({
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
