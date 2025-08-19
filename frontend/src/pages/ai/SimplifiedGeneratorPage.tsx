@@ -8,8 +8,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { streamingService } from '../../services/streamingService';
 import { 
   BookOpen, FileText, Target, Sparkles, Presentation, Users,
-  Zap, Eye, Download, ArrowRight, Clock, GraduationCap,
-  CheckCircle, AlertCircle, Lightbulb, Settings, HelpCircle
+  Zap, Eye, ArrowRight, Clock, CheckCircle, Lightbulb
 } from 'lucide-react';
 
 interface ActivityPreview {
@@ -27,28 +26,11 @@ interface GenerationRequest {
   topic: string;
   activityType: 'lesson' | 'worksheet' | 'quiz' | 'project' | 'presentation' | 'activity';
   gradeLevel: string;
-  studentCount: number;
   duration: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  teachingStyle: 'interactive' | 'traditional' | 'project_based' | 'discovery';
-  additionalNotes?: string;
   // Quiz-specific fields
   questionCount?: number;
   questionTypes?: string[];
   timeLimit?: string;
-  // Worksheet-specific fields
-  exerciseTypes?: string[];
-  includeAnswers?: boolean;
-  // Project-specific fields
-  projectDuration?: string;
-  groupSize?: number;
-  deliverables?: string[];
-  // Presentation-specific fields
-  slideCount?: number;
-  includeNotes?: boolean;
-  // Activity-specific fields
-  activityFormat?: string;
-  equipment?: string[];
 }
 
 const SimplifiedGeneratorPage: React.FC = () => {
@@ -61,28 +43,11 @@ const SimplifiedGeneratorPage: React.FC = () => {
     topic: '',
     activityType: 'lesson',
     gradeLevel: '',
-    studentCount: 25,
     duration: '45 min',
-    difficulty: 'medium',
-    teachingStyle: 'interactive',
-    additionalNotes: '',
     // Quiz defaults
     questionCount: 10,
     questionTypes: ['multiple_choice', 'true_false'],
-    timeLimit: '20 min',
-    // Worksheet defaults
-    exerciseTypes: ['fill_blank'],
-    includeAnswers: true,
-    // Project defaults
-    projectDuration: '2 týdny',
-    groupSize: 4,
-    deliverables: ['prezentace', 'dokumentace'],
-    // Presentation defaults
-    slideCount: 15,
-    includeNotes: true,
-    // Activity defaults
-    activityFormat: 'skupinová',
-    equipment: ['papír', 'tužky']
+    timeLimit: '20 min'
   });
 
   // Update duration when activity type changes
@@ -114,56 +79,47 @@ const SimplifiedGeneratorPage: React.FC = () => {
   useEffect(() => {
     const prefs = {
       gradeLevel: request.gradeLevel,
-      studentCount: request.studentCount,
-      duration: request.duration,
-      difficulty: request.difficulty,
-      teachingStyle: request.teachingStyle
+      duration: request.duration
     };
     localStorage.setItem('eduai.generator.preferences', JSON.stringify(prefs));
-  }, [request.gradeLevel, request.studentCount, request.duration, request.difficulty, request.teachingStyle]);
+  }, [request.gradeLevel, request.duration]);
 
   const activityTypes = [
     { 
       id: 'lesson', 
       name: 'Plán hodiny', 
       icon: BookOpen, 
-      description: 'Kompletní plán vyučovací hodiny s aktivitami',
-      color: 'blue'
+      description: 'Kompletní plán vyučovací hodiny s aktivitami'
     },
     { 
       id: 'worksheet', 
       name: 'Pracovní list', 
       icon: FileText, 
-      description: 'Cvičení a úkoly pro studenty',
-      color: 'green'
+      description: 'Cvičení a úkoly pro studenty'
     },
     { 
       id: 'quiz', 
       name: 'Kvíz', 
       icon: Target, 
-      description: 'Otázky k ověření znalostí',
-      color: 'purple'
+      description: 'Otázky k ověření znalostí'
     },
     { 
       id: 'project', 
       name: 'Projekt', 
       icon: Sparkles, 
-      description: 'Dlouhodobé projektové zadání',
-      color: 'orange'
+      description: 'Dlouhodobé projektové zadání'
     },
     { 
       id: 'presentation', 
       name: 'Prezentace', 
       icon: Presentation, 
-      description: 'Osnova pro prezentaci tématu',
-      color: 'indigo'
+      description: 'Osnova pro prezentaci tématu'
     },
     { 
       id: 'activity', 
       name: 'Aktivita', 
       icon: Users, 
-      description: 'Krátká interaktivní aktivita',
-      color: 'pink'
+      description: 'Krátká interaktivní aktivita'
     }
   ];
 
@@ -202,31 +158,6 @@ const SimplifiedGeneratorPage: React.FC = () => {
   ];
 
   const timeLimitOptions = ['10 min', '15 min', '20 min', '30 min', '45 min', '60 min'];
-
-  // Worksheet-specific options
-  const exerciseTypeOptions = [
-    { value: 'fill_blank', label: 'Doplňování' },
-    { value: 'matching', label: 'Přiřazování' },
-    { value: 'crossword', label: 'Křížovka' },
-    { value: 'word_search', label: 'Hledání slov' },
-    { value: 'calculation', label: 'Výpočty' },
-    { value: 'analysis', label: 'Analýza' }
-  ];
-
-  // Project-specific options
-  const projectDurationOptions = ['1 týden', '2 týdny', '3 týdny', '1 měsíc', '2 měsíce'];
-  const deliverableOptions = [
-    'prezentace', 'dokumentace', 'model', 'video', 'webová stránka', 
-    'plakát', 'brožura', 'protokol', 'portfolio'
-  ];
-
-  // Presentation-specific options
-  const slideCountOptions = [5, 10, 15, 20, 25, 30];
-
-  // Activity-specific options
-  const activityFormatOptions = [
-    'individuální', 'skupinová', 'celotřídní', 'staničková', 'hromadná'
-  ];
 
   const canGenerate = request.topic.trim().length >= 3 && request.gradeLevel;
 
