@@ -50,7 +50,7 @@ PRAVIDLA PRO VYTVÁŘENÍ CVIČENÍ:
   ]
 }
 
-2. **Vytvoř 10 otázek** - Každá otázka by měla být jiná a testovat různé aspekty tématu
+2. **Vytvoř požadovaný počet otázek** - Každá otázka by měla být jiná a testovat různé aspekty tématu
 3. **Používej českou terminologii** - Všechny texty musí být v češtině
 4. **Správné obtížnosti** - Otázky by měly být přiměřené středoškolské úrovni
 5. **Praktické příklady** - Používej reálné situace a praktické aplikace
@@ -195,19 +195,27 @@ function deriveTags(...parts: Array<string | undefined>): string[] {
   const text = parts.filter(Boolean).join(' ').toLowerCase();
   const candidates = new Set<string>();
   const addIf = (word: string, cond: boolean) => { if (cond) candidates.add(word); };
-  addIf('matematika', /mat(ematika)?/.test(text));
+  
+  // Subject tags
+  addIf('matematika', /mat(ematika)?|algebra|rovnic|geometri|zlomk|derivac|integrál|kvadratick|lineárn|trojúheln|kruh|kružnic|úhel|pravděpodobnost|statistik/.test(text));
   addIf('fyzika', /fyzik/.test(text));
   addIf('chemie', /chem/.test(text));
   addIf('biologie', /biolog/.test(text));
   addIf('dějepis', /dějepis|histor/.test(text));
+  
+  // Math subtopics
   addIf('algebra', /algebra|rovnic|lineárn|kvadratick/.test(text));
   addIf('geometrie', /geometri|trojúheln|kruh|kružnic|úhel/.test(text));
   addIf('pravděpodobnost', /pravděpodobnost|statistik/.test(text));
   addIf('zlomky', /zlomek|zlomk/.test(text));
   addIf('derivace', /derivac/.test(text));
   addIf('integrály', /integrál/.test(text));
+  
+  // Material types
   addIf('prezentace', /prezentac/.test(text));
   addIf('projekt', /projekt/.test(text));
+  addIf('cvičení', /cvičení|pracovní.*list|worksheet/.test(text));
+  
   return Array.from(candidates).slice(0, 8);
 }
 const validateChatMessage = [
@@ -555,7 +563,7 @@ router.post('/generate-worksheet', authenticateToken, [
         },
         {
           role: 'user',
-          content: `Vytvoř cvičení na téma: ${topic}. ${question_count ? `Vytvoř ${question_count} otázek.` : 'Vytvoř 10 otázek.'} ${difficulty ? `Úroveň obtížnosti: ${difficulty}.` : ''} ${teaching_style ? `Preferovaný styl výuky: ${teaching_style}.` : ''}`
+          content: `Vytvoř cvičení na téma: ${topic}. ${question_count ? `Vytvoř ${question_count} otázek.` : 'Vytvoř 10 otázek.'} ${difficulty ? `Úroveň obtížnosti: ${difficulty}.` : 'Úroveň obtížnosti: střední.'} ${teaching_style ? `Preferovaný styl výuky: ${teaching_style}.` : 'Preferovaný styl výuky: vysvětlující a praktický.'}`
         }
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '3000'),
@@ -603,9 +611,14 @@ router.post('/generate-worksheet', authenticateToken, [
       });
       // Tag basics (subject/difficulty from text heuristics minimal)
       try {
+        const derivedTags = deriveTags(topic, difficulty, teaching_style, worksheetData.title, worksheetData.instructions);
+        const finalTags = Array.isArray(worksheetData.tags) && worksheetData.tags.length > 0 
+          ? worksheetData.tags 
+          : derivedTags;
+        
         await GeneratedFileModel.updateAIMetadata(savedWorksheet.id, {
           metadata: { raw: fullResponse, prompt: 'WORKSHEET_SYSTEM_PROMPT' },
-          tags: Array.isArray(worksheetData.tags) ? worksheetData.tags : [],
+          tags: finalTags,
         });
       } catch (e) {
         console.warn('Failed to update AI metadata for worksheet:', e);
