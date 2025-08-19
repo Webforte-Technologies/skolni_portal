@@ -4,6 +4,7 @@ import { motion, useInView, AnimatePresence } from 'framer-motion';
 import Button from '../components/ui/Button';
 import SEOHead from '../components/seo/SEOHead';
 import LeadCaptureForm from '../components/landing/LeadCaptureForm';
+import { useResponsive } from '../hooks/useViewport';
 import { 
   Brain, 
   Calculator, 
@@ -38,6 +39,9 @@ const LandingPage: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // Responsive viewport detection
+  const { isMobile, isTablet, touchDevice } = useResponsive();
   
   // Animation hooks
   const heroRef = useRef(null);
@@ -278,19 +282,19 @@ const LandingPage: React.FC = () => {
         transition={{ duration: 0.8, ease: "easeOut" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex justify-between items-center h-20">
+          <div className={`flex justify-between items-center ${isMobile ? 'h-16' : 'h-20'}`}>
             <motion.div 
               className="flex items-center"
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
               <div className="flex-shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                    <Brain className="h-6 w-6 text-white" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center`}>
+                    <Brain className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-white`} />
               </div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    EduAI-Asistent
+                  <h1 className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent`}>
+                    {isMobile ? 'EduAI' : 'EduAI-Asistent'}
                   </h1>
             </div>
               </div>
@@ -404,71 +408,106 @@ const LandingPage: React.FC = () => {
       </motion.nav>
 
       {/* Modern Hero Section with Glassmorphism */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+      <section ref={heroRef} className={`relative ${isMobile ? 'min-h-screen' : 'min-h-screen'} flex items-center justify-center overflow-hidden ${isMobile ? 'pt-16' : 'pt-20'}`}>
         {/* Main Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className={`relative z-10 max-w-7xl mx-auto ${isMobile ? 'px-4' : 'px-4 sm:px-6 lg:px-8'} text-center`}>
           {/* Hero Content */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={isHeroInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, delay: 0.2 }}
-            className="max-w-4xl mx-auto"
+            className={`${isMobile ? 'max-w-sm' : isTablet ? 'max-w-2xl' : 'max-w-4xl'} mx-auto`}
           >
             {/* Badge */}
             <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 bg-surface-card/80 backdrop-blur-xl rounded-full border border-surface-border/60 shadow-lg mb-8"
+              className={`inline-flex items-center gap-2 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-surface-card/80 backdrop-blur-xl rounded-full border border-surface-border/60 shadow-lg ${isMobile ? 'mb-6' : 'mb-8'}`}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <Sparkles className="h-4 w-4 text-blue-500" />
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">AI‑Powered Education</span>
+              <Sparkles className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-blue-500`} />
+              <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-600 dark:text-gray-300`}>
+                {isMobile ? 'AI Education' : 'AI‑Powered Education'}
+              </span>
             </motion.div>
 
             {/* Main Heading */}
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              Revoluce ve{' '}
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
-                matematickém vzdělávání
-              </span>
+            <h1 className={`${
+              isMobile 
+                ? 'text-3xl' 
+                : isTablet 
+                  ? 'text-4xl md:text-5xl' 
+                  : 'text-5xl md:text-7xl'
+            } font-bold text-gray-900 dark:text-white ${isMobile ? 'mb-4' : 'mb-6'} leading-tight`}>
+              {isMobile ? (
+                <>
+                  Revoluce ve{' '}
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent block">
+                    matematickém vzdělávání
+                  </span>
+                </>
+              ) : (
+                <>
+                  Revoluce ve{' '}
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent">
+                    matematickém vzdělávání
+                  </span>
+                </>
+              )}
             </h1>
 
             {/* Subtitle */}
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className={`${
+              isMobile 
+                ? 'text-base' 
+                : isTablet 
+                  ? 'text-lg md:text-xl' 
+                  : 'text-xl md:text-2xl'
+            } text-gray-600 dark:text-gray-300 ${isMobile ? 'mb-6' : 'mb-8'} ${
+              isMobile ? 'max-w-sm' : isTablet ? 'max-w-2xl' : 'max-w-3xl'
+            } mx-auto leading-relaxed`}>
               AI asistent, který pomáhá učitelům vytvářet lepší výukové materiály a studentům lépe pochopit matematiku
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <div className={`flex ${isMobile ? 'flex-col' : 'flex-col sm:flex-row'} ${isMobile ? 'gap-3' : 'gap-4'} justify-center ${isMobile ? 'mb-8' : 'mb-12'}`}>
               <Link to="/register-school">
                 <motion.div
-                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileHover={touchDevice ? {} : { scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
                   <Button 
                     variant="primary" 
-                    size="lg" 
-                    className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl text-lg px-8 py-4"
+                    size={isMobile ? "md" : "lg"}
+                    className={`flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl ${
+                      isMobile 
+                        ? 'text-base px-6 py-3 w-full min-h-[44px]' 
+                        : 'text-lg px-8 py-4'
+                    }`}
                   >
-                    <Rocket className="h-6 w-6" />
+                    <Rocket className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
                     Začít zdarma
-                    <ArrowRight className="h-5 w-5" />
+                    <ArrowRight className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
                 </Button>
                 </motion.div>
               </Link>
               
               <motion.div
-                whileHover={{ scale: 1.05, y: -2 }}
+                whileHover={touchDevice ? {} : { scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
                 <Button 
                   variant="outline" 
-                  size="lg" 
-                  className="flex items-center gap-2 border-2 border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 text-lg px-8 py-4"
+                  size={isMobile ? "md" : "lg"}
+                  className={`flex items-center gap-2 border-2 border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                    isMobile 
+                      ? 'text-base px-6 py-3 w-full min-h-[44px]' 
+                      : 'text-lg px-8 py-4'
+                  }`}
                 >
-                  <Play className="h-5 w-5" />
+                  <Play className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
                   Zobrazit demo
               </Button>
               </motion.div>
@@ -476,14 +515,23 @@ const LandingPage: React.FC = () => {
 
             {/* Trust Indicators */}
             <motion.div 
-              className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-600 dark:text-gray-400"
+              className={`flex ${isMobile ? 'flex-col' : 'flex-wrap'} items-center justify-center ${isMobile ? 'gap-3' : 'gap-8'} ${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 dark:text-gray-400`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.6 }}
             >
-              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300"><CheckCircle2 className="h-4 w-4 text-green-500" /> Bezplatná zkušební verze</div>
-              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300"><Clock className="h-4 w-4 text-blue-400" /> Nastavení za 5 minut</div>
-              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300"><Headphones className="h-4 w-4 text-purple-400" /> 24/7 podpora</div>
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                <CheckCircle2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-green-500`} /> 
+                Bezplatná zkušební verze
+              </div>
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                <Clock className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-blue-400`} /> 
+                Nastavení za 5 minut
+              </div>
+              <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                <Headphones className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-purple-400`} /> 
+                24/7 podpora
+              </div>
             </motion.div>
           </motion.div>
             </div>
@@ -505,10 +553,10 @@ const LandingPage: React.FC = () => {
               </section>
 
       {/* Statistics Section */}
-      <section className="py-20 bg-surface-bg relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className={`${isMobile ? 'py-12' : 'py-20'} bg-surface-bg relative overflow-hidden`}>
+        <div className={`max-w-7xl mx-auto ${isMobile ? 'px-4' : 'px-4 sm:px-6 lg:px-8'}`}>
           <motion.div 
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+            className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'} ${isMobile ? 'gap-6' : 'gap-8'}`}
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -522,10 +570,10 @@ const LandingPage: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: stat.delay }}
                 viewport={{ once: true }}
-                whileHover={{ y: -5 }}
+                whileHover={touchDevice ? {} : { y: -5 }}
               >
                 <div className="relative">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] bg-gradient-to-br ${
+                  <div className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} ${isMobile ? 'rounded-xl' : 'rounded-2xl'} flex items-center justify-center mx-auto ${isMobile ? 'mb-3' : 'mb-4'} group-hover:scale-110 transition-transform duration-300 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] bg-gradient-to-br ${
                     stat.icon === GraduationCap
                       ? 'from-blue-600 to-cyan-600'
                       : stat.icon === Users
@@ -534,10 +582,10 @@ const LandingPage: React.FC = () => {
                       ? 'from-purple-600 to-pink-600'
                       : 'from-orange-500 to-amber-500'
                   }`}>
-                    <stat.icon className="h-8 w-8 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]" strokeWidth={2} />
+                    <stat.icon className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]`} strokeWidth={2} />
                   </div>
                   <motion.div
-                    className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-2"
+                    className={`${isMobile ? 'text-2xl' : 'text-3xl md:text-4xl'} font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent ${isMobile ? 'mb-1' : 'mb-2'}`}
                     initial={{ scale: 0 }}
                     whileInView={{ scale: 1 }}
                     transition={{ duration: 0.5, delay: stat.delay + 0.2, type: "spring", stiffness: 200 }}
@@ -545,7 +593,7 @@ const LandingPage: React.FC = () => {
                   >
                     {stat.number}
                   </motion.div>
-                  <p className="text-gray-600 dark:text-gray-400 font-medium">{stat.label}</p>
+                  <p className={`text-gray-600 dark:text-gray-400 font-medium ${isMobile ? 'text-sm' : ''}`}>{stat.label}</p>
                 </div>
               </motion.div>
             ))}
@@ -556,40 +604,73 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Modern Features Section with Glassmorphism */}
-      <section ref={featuresRef} id="features" className="py-20 bg-surface-bg relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section ref={featuresRef} id="features" className={`${isMobile ? 'py-12' : 'py-20'} bg-surface-bg relative overflow-hidden`}>
+        <div className={`max-w-7xl mx-auto ${isMobile ? 'px-4' : 'px-4 sm:px-6 lg:px-8'}`}>
           {/* Section Header */}
           <motion.div 
-            className="text-center mb-20"
+            className={`text-center ${isMobile ? 'mb-12' : 'mb-20'}`}
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
             <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 bg-surface-card/80 backdrop-blur-xl rounded-full border border-surface-border/60 shadow-lg mb-6"
+              className={`inline-flex items-center gap-2 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-surface-card/80 backdrop-blur-xl rounded-full border border-surface-border/60 shadow-lg ${isMobile ? 'mb-4' : 'mb-6'}`}
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <Lightbulb className="h-4 w-4 text-yellow-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Inovativní funkce</span>
+              <Lightbulb className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-yellow-500`} />
+              <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
+                {isMobile ? 'Funkce' : 'Inovativní funkce'}
+              </span>
             </motion.div>
             
-            <h2 className="text-4xl md:text-5xl font-bold text-surface-text mb-6">
-              Proč si vybrat{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                EduAI-Asistent?
-              </span>
+            <h2 className={`${
+              isMobile 
+                ? 'text-2xl' 
+                : isTablet 
+                  ? 'text-3xl md:text-4xl' 
+                  : 'text-4xl md:text-5xl'
+            } font-bold text-surface-text ${isMobile ? 'mb-4' : 'mb-6'}`}>
+              {isMobile ? (
+                <>
+                  Proč si vybrat{' '}
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent block">
+                    EduAI-Asistent?
+                  </span>
+                </>
+              ) : (
+                <>
+                  Proč si vybrat{' '}
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    EduAI-Asistent?
+                  </span>
+                </>
+              )}
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            <p className={`${
+              isMobile 
+                ? 'text-base' 
+                : isTablet 
+                  ? 'text-lg' 
+                  : 'text-xl'
+            } text-gray-600 dark:text-gray-300 ${
+              isMobile ? 'max-w-sm' : isTablet ? 'max-w-2xl' : 'max-w-3xl'
+            } mx-auto leading-relaxed`}>
               Kombinujeme nejmodernější AI technologie s osvědčenými pedagogickými principy
             </p>
           </motion.div>
 
           {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className={`grid ${
+            isMobile 
+              ? 'grid-cols-1' 
+              : isTablet 
+                ? 'grid-cols-1 md:grid-cols-2' 
+                : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+          } ${isMobile ? 'gap-6' : 'gap-8'}`}>
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -598,28 +679,28 @@ const LandingPage: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: feature.delay }}
                 viewport={{ once: true }}
-                whileHover={{ y: -10 }}
+                whileHover={touchDevice ? {} : { y: -10 }}
               >
                 {/* Glassmorphism Card */}
-                <div className="relative h-full bg-surface-card/80 backdrop-blur-xl rounded-2xl p-8 border border-surface-border/60 shadow-xl hover:shadow-2xl transition-all duration-500 group-hover:bg-surface-card/90">
+                <div className={`relative h-full bg-surface-card/80 backdrop-blur-xl ${isMobile ? 'rounded-xl' : 'rounded-2xl'} ${isMobile ? 'p-6' : 'p-8'} border border-surface-border/60 shadow-xl hover:shadow-2xl transition-all duration-500 group-hover:bg-surface-card/90`}>
                   {/* Gradient Border Effect */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-transparent to-transparent group-hover:from-blue-500/20 group-hover:via-purple-500/20 group-hover:to-cyan-500/20 transition-all duration-500 opacity-0 group-hover:opacity-100" />
+                  <div className={`absolute inset-0 ${isMobile ? 'rounded-xl' : 'rounded-2xl'} bg-gradient-to-r from-transparent via-transparent to-transparent group-hover:from-blue-500/20 group-hover:via-purple-500/20 group-hover:to-cyan-500/20 transition-all duration-500 opacity-0 group-hover:opacity-100`} />
                   
                   {/* Icon Container */}
                   <div className="relative z-10">
-                    <div className="inline-flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <div className="h-14 w-14 rounded-2xl bg-white/12 border border-white/15 shadow-inner flex items-center justify-center">
-                        <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow">
-                          <feature.icon className="h-6 w-6 text-neutral-900" />
+                    <div className={`inline-flex items-center justify-center ${isMobile ? 'mb-4' : 'mb-6'} group-hover:scale-110 transition-transform duration-300`}>
+                      <div className={`${isMobile ? 'h-12 w-12' : 'h-14 w-14'} ${isMobile ? 'rounded-xl' : 'rounded-2xl'} bg-white/12 border border-white/15 shadow-inner flex items-center justify-center`}>
+                        <div className={`${isMobile ? 'h-8 w-8' : 'h-10 w-10'} ${isMobile ? 'rounded-lg' : 'rounded-xl'} bg-white flex items-center justify-center shadow`}>
+                          <feature.icon className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-neutral-900`} />
                         </div>
                       </div>
                     </div>
                     
                     {/* Content */}
-                    <h3 className="text-xl font-bold text-surface-text mb-4 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors duration-300">
+                    <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-surface-text ${isMobile ? 'mb-3' : 'mb-4'} group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors duration-300`}>
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p className={`text-gray-600 dark:text-gray-300 leading-relaxed ${isMobile ? 'text-sm' : ''}`}>
                       {feature.description}
                     </p>
               </div>
@@ -715,32 +796,58 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Modern Testimonials Section with Interactive Carousel */}
-      <section ref={testimonialsRef} id="testimonials" className="py-20 bg-surface-bg relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section ref={testimonialsRef} id="testimonials" className={`${isMobile ? 'py-12' : 'py-20'} bg-surface-bg relative overflow-hidden`}>
+        <div className={`max-w-7xl mx-auto ${isMobile ? 'px-4' : 'px-4 sm:px-6 lg:px-8'}`}>
           {/* Section Header */}
           <motion.div 
-            className="text-center mb-20"
+            className={`text-center ${isMobile ? 'mb-12' : 'mb-20'}`}
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
             <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 bg-surface-card/80 backdrop-blur-xl rounded-full border border-surface-border/60 shadow-lg mb-6"
+              className={`inline-flex items-center gap-2 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-surface-card/80 backdrop-blur-xl rounded-full border border-surface-border/60 shadow-lg ${isMobile ? 'mb-4' : 'mb-6'}`}
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <Star className="h-4 w-4 text-yellow-600 fill-current" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Spokojené školy</span>
+              <Star className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-yellow-600 fill-current`} />
+              <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300`}>
+                {isMobile ? 'Reference' : 'Spokojené školy'}
+              </span>
             </motion.div>
             
-            <h2 className="text-4xl md:text-5xl font-bold text-surface-text mb-6 flex items-center justify-center gap-3">
-              <Star className="h-8 w-8 text-yellow-500" /> Co říkají{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">učitelé</span>
+            <h2 className={`${
+              isMobile 
+                ? 'text-2xl' 
+                : isTablet 
+                  ? 'text-3xl md:text-4xl' 
+                  : 'text-4xl md:text-5xl'
+            } font-bold text-surface-text ${isMobile ? 'mb-4' : 'mb-6'} ${isMobile ? 'flex-col' : 'flex'} items-center justify-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
+              <Star className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-yellow-500`} /> 
+              {isMobile ? (
+                <>
+                  Co říkají{' '}
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">učitelé</span>
+                </>
+              ) : (
+                <>
+                  Co říkají{' '}
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">učitelé</span>
+                </>
+              )}
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            <p className={`${
+              isMobile 
+                ? 'text-base' 
+                : isTablet 
+                  ? 'text-lg' 
+                  : 'text-xl'
+            } text-gray-600 dark:text-gray-300 ${
+              isMobile ? 'max-w-sm' : isTablet ? 'max-w-2xl' : 'max-w-3xl'
+            } mx-auto leading-relaxed`}>
               Připojte se k více než 100+ školám, které už používají EduAI-Asistent
             </p>
           </motion.div>
@@ -748,17 +855,17 @@ const LandingPage: React.FC = () => {
           {/* Testimonials Carousel */}
           <div className="relative">
             {/* Main Testimonial Display */}
-            <div className="relative max-w-4xl mx-auto">
+            <div className={`relative ${isMobile ? 'max-w-sm' : isTablet ? 'max-w-2xl' : 'max-w-4xl'} mx-auto`}>
               <motion.div
                 key={activeTestimonial}
-                initial={{ opacity: 0, x: 100 }}
+                initial={{ opacity: 0, x: isMobile ? 50 : 100 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
+                exit={{ opacity: 0, x: isMobile ? -50 : -100 }}
                 transition={{ duration: 0.5 }}
                 className="relative"
               >
                 {/* Glassmorphism Testimonial Card */}
-                <div className="bg-surface-card/80 backdrop-blur-xl rounded-3xl p-12 border border-surface-border/60 shadow-2xl relative overflow-hidden">
+                <div className={`bg-surface-card/80 backdrop-blur-xl ${isMobile ? 'rounded-2xl' : 'rounded-3xl'} ${isMobile ? 'p-6' : isTablet ? 'p-8' : 'p-12'} border border-surface-border/60 shadow-2xl relative overflow-hidden`}>
                   {/* Background Pattern */}
                   <div className="absolute inset-0 opacity-5">
                     <div className="absolute inset-0" style={{
@@ -767,14 +874,16 @@ const LandingPage: React.FC = () => {
           </div>
 
                   {/* Quote Icon */}
-                  <div className="absolute top-8 right-8 text-6xl text-blue-200 dark:text-blue-800 opacity-30">
-                    "
-                  </div>
+                  {!isMobile && (
+                    <div className={`absolute ${isMobile ? 'top-4 right-4 text-4xl' : 'top-8 right-8 text-6xl'} text-blue-200 dark:text-blue-800 opacity-30`}>
+                      "
+                    </div>
+                  )}
 
                   {/* Content */}
                   <div className="relative z-10 text-center">
                     {/* Rating */}
-                    <div className="flex items-center justify-center gap-1 mb-6">
+                    <div className={`flex items-center justify-center gap-1 ${isMobile ? 'mb-4' : 'mb-6'}`}>
                       {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => (
                         <motion.div
                           key={i}
@@ -782,27 +891,33 @@ const LandingPage: React.FC = () => {
                           animate={{ scale: 1, rotate: 0 }}
                           transition={{ duration: 0.5, delay: i * 0.1 }}
                         >
-                          <Star className="h-6 w-6 text-yellow-400 fill-current" />
+                          <Star className={`${isMobile ? 'h-4 w-4' : 'h-6 w-6'} text-yellow-400 fill-current`} />
                         </motion.div>
                   ))}
                 </div>
 
                     {/* Testimonial Text */}
-                    <blockquote className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-8 leading-relaxed italic">
+                    <blockquote className={`${
+                      isMobile 
+                        ? 'text-base' 
+                        : isTablet 
+                          ? 'text-lg md:text-xl' 
+                          : 'text-xl md:text-2xl'
+                    } text-gray-700 dark:text-gray-300 ${isMobile ? 'mb-6' : 'mb-8'} leading-relaxed italic`}>
                       "{testimonials[activeTestimonial].content}"
                     </blockquote>
 
                     {/* Author Info */}
-                    <div className="flex items-center justify-center gap-4">
-                      <div className="text-4xl">{testimonials[activeTestimonial].avatar}</div>
+                    <div className={`flex items-center justify-center ${isMobile ? 'gap-3' : 'gap-4'}`}>
+                      <div className={`${isMobile ? 'text-2xl' : 'text-4xl'}`}>{testimonials[activeTestimonial].avatar}</div>
                       <div className="text-left">
-                        <p className="font-bold text-lg text-gray-900 dark:text-white">
+                        <p className={`font-bold ${isMobile ? 'text-base' : 'text-lg'} text-gray-900 dark:text-white`}>
                           {testimonials[activeTestimonial].name}
                         </p>
-                        <p className="text-gray-600 dark:text-gray-400">
+                        <p className={`text-gray-600 dark:text-gray-400 ${isMobile ? 'text-sm' : ''}`}>
                           {testimonials[activeTestimonial].role}
                         </p>
-                        <p className="text-gray-500 dark:text-gray-500 text-sm">
+                        <p className={`text-gray-500 dark:text-gray-500 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                           {testimonials[activeTestimonial].school}
                         </p>
                 </div>
@@ -810,12 +925,12 @@ const LandingPage: React.FC = () => {
 
                     {/* Improvement Badge */}
                     <motion.div
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-full text-sm font-medium mt-6"
+                      className={`inline-flex items-center gap-2 ${isMobile ? 'px-3 py-1.5' : 'px-4 py-2'} bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-full ${isMobile ? 'text-xs' : 'text-sm'} font-medium ${isMobile ? 'mt-4' : 'mt-6'}`}
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.5, delay: 0.3 }}
                     >
-                      <TrendingUp className="h-4 w-4" />
+                      <TrendingUp className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                       {testimonials[activeTestimonial].improvement} zlepšení
                     </motion.div>
                   </div>
@@ -823,23 +938,27 @@ const LandingPage: React.FC = () => {
               </motion.div>
 
               {/* Navigation Arrows */}
-              <motion.button
-                onClick={() => setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-surface-card/80 backdrop-blur-xl rounded-full border border-surface-border/60 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300"
-                whileHover={{ scale: 1.1, x: -2 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </motion.button>
+              {!isMobile && (
+                <>
+                  <motion.button
+                    onClick={() => setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-surface-card/80 backdrop-blur-xl rounded-full border border-surface-border/60 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300"
+                    whileHover={{ scale: 1.1, x: -2 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </motion.button>
 
-              <motion.button
-                onClick={() => setActiveTestimonial((prev) => (prev + 1) % testimonials.length)}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-surface-card/80 backdrop-blur-xl rounded-full border border-surface-border/60 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300"
-                whileHover={{ scale: 1.1, x: 2 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <ChevronRight className="h-6 w-6" />
-              </motion.button>
+                  <motion.button
+                    onClick={() => setActiveTestimonial((prev) => (prev + 1) % testimonials.length)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-surface-card/80 backdrop-blur-xl rounded-full border border-surface-border/60 shadow-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300"
+                    whileHover={{ scale: 1.1, x: 2 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </motion.button>
+                </>
+              )}
             </div>
 
             {/* Carousel Indicators */}
@@ -865,8 +984,8 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Modern Pricing Section with Glassmorphism */}
-      <section ref={pricingRef} id="pricing" className="py-20 bg-surface-bg relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section ref={pricingRef} id="pricing" className={`${isMobile ? 'py-12' : 'py-20'} bg-surface-bg relative overflow-hidden`}>
+        <div className={`max-w-7xl mx-auto ${isMobile ? 'px-4' : 'px-4 sm:px-6 lg:px-8'}`}>
           {/* Section Header */}
           <motion.div 
             className="text-center mb-20"
@@ -896,7 +1015,13 @@ const LandingPage: React.FC = () => {
           </motion.div>
 
           {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className={`grid ${
+            isMobile 
+              ? 'grid-cols-1' 
+              : isTablet 
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                : 'grid-cols-1 md:grid-cols-3'
+          } ${isMobile ? 'gap-6' : 'gap-8'}`}>
             {pricingPlans.map((plan) => (
               <motion.div
                 key={plan.id}
@@ -905,10 +1030,10 @@ const LandingPage: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: plan.delay }}
                 viewport={{ once: true }}
-                whileHover={{ y: -10 }}
+                whileHover={touchDevice ? {} : { y: -10 }}
               >
                 {/* Glassmorphism Pricing Card */}
-                <div className={`relative h-full bg-surface-card/80 backdrop-blur-xl rounded-3xl p-8 border border-surface-border/60 shadow-xl hover:shadow-2xl transition-all duration-500 ${
+                <div className={`relative h-full bg-surface-card/80 backdrop-blur-xl ${isMobile ? 'rounded-2xl' : 'rounded-3xl'} ${isMobile ? 'p-6' : 'p-8'} border border-surface-border/60 shadow-xl hover:shadow-2xl transition-all duration-500 ${
                   plan.popular ? 'ring-2 ring-purple-500/50' : ''
                 }`}>
                   {/* Popular Badge */}
@@ -1189,106 +1314,132 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Modern Final CTA Section (harmonized with dark palette) */}
-      <section className="py-20 bg-surface-bg relative overflow-hidden">
+      <section className={`${isMobile ? 'py-12' : 'py-20'} bg-surface-bg relative overflow-hidden`}>
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0 bg-gradient-radial from-blue-500/15 via-purple-500/10 to-transparent" />
         </div>
 
         {/* Floating Elements */}
-        <motion.div
-          className="absolute top-20 left-20 w-32 h-32 bg-white/10 rounded-full blur-3xl"
-          animate={{ 
-            y: [0, -30, 0],
-            x: [0, 20, 0],
-            scale: [1, 1.2, 1]
-          }}
-          transition={{ 
-            duration: 8, 
-            repeat: Infinity, 
-            ease: "easeInOut" 
-          }}
-        />
-        <motion.div
-          className="absolute bottom-20 right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl"
-          animate={{ 
-            y: [0, 30, 0],
-            x: [0, -20, 0],
-            scale: [1, 0.8, 1]
-          }}
-          transition={{ 
-            duration: 10, 
-            repeat: Infinity, 
-            ease: "easeInOut",
-            delay: 2
-          }}
-        />
+        {!isMobile && (
+          <>
+            <motion.div
+              className="absolute top-20 left-20 w-32 h-32 bg-white/10 rounded-full blur-3xl"
+              animate={{ 
+                y: [0, -30, 0],
+                x: [0, 20, 0],
+                scale: [1, 1.2, 1]
+              }}
+              transition={{ 
+                duration: 8, 
+                repeat: Infinity, 
+                ease: "easeInOut" 
+              }}
+            />
+            <motion.div
+              className="absolute bottom-20 right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl"
+              animate={{ 
+                y: [0, 30, 0],
+                x: [0, -20, 0],
+                scale: [1, 0.8, 1]
+              }}
+              transition={{ 
+                duration: 10, 
+                repeat: Infinity, 
+                ease: "easeInOut",
+                delay: 2
+              }}
+            />
+          </>
+        )}
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className={`relative z-10 max-w-7xl mx-auto ${isMobile ? 'px-4' : 'px-4 sm:px-6 lg:px-8'} text-center`}>
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+            <h2 className={`${
+              isMobile 
+                ? 'text-3xl' 
+                : isTablet 
+                  ? 'text-4xl md:text-5xl' 
+                  : 'text-4xl md:text-6xl'
+            } font-bold text-gray-900 dark:text-white ${isMobile ? 'mb-4' : 'mb-6'} leading-tight`}>
               Připraveni{' '}
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 začít?
               </span>
           </h2>
             
-            <p className="text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className={`${
+              isMobile 
+                ? 'text-base' 
+                : isTablet 
+                  ? 'text-lg md:text-xl' 
+                  : 'text-xl md:text-2xl'
+            } text-gray-700 dark:text-gray-300 ${isMobile ? 'mb-8' : 'mb-12'} ${
+              isMobile ? 'max-w-sm' : isTablet ? 'max-w-2xl' : 'max-w-3xl'
+            } mx-auto leading-relaxed`}>
             Připojte se k tisícům učitelů, kteří už transformují výuku matematiky s pomocí AI
           </p>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
+            <div className={`flex ${isMobile ? 'flex-col' : 'flex-col sm:flex-row'} ${isMobile ? 'gap-4' : 'gap-6'} justify-center ${isMobile ? 'mb-6' : 'mb-8'}`}>
             <Link to="/register-school">
                 <motion.div
-                  whileHover={{ scale: 1.05, y: -3 }}
+                  whileHover={touchDevice ? {} : { scale: 1.05, y: -3 }}
                   whileTap={{ scale: 0.95 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
                   <Button 
                     variant="primary" 
-                    size="lg" 
-                    className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl text-lg px-8 py-4"
+                    size={isMobile ? "md" : "lg"}
+                    className={`flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl ${
+                      isMobile 
+                        ? 'text-base px-6 py-3 w-full min-h-[44px]' 
+                        : 'text-lg px-8 py-4'
+                    }`}
                   >
-                    <Rocket className="h-6 w-6" />
+                    <Rocket className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
                 Registrovat školu zdarma
-                <ArrowRight className="h-5 w-5" />
+                <ArrowRight className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
               </Button>
                 </motion.div>
             </Link>
               
               <motion.div
-                whileHover={{ scale: 1.05, y: -3 }}
+                whileHover={touchDevice ? {} : { scale: 1.05, y: -3 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
                 <Button 
                   variant="outline" 
-                  size="lg" 
-                  className="flex items-center gap-2 border-2 border-surface-border/60 text-surface-text hover:bg-surface-card/20 backdrop-blur-sm text-lg px-8 py-4"
+                  size={isMobile ? "md" : "lg"}
+                  className={`flex items-center gap-2 border-2 border-surface-border/60 text-surface-text hover:bg-surface-card/20 backdrop-blur-sm ${
+                    isMobile 
+                      ? 'text-base px-6 py-3 w-full min-h-[44px]' 
+                      : 'text-lg px-8 py-4'
+                  }`}
                 >
-              <MessageSquare className="h-5 w-5" />
+              <MessageSquare className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
               Kontaktovat prodejce
             </Button>
               </motion.div>
           </div>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap items-center justify-center gap-8 text-gray-700 dark:text-blue-100">
+            <div className={`flex ${isMobile ? 'flex-col' : 'flex-wrap'} items-center justify-center ${isMobile ? 'gap-3' : 'gap-8'} text-gray-700 dark:text-blue-100 ${isMobile ? 'text-sm' : ''}`}>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 dark:bg-green-300 rounded-full animate-pulse"></div>
+                <div className={`${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-green-500 dark:bg-green-300 rounded-full animate-pulse`}></div>
                 <span>Bezplatná zkušební verze</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 dark:bg-blue-300 rounded-full animate-pulse"></div>
+                <div className={`${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-blue-500 dark:bg-blue-300 rounded-full animate-pulse`}></div>
                 <span>Nastavení za 5 minut</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 dark:bg-purple-300 rounded-full animate-pulse"></div>
+                <div className={`${isMobile ? 'w-1.5 h-1.5' : 'w-2 h-2'} bg-purple-500 dark:bg-purple-300 rounded-full animate-pulse`}></div>
                 <span>24/7 podpora</span>
               </div>
             </div>

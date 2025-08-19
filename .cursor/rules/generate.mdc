@@ -1,16 +1,6 @@
 ---
-description: Rules and workflows for generating files in the EduAI-Asistent project
-project: EduAI-Asistent
-language: English (en-US)
 alwaysApply: true
-globs:
-  - "\*.ts"
-  - "\*.tsx"
-  - "\*.md"
-  - "app/\*\*/\*"
-  - "src/\*\*/\*"
 ---
-
 # 🚀 EduAI-Asistent – Cursor Generate Rules
 
 ## Role and Purpose
@@ -52,7 +42,7 @@ A multi-tenant SaaS portal for the education sector (initially Czech schools and
 - **Database:** PostgreSQL
 - **Styling:** Tailwind CSS
 - **AI Integration:** OpenAI API / Google Gemini API via RESTful calls from the backend.
-- **Hosting / CI/CD:** Vercel (Frontend), Render / Google Cloud Platform (Backend & DB).
+- **Deployment:** Coolify using Dockerfiles; do not rely on Coolify YAML builds. See [COOLIFY-DEPLOYMENT.md](mdc:COOLIFY-DEPLOYMENT.md) and [DEPLOYMENT.md](mdc:DEPLOYMENT.md).
 
 ## Main Application Components
 

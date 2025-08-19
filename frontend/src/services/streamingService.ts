@@ -299,7 +299,7 @@ export const streamingService = {
 
   // Generate quiz with streaming response
   generateQuizStream: async (
-    params: { title?: string; subject?: string; grade_level?: string; question_count?: number; time_limit?: string | number },
+    params: { title?: string; subject?: string; grade_level?: string; question_count?: number; time_limit?: string | number; prompt_hint?: string },
     callbacks: QuizStreamingCallbacks
   ): Promise<void> => {
     const token = localStorage.getItem('authToken');

@@ -5,15 +5,16 @@ import InputField from '../../components/ui/InputField';
 import { api } from '../../services/apiClient';
 import SparklineStatCard from '../../components/dashboard/SparklineStatCard';
 import { useToast } from '../../contexts/ToastContext';
-import { 
-  AreaChart, Area, BarChart, Bar, 
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
-} from 'recharts';
+// Temporarily disabled recharts to fix production React error
+// import { 
+//   AreaChart, Area, BarChart, Bar, 
+//   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+// } from 'recharts';
 import { 
   Users, CreditCard, Activity, Shield, 
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle, 
   Settings, Search, Plus, Trash2,
-  Bell, Zap, Database, Server, X
+  Bell, Zap, Database, Server, X, BarChart3
 } from 'lucide-react';
 
 const DeveloperAdminPage: React.FC = () => {
@@ -234,14 +235,15 @@ const DeveloperAdminPage: React.FC = () => {
   };
 
   // Chart data preparation
-  const creditTrendData = useMemo(() => {
-    if (!credits?.monthly) return [];
-    return credits.monthly.usage.map((item: any, index: number) => ({
-      month: item.month,
-      usage: item.total,
-      purchases: credits.monthly.purchases[index]?.total || 0
-    }));
-  }, [credits]);
+  // Temporarily disabled while recharts is removed
+  // const creditTrendData = useMemo(() => {
+  //   if (!credits?.monthly) return [];
+  //   return credits.monthly.usage.map((item: any, index: number) => ({
+  //     month: item.month,
+  //     usage: item.total,
+  //     purchases: credits.monthly.purchases[index]?.total || 0
+  //   }));
+  // }, [credits]);
 
 
 
@@ -397,17 +399,12 @@ const DeveloperAdminPage: React.FC = () => {
               </div>
             </div>
             
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={creditTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="usage" stackId="1" stroke="#ef4444" fill="#fecaca" />
-                  <Area type="monotone" dataKey="purchases" stackId="1" stroke="#22c55e" fill="#bbf7d0" />
-                </AreaChart>
-              </ResponsiveContainer>
+            <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-neutral-800 rounded-lg">
+              <div className="text-center">
+                <TrendingUp className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                <p className="text-gray-500 dark:text-neutral-400">Chart temporarily disabled</p>
+                <p className="text-xs text-gray-400 dark:text-neutral-500">Data available via API</p>
+              </div>
             </div>
           </Card>
 
@@ -439,16 +436,12 @@ const DeveloperAdminPage: React.FC = () => {
               </div>
             </div>
             
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={quality?.by_type || []}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="file_type" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="avg_quality" fill="#8b5cf6" />
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-neutral-800 rounded-lg">
+              <div className="text-center">
+                <BarChart3 className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                <p className="text-gray-500 dark:text-neutral-400">Chart temporarily disabled</p>
+                <p className="text-xs text-gray-400 dark:text-neutral-500">Data available via API</p>
+              </div>
             </div>
           </Card>
         </div>

@@ -11,6 +11,9 @@ module.exports = {
     }],
   },
   setupFiles: ['<rootDir>/src/__tests__/setup.ts', 'dotenv/config'],
+  testTimeout: 10000,
+  forceExit: true,
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
 };
-
-
