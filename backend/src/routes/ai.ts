@@ -74,7 +74,8 @@ PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
       "name": "Název aktivity",
       "description": "Stručný popis",
       "steps": ["krok 1", "krok 2"],
-      "time": "10 min"
+      "time": "10 min",
+      "outcome": "Očekávaný výsledek aktivity"
     }
   ],
   "differentiation": "Úpravy pro slabší/silnější žáky",
@@ -82,10 +83,15 @@ PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
   "assessment": "Metody hodnocení"
 }
 
-POŽADAVKY:
+KRITICKÉ POŽADAVKY PRO AKTIVITY:
+- KAŽDÁ aktivita MUSÍ obsahovat: "name" (název), "time" (ve formátu "<N> min"), "outcome" (očekávaný výsledek)
+- Hodnota "time" MUSÍ být přesně ve formátu "<číslo> min" (např. "15 min", "8 min")
+- Součet všech hodnot activities[*].time (v minutách) MUSÍ přesně odpovídat hodnotě "duration" (v minutách)
+- Pokud duration je "45 min", pak součet všech activities[*].time musí být přesně 45 minut
+
+DALŠÍ POŽADAVKY:
 - Vždy odpovídej česky
 - Dbej na jasnost, přiměřenou obtížnost a praktické aktivity
-- Součet všech hodnot v poli activities[*].time (v minutách) MUSÍ přesně odpovídat hodnotě "duration" (v minutách)
 - Výstup musí být platný JSON přesně dle struktury bez komentářů a bez vysvětlujícího textu.`;
 
 // Specialized system prompt for quiz generation (used below)
@@ -698,26 +704,47 @@ router.post('/generate-lesson-plan', authenticateToken, [
       if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
       if (!data.title || typeof data.title !== 'string') throw new Error('Invalid lesson_plan.title');
       if (!Array.isArray(data.activities)) throw new Error('Invalid lesson_plan.activities');
+      
+      // Enhanced validation for activities - require name, time, and outcome
       if (Array.isArray(data.activities)) {
-        data.activities.forEach((a: any) => {
-          if (!a || typeof a.name !== 'string' || typeof a.time !== 'string') {
-            throw new Error('Invalid activity item');
+        data.activities.forEach((a: any, index: number) => {
+          if (!a || typeof a !== 'object') {
+            throw new Error(`Activity ${index + 1}: Invalid activity object`);
+          }
+          if (!a.name || typeof a.name !== 'string') {
+            throw new Error(`Activity ${index + 1}: Missing or invalid "name" field`);
+          }
+          if (!a.time || typeof a.time !== 'string') {
+            throw new Error(`Activity ${index + 1}: Missing or invalid "time" field`);
+          }
+          if (!a.outcome || typeof a.outcome !== 'string') {
+            throw new Error(`Activity ${index + 1}: Missing or invalid "outcome" field`);
+          }
+          // Validate time format is exactly "<N> min"
+          const timeMatch = /^([0-9]+)\s*min$/.exec(a.time.trim());
+          if (!timeMatch) {
+            throw new Error(`Activity ${index + 1}: Time "${a.time}" must be in format "<N> min" (e.g., "15 min")`);
           }
         });
       }
-      // Validate total time matches duration
+      
+      // Validate total time matches duration with improved error messages
       const durationStr: string = data.duration || '45 min';
       const durationMatch = /([0-9]+)\s*min/.exec(durationStr);
       const targetMinutes = durationMatch && durationMatch[1] ? parseInt(durationMatch[1] as string, 10) : 45;
+      
       const sumMinutes = (data.activities || []).reduce((sum: number, a: any) => {
         const m = /([0-9]+)\s*min/.exec(String(a.time || '0'));
         return sum + (m && m[1] ? parseInt(m[1] as string, 10) : 0);
       }, 0);
+      
       if (sumMinutes !== targetMinutes) {
-        throw new Error(`Duration mismatch: activities total ${sumMinutes} min != duration ${targetMinutes} min`);
+        const activityTimes = data.activities.map((a: any) => `"${a.name}": ${a.time}`).join(', ');
+        throw new Error(`Duration mismatch: Activities total ${sumMinutes} min but lesson duration is ${targetMinutes} min. Activities: [${activityTimes}]. Please ensure the sum of all activity times equals the lesson duration exactly.`);
       }
     } catch (e) {
-      res.write('data: {"type":"error","message":"Failed to parse lesson plan JSON"}\n\n');
+      const errorMessage = e instanceof Error ? e.message : 'Failed to parse lesson plan JSON';
+      res.write(`data: {"type":"error","message":"${errorMessage.replace(/"/g, '\\"')}"}\n\n`);
       res.end();
       return;
     }
