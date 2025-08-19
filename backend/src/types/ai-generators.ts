@@ -334,4 +334,5 @@ export const validateActivity = (data: any): ActivityData => {
   }
   
   return data as ActivityData;
+
 };

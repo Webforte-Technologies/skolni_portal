@@ -8,12 +8,16 @@ import { MessageModel } from '../models/Message';
 import { GeneratedFileModel } from '../models/GeneratedFile';
 import OpenAI from 'openai';
 import {
-
+  WorksheetData,
+  LessonPlanData,
+  QuizData,
   ProjectData,
   PresentationData,
   ActivityData,
   SSEMessage,
-
+  validateWorksheet,
+  validateLessonPlan,
+  validateQuiz,
   validateProject,
   validatePresentation,
   validateActivity
@@ -667,6 +671,19 @@ router.post('/generate-worksheet', authenticateToken, [
   body('difficulty').optional().isString().isLength({ max: 20 }),
   body('teaching_style').optional().isString().isLength({ max: 50 })
 ], async (req: RequestWithUser, res: Response) => {
+
+  const { topic, question_count, difficulty, teaching_style } = req.body;
+  const userPrompt = `Vytvoř cvičení na téma: ${topic}. ${question_count ? `Vytvoř ${question_count} otázek.` : 'Vytvoř 10 otázek.'} ${difficulty ? `Úroveň obtížnosti: ${difficulty}.` : ''} ${teaching_style ? `Preferovaný styl výuky: ${teaching_style}.` : ''}`;
+
+  await generateAIContent<WorksheetData>(req, res, {
+    systemPrompt: WORKSHEET_SYSTEM_PROMPT,
+    userPrompt,
+    fileType: 'worksheet',
+    creditsRequired: 2,
+    validator: validateWorksheet,
+    maxTokens: 3000
+  });
+
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -842,6 +859,17 @@ router.post('/generate-lesson-plan', authenticateToken, [
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
 ], async (req: RequestWithUser, res: Response) => {
+  const { title, subject, grade_level } = req.body;
+  const userPrompt = `Vytvoř plán hodiny${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. Dodrž předepsanou JSON strukturu.`;
+
+  await generateAIContent<LessonPlanData>(req, res, {
+    systemPrompt: LESSON_PLAN_SYSTEM_PROMPT,
+    userPrompt,
+    fileType: 'lesson_plan',
+    creditsRequired: 2,
+    validator: validateLessonPlan
+  });
+
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -972,6 +1000,17 @@ router.post('/generate-quiz', authenticateToken, [
   body('time_limit').optional().isString().isLength({ min: 1, max: 50 }),
   body('prompt_hint').optional().isString().isLength({ max: 500 })
 ], async (req: RequestWithUser, res: Response) => {
+  const { title, subject, grade_level, question_count, time_limit } = req.body;
+  const timeLimitPart = time_limit ? ` s časovým limitem ${time_limit}` : '';
+  const userPrompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}${timeLimitPart}. Dodrž předepsanou JSON strukturu.`;
+
+  await generateAIContent<QuizData>(req, res, {
+    systemPrompt: QUIZ_SYSTEM_PROMPT,
+    userPrompt,
+    fileType: 'quiz',
+    creditsRequired: 2,
+    validator: validateQuiz
+  });
     try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) { res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() }); return; }
