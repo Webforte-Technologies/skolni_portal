@@ -6,7 +6,7 @@ interface OfflineDBSchema extends DBSchema {
     value: {
       id: string;
       title: string;
-      content: any;
+      content: unknown;
       file_type: string;
       created_at: string;
       updated_at: string;
@@ -32,7 +32,7 @@ interface OfflineDBSchema extends DBSchema {
       id: string;
       action: 'create' | 'update' | 'delete';
       table: 'materials' | 'folders';
-      data: any;
+      data: unknown;
       timestamp: number;
       retries: number;
     };
@@ -41,7 +41,7 @@ interface OfflineDBSchema extends DBSchema {
     key: string;
     value: {
       key: string;
-      value: any;
+      value: unknown;
       timestamp: number;
     };
   };
@@ -49,7 +49,7 @@ interface OfflineDBSchema extends DBSchema {
     key: string;
     value: {
       key: string;
-      data: any;
+      data: unknown;
       timestamp: number;
       ttl: number;
     };
@@ -65,7 +65,7 @@ class OfflineService {
   async init(): Promise<void> {
     try {
       this.db = await openDB<OfflineDBSchema>('eduai-offline', 1, {
-        upgrade(db) {
+        upgrade(db: IDBPDatabase<OfflineDBSchema>) {
           // Materials store
           if (!db.objectStoreNames.contains('materials')) {
             const materialsStore = db.createObjectStore('materials', { keyPath: 'id' });
@@ -153,11 +153,21 @@ class OfflineService {
   }
 
   // Material operations
-  async saveMaterial(material: any, isOfflineCreated: boolean = false): Promise<void> {
+  async saveMaterial(material: {
+    id: string;
+    title: string;
+    content: unknown;
+    file_type: string;
+    created_at?: string;
+    updated_at?: string;
+    synced?: boolean;
+    offline_created?: boolean;
+  }, isOfflineCreated: boolean = false): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
     const materialData = {
       ...material,
+      created_at: material.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
       synced: this.isOnline && !isOfflineCreated,
       offline_created: isOfflineCreated
@@ -187,7 +197,12 @@ class OfflineService {
     return await (this.db as any).getAllFromIndex('materials', 'file_type', fileType);
   }
 
-  async updateMaterial(id: string, updates: any): Promise<void> {
+  async updateMaterial(id: string, updates: Partial<{
+    title: string;
+    content: unknown;
+    file_type: string;
+    synced: boolean;
+  }>): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
     const existing = await this.db.get('materials', id);
@@ -225,7 +240,15 @@ class OfflineService {
   }
 
   // Folder operations
-  async saveFolder(folder: any, isOfflineCreated: boolean = false): Promise<void> {
+  async saveFolder(folder: {
+    id: string;
+    name: string;
+    description?: string;
+    parent_folder_id?: string;
+    created_at?: string;
+    synced?: boolean;
+    offline_created?: boolean;
+  }, isOfflineCreated: boolean = false): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
     const folderData = {
@@ -276,14 +299,17 @@ class OfflineService {
     const allMaterials = await this.db.getAll('materials');
     const lowerQuery = query.toLowerCase();
 
-    return allMaterials.filter(material => 
+    return allMaterials.filter((material: {
+      title: string;
+      content?: unknown;
+    }) => 
       material.title.toLowerCase().includes(lowerQuery) ||
       (material.content && JSON.stringify(material.content).toLowerCase().includes(lowerQuery))
     );
   }
 
   // Cache management
-  async setCache(key: string, data: any, ttl: number = 3600000): Promise<void> { // 1 hour default TTL
+  async setCache(key: string, data: unknown, ttl: number = 3600000): Promise<void> { // 1 hour default TTL
     if (!this.db) throw new Error('Database not initialized');
 
     await this.db.put('cache', {
@@ -323,7 +349,7 @@ class OfflineService {
   }
 
   // User preferences
-  async setPreference(key: string, value: any): Promise<void> {
+  async setPreference(key: string, value: unknown): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
 
     await this.db.put('user_preferences', {
@@ -341,11 +367,11 @@ class OfflineService {
   }
 
   // Sync queue management
-  private async addToSyncQueue(table: 'materials' | 'folders', action: 'create' | 'update' | 'delete', data: any): Promise<void> {
+  private async addToSyncQueue(table: 'materials' | 'folders', action: 'create' | 'update' | 'delete', data: unknown): Promise<void> {
     if (!this.db) return;
 
     const queueItem = {
-      id: `${table}_${action}_${data.id || Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `${table}_${action}_${(data as { id?: string }).id || Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       action,
       table,
       data,
@@ -365,7 +391,7 @@ class OfflineService {
     try {
       const queueItems = await this.db.getAll('sync_queue');
       
-      for (const item of queueItems.sort((a, b) => a.timestamp - b.timestamp)) {
+      for (const item of queueItems.sort((a: { timestamp: number }, b: { timestamp: number }) => a.timestamp - b.timestamp)) {
         try {
           await this.syncItem(item);
           await this.db.delete('sync_queue', item.id);
@@ -394,7 +420,14 @@ class OfflineService {
     }
   }
 
-  private async syncItem(item: any): Promise<void> {
+  private async syncItem(item: {
+    id: string;
+    action: 'create' | 'update' | 'delete';
+    table: 'materials' | 'folders';
+    data: unknown;
+    timestamp: number;
+    retries: number;
+  }): Promise<void> {
     // This would integrate with your existing API client
     // For now, just simulate the sync
     console.log('Syncing item:', item);
@@ -432,9 +465,9 @@ class OfflineService {
 
     return {
       totalMaterials: materials.length,
-      unsyncedMaterials: materials.filter(m => !m.synced).length,
+      unsyncedMaterials: materials.filter((m: { synced: boolean }) => !m.synced).length,
       totalFolders: folders.length,
-      unsyncedFolders: folders.filter(f => !f.synced).length,
+      unsyncedFolders: folders.filter((f: { synced: boolean }) => !f.synced).length,
       queueSize: queue.length,
       cacheSize: cache.length
     };

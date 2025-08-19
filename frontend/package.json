@@ -28,6 +28,7 @@
     "docx": "^9.5.1",
     "framer-motion": "^12.23.12",
     "html2canvas": "^1.4.1",
+    "idb": "^8.0.3",
     "jspdf": "^3.0.1",
     "katex": "^0.16.22",
     "lucide-react": "^0.292.0",
