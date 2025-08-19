@@ -7,6 +7,21 @@ import { ConversationModel } from '../models/Conversation';
 import { MessageModel } from '../models/Message';
 import { GeneratedFileModel } from '../models/GeneratedFile';
 import OpenAI from 'openai';
+import {
+  WorksheetData,
+  LessonPlanData,
+  QuizData,
+  ProjectData,
+  PresentationData,
+  ActivityData,
+  SSEMessage,
+  validateWorksheet,
+  validateLessonPlan,
+  validateQuiz,
+  validateProject,
+  validatePresentation,
+  validateActivity
+} from '../types/ai-generators';
 
 const router = Router();
 
@@ -209,6 +224,172 @@ function deriveTags(...parts: Array<string | undefined>): string[] {
   addIf('prezentace', /prezentac/.test(text));
   addIf('projekt', /projekt/.test(text));
   return Array.from(candidates).slice(0, 8);
+}
+
+// Utility function to send SSE messages
+function sendSSEMessage(res: Response, message: SSEMessage): void {
+  res.write(`data: ${JSON.stringify(message)}\n\n`);
+}
+
+// Utility function to escape content for SSE
+function escapeSSEContent(content: string): string {
+  return content.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+}
+
+// Common generator function for all AI endpoints
+async function generateAIContent<T>(
+  req: RequestWithUser,
+  res: Response,
+  {
+    systemPrompt,
+    userPrompt,
+    fileType,
+    creditsRequired,
+    validator,
+    maxTokens = 2500,
+    temperature = 0.3
+  }: {
+    systemPrompt: string;
+    userPrompt: string;
+    fileType: string;
+    creditsRequired: number;
+    validator: (data: any) => T;
+    maxTokens?: number;
+    temperature?: number;
+  }
+): Promise<void> {
+  try {
+    // Validation errors check
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      sendSSEMessage(res, { type: 'error', message: 'Validation failed' });
+      res.end();
+      return;
+    }
+
+    if (!req.user) {
+      sendSSEMessage(res, { type: 'error', message: 'Authentication required' });
+      res.end();
+      return;
+    }
+
+    const user = await UserModel.findById(req.user.id);
+    if (!user) {
+      sendSSEMessage(res, { type: 'error', message: 'User not found' });
+      res.end();
+      return;
+    }
+
+    if ((user.credits_balance ?? 0) < creditsRequired) {
+      sendSSEMessage(res, { type: 'error', message: 'Insufficient credits' });
+      res.end();
+      return;
+    }
+
+    // Set SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Cache-Control');
+
+    // Send start message
+    sendSSEMessage(res, { type: 'start', message: `Starting ${fileType} generation...` });
+
+    // Call OpenAI API with streaming
+    const stream = await openai.chat.completions.create({
+      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || maxTokens.toString()),
+      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || temperature.toString()),
+      stream: true,
+    });
+
+    let fullResponse = '';
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content;
+      if (content) {
+        fullResponse += content;
+        sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+      }
+    }
+
+    // Parse and validate JSON response
+    let validatedData: T;
+    try {
+      const parsedData = JSON.parse(fullResponse);
+      validatedData = validator(parsedData);
+    } catch (parseError) {
+      console.error(`Failed to parse ${fileType} JSON:`, parseError);
+      sendSSEMessage(res, { type: 'error', message: `The AI response could not be parsed as a valid ${fileType}.` });
+      res.end();
+      return;
+    }
+
+    // Save the generated file to the database
+    let savedFile: any;
+    try {
+      savedFile = await GeneratedFileModel.create({
+        user_id: req.user.id,
+        title: (validatedData as any).title || `Generated ${fileType}`,
+        content: JSON.stringify(validatedData),
+        file_type: fileType
+      });
+
+      // Update AI metadata
+      const tags = Array.isArray((validatedData as any).tags) && (validatedData as any).tags.length 
+        ? (validatedData as any).tags 
+        : deriveTags(
+            (validatedData as any).title,
+            (validatedData as any).subject,
+            (validatedData as any).grade_level,
+            (validatedData as any).description || (validatedData as any).goal
+          );
+
+      await GeneratedFileModel.updateAIMetadata(savedFile.id, {
+        metadata: { raw: fullResponse, prompt: systemPrompt },
+        tags
+      });
+    } catch (saveError) {
+      console.error(`Failed to save ${fileType} to database:`, saveError);
+      sendSSEMessage(res, { type: 'error', message: `Failed to save ${fileType} to database` });
+      res.end();
+      return;
+    }
+
+    // Deduct credits after successful generation and save
+    await CreditTransactionModel.deductCredits(
+      req.user.id,
+      creditsRequired,
+      `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} generation`
+    );
+    
+    const updatedUser = await UserModel.findById(req.user.id);
+
+    // Send final response with metadata
+    const endMessage: any = {
+      type: 'end',
+      file_id: savedFile?.id || '',
+      file_type: fileType,
+      credits_used: creditsRequired,
+      credits_balance: updatedUser?.credits_balance || 0
+    };
+    endMessage[fileType] = validatedData;
+    
+    sendSSEMessage(res, endMessage);
+    res.end();
+
+  } catch (error) {
+    console.error(`${fileType} generation error:`, error);
+    sendSSEMessage(res, { 
+      type: 'error', 
+      message: error instanceof Error ? error.message : 'An unexpected error occurred' 
+    });
+    res.end();
+  }
 }
 const validateChatMessage = [
   body('message').trim().isLength({ min: 1, max: 2000 }).withMessage('Message must be between 1 and 2000 characters'),
@@ -476,166 +657,17 @@ router.post('/generate-worksheet', authenticateToken, [
   body('difficulty').optional().isString().isLength({ max: 20 }),
   body('teaching_style').optional().isString().isLength({ max: 50 })
 ], async (req: RequestWithUser, res: Response) => {
-  try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
+  const { topic, question_count, difficulty, teaching_style } = req.body;
+  const userPrompt = `Vytvoř cvičení na téma: ${topic}. ${question_count ? `Vytvoř ${question_count} otázek.` : 'Vytvoř 10 otázek.'} ${difficulty ? `Úroveň obtížnosti: ${difficulty}.` : ''} ${teaching_style ? `Preferovaný styl výuky: ${teaching_style}.` : ''}`;
 
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Authentication required'
-      });
-    }
-
-    const { topic, question_count, difficulty, teaching_style } = req.body;
-    const userId = req.user.id;
-
-    // Check if user has enough credits (2 credits per worksheet)
-    const user = await UserModel.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-
-    const creditsRequired = 2;
-    
-    // Critical fix: Ensure user has > 0 credits before proceeding
-    if (user.credits_balance <= 0) {
-      return res.status(402).json({
-        success: false,
-        error: 'Insufficient credits',
-        data: {
-          credits_balance: user.credits_balance,
-          credits_required: creditsRequired,
-          message: 'You need at least 2 credits to generate a worksheet. Please add more credits to continue.'
-        }
-      });
-    }
-    
-    if (user.credits_balance < creditsRequired) {
-      return res.status(402).json({
-        success: false,
-        error: 'Insufficient credits',
-        data: {
-          credits_balance: user.credits_balance,
-          credits_required: creditsRequired,
-          message: `You have ${user.credits_balance} credits but need ${creditsRequired} credits for worksheet generation.`
-        }
-      });
-    }
-
-    // Do NOT deduct before success; deduct after successful parse/save
-
-    // Set headers for streaming
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Cache-Control');
-
-    // Send initial response
-    res.write('data: {"type":"start","message":"Starting worksheet generation..."}\n\n');
-
-    // Call OpenAI API with streaming for worksheet generation
-    const stream = await openai.chat.completions.create({
-      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: WORKSHEET_SYSTEM_PROMPT
-        },
-        {
-          role: 'user',
-          content: `Vytvoř cvičení na téma: ${topic}. ${question_count ? `Vytvoř ${question_count} otázek.` : 'Vytvoř 10 otázek.'} ${difficulty ? `Úroveň obtížnosti: ${difficulty}.` : ''} ${teaching_style ? `Preferovaný styl výuky: ${teaching_style}.` : ''}`
-        }
-      ],
-      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '3000'),
-      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
-      stream: true,
-    });
-
-    let fullResponse = '';
-
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        fullResponse += content;
-        // Send each chunk to the client
-        res.write(`data: {"type":"chunk","content":"${content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"}\n\n`);
-      }
-    }
-
-    // Parse JSON response and validate
-    let worksheetData;
-    try {
-      worksheetData = JSON.parse(fullResponse);
-      
-      // Validate the structure
-      if (!worksheetData.title || typeof worksheetData.title !== 'string') throw new Error('Invalid worksheet.title');
-      if (!worksheetData.instructions || typeof worksheetData.instructions !== 'string') throw new Error('Invalid worksheet.instructions');
-      if (!Array.isArray(worksheetData.questions) || worksheetData.questions.length < 1) throw new Error('Invalid worksheet.questions');
-      const invalidQuestion = worksheetData.questions.find((q: any) => !q || typeof q.problem !== 'string' || typeof q.answer !== 'string');
-      if (invalidQuestion) throw new Error('Invalid worksheet question item');
-    } catch (parseError) {
-      console.error('Failed to parse worksheet JSON:', parseError);
-      res.write('data: {"type":"error","message":"The AI response could not be parsed as a valid worksheet."}\n\n');
-      res.end();
-      return;
-    }
-
-    // Save the generated worksheet to the database
-    let savedWorksheet: any | undefined;
-    try {
-      savedWorksheet = await GeneratedFileModel.create({
-        user_id: userId,
-        title: worksheetData.title,
-        content: JSON.stringify(worksheetData),
-        file_type: 'worksheet'
-      });
-      // Tag basics (subject/difficulty from text heuristics minimal)
-      try {
-        await GeneratedFileModel.updateAIMetadata(savedWorksheet.id, {
-          metadata: { raw: fullResponse, prompt: 'WORKSHEET_SYSTEM_PROMPT' },
-          tags: Array.isArray(worksheetData.tags) ? worksheetData.tags : [],
-        });
-      } catch (e) {
-        console.warn('Failed to update AI metadata for worksheet:', e);
-      }
-    } catch (saveError) {
-      console.error('Failed to save worksheet to database:', saveError);
-      // Don't fail the request if database save fails, but log the error
-    }
-
-    // Deduct credits only after successful parse (and attempted save)
-    await CreditTransactionModel.deductCredits(
-      userId,
-      creditsRequired,
-      `Worksheet generation: "${topic}"`
-    );
-    const updatedUser = await UserModel.findById(userId);
-
-    // Send final response with metadata, including saved file ID if available
-    res.write(`data: {"type":"end","worksheet":${JSON.stringify(worksheetData)},"file_id":"${savedWorksheet?.id || ''}","file_type":"worksheet","credits_used":${creditsRequired},"credits_balance":${updatedUser?.credits_balance || 0}}\n\n`);
-    res.end();
-    return;
-
-  } catch (error) {
-    console.error('Worksheet generation error:', error);
-    
-    // Send error through stream
-    res.write(`data: {"type":"error","message":"${error instanceof Error ? error.message : 'An unexpected error occurred'}"}\n\n`);
-    res.end();
-    return;
-  }
+  await generateAIContent<WorksheetData>(req, res, {
+    systemPrompt: WORKSHEET_SYSTEM_PROMPT,
+    userPrompt,
+    fileType: 'worksheet',
+    creditsRequired: 2,
+    validator: validateWorksheet,
+    maxTokens: 3000
+  });
 });
 
 export default router;
@@ -646,104 +678,16 @@ router.post('/generate-lesson-plan', authenticateToken, [
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
 ], async (req: RequestWithUser, res: Response) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() });
-      return;
-    }
-    if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
+  const { title, subject, grade_level } = req.body;
+  const userPrompt = `Vytvoř plán hodiny${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. Dodrž předepsanou JSON strukturu.`;
 
-    const user = await UserModel.findById(req.user.id);
-    if (!user) { res.status(404).json({ success: false, error: 'User not found' }); return; }
-    const creditsRequired = 2;
-    if ((user.credits_balance ?? 0) < creditsRequired) {
-      res.status(402).json({ success: false, error: 'Insufficient credits' });
-      return;
-    }
-    // Deduct after success
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    res.write('data: {"type":"start","message":"Starting lesson plan generation..."}\n\n');
-
-    const { title, subject, grade_level } = req.body;
-    const prompt = `Vytvoř plán hodiny${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. Dodrž předepsanou JSON strukturu.`;
-
-    const stream = await openai.chat.completions.create({
-      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: LESSON_PLAN_SYSTEM_PROMPT },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2500'),
-      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
-      stream: true,
-    });
-
-    let full = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        full += content;
-        res.write(`data: {"type":"chunk","content":"${content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"}\n\n`);
-      }
-    }
-
-    let data;
-    try {
-      data = JSON.parse(full);
-      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
-      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid lesson_plan.title');
-      if (!Array.isArray(data.activities)) throw new Error('Invalid lesson_plan.activities');
-      if (Array.isArray(data.activities)) {
-        data.activities.forEach((a: any) => {
-          if (!a || typeof a.name !== 'string' || typeof a.time !== 'string') {
-            throw new Error('Invalid activity item');
-          }
-        });
-      }
-      // Validate total time matches duration
-      const durationStr: string = data.duration || '45 min';
-      const durationMatch = /([0-9]+)\s*min/.exec(durationStr);
-      const targetMinutes = durationMatch && durationMatch[1] ? parseInt(durationMatch[1] as string, 10) : 45;
-      const sumMinutes = (data.activities || []).reduce((sum: number, a: any) => {
-        const m = /([0-9]+)\s*min/.exec(String(a.time || '0'));
-        return sum + (m && m[1] ? parseInt(m[1] as string, 10) : 0);
-      }, 0);
-      if (sumMinutes !== targetMinutes) {
-        throw new Error(`Duration mismatch: activities total ${sumMinutes} min != duration ${targetMinutes} min`);
-      }
-    } catch (e) {
-      res.write('data: {"type":"error","message":"Failed to parse lesson plan JSON"}\n\n');
-      res.end();
-      return;
-    }
-
-    const savedLesson = await GeneratedFileModel.create({
-      user_id: req.user.id,
-      title: data.title || 'Plán hodiny',
-      content: JSON.stringify(data),
-      file_type: 'lesson_plan'
-    });
-    try {
-      await GeneratedFileModel.updateAIMetadata(savedLesson.id, {
-        metadata: { raw: full, prompt: 'LESSON_PLAN_SYSTEM_PROMPT' },
-        tags: Array.isArray(data.tags) ? data.tags : [],
-      });
-    } catch {}
-
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Lesson plan generation');
-    const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","lesson_plan":${JSON.stringify(data)},"file_id":"${savedLesson?.id || ''}","file_type":"lesson_plan","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
-    res.end();
-  } catch (error) {
-    console.error('Lesson plan generation error:', error);
-    res.write(`data: {"type":"error","message":"${error instanceof Error ? error.message : 'Unexpected error'}"}\n\n`);
-    res.end();
-  }
+  await generateAIContent<LessonPlanData>(req, res, {
+    systemPrompt: LESSON_PLAN_SYSTEM_PROMPT,
+    userPrompt,
+    fileType: 'lesson_plan',
+    creditsRequired: 2,
+    validator: validateLessonPlan
+  });
 });
 
 // Generate quiz (streaming) with validation and post-success deduction
@@ -753,94 +697,17 @@ router.post('/generate-quiz', authenticateToken, [
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
   body('question_count').optional().isInt({ min: 5, max: 100 })
 ], async (req: RequestWithUser, res: Response) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) { res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() }); return; }
-    if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
+  const { title, subject, grade_level, question_count, time_limit } = req.body;
+  const timeLimitPart = time_limit ? ` s časovým limitem ${time_limit}` : '';
+  const userPrompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}${timeLimitPart}. Dodrž předepsanou JSON strukturu.`;
 
-    const user = await UserModel.findById(req.user.id);
-    if (!user) { res.status(404).json({ success: false, error: 'User not found' }); return; }
-    const creditsRequired = 2;
-    if ((user.credits_balance ?? 0) < creditsRequired) { res.status(402).json({ success: false, error: 'Insufficient credits' }); return; }
-
-    // Deduct after success
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.write('data: {"type":"start","message":"Starting quiz generation..."}\n\n');
-
-    const { title, subject, grade_level, question_count, time_limit } = req.body;
-    const timeLimitPart = time_limit ? ` s časovým limitem ${time_limit}` : '';
-    const prompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}${timeLimitPart}. Dodrž předepsanou JSON strukturu.`;
-
-    const stream = await openai.chat.completions.create({
-      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: QUIZ_SYSTEM_PROMPT },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2500'),
-      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
-      stream: true,
-    });
-
-    let full = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        full += content;
-        res.write(`data: {"type":"chunk","content":"${content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"}\n\n`);
-      }
-    }
-
-    let data;
-    try {
-      data = JSON.parse(full);
-      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
-      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid quiz.title');
-      // accept time_limit like "20 min" or number of minutes
-      if (data.time_limit === undefined || (typeof data.time_limit !== 'string' && typeof data.time_limit !== 'number')) {
-        throw new Error('Invalid quiz.time_limit');
-      }
-      if (!Array.isArray(data.questions) || data.questions.length < 1) throw new Error('Invalid quiz.questions');
-      for (const q of data.questions) {
-        if (!q || typeof q.question !== 'string') throw new Error('Invalid quiz question text');
-        if (!q.type || typeof q.type !== 'string') throw new Error('Invalid quiz question type');
-        const type = String(q.type);
-        if (type === 'multiple_choice') {
-          if (!Array.isArray(q.options) || q.options.length < 2) throw new Error('Invalid quiz question options');
-          if (typeof q.answer !== 'string') throw new Error('Invalid quiz question answer');
-          if (!q.options.includes(q.answer)) throw new Error('Answer must be one of the options');
-        } else if (type === 'true_false') {
-          if (typeof q.answer !== 'boolean') throw new Error('Invalid true/false answer');
-        } else if (type === 'short_answer') {
-          if (typeof q.answer !== 'string') throw new Error('Invalid short answer');
-        }
-      }
-    } catch (e) {
-      res.write('data: {"type":"error","message":"Failed to parse quiz JSON"}\n\n');
-      res.end();
-      return;
-    }
-
-    const savedQuiz = await GeneratedFileModel.create({
-      user_id: req.user.id,
-      title: data.title || 'Kvíz',
-      content: JSON.stringify(data),
-      file_type: 'quiz'
-    });
-    try { await GeneratedFileModel.updateAIMetadata(savedQuiz.id, { metadata: { raw: full, prompt: 'QUIZ_SYSTEM_PROMPT' }, tags: Array.isArray(data.tags) ? data.tags : [] }); } catch {}
-
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Quiz generation');
-    const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","quiz":${JSON.stringify(data)},"file_id":"${savedQuiz?.id || ''}","file_type":"quiz","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
-    res.end();
-  } catch (error) {
-    console.error('Quiz generation error:', error);
-    res.write(`data: {"type":"error","message":"${error instanceof Error ? error.message : 'Unexpected error'}"}\n\n`);
-    res.end();
-  }
+  await generateAIContent<QuizData>(req, res, {
+    systemPrompt: QUIZ_SYSTEM_PROMPT,
+    userPrompt,
+    fileType: 'quiz',
+    creditsRequired: 2,
+    validator: validateQuiz
+  });
 });
 
 // Generate project (streaming) with validation and post-success deduction
@@ -849,89 +716,16 @@ router.post('/generate-project', authenticateToken, [
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
 ], async (req: RequestWithUser, res: Response) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) { res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() }); return; }
-    if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
+  const { title, subject, grade_level, template_style } = req.body;
+  const userPrompt = `Vytvoř projekt${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. ${template_style === 'story' ? 'Preferuj příběhové zadání s kroky.' : 'Preferuj strukturované odrážky a jasná kritéria.'} Dodrž předepsanou JSON strukturu.`;
 
-    const user = await UserModel.findById(req.user.id);
-    if (!user) { res.status(404).json({ success: false, error: 'User not found' }); return; }
-    const creditsRequired = 2;
-    if ((user.credits_balance ?? 0) < creditsRequired) { res.status(402).json({ success: false, error: 'Insufficient credits' }); return; }
-
-    // Deduct after success
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.write('data: {"type":"start","message":"Starting project generation..."}\n\n');
-
-    const { title, subject, grade_level, template_style } = req.body;
-    const prompt = `Vytvoř projekt${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. ${template_style === 'story' ? 'Preferuj příběhové zadání s kroky.' : 'Preferuj strukturované odrážky a jasná kritéria.'} Dodrž předepsanou JSON strukturu.`;
-
-    const stream = await openai.chat.completions.create({
-      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: PROJECT_SYSTEM_PROMPT },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2500'),
-      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
-      stream: true,
-    });
-
-    let full = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        full += content;
-        res.write(`data: {"type":"chunk","content":"${content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"}\n\n`);
-      }
-    }
-
-    let data;
-    try {
-      data = JSON.parse(full);
-      // Basic schema validation for project
-      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
-      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid project.title');
-      if (!data.description || typeof data.description !== 'string') throw new Error('Invalid project.description');
-      if (!Array.isArray(data.objectives)) throw new Error('Invalid project.objectives');
-      if (!Array.isArray(data.deliverables)) throw new Error('Invalid project.deliverables');
-      if (!Array.isArray(data.rubric)) throw new Error('Invalid project.rubric');
-      for (const r of data.rubric) {
-        if (!r || typeof r.criteria !== 'string' || !Array.isArray(r.levels) || r.levels.length === 0) {
-          throw new Error('Invalid project.rubric item');
-        }
-      }
-    } catch (e) {
-      res.write('data: {"type":"error","message":"Failed to parse project JSON"}\n\n');
-      res.end();
-      return;
-    }
-
-    const savedProject = await GeneratedFileModel.create({
-      user_id: req.user.id,
-      title: data.title || 'Projekt',
-      content: JSON.stringify(data),
-      file_type: 'project'
-    });
-    try {
-      await GeneratedFileModel.updateAIMetadata(savedProject.id, {
-        metadata: { raw: full, prompt: 'PROJECT_SYSTEM_PROMPT' },
-        tags: Array.isArray(data.tags) && data.tags.length ? data.tags : deriveTags(title, subject, grade_level, data.description)
-      });
-    } catch {}
-
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Project generation');
-    const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","project":${JSON.stringify(data)},"file_id":"${savedProject?.id || ''}","file_type":"project","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
-    res.end();
-  } catch (error) {
-    console.error('Project generation error:', error);
-    res.write(`data: {"type":"error","message":"${error instanceof Error ? error.message : 'Unexpected error'}"}\n\n`);
-    res.end();
-  }
+  await generateAIContent<ProjectData>(req, res, {
+    systemPrompt: PROJECT_SYSTEM_PROMPT,
+    userPrompt,
+    fileType: 'project',
+    creditsRequired: 2,
+    validator: validateProject
+  });
 });
 
 // Generate presentation (streaming) with validation and post-success deduction
@@ -940,86 +734,17 @@ router.post('/generate-presentation', authenticateToken, [
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
 ], async (req: RequestWithUser, res: Response) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) { res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() }); return; }
-    if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
+  const { title, subject, grade_level, template_style } = req.body;
+  const userPrompt = `Vytvoř osnovu prezentace${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. ${template_style === 'story' ? 'Použij narativní flow se stručnými body.' : 'Použij jasné sekce a krátké odrážky.'} Dodrž předepsanou JSON strukturu.`;
 
-    const user = await UserModel.findById(req.user.id);
-    if (!user) { res.status(404).json({ success: false, error: 'User not found' }); return; }
-    const creditsRequired = 2;
-    if ((user.credits_balance ?? 0) < creditsRequired) { res.status(402).json({ success: false, error: 'Insufficient credits' }); return; }
-
-    // Deduct after success
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.write('data: {"type":"start","message":"Starting presentation generation..."}\n\n');
-
-    const { title, subject, grade_level, template_style } = req.body;
-    const prompt = `Vytvoř osnovu prezentace${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}. ${template_style === 'story' ? 'Použij narativní flow se stručnými body.' : 'Použij jasné sekce a krátké odrážky.'} Dodrž předepsanou JSON strukturu.`;
-
-    const stream = await openai.chat.completions.create({
-      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: PRESENTATION_SYSTEM_PROMPT },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2200'),
-      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
-      stream: true,
-    });
-
-    let full = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        full += content;
-        res.write(`data: {"type":"chunk","content":"${content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"}\n\n`);
-      }
-    }
-
-    let data;
-    try {
-      data = JSON.parse(full);
-      // Basic schema validation for presentation
-      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
-      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid presentation.title');
-      if (!Array.isArray(data.slides) || data.slides.length < 1) throw new Error('Invalid presentation.slides');
-      for (const s of data.slides) {
-        if (!s || typeof s.heading !== 'string' || !Array.isArray(s.bullets)) {
-          throw new Error('Invalid presentation slide item');
-        }
-      }
-    } catch (e) {
-      res.write('data: {"type":"error","message":"Failed to parse presentation JSON"}\n\n');
-      res.end();
-      return;
-    }
-
-    const savedPresentation = await GeneratedFileModel.create({
-      user_id: req.user.id,
-      title: data.title || 'Prezentace',
-      content: JSON.stringify(data),
-      file_type: 'presentation'
-    });
-    try {
-      await GeneratedFileModel.updateAIMetadata(savedPresentation.id, {
-        metadata: { raw: full, prompt: 'PRESENTATION_SYSTEM_PROMPT' },
-        tags: Array.isArray(data.tags) && data.tags.length ? data.tags : deriveTags(title, subject, grade_level, (data.slides || []).map((s:any)=>s.heading).join(' '))
-      });
-    } catch {}
-
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Presentation generation');
-    const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","presentation":${JSON.stringify(data)},"file_id":"${savedPresentation?.id || ''}","file_type":"presentation","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
-    res.end();
-  } catch (error) {
-    console.error('Presentation generation error:', error);
-    res.write(`data: {"type":"error","message":"${error instanceof Error ? error.message : 'Unexpected error'}"}\n\n`);
-    res.end();
-  }
+  await generateAIContent<PresentationData>(req, res, {
+    systemPrompt: PRESENTATION_SYSTEM_PROMPT,
+    userPrompt,
+    fileType: 'presentation',
+    creditsRequired: 2,
+    validator: validatePresentation,
+    maxTokens: 2200
+  });
 });
 
 // Generate classroom activity (streaming) with validation and post-success deduction
@@ -1029,81 +754,15 @@ router.post('/generate-activity', authenticateToken, [
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
   body('duration').optional().isLength({ min: 2, max: 20 }),
 ], async (req: RequestWithUser, res: Response) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) { res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() }); return; }
-    if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
+  const { title, subject, grade_level, duration } = req.body;
+  const userPrompt = `Vytvoř krátkou aktivitu${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${duration ? ` na dobu ${duration}` : ''}. Dodrž předepsanou JSON strukturu.`;
 
-    const user = await UserModel.findById(req.user.id);
-    if (!user) { res.status(404).json({ success: false, error: 'User not found' }); return; }
-    const creditsRequired = 2;
-    if ((user.credits_balance ?? 0) < creditsRequired) { res.status(402).json({ success: false, error: 'Insufficient credits' }); return; }
-
-    // Deduct after success
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.write('data: {"type":"start","message":"Starting activity generation..."}\n\n');
-
-    const { title, subject, grade_level, duration } = req.body;
-  const prompt = `Vytvoř krátkou aktivitu${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${duration ? ` na dobu ${duration}` : ''}. Dodrž předepsanou JSON strukturu.`;
-
-    const stream = await openai.chat.completions.create({
-      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: ACTIVITY_SYSTEM_PROMPT },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2000'),
-      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
-      stream: true,
-    });
-
-    let full = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        full += content;
-        res.write(`data: {"type":"chunk","content":"${content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"}\n\n`);
-      }
-    }
-
-    let data;
-    try {
-      data = JSON.parse(full);
-      // Basic schema validation for activity
-      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
-      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid activity.title');
-      if (!data.duration || typeof data.duration !== 'string') throw new Error('Invalid activity.duration');
-      if (!Array.isArray(data.instructions)) throw new Error('Invalid activity.instructions');
-      if (!Array.isArray(data.materials)) throw new Error('Invalid activity.materials');
-    } catch (e) {
-      res.write('data: {"type":"error","message":"Failed to parse activity JSON"}\n\n');
-      res.end();
-      return;
-    }
-
-    const savedActivity = await GeneratedFileModel.create({
-      user_id: req.user.id,
-      title: data.title || 'Aktivita',
-      content: JSON.stringify(data),
-      file_type: 'activity'
-    });
-    try {
-      await GeneratedFileModel.updateAIMetadata(savedActivity.id, {
-        metadata: { raw: full, prompt: 'ACTIVITY_SYSTEM_PROMPT' },
-        tags: Array.isArray(data.tags) && data.tags.length ? data.tags : deriveTags(title, subject, grade_level, duration, (data.instructions || []).join(' '))
-      });
-    } catch {}
-
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Activity generation');
-    const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","activity":${JSON.stringify(data)},"file_id":"${savedActivity?.id || ''}","file_type":"activity","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
-    res.end();
-  } catch (error) {
-    console.error('Activity generation error:', error);
-    res.write(`data: {"type":"error","message":"${error instanceof Error ? error.message : 'Unexpected error'}"}\n\n`);
-    res.end();
-  }
+  await generateAIContent<ActivityData>(req, res, {
+    systemPrompt: ACTIVITY_SYSTEM_PROMPT,
+    userPrompt,
+    fileType: 'activity',
+    creditsRequired: 2,
+    validator: validateActivity,
+    maxTokens: 2000
+  });
 });
