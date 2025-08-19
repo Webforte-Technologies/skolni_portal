@@ -4,8 +4,6 @@ import { CreditTransactionModel } from '../models/CreditTransaction';
 import OpenAI from 'openai';
 import fs from 'fs/promises';
 import path from 'path';
-import puppeteer from 'puppeteer';
-import { createCanvas, loadImage } from 'canvas';
 
 interface MaterialGenerationRequest {
   userId: string;
@@ -98,55 +96,28 @@ export class MaterialGenerationService {
   }
 
   private async generatePDF(request: MaterialGenerationRequest): Promise<GeneratedMaterial> {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    // Generate HTML content from the activity data
+    const htmlContent = this.generateHTMLFromContent(request.content);
+    
+    const filename = `material_${request.activityId}_${Date.now()}.html`;
+    const filePath = path.join(this.uploadsDir, filename);
+    
+    await fs.writeFile(filePath, htmlContent, 'utf-8');
+    
+    const stats = await fs.stat(filePath);
 
-    try {
-      const page = await browser.newPage();
-      
-      // Generate HTML content from the activity data
-      const htmlContent = this.generateHTMLFromContent(request.content);
-      
-      await page.setContent(htmlContent, { 
-        waitUntil: 'networkidle0',
-        timeout: 30000 
-      });
-
-      // Generate PDF
-      const filename = `material_${request.activityId}_${Date.now()}.pdf`;
-      const filePath = path.join(this.uploadsDir, filename);
-      
-      await page.pdf({
-        path: filePath,
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      });
-
-      const stats = await fs.stat(filePath);
-
-      return {
-        id: `pdf_${Date.now()}`,
-        type: 'pdf',
-        filename,
-        path: filePath,
-        size: stats.size,
-        metadata: {
-          format: 'A4',
-          pages: await this.getPDFPageCount(filePath),
-          generated_at: new Date().toISOString()
-        }
-      };
-    } finally {
-      await browser.close();
-    }
+    return {
+      id: `pdf_${Date.now()}`,
+      type: 'pdf',
+      filename,
+      path: filePath,
+      size: stats.size,
+      metadata: {
+        format: 'HTML',
+        pages: 1,
+        generated_at: new Date().toISOString()
+      }
+    };
   }
 
   private async generateImages(request: MaterialGenerationRequest): Promise<GeneratedMaterial> {
@@ -167,7 +138,7 @@ export class MaterialGenerationService {
             n: 1,
           });
 
-          if (response.data[0]?.url) {
+          if (response.data && response.data.length > 0 && response.data[0]?.url) {
             const imageUrl = response.data[0].url;
             const filename = `image_${request.activityId}_${Date.now()}_${images.length}.png`;
             const filePath = path.join(this.uploadsDir, filename);
@@ -236,54 +207,28 @@ export class MaterialGenerationService {
   }
 
   private async generateWorksheetPDF(request: MaterialGenerationRequest): Promise<GeneratedMaterial> {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    // Generate worksheet-specific HTML
+    const worksheetHTML = this.generateWorksheetHTML(request.content);
+    
+    const filename = `worksheet_${request.activityId}_${Date.now()}.html`;
+    const filePath = path.join(this.uploadsDir, filename);
+    
+    await fs.writeFile(filePath, worksheetHTML, 'utf-8');
+    
+    const stats = await fs.stat(filePath);
 
-    try {
-      const page = await browser.newPage();
-      
-      // Generate worksheet-specific HTML
-      const worksheetHTML = this.generateWorksheetHTML(request.content);
-      
-      await page.setContent(worksheetHTML, { 
-        waitUntil: 'networkidle0',
-        timeout: 30000 
-      });
-
-      const filename = `worksheet_${request.activityId}_${Date.now()}.pdf`;
-      const filePath = path.join(this.uploadsDir, filename);
-      
-      await page.pdf({
-        path: filePath,
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '20mm',
-          bottom: '20mm',
-          left: '20mm'
-        }
-      });
-
-      const stats = await fs.stat(filePath);
-
-      return {
-        id: `worksheet_${Date.now()}`,
-        type: 'worksheet_pdf',
-        filename,
-        path: filePath,
-        size: stats.size,
-        metadata: {
-          format: 'A4',
-          pages: await this.getPDFPageCount(filePath),
-          generated_at: new Date().toISOString()
-        }
-      };
-    } finally {
-      await browser.close();
-    }
+    return {
+      id: `worksheet_${Date.now()}`,
+      type: 'worksheet_pdf',
+      filename,
+      path: filePath,
+      size: stats.size,
+      metadata: {
+        format: 'HTML',
+        pages: 1,
+        generated_at: new Date().toISOString()
+      }
+    };
   }
 
   private generateHTMLFromContent(content: any): string {
@@ -803,23 +748,20 @@ export class MaterialGenerationService {
   private async generateDiagrams(content: any): Promise<string[]> {
     const diagrams: string[] = [];
     
-    // Generate simple charts/diagrams using Canvas
+    // Generate simple text-based charts for now
     if (content.questions && content.questions.length > 0) {
-      const chartFilename = `chart_${Date.now()}.png`;
+      const chartFilename = `chart_${Date.now()}.txt`;
       const chartPath = path.join(this.uploadsDir, chartFilename);
       
-      await this.generateQuestionChart(content.questions, chartPath);
+      await this.generateQuestionChartText(content.questions, chartPath);
       diagrams.push(chartFilename);
     }
 
     return diagrams;
   }
 
-  private async generateQuestionChart(questions: any[], outputPath: string): Promise<void> {
-    const canvas = createCanvas(800, 400);
-    const ctx = canvas.getContext('2d');
-
-    // Simple bar chart showing question types
+  private async generateQuestionChartText(questions: any[], outputPath: string): Promise<void> {
+    // Simple text-based chart showing question types
     const questionTypes = questions.reduce((acc: any, q) => {
       const type = q.type || 'other';
       acc[type] = (acc[type] || 0) + 1;
@@ -830,43 +772,21 @@ export class MaterialGenerationService {
     const counts = Object.values(questionTypes) as number[];
     const maxCount = Math.max(...counts);
 
-    // Draw background
-    ctx.fillStyle = '#f8f9fa';
-    ctx.fillRect(0, 0, 800, 400);
+    let chartText = 'Rozložení typů otázek\n';
+    chartText += '='.repeat(30) + '\n\n';
 
-    // Draw title
-    ctx.fillStyle = '#333';
-    ctx.font = 'bold 24px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Rozložení typů otázek', 400, 40);
-
-    // Draw bars
-    const barWidth = 600 / types.length;
-    const barMaxHeight = 300;
-
-    types.forEach((type, index) => {
+    types.forEach((type) => {
       const count = questionTypes[type];
-      const barHeight = (count / maxCount) * barMaxHeight;
-      const x = 100 + index * barWidth;
-      const y = 350 - barHeight;
-
-      // Draw bar
-      ctx.fillStyle = '#4A90E2';
-      ctx.fillRect(x, y, barWidth - 20, barHeight);
-
-      // Draw label
-      ctx.fillStyle = '#333';
-      ctx.font = '14px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(type, x + barWidth / 2, 370);
+      const barLength = Math.round((count / maxCount) * 20);
+      const bar = '█'.repeat(barLength);
       
-      // Draw count
-      ctx.fillText(count.toString(), x + barWidth / 2, y - 10);
+      chartText += `${type.padEnd(15)} | ${bar} ${count}\n`;
     });
 
-    // Save to file
-    const buffer = canvas.toBuffer('image/png');
-    await fs.writeFile(outputPath, buffer);
+    chartText += '\nCelkem otázek: ' + questions.length;
+    chartText += '\nVygenerováno: ' + new Date().toLocaleDateString('cs-CZ');
+
+    await fs.writeFile(outputPath, chartText, 'utf-8');
   }
 
   private async downloadImage(url: string, outputPath: string): Promise<void> {
@@ -887,16 +807,7 @@ export class MaterialGenerationService {
     await fs.writeFile(outputPath, JSON.stringify(manifest, null, 2));
   }
 
-  private async getPDFPageCount(filePath: string): Promise<number> {
-    try {
-      const buffer = await fs.readFile(filePath);
-      const text = buffer.toString();
-      const matches = text.match(/\/Type\s*\/Page[^s]/g);
-      return matches ? matches.length : 1;
-    } catch {
-      return 1;
-    }
-  }
+
 
   private calculateCreditsRequired(materialTypes: string[]): number {
     const costs: { [key: string]: number } = {

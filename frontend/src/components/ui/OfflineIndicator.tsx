@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Wifi, WifiOff, Cloud, CloudOff, Sync, AlertCircle, 
-  CheckCircle, Clock, Database, Download, Upload, Settings
+import {
+  Wifi, WifiOff, Cloud, CloudOff, AlertCircle,
+  CheckCircle, RefreshCw, Clock, Database, Download, Upload, Settings
 } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import { offlineService } from '../../services/OfflineService';
@@ -31,17 +31,17 @@ const OfflineIndicator: React.FC = () => {
     // Listen for online/offline events
     const handleOnline = () => {
       setIsOnline(true);
-      showToast({ 
-        type: 'success', 
-        message: 'Připojení obnoveno. Synchronizuji data...' 
+      showToast({
+        type: 'success',
+        message: 'Připojení obnoveno. Synchronizuji data...'
       });
     };
 
     const handleOffline = () => {
       setIsOnline(false);
-      showToast({ 
-        type: 'warning', 
-        message: 'Jste offline. Změny budou synchronizovány po obnovení připojení.' 
+      showToast({
+        type: 'warning',
+        message: 'Jste offline. Změny budou synchronizovány po obnovení připojení.'
       });
     };
 
@@ -51,18 +51,18 @@ const OfflineIndicator: React.FC = () => {
 
     const handleSyncCompleted = () => {
       setSyncStatus('idle');
-      showToast({ 
-        type: 'success', 
-        message: 'Synchronizace dokončena' 
+      showToast({
+        type: 'success',
+        message: 'Synchronizace dokončena'
       });
       loadStats();
     };
 
-    const handleSyncError = (error: any) => {
+    const handleSyncError = (_error: any) => {
       setSyncStatus('error');
-      showToast({ 
-        type: 'error', 
-        message: 'Chyba při synchronizaci' 
+      showToast({
+        type: 'error',
+        message: 'Chyba při synchronizaci'
       });
     };
 
@@ -148,7 +148,7 @@ const OfflineIndicator: React.FC = () => {
 
   const getStatusIcon = () => {
     if (syncStatus === 'syncing') {
-      return <Sync className="w-4 h-4 animate-spin text-blue-500" />;
+      return <RefreshCw className="w-4 h-4 animate-spin text-blue-500" />;
     }
     if (syncStatus === 'error') {
       return <AlertCircle className="w-4 h-4 text-red-500" />;
@@ -180,7 +180,7 @@ const OfflineIndicator: React.FC = () => {
         onClick={() => setShowDetails(!showDetails)}
         className={`
           flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors
-          ${isOnline 
+          ${isOnline
             ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950 hover:bg-green-100 dark:hover:bg-green-900'
             : 'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950 hover:bg-orange-100 dark:hover:bg-orange-900'
           }
@@ -216,8 +216,8 @@ const OfflineIndicator: React.FC = () => {
               {/* Connection Status */}
               <div className="flex items-center gap-4 p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg">
                 <div className={`p-3 rounded-full ${
-                  isOnline 
-                    ? 'bg-green-100 dark:bg-green-900' 
+                  isOnline
+                    ? 'bg-green-100 dark:bg-green-900'
                     : 'bg-orange-100 dark:bg-orange-900'
                 }`}>
                   {isOnline ? (
@@ -256,7 +256,7 @@ const OfflineIndicator: React.FC = () => {
                         Materiálů offline
                       </div>
                     </div>
-                    
+
                     <div className="text-center p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
                       <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                         {stats.unsyncedMaterials}
@@ -265,7 +265,7 @@ const OfflineIndicator: React.FC = () => {
                         Nesynchronizováno
                       </div>
                     </div>
-                    
+
                     <div className="text-center p-3 bg-green-50 dark:bg-green-950 rounded-lg">
                       <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                         {stats.totalFolders}
@@ -274,7 +274,7 @@ const OfflineIndicator: React.FC = () => {
                         Složek offline
                       </div>
                     </div>
-                    
+
                     <div className="text-center p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                         {stats.queueSize}
@@ -283,7 +283,7 @@ const OfflineIndicator: React.FC = () => {
                         Ve frontě sync
                       </div>
                     </div>
-                    
+
                     <div className="text-center p-3 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
                       <div className="text-2xl font-bold text-neutral-600 dark:text-neutral-400">
                         {stats.cacheSize}
@@ -308,28 +308,28 @@ const OfflineIndicator: React.FC = () => {
                       Prohlížení a úprava uložených materiálů
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
                     <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                     <span className="text-sm text-green-900 dark:text-green-100">
                       Vytváření nových materiálů (sync po připojení)
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
                     <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                     <span className="text-sm text-green-900 dark:text-green-100">
                       Organizace do složek
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
                     <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                     <span className="text-sm text-green-900 dark:text-green-100">
                       Export do PDF/DOCX
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
                     <Clock className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     <span className="text-sm text-orange-900 dark:text-orange-100">
@@ -353,7 +353,7 @@ const OfflineIndicator: React.FC = () => {
                     <Download className="w-4 h-4 mr-2" />
                     Exportovat data
                   </Button>
-                  
+
                   <div>
                     <input
                       type="file"
@@ -371,7 +371,7 @@ const OfflineIndicator: React.FC = () => {
                       Importovat data
                     </Button>
                   </div>
-                  
+
                   <Button
                     variant="outline"
                     size="sm"

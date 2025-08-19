@@ -69,23 +69,23 @@ class OfflineService {
           // Materials store
           if (!db.objectStoreNames.contains('materials')) {
             const materialsStore = db.createObjectStore('materials', { keyPath: 'id' });
-            materialsStore.createIndex('file_type', 'file_type');
-            materialsStore.createIndex('synced', 'synced');
-            materialsStore.createIndex('created_at', 'created_at');
+            (materialsStore as any).createIndex('file_type', 'file_type');
+            (materialsStore as any).createIndex('synced', 'synced');
+            (materialsStore as any).createIndex('created_at', 'created_at');
           }
 
           // Folders store
           if (!db.objectStoreNames.contains('folders')) {
             const foldersStore = db.createObjectStore('folders', { keyPath: 'id' });
-            foldersStore.createIndex('parent_folder_id', 'parent_folder_id');
-            foldersStore.createIndex('synced', 'synced');
+            (foldersStore as any).createIndex('parent_folder_id', 'parent_folder_id');
+            (foldersStore as any).createIndex('synced', 'synced');
           }
 
           // Sync queue store
           if (!db.objectStoreNames.contains('sync_queue')) {
             const syncStore = db.createObjectStore('sync_queue', { keyPath: 'id' });
-            syncStore.createIndex('timestamp', 'timestamp');
-            syncStore.createIndex('table', 'table');
+            (syncStore as any).createIndex('timestamp', 'timestamp');
+            (syncStore as any).createIndex('table', 'table');
           }
 
           // User preferences store
@@ -96,7 +96,7 @@ class OfflineService {
           // Cache store
           if (!db.objectStoreNames.contains('cache')) {
             const cacheStore = db.createObjectStore('cache', { keyPath: 'key' });
-            cacheStore.createIndex('timestamp', 'timestamp');
+            (cacheStore as any).createIndex('timestamp', 'timestamp');
           }
         },
       });
@@ -184,7 +184,7 @@ class OfflineService {
 
   async getMaterialsByType(fileType: string): Promise<any[]> {
     if (!this.db) throw new Error('Database not initialized');
-    return await this.db.getAllFromIndex('materials', 'file_type', fileType);
+    return await (this.db as any).getAllFromIndex('materials', 'file_type', fileType);
   }
 
   async updateMaterial(id: string, updates: any): Promise<void> {

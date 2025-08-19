@@ -4,9 +4,9 @@ import { UserModel } from '../models/User';
 import { CreditTransactionModel } from '../models/CreditTransaction';
 
 // Set environment variables before imports
-process.env.OPENAI_API_KEY = 'test-api-key';
-process.env.JWT_SECRET = 'test-jwt-secret';
-process.env.NODE_ENV = 'test';
+process.env['OPENAI_API_KEY'] = 'test-api-key';
+process.env['JWT_SECRET'] = 'test-jwt-secret';
+process.env['NODE_ENV'] = 'test';
 
 // Mock the dependencies
 jest.mock('../models/GeneratedFile');
@@ -18,12 +18,12 @@ jest.mock('../database/connection', () => ({
   end: jest.fn()
 }));
 jest.mock('../middleware/auth', () => ({
-  authenticateToken: (req: any, res: any, next: any) => {
+  authenticateToken: (_req: any, _res: any, next: any) => {
     // Mock authenticated user
-    req.user = { id: 'user123', email: 'test@example.com' };
+    _req.user = { id: 'user123', email: 'test@example.com' };
     next();
   },
-  requireRole: (roles: string[]) => (req: any, res: any, next: any) => {
+  requireRole: (_roles: string[]) => (_req: any, _res: any, next: any) => {
     // Mock role check - always pass for tests
     next();
   },
@@ -86,7 +86,7 @@ describe('AI Generator Routes', () => {
       email: 'test@example.com'
     } as any);
 
-    mockCreditTransactionModel.deductCredits.mockResolvedValue(undefined);
+    mockCreditTransactionModel.deductCredits.mockResolvedValue({} as any);
     
     mockGeneratedFileModel.create.mockResolvedValue({
       id: 'file123',

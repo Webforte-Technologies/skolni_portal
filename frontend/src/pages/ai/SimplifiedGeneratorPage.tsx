@@ -62,7 +62,7 @@ const SimplifiedGeneratorPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [streamContent, setStreamContent] = useState('');
-  const [generatedFiles, setGeneratedFiles] = useState<string[]>([]);
+
 
   // Load saved preferences
   useEffect(() => {
@@ -301,7 +301,6 @@ const SimplifiedGeneratorPage: React.FC = () => {
     setIsGenerating(true);
     setGenerationProgress(0);
     setStreamContent('');
-    setGeneratedFiles([]);
 
     try {
       const files: string[] = [];
@@ -338,7 +337,6 @@ const SimplifiedGeneratorPage: React.FC = () => {
           break;
       }
 
-      setGeneratedFiles(files);
       setCurrentStep('complete');
       setGenerationProgress(100);
       
@@ -358,7 +356,6 @@ const SimplifiedGeneratorPage: React.FC = () => {
   const startOver = () => {
     setCurrentStep('input');
     setActivityPreview(null);
-    setGeneratedFiles([]);
     setStreamContent('');
     setGenerationProgress(0);
   };

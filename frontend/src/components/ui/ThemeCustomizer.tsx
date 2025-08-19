@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  Palette, Monitor, Sun, Moon, Eye, Type, Zap, 
-  Settings, Download, Upload, RotateCcw, Check,
-  Contrast, Volume2, VolumeX, Accessibility
+import {
+  Palette, Monitor, Sun, Moon, Accessibility, Settings, Check, 
+  Contrast, Volume2, VolumeX, Download, Upload, RotateCcw
 } from 'lucide-react';
 import { useEnhancedTheme } from '../../contexts/EnhancedThemeContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -85,7 +84,7 @@ const ThemeCustomizer: React.FC<ThemeCustomizerProps> = ({ isOpen, onClose }) =>
   const darkVariants = [
     { value: 'default' as const, label: 'Výchozí', description: 'Standardní tmavý režim' },
     { value: 'oled' as const, label: 'OLED', description: 'Čistě černé pozadí pro OLED displeje' },
-    { value: 'soft' as const, label: 'Jemný', description: 'Měkčí tmavé tóny' }
+    { value: 'soft' as const, label: 'Jemný', description: 'Měkší tmavé tóny' }
   ];
 
   return (

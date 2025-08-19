@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  Eye, Edit3, Check, X, ArrowLeft, ArrowRight, 
-  AlertCircle, Lightbulb, Settings, Sparkles,
-  FileText, BookOpen, Target, Users, Presentation,
-  Clock, GraduationCap, Tag, Plus, Minus
+import {
+  Clock, GraduationCap, Tag, BookOpen, FileText, Target, Sparkles, 
+  Presentation, Users, Lightbulb, Eye, X, Settings, Check, Edit3, 
+  ArrowRight, ArrowLeft, AlertCircle
 } from 'lucide-react';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+
 import { useToast } from '../../contexts/ToastContext';
-import { any } from 'zod/v4';
+
 
 interface MaterialPreview {
   id: string;
@@ -42,7 +42,7 @@ const MaterialApprovalWorkflow: React.FC<MaterialApprovalWorkflowProps> = ({
   preview,
   onApprove,
   onReject,
-  onModify,
+
   onCancel
 }) => {
   const { showToast } = useToast();
@@ -126,7 +126,7 @@ const MaterialApprovalWorkflow: React.FC<MaterialApprovalWorkflowProps> = ({
   };
 
   const handleModificationChange = (field: string, value: any) => {
-    setModifications(prev => ({
+    setModifications((prev: any) => ({
       ...prev,
       [field]: value
     }));
