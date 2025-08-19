@@ -408,4 +408,5 @@ test.describe('AI Generator Happy Paths', () => {
     // Wait for completion
     await expect(page.locator('.toast, [role="alert"]')).toContainText('Kvíz vygenerován a uložen do knihovny');
   });
+
 });
