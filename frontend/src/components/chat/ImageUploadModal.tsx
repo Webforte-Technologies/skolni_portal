@@ -3,6 +3,8 @@ import { X, Upload, Camera, FileImage, Loader2, CheckCircle, AlertCircle } from 
 import Button from '../ui/Button';
 import { cn } from '../../utils/cn';
 import { api } from '../../services/apiClient';
+import { useImageOptimization } from '../../hooks/useImageOptimization';
+import AdaptiveImageContainer from '../ui/AdaptiveImageContainer';
 
 interface ImageUploadModalProps {
   isOpen: boolean;
@@ -25,6 +27,13 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
+  
+  // Use image optimization hook
+  const imageOptimization = useImageOptimization(imagePreview || '', {
+    mobileOptimized: true,
+    adaptiveQuality: true,
+    lazyLoading: false // Don't lazy load in modal
+  });
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -84,9 +93,12 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
     setSuccess(null);
 
     try {
+      // Optimize image before upload
+      const optimizedImage = await imageOptimization.optimizeForUpload(uploadedImage);
+      
       // Create FormData for file upload
       const formData = new FormData();
-      formData.append('image', uploadedImage);
+      formData.append('image', optimizedImage, uploadedImage.name);
       formData.append('type', 'math_problem');
 
       // Upload image to backend using apiClient
@@ -185,13 +197,21 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
           >
             {imagePreview ? (
               <div className="space-y-4">
-                <img
+                <AdaptiveImageContainer
                   src={imagePreview}
                   alt="Preview"
                   className="max-w-full h-32 object-contain mx-auto rounded border"
+                  aspectRatio="auto"
+                  layout="intrinsic"
+                  progressive={true}
                 />
                 <p className="text-sm text-neutral-600 dark:text-neutral-400">
                   Obrázek připraven k nahrání
+                  {imageOptimization.isSlowConnection && (
+                    <span className="block text-xs text-amber-600 dark:text-amber-400 mt-1">
+                      Pomalé připojení - obrázek bude optimalizován
+                    </span>
+                  )}
                 </p>
               </div>
             ) : (

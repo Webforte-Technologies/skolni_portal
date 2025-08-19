@@ -203,8 +203,31 @@ const MaterialCreatorPage: React.FC = () => {
     }));
   };
 
+  // Validation function for form data
+  const isFormValid = () => {
+    if (!selectedTemplate) return false;
+    
+    // Check required fields
+    for (const field of selectedTemplate.fields) {
+      if (field.required && !formData[field.name]) {
+        return false;
+      }
+      
+      // Validate number fields with min/max constraints
+      if (field.type === 'number' && field.validation) {
+        const value = formData[field.name];
+        if (value !== undefined && value !== null) {
+          if (field.validation.min !== undefined && value < field.validation.min) return false;
+          if (field.validation.max !== undefined && value > field.validation.max) return false;
+        }
+      }
+    }
+    
+    return true;
+  };
+
   const handleCreateMaterial = async () => {
-    if (!selectedTemplate) return;
+    if (!selectedTemplate || !isFormValid()) return;
 
     setIsCreating(true);
     try {
@@ -215,6 +238,7 @@ const MaterialCreatorPage: React.FC = () => {
       const difficulty = formData.difficulty;
       const questionCount = formData.questionCount || 10;
       const duration = formData.duration;
+      const timeLimit = formData.timeLimit;
 
       // Map template to AI generation endpoint (server also saves file and returns file_id)
       if (id === 'worksheet') {
@@ -236,7 +260,19 @@ const MaterialCreatorPage: React.FC = () => {
           onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat plán hodiny' })
         });
       } else if (id === 'quiz') {
-        await streamingService.generateQuizStream({ title, subject, grade_level: gradeLevel, question_count: questionCount }, {
+        // Map questionTypes to hint string for prompt enhancement
+        const questionTypesHint = Array.isArray(formData.questionTypes) && formData.questionTypes.length > 0
+          ? ` Typy otázek: ${formData.questionTypes.join(', ')}.`
+          : '';
+        
+        await streamingService.generateQuizStream({ 
+          title, 
+          subject, 
+          grade_level: gradeLevel, 
+          question_count: questionCount,
+          time_limit: timeLimit,
+          prompt_hint: questionTypesHint
+        }, {
           onStart: () => showToast({ type: 'info', message: 'Generuji kvíz…' }),
           onEnd: (meta) => {
             showToast({ type: 'success', message: 'Kvíz vygenerován.' });
@@ -516,6 +552,7 @@ const MaterialCreatorPage: React.FC = () => {
                   onClick={handleCreateMaterial}
                   className="flex-1"
                   isLoading={isCreating}
+                  disabled={!isFormValid() || isCreating}
                 >
                   Vytvořit materiál
                 </Button>

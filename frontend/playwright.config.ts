@@ -23,8 +23,16 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'mobile-chromium-360x640',
+      use: { ...devices['Pixel 5'], viewport: { width: 360, height: 640 } },
+    },
+    {
+      name: 'tablet-chromium-768x1024',
+      use: { ...devices['iPad (gen 7)'], viewport: { width: 768, height: 1024 } },
+    },
+    {
+      name: 'desktop-chromium-1280x800',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
   ],
 });

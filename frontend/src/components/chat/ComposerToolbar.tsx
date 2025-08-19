@@ -14,7 +14,7 @@ interface ComposerToolbarProps {
 
 const ComposerToolbar: React.FC<ComposerToolbarProps> = ({ onUpload, onTemplates, onGenerateWorksheet, disabled, onInsertText, onOpenHelp, exerciseEnabled = false }) => {
   return (
-    <div className="flex items-center gap-2 px-1 pt-2 text-xs text-muted-foreground dark:text-neutral-400">
+    <div className="flex flex-wrap items-center gap-2 px-1 pt-2 text-xs text-muted-foreground dark:text-neutral-400">
       <Button variant="ghost" size="icon" onClick={onUpload} title="Nahrát obrázek matematického problému">
         <Paperclip className="h-4 w-4" />
       </Button>

@@ -438,4 +438,5 @@ describe('AI Generator Routes', () => {
       expect(response.body.error).toBe('User not found');
     });
   });
+
 });
