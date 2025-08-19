@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { FileText, BookOpen, Target, Sparkles, Users, Presentation, Tag } from 'lucide-react';
+import { FileText, BookOpen, Target, Sparkles, Users, Presentation, Tag, Download } from 'lucide-react';
 import Button from '../ui/Button';
 import { exportElementToPDFOptions, exportStructuredToDocxOptions } from '../../utils/exportUtils';
 
@@ -171,39 +171,47 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
     <div className="min-h-screen bg-neutral-50 print:bg-white" id="material-root">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6 mb-6 print:shadow-none">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
+        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-8 mb-6 print:shadow-none">
+          {/* Title and Icon Section */}
+          <div className="flex items-start justify-between mb-8">
+            <div className="flex items-start space-x-4">
+              <div className="p-3 bg-blue-100 rounded-xl flex-shrink-0">
                 {getTemplateIcon(content.template)}
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-neutral-900">
+              <div className="min-w-0">
+                <h1 className="text-3xl font-bold text-neutral-900 leading-tight mb-2">
                   {content.title || material.title}
                 </h1>
-                <p className="text-neutral-600">
-                  {getTemplateName(content.template)} • {content.subject || 'Obecné'}
-                </p>
+                <div className="flex items-center space-x-3 text-neutral-600">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-neutral-100">
+                    {getTemplateName(content.template)}
+                  </span>
+                  <span className="text-neutral-400">•</span>
+                  <span className="text-neutral-600">{content.subject || 'Obecné'}</span>
+                </div>
               </div>
             </div>
-            <div className="flex space-x-2 print:hidden" data-export-hide="true">
-              <Button onClick={handlePrint} variant="outline">
+            
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-2 print:hidden" data-export-hide="true">
+              <Button onClick={handlePrint} variant="outline" size="sm" className="px-3 py-1.5 text-xs">
+                <FileText className="w-3 h-3 mr-1" />
                 Tisk
               </Button>
-              <Button onClick={() => handleExportPDF(true)} variant="outline">
-                Export PDF (žák)
+              <Button onClick={() => handleExportPDF(true)} variant="outline" size="sm" className="px-3 py-1.5 text-xs">
+                <Download className="w-3 h-3 mr-1" />
+                PDF
               </Button>
-              <Button onClick={() => handleExportPDF(false)} variant="outline">
-                Export PDF (učitel)
+              <Button onClick={() => handleExportDocx(false)} variant="outline" size="sm" className="px-3 py-1.5 text-xs">
+                <FileText className="w-3 h-3 mr-1" />
+                DOCX
               </Button>
-              <Button onClick={() => handleExportDocx(false)} variant="outline">
-                Export DOCX (žák)
-              </Button>
-              <Button onClick={() => handleExportDocx(true)} variant="outline">
-                Export DOCX (učitel)
+              <Button onClick={() => handleExportDocx(true)} variant="outline" size="sm" className="px-3 py-1.5 text-xs">
+                <FileText className="w-3 h-3 mr-1" />
+                Klíč
               </Button>
               {onClose && (
-                <Button onClick={onClose} variant="ghost">
+                <Button onClick={onClose} variant="ghost" size="sm" className="px-3 py-1.5 text-xs">
                   Zavřít
                 </Button>
               )}
@@ -211,24 +219,24 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
           </div>
 
           {/* Material metadata */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="text-neutral-500">Vytvořil:</span>
-              <div className="font-medium">{user?.first_name} {user?.last_name}</div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-neutral-200">
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-neutral-500 uppercase tracking-wide">Vytvořil</span>
+              <div className="text-base font-semibold text-neutral-900">{user?.first_name} {user?.last_name}</div>
             </div>
-            <div>
-              <span className="text-neutral-500">Datum:</span>
-              <div className="font-medium">
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-neutral-500 uppercase tracking-wide">Datum</span>
+              <div className="text-base font-semibold text-neutral-900">
                 {new Date(material.created_at).toLocaleDateString('cs-CZ')}
               </div>
             </div>
-            <div>
-              <span className="text-neutral-500">Obtížnost:</span>
-              <div className="font-medium">{content.difficulty || 'Střední'}</div>
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-neutral-500 uppercase tracking-wide">Obtížnost</span>
+              <div className="text-base font-semibold text-neutral-900">{content.difficulty || 'Střední'}</div>
             </div>
-            <div>
-              <span className="text-neutral-500">Ročník:</span>
-              <div className="font-medium">{content.gradeLevel || 'Základní škola'}</div>
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-neutral-500 uppercase tracking-wide">Ročník</span>
+              <div className="text-base font-semibold text-neutral-900">{content.gradeLevel || 'Základní škola'}</div>
             </div>
           </div>
         </div>

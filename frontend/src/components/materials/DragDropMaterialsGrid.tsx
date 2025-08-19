@@ -1,12 +1,11 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { useMutation, useQueryClient } from 'react-query';
+import { useMutation } from 'react-query';
 import { 
   FileText, Folder, FolderOpen, Eye, Trash2, Share2, Download, 
-  Move, Plus, Grid, List, Search, Filter, MoreVertical,
-  BookOpen, Target, Sparkles, Presentation, Users, Tag
+  Move, Plus, MoreVertical,
+  BookOpen, Target, Sparkles, Presentation, Users, Tag, Bookmark
 } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
-import { useAuth } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import apiClient from '../../services/apiClient';
@@ -58,9 +57,7 @@ const DragDropMaterialsGrid: React.FC<DragDropMaterialsGridProps> = ({
   onFolderSelect,
   onRefresh
 }) => {
-  const { user } = useAuth();
   const { showToast } = useToast();
-  const queryClient = useQueryClient();
   
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
@@ -114,10 +111,10 @@ const DragDropMaterialsGrid: React.FC<DragDropMaterialsGridProps> = ({
       await apiClient.delete(`/files/${materialId}`);
     },
     {
-      onSuccess: () => {
+      onSuccess: (_, variables) => {
         showToast({ type: 'success', message: 'Materiál byl úspěšně smazán' });
         onRefresh();
-        setSelectedMaterials(prev => prev.filter(id => id !== materialId));
+        setSelectedMaterials(prev => prev.filter(id => id !== variables));
       },
       onError: () => {
         showToast({ type: 'error', message: 'Chyba při mazání materiálu' });
@@ -328,8 +325,8 @@ const DragDropMaterialsGrid: React.FC<DragDropMaterialsGridProps> = ({
         onDragEnd={handleDragEnd}
         onContextMenu={(e) => handleContextMenu(e, material.id)}
       >
-        <div className="p-4">
-          <div className="flex items-start justify-between mb-3">
+        <div className="p-3">
+          <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -345,15 +342,37 @@ const DragDropMaterialsGrid: React.FC<DragDropMaterialsGridProps> = ({
             </div>
             
             <div className="flex items-center gap-1">
+              {/* Bookmark icon */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Bookmark functionality
+                  showToast({ type: 'info', message: 'Funkce záložek bude brzy dostupná' });
+                }}
+                className="p-1 hover:bg-blue-50 dark:hover:bg-blue-950 rounded-full text-blue-500 hover:text-blue-600 transition-colors"
+                title="Přidat do záložek"
+              >
+                <Bookmark className="w-4 h-4" />
+              </button>
+              
+              {/* Tags indicator */}
               {material.ai_tags && material.ai_tags.length > 0 && (
-                <Tag className="w-4 h-4 text-blue-500" />
+                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded-full">
+                  <Tag className="w-3 h-3 text-neutral-500" />
+                  <span className="text-xs text-neutral-600 dark:text-neutral-400">
+                    {material.ai_tags.length}
+                  </span>
+                </div>
               )}
+              
+              {/* Context menu button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleContextMenu(e, material.id);
                 }}
                 className="p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded"
+                title="Další možnosti"
               >
                 <MoreVertical className="w-4 h-4 text-neutral-500" />
               </button>
@@ -367,7 +386,7 @@ const DragDropMaterialsGrid: React.FC<DragDropMaterialsGridProps> = ({
             {material.title}
           </h4>
           
-          <div className="flex flex-wrap gap-1 mb-3">
+          <div className="flex flex-wrap gap-1 mb-2">
             {material.ai_subject && (
               <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400">
                 {material.ai_subject}
@@ -381,7 +400,7 @@ const DragDropMaterialsGrid: React.FC<DragDropMaterialsGridProps> = ({
           </div>
           
           {material.ai_tags && material.ai_tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
+            <div className="flex flex-wrap gap-1 mb-2">
               {material.ai_tags.slice(0, 3).map((tag, index) => (
                 <span key={index} className="px-2 py-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-full text-xs">
                   {tag}
@@ -395,11 +414,12 @@ const DragDropMaterialsGrid: React.FC<DragDropMaterialsGridProps> = ({
             </div>
           )}
           
-          <div className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
+          <div className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">
             {new Date(material.created_at).toLocaleDateString('cs-CZ')}
           </div>
           
-          <div className="flex items-center gap-2">
+          {/* Action buttons - compact layout */}
+          <div className="flex items-center gap-1 flex-wrap">
             <Button
               variant="primary"
               size="sm"
@@ -407,7 +427,7 @@ const DragDropMaterialsGrid: React.FC<DragDropMaterialsGridProps> = ({
                 e.stopPropagation();
                 onMaterialSelect(material);
               }}
-              className="flex-1"
+              className="px-2 py-1.5 text-xs"
             >
               <Eye className="w-3 h-3 mr-1" />
               Otevřít
@@ -428,9 +448,53 @@ const DragDropMaterialsGrid: React.FC<DragDropMaterialsGridProps> = ({
                   showToast({ type: 'error', message: 'Chyba při exportu materiálu' });
                 }
               }}
-              title="Stáhnout DOCX"
+              title="Stáhnout"
+              className="px-2 py-1.5 text-xs"
             >
               <Download className="w-3 h-3" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Move functionality - show folder selection
+                showToast({ type: 'info', message: 'Přetáhněte materiál do složky pro přesun' });
+              }}
+              title="Přesunout"
+              className="px-2 py-1.5 text-xs text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+            >
+              <Folder className="w-3 h-3" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Share functionality
+                showToast({ type: 'info', message: 'Funkce sdílení bude brzy dostupná' });
+              }}
+              title="Sdílet"
+              className="px-2 py-1.5 text-xs text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+            >
+              <Share2 className="w-3 h-3" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm('Opravdu chcete smazat tento materiál?')) {
+                  deleteMaterialMutation.mutate(material.id);
+                }
+              }}
+              title="Smazat"
+              className="px-2 py-1.5 text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+            >
+              <Trash2 className="w-3 h-3" />
             </Button>
           </div>
         </div>
@@ -613,7 +677,7 @@ const DragDropMaterialsGrid: React.FC<DragDropMaterialsGridProps> = ({
           <p className="text-neutral-600 dark:text-neutral-400 mb-4">
             Začněte vytvářet své první vzdělávací materiály.
           </p>
-          <Button>
+          <Button onClick={() => window.location.href = '/materials/create'}>
             <Plus className="w-4 h-4 mr-2" />
             Vytvořit materiál
           </Button>

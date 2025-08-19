@@ -150,7 +150,13 @@ export const streamingService = {
   generateWorksheetStream: async (
     topic: string,
     callbacks: WorksheetStreamingCallbacks,
-    options?: { question_count?: number; difficulty?: string; teaching_style?: string }
+    options?: { 
+      question_count?: number; 
+      difficulty?: string; 
+      teaching_style?: string;
+      exercise_types?: string[];
+      include_answers?: boolean;
+    }
   ): Promise<void> => {
     const token = localStorage.getItem('authToken');
     if (!token) {

@@ -50,7 +50,7 @@ Při odpovídání:
 Pamatuj: Jsi tu, abys pomohl českým studentům a učitelům s učením!`;
 
 // Specialized system prompt for worksheet generation
-const WORKSHEET_SYSTEM_PROMPT = `Jsi zkušený český učitel matematiky na střední škole. Tvým úkolem je vytvořit kvalitní cvičení pro studenty.
+const WORKSHEET_SYSTEM_PROMPT = `Jsi zkušený český učitel na střední škole. Tvým úkolem je vytvořit kvalitní cvičení pro studenty podle zadaných kritérií.
 
 PRAVIDLA PRO VYTVÁŘENÍ CVIČENÍ:
 1. **Vždy odpovídej v čistém JSON formátu** - Používej přesně tuto strukturu:
@@ -65,11 +65,22 @@ PRAVIDLA PRO VYTVÁŘENÍ CVIČENÍ:
   ]
 }
 
-2. **Vytvoř požadovaný počet otázek** - Každá otázka by měla být jiná a testovat různé aspekty tématu
-3. **Používej českou terminologii** - Všechny texty musí být v češtině
-4. **Správné obtížnosti** - Otázky by měly být přiměřené středoškolské úrovni
-5. **Praktické příklady** - Používej reálné situace a praktické aplikace
-6. **Krok za krokem** - U složitějších úloh uveď postup řešení
+2. **Respektuj zadaný typ cvičení** - Pokud je specifikován typ cvičení (doplňování, přiřazování, křížovka, hledání slov, výpočty, analýza), vytvoř cvičení přesně podle tohoto typu
+3. **Vytvoř požadovaný počet otázek** - Každá otázka by měla být jiná a testovat různé aspekty tématu
+4. **Používej českou terminologii** - Všechny texty musí být v češtině
+5. **Správné obtížnosti** - Otázky by měly být přiměřené středoškolské úrovni
+6. **Praktické příklady** - Používej reálné situace a praktické aplikace
+7. **Krok za krokem** - U složitějších úloh uveď postup řešení
+
+TYPY CVIČENÍ:
+- **Doplňování**: Vytvoř text s mezerami k doplnění (např. "Vzorec pro obsah kruhu je ___ = π × r²")
+- **Přiřazování**: Vytvoř páry k přiřazení (např. termín-definice, vzorec-výpočet)
+- **Křížovka**: Vytvoř křížovku s otázkami a mřížkou pro doplnění
+- **Hledání slov**: Vytvoř text s ukrytými slovy k nalezení (např. v tabulce písmen)
+- **Výpočty**: Vytvoř matematické úlohy k vyřešení s konkrétními čísly
+- **Analýza**: Vytvoř úlohy vyžadující analýzu a interpretaci dat nebo textu
+
+PAMATUJ: Pokud je specifikován typ cvičení, vytvoř cvičení přesně podle tohoto typu!
 
 PAMATUJ: Odpověď musí být platný JSON bez dodatečného textu!`;
 
@@ -110,7 +121,7 @@ DALŠÍ POŽADAVKY:
 - Výstup musí být platný JSON přesně dle struktury bez komentářů a bez vysvětlujícího textu.`;
 
 // Specialized system prompt for quiz generation (used below)
-const QUIZ_SYSTEM_PROMPT: string = `Jsi zkušený český učitel. Vytvoř kvíz v čistém JSON formátu, přesně dle následující struktury a pravidel.
+const QUIZ_SYSTEM_PROMPT: string = `Jsi zkušený český učitel. Tvým úkolem je vytvořit kvíz v čistém JSON formátu s konkrétními otázkami.
 
 PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
 {
@@ -121,27 +132,41 @@ PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
   "questions": [
     {
       "type": "multiple_choice",
-      "question": "Otázka?",
-      "options": ["A", "B", "C", "D"],
-      "answer": "B"
+      "question": "KONKRÉTNÍ OTÁZKA NA ZADANÉ TÉMA - NE ŠABLONA!",
+      "options": ["Konkrétní možnost A", "Konkrétní možnost B", "Konkrétní možnost C", "Konkrétní možnost D"],
+      "answer": "Konkrétní možnost B"
     },
     {
       "type": "true_false",
-      "question": "Tvrzení…",
+      "question": "KONKRÉTNÍ TVRZENÍ O ZADANÉM TÉMATU - NE ŠABLONA!",
       "answer": true
     },
     {
       "type": "short_answer",
-      "question": "Krátká otázka",
-      "answer": "Správná odpověď"
+      "question": "KONKRÉTNÍ OTÁZKA VYŽADUJÍCÍ KRÁTKOU ODPOVĚĎ - NE ŠABLONA!",
+      "answer": "Konkrétní správná odpověď"
     }
   ]
 }
 
-POŽADAVKY:
-- Vždy odpovídej česky
+KRITICKÉ POŽADAVKY:
+- VŽDY vytvoř konkrétní otázky na zadané téma, ne šablony!
+- Každá otázka musí být jiná a testovat různé aspekty tématu
 - Použij směs typů otázek (multiple_choice, true_false, short_answer)
-- Výstup musí být platný JSON bez dalšího textu.`;
+- Pro multiple_choice vytvoř 4 konkrétní možnosti (A, B, C, D)
+- Pro true_false použij konkrétní tvrzení o daném tématu
+- Pro short_answer vytvoř konkrétní otázky vyžadující krátkou odpověď
+- Všechny otázky musí být v češtině a souviset se zadaným tématem
+- Výstup musí být platný JSON bez dalšího textu nebo vysvětlení
+
+PŘÍKLADY SPRÁVNÝCH OTÁZEK:
+- ŠPATNĚ: "Otázka na dané téma?" (šablona)
+- SPRÁVNĚ: "Jaký je chemický vzorec vody?" (konkrétní otázka)
+
+- ŠPATNĚ: "Tvrzení o daném tématu" (šablona)  
+- SPRÁVNĚ: "Voda se skládá ze dvou atomů vodíku a jednoho atomu kyslíku" (konkrétní tvrzení)
+
+PAMATUJ: Vytvoř skutečné konkrétní otázky, ne šablony! Každá otázka musí testovat skutečné znalosti o zadaném tématu!`;
 
 // Specialized system prompt for project generation
 const PROJECT_SYSTEM_PROMPT: string = `Jsi zkušený český učitel. Vytvoř projektové zadání v čistém JSON formátu dle následující struktury a pravidel.
@@ -236,6 +261,17 @@ function deriveTags(...parts: Array<string | undefined>): string[] {
   addIf('prezentace', /prezentac/.test(text));
   addIf('projekt', /projekt/.test(text));
   addIf('cvičení', /cvičení|pracovní.*list|worksheet/.test(text));
+  
+  // Difficulty tags
+  addIf('snadné', /snadn|easy|lehk/.test(text));
+  addIf('střední', /středn|medium|průměr/.test(text));
+  addIf('náročné', /náročn|hard|těžk/.test(text));
+  
+  // Teaching style tags
+  addIf('interaktivní', /interaktivn|interactive/.test(text));
+  addIf('tradiční', /tradičnín|traditional/.test(text));
+  addIf('projektová', /projektov|project.*based/.test(text));
+  addIf('objevná', /objevná|discovery/.test(text));
   
   return Array.from(candidates).slice(0, 8);
 }
@@ -360,7 +396,9 @@ async function generateAIContent<T>(
             (validatedData as any).title,
             (validatedData as any).subject,
             (validatedData as any).grade_level,
-            (validatedData as any).description || (validatedData as any).goal
+            (validatedData as any).description || (validatedData as any).goal,
+            req.body.difficulty,
+            req.body.teaching_style
           );
 
       await GeneratedFileModel.updateAIMetadata(savedFile.id, {
@@ -669,11 +707,29 @@ router.post('/generate-worksheet', authenticateToken, [
   body('topic').trim().isLength({ min: 3, max: 200 }).withMessage('Topic must be between 3 and 200 characters'),
   body('question_count').optional().isInt({ min: 5, max: 100 }),
   body('difficulty').optional().isString().isLength({ max: 20 }),
-  body('teaching_style').optional().isString().isLength({ max: 50 })
+  body('teaching_style').optional().isString().isLength({ max: 50 }),
+  body('exercise_types').optional().isArray(),
+  body('include_answers').optional().isBoolean()
 ], async (req: RequestWithUser, res: Response) => {
 
-  const { topic, question_count, difficulty, teaching_style } = req.body;
-  const userPrompt = `Vytvoř cvičení na téma: ${topic}. ${question_count ? `Vytvoř ${question_count} otázek.` : 'Vytvoř 10 otázek.'} ${difficulty ? `Úroveň obtížnosti: ${difficulty}.` : ''} ${teaching_style ? `Preferovaný styl výuky: ${teaching_style}.` : ''}`;
+  const { topic, question_count, difficulty, teaching_style, exercise_types, include_answers } = req.body;
+  
+  // Build exercise type description
+  let exerciseTypeDescription = '';
+  if (exercise_types && exercise_types.length > 0) {
+    const exerciseTypeLabels = {
+      'fill_blank': 'doplňování',
+      'matching': 'přiřazování',
+      'crossword': 'křížovka',
+      'word_search': 'hledání slov',
+      'calculation': 'výpočty',
+      'analysis': 'analýza'
+    };
+    const selectedTypes = exercise_types.map((type: string) => exerciseTypeLabels[type as keyof typeof exerciseTypeLabels] || type);
+    exerciseTypeDescription = `Typ cvičení: ${selectedTypes.join(', ')}. `;
+  }
+  
+  const userPrompt = `Vytvoř cvičení na téma: ${topic}. ${question_count ? `Vytvoř ${question_count} otázek.` : 'Vytvoř 10 otázek.'} ${difficulty ? `Úroveň obtížnosti: ${difficulty}.` : ''} ${teaching_style ? `Preferovaný styl výuky: ${teaching_style}.` : ''} ${exerciseTypeDescription}${include_answers !== undefined ? (include_answers ? 'Zahrň řešení ke cvičením.' : 'Nezahrňuj řešení ke cvičením.') : ''}`;
 
   await generateAIContent<WorksheetData>(req, res, {
     systemPrompt: WORKSHEET_SYSTEM_PROMPT,
@@ -683,172 +739,6 @@ router.post('/generate-worksheet', authenticateToken, [
     validator: validateWorksheet,
     maxTokens: 3000
   });
-
-  try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
-
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Authentication required'
-      });
-    }
-
-    const { topic, question_count, difficulty, teaching_style } = req.body;
-    const userId = req.user.id;
-
-    // Check if user has enough credits (2 credits per worksheet)
-    const user = await UserModel.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-
-    const creditsRequired = 2;
-    
-    // Critical fix: Ensure user has > 0 credits before proceeding
-    if (user.credits_balance <= 0) {
-      return res.status(402).json({
-        success: false,
-        error: 'Insufficient credits',
-        data: {
-          credits_balance: user.credits_balance,
-          credits_required: creditsRequired,
-          message: 'You need at least 2 credits to generate a worksheet. Please add more credits to continue.'
-        }
-      });
-    }
-    
-    if (user.credits_balance < creditsRequired) {
-      return res.status(402).json({
-        success: false,
-        error: 'Insufficient credits',
-        data: {
-          credits_balance: user.credits_balance,
-          credits_required: creditsRequired,
-          message: `You have ${user.credits_balance} credits but need ${creditsRequired} credits for worksheet generation.`
-        }
-      });
-    }
-
-    // Do NOT deduct before success; deduct after successful parse/save
-
-    // Set headers for streaming
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Cache-Control');
-
-    // Send initial response
-    res.write('data: {"type":"start","message":"Starting worksheet generation..."}\n\n');
-
-    // Call OpenAI API with streaming for worksheet generation
-    const stream = await openai.chat.completions.create({
-      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: WORKSHEET_SYSTEM_PROMPT
-        },
-        {
-          role: 'user',
-          content: `Vytvoř cvičení na téma: ${topic}. ${question_count ? `Vytvoř ${question_count} otázek.` : 'Vytvoř 10 otázek.'} ${difficulty ? `Úroveň obtížnosti: ${difficulty}.` : 'Úroveň obtížnosti: střední.'} ${teaching_style ? `Preferovaný styl výuky: ${teaching_style}.` : 'Preferovaný styl výuky: vysvětlující a praktický.'}`
-        }
-      ],
-      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '3000'),
-      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
-      stream: true,
-    });
-
-    let fullResponse = '';
-
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        fullResponse += content;
-        // Send each chunk to the client
-        res.write(`data: {"type":"chunk","content":"${content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"}\n\n`);
-      }
-    }
-
-    // Parse JSON response and validate
-    let worksheetData;
-    try {
-      worksheetData = JSON.parse(fullResponse);
-      
-      // Validate the structure
-      if (!worksheetData.title || typeof worksheetData.title !== 'string') throw new Error('Invalid worksheet.title');
-      if (!worksheetData.instructions || typeof worksheetData.instructions !== 'string') throw new Error('Invalid worksheet.instructions');
-      if (!Array.isArray(worksheetData.questions) || worksheetData.questions.length < 1) throw new Error('Invalid worksheet.questions');
-      const invalidQuestion = worksheetData.questions.find((q: any) => !q || typeof q.problem !== 'string' || typeof q.answer !== 'string');
-      if (invalidQuestion) throw new Error('Invalid worksheet question item');
-    } catch (parseError) {
-      console.error('Failed to parse worksheet JSON:', parseError);
-      res.write('data: {"type":"error","message":"The AI response could not be parsed as a valid worksheet."}\n\n');
-      res.end();
-      return;
-    }
-
-    // Save the generated worksheet to the database
-    let savedWorksheet: any | undefined;
-    try {
-      savedWorksheet = await GeneratedFileModel.create({
-        user_id: userId,
-        title: worksheetData.title,
-        content: JSON.stringify(worksheetData),
-        file_type: 'worksheet'
-      });
-      // Tag basics (subject/difficulty from text heuristics minimal)
-      try {
-        const derivedTags = deriveTags(topic, difficulty, teaching_style, worksheetData.title, worksheetData.instructions);
-        const finalTags = Array.isArray(worksheetData.tags) && worksheetData.tags.length > 0 
-          ? worksheetData.tags 
-          : derivedTags;
-        
-        await GeneratedFileModel.updateAIMetadata(savedWorksheet.id, {
-          metadata: { raw: fullResponse, prompt: 'WORKSHEET_SYSTEM_PROMPT' },
-          tags: finalTags,
-        });
-      } catch (e) {
-        console.warn('Failed to update AI metadata for worksheet:', e);
-      }
-    } catch (saveError) {
-      console.error('Failed to save worksheet to database:', saveError);
-      // Don't fail the request if database save fails, but log the error
-    }
-
-    // Deduct credits only after successful parse (and attempted save)
-    await CreditTransactionModel.deductCredits(
-      userId,
-      creditsRequired,
-      `Worksheet generation: "${topic}"`
-    );
-    const updatedUser = await UserModel.findById(userId);
-
-    // Send final response with metadata, including saved file ID if available
-    res.write(`data: {"type":"end","worksheet":${JSON.stringify(worksheetData)},"file_id":"${savedWorksheet?.id || ''}","file_type":"worksheet","credits_used":${creditsRequired},"credits_balance":${updatedUser?.credits_balance || 0}}\n\n`);
-    res.end();
-    return;
-
-  } catch (error) {
-    console.error('Worksheet generation error:', error);
-    
-    // Send error through stream
-    res.write(`data: {"type":"error","message":"${error instanceof Error ? error.message : 'An unexpected error occurred'}"}\n\n`);
-    res.end();
-    return;
-  }
 });
 
 export default router;
@@ -1000,9 +890,24 @@ router.post('/generate-quiz', authenticateToken, [
   body('time_limit').optional().isString().isLength({ min: 1, max: 50 }),
   body('prompt_hint').optional().isString().isLength({ max: 500 })
 ], async (req: RequestWithUser, res: Response) => {
-  const { title, subject, grade_level, question_count, time_limit } = req.body;
+  const { title, subject, grade_level, question_count, time_limit, prompt_hint } = req.body;
   const timeLimitPart = time_limit ? ` s časovým limitem ${time_limit}` : '';
-  const userPrompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}${timeLimitPart}. Dodrž předepsanou JSON strukturu.`;
+  const hintPart = prompt_hint ? ` ${prompt_hint}` : '';
+  const userPrompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}${timeLimitPart}${hintPart}. 
+
+KRITICKÉ POŽADAVKY:
+1. Vytvoř skutečné konkrétní otázky na dané téma, ne šablony!
+2. Každá otázka musí testovat skutečné znalosti studentů o zadaném tématu
+3. Použij různé typy otázek (multiple_choice, true_false, short_answer)
+4. Pro multiple_choice vytvoř 4 konkrétní možnosti
+5. Pro true_false použij konkrétní tvrzení o daném tématu
+6. Pro short_answer vytvoř konkrétní otázky vyžadující krátkou odpověď
+
+PŘÍKLADY:
+- ŠPATNĚ: "Otázka na téma nerosty?" (šablona)
+- SPRÁVNĚ: "Který nerost má chemický vzorec NaCl?" (konkrétní otázka)
+
+Dodrž předepsanou JSON strukturu a vytvoř ${question_count || 10} různých konkrétních otázek.`;
 
   await generateAIContent<QuizData>(req, res, {
     systemPrompt: QUIZ_SYSTEM_PROMPT,
@@ -1011,95 +916,6 @@ router.post('/generate-quiz', authenticateToken, [
     creditsRequired: 2,
     validator: validateQuiz
   });
-    try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) { res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() }); return; }
-    if (!req.user) { res.status(401).json({ success: false, error: 'Authentication required' }); return; }
-
-    const user = await UserModel.findById(req.user.id);
-    if (!user) { res.status(404).json({ success: false, error: 'User not found' }); return; }
-    const creditsRequired = 2;
-    if ((user.credits_balance ?? 0) < creditsRequired) { res.status(402).json({ success: false, error: 'Insufficient credits' }); return; }
-
-    // Deduct after success
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.write('data: {"type":"start","message":"Starting quiz generation..."}\n\n');
-
-    const { title, subject, grade_level, question_count, time_limit, prompt_hint } = req.body;
-    const timeLimitPart = time_limit ? ` s časovým limitem ${time_limit}` : '';
-    const hintPart = prompt_hint ? ` ${prompt_hint}` : '';
-    const prompt = `Vytvoř kvíz${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${question_count ? ` s počtem otázek ${question_count}` : ''}${timeLimitPart}${hintPart}. Dodrž předepsanou JSON strukturu.`;
-
-    const stream = await openai.chat.completions.create({
-      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: QUIZ_SYSTEM_PROMPT },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2500'),
-      temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
-      stream: true,
-    });
-
-    let full = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        full += content;
-        res.write(`data: {"type":"chunk","content":"${content.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"}\n\n`);
-      }
-    }
-
-    let data;
-    try {
-      data = JSON.parse(full);
-      if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
-      if (!data.title || typeof data.title !== 'string') throw new Error('Invalid quiz.title');
-      // accept time_limit like "20 min" or number of minutes
-      if (data.time_limit === undefined || (typeof data.time_limit !== 'string' && typeof data.time_limit !== 'number')) {
-        throw new Error('Invalid quiz.time_limit');
-      }
-      if (!Array.isArray(data.questions) || data.questions.length < 1) throw new Error('Invalid quiz.questions');
-      for (const q of data.questions) {
-        if (!q || typeof q.question !== 'string') throw new Error('Invalid quiz question text');
-        if (!q.type || typeof q.type !== 'string') throw new Error('Invalid quiz question type');
-        const type = String(q.type);
-        if (type === 'multiple_choice') {
-          if (!Array.isArray(q.options) || q.options.length < 2) throw new Error('Invalid quiz question options');
-          if (typeof q.answer !== 'string') throw new Error('Invalid quiz question answer');
-          if (!q.options.includes(q.answer)) throw new Error('Answer must be one of the options');
-        } else if (type === 'true_false') {
-          if (typeof q.answer !== 'boolean') throw new Error('Invalid true/false answer');
-        } else if (type === 'short_answer') {
-          if (typeof q.answer !== 'string') throw new Error('Invalid short answer');
-        }
-      }
-    } catch (e) {
-      res.write('data: {"type":"error","message":"Failed to parse quiz JSON"}\n\n');
-      res.end();
-      return;
-    }
-
-    const savedQuiz = await GeneratedFileModel.create({
-      user_id: req.user.id,
-      title: data.title || 'Kvíz',
-      content: JSON.stringify(data),
-      file_type: 'quiz'
-    });
-    try { await GeneratedFileModel.updateAIMetadata(savedQuiz.id, { metadata: { raw: full, prompt: 'QUIZ_SYSTEM_PROMPT' }, tags: Array.isArray(data.tags) ? data.tags : [] }); } catch {}
-
-    await CreditTransactionModel.deductCredits(req.user.id, creditsRequired, 'Quiz generation');
-    const updated = await UserModel.findById(req.user.id);
-    res.write(`data: {"type":"end","quiz":${JSON.stringify(data)},"file_id":"${savedQuiz?.id || ''}","file_type":"quiz","credits_used":${creditsRequired},"credits_balance":${updated?.credits_balance || 0}}\n\n`);
-    res.end();
-  } catch (error) {
-    console.error('Quiz generation error:', error);
-    res.write(`data: {"type":"error","message":"${error instanceof Error ? error.message : 'Unexpected error'}"}\n\n`);
-    res.end();
-  }
 });
 
 // Generate project (streaming) with validation and post-success deduction

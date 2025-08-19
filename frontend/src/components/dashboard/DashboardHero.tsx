@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Button from '../ui/Button';
-import { MessageSquare, FileText, Coins } from 'lucide-react';
+import { MessageSquare, FileText, Coins, Sparkles } from 'lucide-react';
 
 interface DashboardHeroProps {
   credits: number;
@@ -41,6 +41,12 @@ const DashboardHero: React.FC<DashboardHeroProps> = ({ credits }) => {
               <MessageSquare className="h-4 w-4 mr-2" />
               Začít nový chat
             </Button>
+            <Link to="/materials/create">
+              <Button className="shadow-soft bg-blue-600 hover:bg-blue-700">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Vytvořit materiál
+              </Button>
+            </Link>
             <Link to="/materials">
               <Button variant="outline">
                 <FileText className="h-4 w-4 mr-2" />

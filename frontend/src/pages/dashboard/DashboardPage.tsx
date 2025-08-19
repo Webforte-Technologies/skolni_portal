@@ -94,6 +94,16 @@ const DashboardPage: React.FC = () => {
                 Chat s AI
               </Button>
             </Link>
+            <Link to="/materials/create" className={isMobile ? 'w-full' : ''}>
+              <Button 
+                size={isMobile ? "lg" : "lg"} 
+                className={`shadow-sm bg-blue-600 hover:bg-blue-700 ${isMobile ? 'w-full justify-center' : ''}`}
+                style={{ minHeight: '44px' }}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Vytvořit materiál
+              </Button>
+            </Link>
             <Link to="/materials" className={isMobile ? 'w-full' : ''}>
               <Button 
                 variant="outline" 

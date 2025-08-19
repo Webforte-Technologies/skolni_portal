@@ -8,16 +8,17 @@ import ConfirmModal from '../../components/ui/ConfirmModal';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import Header from '../../components/layout/Header';
 import { 
-  FileText, Trash2, Eye, Search, Folder, Share2, Plus, 
-  Filter, Grid, List, Tag, BookOpen, Target,
-  Lightbulb, BarChart3, Sparkles, Zap, ArrowLeft, Presentation, Users, Download
+  FileText, Search, Plus, Eye,
+  Filter, Grid, List, BookOpen, Target,
+  Lightbulb, BarChart3, Sparkles, Zap, ArrowLeft, Presentation, Users
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import apiClient from '../../services/apiClient';
-import { exportStructuredToDocx } from '../../utils/exportUtils';
+
 // import WorksheetDisplay from '../../components/chat/WorksheetDisplay';
 // import MaterialDisplay from '../../components/materials/MaterialDisplay';
+import DragDropMaterialsGrid from '../../components/materials/DragDropMaterialsGrid';
 import { GeneratedFile } from '../../types';
 
 // Removed inline Worksheet interface (unused)
@@ -772,132 +773,31 @@ const MyMaterialsPage: React.FC = () => {
             )}
           </Card>
         ) : (
-          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' : 'space-y-4'}>
-            {files.map((file: any) => (
-              <Card key={file.id} className={`hover:shadow-lg transition-shadow ${newIds.includes(file.id) ? 'ring-2 ring-blue-500' : ''}`}>
-                <div className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      {getFileIcon(file.file_type)}
-                      <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                        {file.category || 'Nezarovnané'}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-1">
-                      {file.ai_tags && file.ai_tags.length > 0 && (
-                        <Tag className="w-4 h-4 text-blue-500" />
-                      )}
-                      {file.moderation_status === 'approved' && (
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <h4 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2 line-clamp-2">
-                    {file.title}
-                  </h4>
-                  
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {file.subject && (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSubjectColor(file.subject)}`}>
-                        {file.subject}
-                      </span>
-                    )}
-                    {file.difficulty && (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(file.difficulty)}`}>
-                        {file.difficulty}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {file.ai_tags && file.ai_tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {file.ai_tags.slice(0, 3).map((tag: string, index: number) => (
-                        <span key={index} className="px-2 py-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-full text-xs">
-                          {tag}
-                        </span>
-                      ))}
-                      {file.ai_tags.length > 3 && (
-                        <span className="px-2 py-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 rounded-full text-xs">
-                          +{file.ai_tags.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between text-xs text-neutral-500 mb-3">
-                    <span>{new Date(file.created_at).toLocaleDateString()}</span>
-                    {file.folder_id && (
-                      <span className="flex items-center gap-1">
-                        <Folder className="w-3 h-3" />
-                        {foldersData?.data?.find((f: any) => f.id === file.folder_id)?.name || 'Neznámé'}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => navigate(`/materials/${file.id}`)}
-                      className="flex-1"
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Otevřít
-                    </Button>
-
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => { setFileToMove(file); setSelectedFolderId(''); setShowMoveToFolderModal(true); }}
-                      title="Přesunout do…"
-                    >
-                      <Folder className="w-4 h-4 mr-2" />
-                      Přesunout
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        try {
-                          const content = typeof file.content === 'string' ? JSON.parse(file.content) : file.content;
-                          await exportStructuredToDocx(content, file.title || 'material');
-                        } catch (e) {
-                          showToast({ type: 'error', message: 'Nelze exportovat do DOCX' });
-                        }
-                      }}
-                      title="Stáhnout DOCX"
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedFile(file);
-                        setShowShareModal(true);
-                      }}
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </Button>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setFileToDelete(file);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <DragDropMaterialsGrid
+            materials={files.map((file: any) => ({
+              id: file.id,
+              title: file.title,
+              file_type: file.file_type,
+              created_at: file.created_at,
+              folder_id: file.folder_id,
+              content: file.content,
+              ai_tags: file.ai_tags,
+              ai_subject: file.subject,
+              ai_difficulty: file.difficulty,
+              ai_category: file.category || 'Nezařazené'
+            }))}
+            folders={foldersData?.data || []}
+            viewMode={viewMode}
+            onMaterialSelect={(material) => navigate(`/materials/${material.id}`)}
+            onFolderSelect={(folder) => {
+              // Handle folder selection if needed
+              console.log('Folder selected:', folder);
+            }}
+            onRefresh={() => {
+              refetch();
+              refetchFolders();
+            }}
+          />
         )}
 
         {/* Modals */}

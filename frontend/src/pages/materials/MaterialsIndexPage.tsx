@@ -63,7 +63,7 @@ const MaterialsIndexPage: React.FC = () => {
             </div>
             <h3 className="text-xl font-semibold mb-2">Vytvořit nový materiál</h3>
             <p className="text-neutral-600 dark:text-neutral-400">
-              Použijte šablony pro rychlé vytvoření vzdělávacích materiálů
+              AI generátor pro rychlé vytvoření výukových materiálů
             </p>
           </Card>
 

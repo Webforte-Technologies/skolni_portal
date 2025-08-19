@@ -21,10 +21,10 @@ const SchoolRegistrationPage = React.lazy(() => import('./pages/auth/SchoolRegis
 const DashboardPage = React.lazy(() => import('./pages/dashboard/DashboardPage'));
 const ChatPage = React.lazy(() => import('./pages/chat/ChatPage'));
 const MaterialsIndexPage = React.lazy(() => import('./pages/materials/MaterialsIndexPage'));
-const MaterialCreatorPage = React.lazy(() => import('./pages/materials/MaterialCreatorPage'));
+
 const MyMaterialsPage = React.lazy(() => import('./pages/materials/MyMaterialsPage'));
 const MaterialViewPage = React.lazy(() => import('./pages/materials/MaterialViewPage'));
-const AIGeneratorPage = React.lazy(() => import('./pages/ai/GeneratorPage'));
+
 const SharedMaterialsPage = React.lazy(() => import('./pages/materials/SharedMaterialsPage'));
 const SchoolAdminPage = React.lazy(() => import('./pages/dashboard/SchoolAdminPage'));
 const DeveloperAdminPage = React.lazy(() => import('./pages/dashboard/DeveloperAdminPage'));
@@ -106,7 +106,9 @@ function App() {
                 } />
                 <Route path="/materials/create" element={
                   <PrivateRoute>
-                    <MaterialCreatorPage />
+                    <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                      {React.createElement(React.lazy(() => import('./pages/ai/SimplifiedGeneratorPage')))}
+                    </Suspense>
                   </PrivateRoute>
                 } />
                 <Route path="/materials/my-materials" element={
@@ -134,10 +136,12 @@ function App() {
                   </PrivateRoute>
                 } />
 
-                {/* AI Generator */}
+                {/* AI Generator - Simplified Material Creation */}
                 <Route path="/ai-generator" element={
                   <PrivateRoute>
-                    <AIGeneratorPage />
+                    <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                      {React.createElement(React.lazy(() => import('./pages/ai/SimplifiedGeneratorPage')))}
+                    </Suspense>
                   </PrivateRoute>
                 } />
                 
