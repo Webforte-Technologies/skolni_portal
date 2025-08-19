@@ -70,6 +70,41 @@ test.describe('Visual snapshots', () => {
     await page.waitForTimeout(300);
     await expect(page).toHaveScreenshot('chat-dark.png', { fullPage: true, maxDiffPixelRatio: 0.02 });
   });
+
+  test('Materials light', async ({ page }) => {
+    await page.route('**/auth/profile', async (route) => {
+      const user = { id: 'u1', email: 'test@example.com', first_name: 'Test', last_name: 'User', credits_balance: 100, is_active: true, created_at: '', updated_at: '', role: 'teacher_school' };
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: user }) });
+    });
+    await page.addInitScript(() => {
+      localStorage.setItem('authToken', 'e2e-token');
+      localStorage.setItem('user', JSON.stringify({
+        id: 'u1', email: 'test@example.com', first_name: 'Test', last_name: 'User',
+        credits_balance: 100, is_active: true, created_at: '', updated_at: '', school: { id: 's1', name: 'ZŠ Test' }
+      }));
+    });
+    await page.goto('/materials');
+    await page.waitForSelector('text=Centrum vzdělávacích materiálů', { timeout: 10000 }).catch(() => {});
+    await expect(page).toHaveScreenshot('materials-light.png', { fullPage: true, maxDiffPixelRatio: 0.02 });
+  });
+
+  test('Materials dark', async ({ page }) => {
+    await page.route('**/auth/profile', async (route) => {
+      const user = { id: 'u1', email: 'test@example.com', first_name: 'Test', last_name: 'User', credits_balance: 100, is_active: true, created_at: '', updated_at: '', role: 'teacher_school' };
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: user }) });
+    });
+    await page.addInitScript(() => {
+      localStorage.setItem('authToken', 'e2e-token');
+      localStorage.setItem('user', JSON.stringify({
+        id: 'u1', email: 'test@example.com', first_name: 'Test', last_name: 'User',
+        credits_balance: 100, is_active: true, created_at: '', updated_at: '', school: { id: 's1', name: 'ZŠ Test' }
+      }));
+    });
+    await page.goto('/materials');
+    await page.evaluate(() => document.documentElement.classList.add('dark'));
+    await page.waitForTimeout(300);
+    await expect(page).toHaveScreenshot('materials-dark.png', { fullPage: true, maxDiffPixelRatio: 0.02 });
+  });
 });
 
 

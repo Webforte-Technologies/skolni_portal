@@ -1,0 +1,372 @@
+/* Adaptive CSS custom properties for responsive scaling */
+
+:root {
+  /* Responsive spacing scale - mobile first */
+  --space-0: 0;
+  --space-1: 0.25rem;    /* 4px */
+  --space-2: 0.5rem;     /* 8px */
+  --space-3: 0.75rem;    /* 12px */
+  --space-4: 1rem;       /* 16px */
+  --space-5: 1.25rem;    /* 20px */
+  --space-6: 1.5rem;     /* 24px */
+  --space-8: 2rem;       /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+  --space-20: 5rem;      /* 80px */
+  --space-24: 6rem;      /* 96px */
+  
+  /* Responsive container widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+  
+  /* Adaptive padding for containers */
+  --container-padding: var(--space-4);
+  --section-padding-y: var(--space-8);
+  --section-padding-x: var(--space-4);
+  
+  /* Responsive border radius */
+  --radius-sm: 0.125rem;   /* 2px */
+  --radius-base: 0.25rem;  /* 4px */
+  --radius-md: 0.375rem;   /* 6px */
+  --radius-lg: 0.5rem;     /* 8px */
+  --radius-xl: 0.75rem;    /* 12px */
+  --radius-2xl: 1rem;      /* 16px */
+  --radius-full: 9999px;
+  
+  /* Adaptive shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Responsive z-index scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+  
+  /* Adaptive animation durations */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+  
+  /* Responsive easing functions */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Touch target sizes */
+  --touch-target-min: 44px;
+  --touch-target-comfortable: 48px;
+  --touch-target-large: 56px;
+  
+  /* Responsive grid gaps */
+  --grid-gap-sm: var(--space-2);
+  --grid-gap-base: var(--space-4);
+  --grid-gap-lg: var(--space-6);
+  
+  /* Adaptive form field sizing */
+  --form-field-height: var(--touch-target-min);
+  --form-field-padding-x: var(--space-3);
+  --form-field-padding-y: var(--space-2);
+  
+  /* Responsive navigation sizing */
+  --nav-height: 64px;
+  --nav-padding-x: var(--space-4);
+  --nav-item-padding: var(--space-3);
+  
+  /* Adaptive card sizing */
+  --card-padding: var(--space-4);
+  --card-radius: var(--radius-lg);
+  --card-shadow: var(--shadow-base);
+  
+  /* Responsive modal sizing */
+  --modal-padding: var(--space-6);
+  --modal-max-width: 90vw;
+  --modal-max-height: 90vh;
+  
+  /* Adaptive breakpoint-aware properties */
+  --current-breakpoint: 'mobile';
+  --is-mobile: 1;
+  --is-tablet: 0;
+  --is-desktop: 0;
+}
+
+/* Small tablets and large phones (640px+) */
+@media (min-width: 640px) {
+  :root {
+    --container-padding: var(--space-6);
+    --section-padding-y: var(--space-10);
+    --section-padding-x: var(--space-6);
+    
+    --grid-gap-sm: var(--space-3);
+    --grid-gap-base: var(--space-6);
+    --grid-gap-lg: var(--space-8);
+    
+    --card-padding: var(--space-6);
+    --nav-padding-x: var(--space-6);
+    
+    --current-breakpoint: 'sm';
+    --is-mobile: 0;
+    --is-tablet: 1;
+  }
+}
+
+/* Tablets (768px+) */
+@media (min-width: 768px) {
+  :root {
+    --container-padding: var(--space-8);
+    --section-padding-y: var(--space-12);
+    --section-padding-x: var(--space-8);
+    
+    --form-field-height: var(--touch-target-comfortable);
+    --nav-height: 72px;
+    
+    --modal-padding: var(--space-8);
+    --modal-max-width: 80vw;
+    
+    --current-breakpoint: 'md';
+  }
+}
+
+/* Small desktops (1024px+) */
+@media (min-width: 1024px) {
+  :root {
+    --container-padding: var(--space-10);
+    --section-padding-y: var(--space-16);
+    --section-padding-x: var(--space-10);
+    
+    --grid-gap-base: var(--space-8);
+    --grid-gap-lg: var(--space-10);
+    
+    --card-padding: var(--space-8);
+    --nav-padding-x: var(--space-8);
+    
+    --modal-max-width: 70vw;
+    
+    --current-breakpoint: 'lg';
+    --is-tablet: 0;
+    --is-desktop: 1;
+  }
+}
+
+/* Large desktops (1280px+) */
+@media (min-width: 1280px) {
+  :root {
+    --container-padding: var(--space-12);
+    --section-padding-y: var(--space-20);
+    --section-padding-x: var(--space-12);
+    
+    --modal-max-width: 60vw;
+    
+    --current-breakpoint: 'xl';
+  }
+}
+
+/* Extra large screens (1536px+) */
+@media (min-width: 1536px) {
+  :root {
+    --section-padding-y: var(--space-24);
+    --current-breakpoint: '2xl';
+  }
+}
+
+/* Adaptive utility classes using custom properties */
+.adaptive-container {
+  width: 100%;
+  max-width: var(--container-xl);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+}
+
+.adaptive-section {
+  padding-top: var(--section-padding-y);
+  padding-bottom: var(--section-padding-y);
+  padding-left: var(--section-padding-x);
+  padding-right: var(--section-padding-x);
+}
+
+.adaptive-card {
+  padding: var(--card-padding);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+
+.adaptive-grid {
+  display: grid;
+  gap: var(--grid-gap-base);
+}
+
+.adaptive-grid-sm {
+  gap: var(--grid-gap-sm);
+}
+
+.adaptive-grid-lg {
+  gap: var(--grid-gap-lg);
+}
+
+.adaptive-form-field {
+  height: var(--form-field-height);
+  padding-left: var(--form-field-padding-x);
+  padding-right: var(--form-field-padding-x);
+  padding-top: var(--form-field-padding-y);
+  padding-bottom: var(--form-field-padding-y);
+}
+
+.adaptive-nav {
+  height: var(--nav-height);
+  padding-left: var(--nav-padding-x);
+  padding-right: var(--nav-padding-x);
+}
+
+.adaptive-modal {
+  padding: var(--modal-padding);
+  max-width: var(--modal-max-width);
+  max-height: var(--modal-max-height);
+}
+
+/* Responsive spacing utilities using custom properties */
+.space-y-adaptive > * + * {
+  margin-top: var(--grid-gap-base);
+}
+
+.space-x-adaptive > * + * {
+  margin-left: var(--grid-gap-base);
+}
+
+/* Adaptive touch targets */
+.touch-target {
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+}
+
+.touch-target-comfortable {
+  min-width: var(--touch-target-comfortable);
+  min-height: var(--touch-target-comfortable);
+}
+
+.touch-target-large {
+  min-width: var(--touch-target-large);
+  min-height: var(--touch-target-large);
+}
+
+/* Adaptive animations using custom properties */
+.adaptive-transition {
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-out);
+}
+
+.adaptive-transition-fast {
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-out);
+}
+
+.adaptive-transition-slow {
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-in-out);
+}
+
+/* Responsive visibility utilities using custom properties */
+.show-mobile {
+  display: block;
+}
+
+.show-tablet {
+  display: none;
+}
+
+.show-desktop {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .show-mobile {
+    display: none;
+  }
+  
+  .show-tablet {
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  .show-tablet {
+    display: none;
+  }
+  
+  .show-desktop {
+    display: block;
+  }
+}
+
+/* Adaptive color properties for theming */
+:root {
+  --color-primary: 59 130 246;      /* blue-500 */
+  --color-primary-hover: 37 99 235; /* blue-600 */
+  --color-secondary: 107 114 128;   /* gray-500 */
+  --color-success: 16 185 129;      /* emerald-500 */
+  --color-warning: 245 158 11;      /* amber-500 */
+  --color-danger: 239 68 68;        /* red-500 */
+  
+  /* Adaptive opacity values */
+  --opacity-disabled: 0.5;
+  --opacity-hover: 0.8;
+  --opacity-focus: 0.9;
+  
+  /* Adaptive blur values */
+  --blur-sm: 4px;
+  --blur-base: 8px;
+  --blur-lg: 16px;
+}
+
+/* Dark mode adaptive properties */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: 96 165 250;      /* blue-400 */
+    --color-primary-hover: 59 130 246; /* blue-500 */
+    --color-secondary: 156 163 175;   /* gray-400 */
+  }
+}
+
+/* High contrast mode adaptive properties */
+@media (prefers-contrast: high) {
+  :root {
+    --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.3);
+    --shadow-base: 0 2px 6px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 8px 12px -2px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Reduced motion adaptive properties */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-slower: 0ms;
+  }
+}
+
+/* Print adaptive properties */
+@media print {
+  :root {
+    --shadow-sm: none;
+    --shadow-base: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+  }
+}

@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { HelmetProvider } from 'react-helmet-async';
@@ -6,9 +6,11 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AccessibilityProvider } from './contexts/AccessibilityContext';
+import { ResponsiveProvider } from './contexts/ResponsiveContext';
 import KeyboardNavigation from './components/ui/KeyboardNavigation';
 import { ShortcutsProvider } from './contexts/ShortcutsContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { optimizeCssLoading } from './utils/criticalCss';
 
 import PrivateRoute, { RequireRole } from './components/auth/PrivateRoute';
 import PublicRoute from './components/auth/PublicRoute';
@@ -41,6 +43,16 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  // Initialize CSS optimizations on app start
+  useEffect(() => {
+    optimizeCssLoading({
+      inlineThreshold: 14000,
+      mobileFirst: true,
+      preloadFonts: true,
+      deferNonCritical: true,
+    });
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
@@ -48,11 +60,17 @@ function App() {
           <ToastProvider>
             <AuthProvider>
               <AccessibilityProvider>
-                <SettingsProvider>
-                  <ShortcutsProvider>
+                <ResponsiveProvider>
+                  <SettingsProvider>
+                    <ShortcutsProvider>
                 <Router>
                   <KeyboardNavigation>
                     <div className="relative min-h-screen bg-surface-bg text-surface-text font-sans">
+                      {/* Skip Links for accessibility */}
+                      <Suspense fallback={null}>
+                        {React.createElement(React.lazy(() => import('./components/accessibility/SkipLinks')))}
+                      </Suspense>
+                      
                       {/* Subtle background (reduced effects to minimize bundle and purge unused CSS) */}
                       <div className="pointer-events-none fixed inset-0 -z-10" />
                       <ErrorBoundary>
@@ -154,6 +172,40 @@ function App() {
                   </PrivateRoute>
                 } />
                 
+                {/* Development/Test routes */}
+                {import.meta.env.DEV && (
+                  <>
+                    <Route path="/test/responsive-math" element={
+                      <PrivateRoute>
+                        <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                          {React.createElement((React.lazy(() => import('./components/math/ResponsiveMathTest')) as any))}
+                        </Suspense>
+                      </PrivateRoute>
+                    } />
+                    <Route path="/test/responsive-data" element={
+                      <PrivateRoute>
+                        <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                          {React.createElement((React.lazy(() => import('./pages/demo/ResponsiveDataDemo')) as any))}
+                        </Suspense>
+                      </PrivateRoute>
+                    } />
+                    <Route path="/test/accessibility" element={
+                      <PrivateRoute>
+                        <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                          {React.createElement(React.lazy(() => import('./components/accessibility/AccessibilityShowcase')))}
+                        </Suspense>
+                      </PrivateRoute>
+                    } />
+                    <Route path="/test/css-optimization" element={
+                      <PrivateRoute>
+                        <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                          {React.createElement(React.lazy(() => import('./components/optimization/ResponsiveCssShowcase')))}
+                        </Suspense>
+                      </PrivateRoute>
+                    } />
+                  </>
+                )}
+                
                 {/* Catch all route */}
                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
               </Routes>
@@ -162,8 +214,9 @@ function App() {
         </div>
                   </KeyboardNavigation>
                 </Router>
-                  </ShortcutsProvider>
-                </SettingsProvider>
+                    </ShortcutsProvider>
+                  </SettingsProvider>
+                </ResponsiveProvider>
               </AccessibilityProvider>
             </AuthProvider>
           </ToastProvider>

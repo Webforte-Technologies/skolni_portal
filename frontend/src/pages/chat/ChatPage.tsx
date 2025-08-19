@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { useResponsive } from '../../hooks/useViewport';
 import { generateUUID } from '../../utils/uuid';
 import { MathTopic, MathDifficulty, PracticeSession } from '../../types';
 import { api } from '../../services/apiClient';
@@ -33,6 +34,7 @@ const ChatPage: React.FC = () => {
   const { user, updateUser } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const { isMobile } = useResponsive();
   
   if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
     console.log('ChatPage: Auth context loaded, user:', user);
@@ -204,6 +206,84 @@ const ChatPage: React.FC = () => {
     window.addEventListener('keydown', handler, true);
     return () => window.removeEventListener('keydown', handler, true);
   }, []);
+
+  // Mobile keyboard handling
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleVisualViewportChange = () => {
+      // Handle virtual keyboard appearance on mobile
+      if (window.visualViewport) {
+        const viewport = window.visualViewport;
+        const isKeyboardOpen = viewport.height < window.innerHeight * 0.75;
+        
+        // Adjust layout when keyboard is open
+        document.documentElement.style.setProperty(
+          '--keyboard-height', 
+          isKeyboardOpen ? `${window.innerHeight - viewport.height}px` : '0px'
+        );
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleVisualViewportChange);
+      return () => {
+        window.visualViewport?.removeEventListener('resize', handleVisualViewportChange);
+        document.documentElement.style.removeProperty('--keyboard-height');
+      };
+    }
+  }, [isMobile]);
+
+  // Touch gesture handling for mobile sidebar
+  useEffect(() => {
+    if (!isMobile) return;
+
+    let startX = 0;
+    let startY = 0;
+
+
+    const handleTouchStart = (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!startX || !startY) return;
+
+      const currentX = e.touches[0].clientX;
+      const currentY = e.touches[0].clientY;
+      const diffX = currentX - startX;
+      const diffY = currentY - startY;
+
+      // Check if it's a horizontal swipe (more horizontal than vertical movement)
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        
+        // Swipe right from left edge to open sidebar
+        if (startX < 50 && diffX > 100 && !isMobileSidebarOpen) {
+          setIsMobileSidebarOpen(true);
+        }
+        // Swipe left to close sidebar
+        else if (diffX < -100 && isMobileSidebarOpen) {
+          setIsMobileSidebarOpen(false);
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      startX = 0;
+      startY = 0;
+    };
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isMobile, isMobileSidebarOpen]);
 
   const handleSendMessage = async (content: string) => {
     if (!user) return;
@@ -535,39 +615,47 @@ const ChatPage: React.FC = () => {
         
         <div className="flex h-[calc(100vh-64px)]">
           {/* Sidebar */}
-          <ChatSidebar
-            onConversationSelect={handleConversationSelect}
-            onNewConversation={startNewChat}
-            selectedConversationId={currentConversation?.id}
-            refreshKey={sidebarRefreshKey}
-          />
+          <div className="hidden md:block">
+            <ChatSidebar
+              onConversationSelect={handleConversationSelect}
+              onNewConversation={startNewChat}
+              selectedConversationId={currentConversation?.id}
+              refreshKey={sidebarRefreshKey}
+            />
+          </div>
           
           {/* Sidebar - mobile drawer */}
           {isMobileSidebarOpen && (
             <div className="fixed inset-0 z-50 md:hidden">
-              <div className="fixed inset-0 bg-neutral-900/60" onClick={() => setIsMobileSidebarOpen(false)} />
-              <div className="fixed left-0 top-0 h-full w-80 bg-white dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800">
-                <div className="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-800">
-                  <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Konverzace</h3>
+              <div 
+                className="fixed inset-0 bg-neutral-900/60 transition-opacity duration-300" 
+                onClick={() => setIsMobileSidebarOpen(false)} 
+              />
+              <div className={`fixed left-0 top-0 h-full bg-white dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 transform transition-transform duration-300 ease-out ${
+                isMobile ? 'w-[85vw] max-w-sm' : 'w-80'
+              }`}>
+                <div className={`flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 ${isMobile ? 'p-3' : 'p-4'}`}>
+                  <h3 className={`font-semibold text-neutral-900 dark:text-neutral-100 ${isMobile ? 'text-base' : 'text-lg'}`}>Konverzace</h3>
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={() => navigate('/dashboard')}
                       variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2"
+                      size={isMobile ? 'icon' : 'sm'}
+                      className={`flex items-center ${isMobile ? 'min-h-[44px] min-w-[44px]' : 'gap-2'}`}
                       title="Zpět na dashboard"
                     >
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                       </svg>
-                      Dashboard
+                      {!isMobile && 'Dashboard'}
                     </Button>
                     <Button
                       onClick={() => setIsMobileSidebarOpen(false)}
                       variant="secondary"
                       size="icon"
+                      className={isMobile ? 'min-h-[44px] min-w-[44px]' : ''}
                     >
-                      <X className="h-4 w-4" />
+                      <X className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
                     </Button>
                   </div>
                 </div>
@@ -587,71 +675,73 @@ const ChatPage: React.FC = () => {
           )}
           
           {/* Chat Interface */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className={`flex-1 flex flex-col min-h-0 ${isMobile ? 'chat-container' : ''}`}>
             {/* Chat Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border dark:border-neutral-800 bg-card dark:bg-neutral-950">
-              <div className="flex items-center gap-3">
+            <div className={`flex items-center justify-between border-b border-border dark:border-neutral-800 bg-card dark:bg-neutral-950 ${isMobile ? 'p-2' : 'p-3 sm:p-4'}`}>
+              <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
                 <Button
                   onClick={() => setIsMobileSidebarOpen(true)}
                   variant="secondary"
                   size="icon"
-                  className="md:hidden"
+                  className={`md:hidden ${isMobile ? 'min-h-[44px] min-w-[44px]' : ''}`}
                 >
-                  <Menu className="h-5 w-5" />
+                  <Menu className={isMobile ? 'h-6 w-6' : 'h-5 w-5'} />
                 </Button>
                 <Tooltip content="Hlavní rozhraní pro komunikaci s AI asistentkou">
-                  <h1 className="text-xl font-semibold text-foreground dark:text-neutral-100">
-                    Matematický Asistent
+                  <h1 className={`font-semibold text-foreground dark:text-neutral-100 ${isMobile ? 'text-base' : 'text-xl'}`}>
+                    {isMobile ? 'Math AI' : 'Matematický Asistent'}
                   </h1>
                 </Tooltip>
               </div>
               
-              <div className="flex items-center gap-3">
+              <div className={`flex flex-wrap items-center justify-end ${isMobile ? 'gap-1' : 'gap-2 sm:gap-3'}`}>
               {/* Dashboard Button */}
               <Button
                 onClick={() => navigate('/dashboard')}
                 variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
+                size={isMobile ? 'icon' : 'sm'}
+                className={`flex items-center ${isMobile ? 'min-h-[44px] min-w-[44px]' : 'gap-2'}`}
                 title="Zpět na dashboard"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                Dashboard
+                {!isMobile && 'Dashboard'}
               </Button>
               
               {/* Templates Button */}
               <Button
                 onClick={() => setIsTemplatesOpen(true)}
                 variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
+                size={isMobile ? 'icon' : 'sm'}
+                className={`flex items-center ${isMobile ? 'min-h-[44px] min-w-[44px]' : 'gap-2'}`}
                 title="Otevřít šablony konverzací"
               >
                 <BookOpen className="h-4 w-4" />
-                Šablony
+                {!isMobile && 'Šablony'}
               </Button>
               
               {/* Export Button */}
               <Button
                 onClick={handleExportConversation}
                 variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
+                size={isMobile ? 'icon' : 'sm'}
+                className={`flex items-center ${isMobile ? 'min-h-[44px] min-w-[44px]' : 'gap-2'}`}
                 disabled={messages.length === 0}
                 title="Exportovat konverzaci do PDF"
               >
                 <Download className="h-4 w-4" />
-                Export
+                {!isMobile && 'Export'}
               </Button>
               
               {/* Math Tools Button - removed from chat per teacher use-case */}
               
               {/* Credit Balance */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">Kredity:</span>
-                <span className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">{user.credits_balance}</span>
+              <div className={`flex items-center ${isMobile ? 'gap-1' : 'gap-2'}`}>
+                {!isMobile && <span className="text-sm text-neutral-700 dark:text-neutral-300">Kredity:</span>}
+                <span className={`font-semibold text-neutral-900 dark:text-neutral-100 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  {isMobile ? user.credits_balance : user.credits_balance}
+                </span>
               </div>
             </div>
             </div>
@@ -660,9 +750,9 @@ const ChatPage: React.FC = () => {
 
             {/* Error message */}
             {error && (
-              <div className="mx-4 mt-4 flex items-center gap-2 p-3 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 rounded-md">
-                <AlertCircle className="h-5 w-5 text-danger-500" />
-                <span className="text-sm text-danger-700 dark:text-danger-400">{error}</span>
+              <div className={`flex items-center gap-2 bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 rounded-md ${isMobile ? 'mx-2 mt-2 p-2' : 'mx-4 mt-4 p-3'}`}>
+                <AlertCircle className={`text-danger-500 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                <span className={`text-danger-700 dark:text-danger-400 ${isMobile ? 'text-xs' : 'text-sm'}`}>{error}</span>
               </div>
             )}
 
@@ -704,8 +794,9 @@ const ChatPage: React.FC = () => {
                 />
                 
                 {/* Tools Section */}
-                <div className="mt-2 px-4">
-                  <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1">Nástroje</div>
+                {!isMobile && (
+                  <div className="mt-2 px-4">
+                    <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-1">Nástroje</div>
                   {(() => {
                     const exerciseEnabled = import.meta.env.VITE_ENABLE_CHAT_EXERCISE === 'true';
                     const onGenerate = exerciseEnabled
@@ -730,16 +821,19 @@ const ChatPage: React.FC = () => {
                       />
                     );
                   })()}
-                </div>
+                  </div>
+                )}
 
               {/* Voice Input */}
-              <div className="px-4">
-              <VoiceInput
-                onTranscript={handleVoiceTranscript}
-                onError={handleVoiceError}
-                disabled={!user || user.credits_balance < 1}
-              />
-              </div>
+              {!isMobile && (
+                <div className="px-4">
+                <VoiceInput
+                  onTranscript={handleVoiceTranscript}
+                  onError={handleVoiceError}
+                  disabled={!user || user.credits_balance < 1}
+                />
+                </div>
+              )}
               
               <MessageInput
                   ref={composerRef}

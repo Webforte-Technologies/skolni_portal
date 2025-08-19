@@ -249,7 +249,7 @@ export interface ButtonProps {
 export interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   name: string;
-  type?: 'text' | 'email' | 'password' | 'number';
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel';
   placeholder?: string;
   required?: boolean;
   error?: string;
@@ -259,6 +259,9 @@ export interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElem
   leadingIcon?: React.ReactNode;
   trailingIcon?: React.ReactNode;
   helpText?: string;
+  mobileLayout?: 'stacked' | 'inline';
+  touchOptimized?: boolean;
+  preventZoom?: boolean;
 }
 
 export interface CardProps {
@@ -266,4 +269,40 @@ export interface CardProps {
   title?: string;
   className?: string;
   onClick?: () => void;
+}
+
+// Responsive Design Types
+export interface ViewportState {
+  width: number;
+  height: number;
+  breakpoint: 'mobile' | 'tablet' | 'desktop';
+  orientation: 'portrait' | 'landscape';
+  touchDevice: boolean;
+}
+
+export interface ResponsiveConfig {
+  breakpoints: {
+    mobile: number;
+    tablet: number;
+    desktop: number;
+  };
+  touchTargetSize: number;
+  animations: {
+    enabled: boolean;
+    duration: number;
+    easing: string;
+  };
+  gestures: {
+    swipeThreshold: number;
+    tapTimeout: number;
+  };
+}
+
+export interface ResponsiveComponentState {
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+  orientation: 'portrait' | 'landscape';
+  menuOpen: boolean;
+  keyboardVisible: boolean;
 } 

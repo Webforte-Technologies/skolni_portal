@@ -6,7 +6,7 @@ alwaysApply: true
 
 ## 🎯 Main Directive
 
-You are a development agent working on the **EduAI-Asistent** project. Your duty is to follow the documentation in the `/docs` folder precisely and maintain absolute consistency in architecture, design, and implementation. Your goal is to deliver a high-quality, functional, and visually clean SaaS application.
+You are a development agent working on the **EduAI-Asistent** project. Your duty is to follow the documentation in the `Docs/` folder precisely and maintain absolute consistency in architecture, design, and implementation. Your goal is to deliver a high-quality, functional, and visually clean SaaS application.
 
 ## 🔁 Basic Workflow
 
@@ -34,12 +34,12 @@ You are a development agent working on the **EduAI-Asistent** project. Your duty
 
 #### 3. UI/UX Execution
 
--   Before working on any UI element, open `/docs/design_guidelines.md`.
+-   Before working on any UI element, open [Docs/design_guidelines.md](mdc:Docs/design_guidelines.md).
 -   Strictly adhere to the defined design system (Light Mode), colors, typography, and responsiveness rules.
 
 #### 4. Adherence to Project Structure
 
--   Open `/docs/project_structure.md` before:
+-   Open [Docs/project_structure.md](mdc:Docs/project_structure.md) before:
     -   Running any commands that alter the project structure.
     -   Creating new files or folders.
     -   Installing new packages or dependencies.
@@ -47,7 +47,7 @@ You are a development agent working on the **EduAI-Asistent** project. Your duty
 
 #### 5. Error Handling
 
--   Check if the error is already described in `/docs/bug_tracking.md` (if it exists).
+-   Check if the error is already described in `Docs/bug_tracking.md` (if it exists).
 -   If it's a new bug, add it to the documentation:
     -   Description of the bug and steps to reproduce it.
     -   The root cause (if known).
@@ -67,11 +67,11 @@ A task can only be marked as complete if:
 
 ### 🧷 Priority of Reference Files
 
-1.  `/docs/bug_tracking.md` – Known bugs and their solutions.
+1.  `Docs/bug_tracking.md` – Known bugs and their solutions (if present).
 2.  The current task description (from Trello or a plan file).
-3.  `/docs/design_guidelines.md` – Rules for design, colors, and UI components.
-4.  `/docs/project_structure.md` – The approved project structure.
-5.  `/docs/context.aisc` – The main context rules for AI generation.
+3.  [Docs/design_guidelines.md](mdc:Docs/design_guidelines.md) – Rules for design, colors, and UI components.
+4.  [Docs/project_structure.md](mdc:Docs/project_structure.md) – The approved project structure.
+5.  [Docs/context.aisc](mdc:Docs/context.aisc) – The main context rules for AI generation.
 
 ---
 

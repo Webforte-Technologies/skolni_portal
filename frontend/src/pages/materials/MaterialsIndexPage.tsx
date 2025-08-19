@@ -144,8 +144,8 @@ const MaterialsIndexPage: React.FC = () => {
            ) : recentMaterials.length > 0 ? (
             <div className="space-y-4">
               {recentMaterials.map((material: any) => (
-                <div key={material.id} className="flex items-center justify-between p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg">
-                  <div className="flex items-center gap-3">
+                <div key={material.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border border-neutral-200 dark:border-neutral-700 rounded-lg">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0">
                     <div className="w-10 h-10 bg-neutral-100 dark:bg-neutral-800 rounded-lg flex items-center justify-center">
                       {getMaterialIcon(
                         material.file_type === 'lesson_plan' ? 'Lesson Plan' :
@@ -155,9 +155,9 @@ const MaterialsIndexPage: React.FC = () => {
                         'Worksheet'
                       )}
                     </div>
-                    <div>
-                      <h4 className="font-medium">{material.title}</h4>
-                      <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    <div className="min-w-0">
+                      <h4 className="font-medium truncate max-w-full">{material.title}</h4>
+                      <p className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-nowrap">
                         Vytvořeno {new Date(material.created_at).toLocaleDateString('cs-CZ')}
                       </p>
                     </div>
@@ -166,6 +166,7 @@ const MaterialsIndexPage: React.FC = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => navigate(`/materials/my-materials?new=${material.id}`)}
+                    className="w-full sm:w-auto"
                   >
                     Zobrazit
                   </Button>

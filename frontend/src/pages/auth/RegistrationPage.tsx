@@ -9,6 +9,9 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import { AlertCircle, Loader2, UserPlus, Building2 } from 'lucide-react';
 import InputField from '../../components/ui/InputField';
+import ResponsiveForm from '../../components/ui/ResponsiveForm';
+import ResponsiveFormGroup from '../../components/ui/ResponsiveFormGroup';
+import { ResponsiveFormProvider } from '../../contexts/ResponsiveFormContext';
 
 const registerSchema = z.object({
   email: z.string().email('Zadejte platný email'),
@@ -57,46 +60,54 @@ const RegistrationPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
+    <ResponsiveFormProvider>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-900 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className="w-full max-w-md mx-auto space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-3 sm:space-y-4">
           <div className="flex justify-center">
-            <div className="p-3 bg-blue-100 dark:bg-neutral-800 rounded-full">
-              <UserPlus className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <div className="p-3 sm:p-4 bg-blue-100 dark:bg-neutral-800 rounded-full">
+              <UserPlus className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-neutral-100">
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900 dark:text-neutral-100">
               EduAI-Asistent
             </h1>
-            <p className="text-gray-600 dark:text-neutral-300 mt-2">
+            <p className="text-base sm:text-lg text-gray-600 dark:text-neutral-300">
               Vytvořte si nový účet
             </p>
           </div>
         </div>
 
         {/* Registration Form */}
-        <Card title="Registrace" className="shadow-lg border-0">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold dark:text-neutral-100">Registrace</h2>
-            <p className="text-gray-600 dark:text-neutral-300 mt-2">Vyplňte údaje pro vytvoření účtu</p>
+        <Card title="Registrace" className="shadow-lg border-0 p-6 sm:p-8">
+          <div className="text-center mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-2xl font-semibold dark:text-neutral-100">Registrace</h2>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-neutral-300 mt-2">Vyplňte údaje pro vytvoření účtu</p>
           </div>
           
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <ResponsiveForm onSubmit={handleSubmit(onSubmit)} singleColumnOnMobile={true} forceSingleColumn={true}>
             {error && (
-              <div className="flex items-center space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
+              <div className="flex items-start space-x-3 p-4 sm:p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <AlertCircle className="h-5 w-5 sm:h-4 sm:w-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5 sm:mt-0" />
+                <span className="text-sm sm:text-sm text-red-600 dark:text-red-400 leading-relaxed">{error}</span>
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <ResponsiveFormGroup 
+              columns={1} 
+              stackOnMobile={true}
+              title="Osobní údaje"
+            >
               <InputField
                 label="Jméno"
                 placeholder="Vaše jméno"
                 required
                 error={errors.first_name?.message}
+                touchOptimized={true}
+                preventZoom={true}
+                autoComplete="given-name"
                 {...register('first_name')}
               />
 
@@ -105,9 +116,12 @@ const RegistrationPage: React.FC = () => {
                 placeholder="Vaše příjmení"
                 required
                 error={errors.last_name?.message}
+                touchOptimized={true}
+                preventZoom={true}
+                autoComplete="family-name"
                 {...register('last_name')}
               />
-            </div>
+            </ResponsiveFormGroup>
 
             <InputField
               label="Email"
@@ -115,28 +129,41 @@ const RegistrationPage: React.FC = () => {
               placeholder="vas@email.cz"
               required
               error={errors.email?.message}
+              touchOptimized={true}
+              preventZoom={true}
+              autoComplete="email"
               {...register('email')}
             />
 
-            <InputField
-              label="Heslo"
-              type="password"
-              placeholder="Minimálně 8 znaků"
-              required
-              error={errors.password?.message}
-              {...register('password')}
-            />
+            <ResponsiveFormGroup 
+              columns={1} 
+              title="Zabezpečení"
+              description="Heslo musí mít alespoň 8 znaků"
+            >
+              <InputField
+                label="Heslo"
+                type="password"
+                placeholder="Minimálně 8 znaků"
+                required
+                error={errors.password?.message}
+                touchOptimized={true}
+                preventZoom={true}
+                autoComplete="new-password"
+                {...register('password')}
+              />
 
-
-            <InputField
-              label="Potvrzení hesla"
-              type="password"
-              placeholder="Zopakujte heslo"
-              required
-              error={errors.confirmPassword?.message}
-              {...register('confirmPassword')}
-            />
-
+              <InputField
+                label="Potvrzení hesla"
+                type="password"
+                placeholder="Zopakujte heslo"
+                required
+                error={errors.confirmPassword?.message}
+                touchOptimized={true}
+                preventZoom={true}
+                autoComplete="new-password"
+                {...register('confirmPassword')}
+              />
+            </ResponsiveFormGroup>
 
             <Button
               type="submit"
@@ -153,40 +180,47 @@ const RegistrationPage: React.FC = () => {
                 'Vytvořit účet'
               )}
             </Button>
-          </form>
+          </ResponsiveForm>
 
-          <div className="mt-6">
-            <hr className="my-4 border-gray-200" />
-            <div className="text-center">
-              <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">
+          <div className="mt-6 sm:mt-8">
+            <hr className="my-4 sm:my-6 border-gray-200 dark:border-neutral-700" />
+            <div className="text-center space-y-4">
+              <p className="text-sm sm:text-base text-gray-500 dark:text-neutral-400">
                 Už máte účet?
               </p>
-              <Button variant="outline" className="w-full">
-                <Link to="/login">
+              <Button variant="outline" className="w-full" size="lg">
+                <Link to="/login" className="w-full">
                   Přihlásit se
                 </Link>
               </Button>
-              <div className="mt-6 space-y-3">
-                <p className="text-sm text-gray-500 dark:text-neutral-400">Jste škola? Založte školní účet:</p>
-                <Button variant="secondary" className="w-full">
-                  <Link to="/register-school" className="inline-flex items-center">
-                    <Building2 className="h-4 w-4 mr-2" /> Registrovat školu
+              <div className="mt-6 space-y-4">
+                <p className="text-sm sm:text-base text-gray-500 dark:text-neutral-400">Jste škola? Založte školní účet:</p>
+                <Button variant="secondary" className="w-full" size="lg">
+                  <Link to="/register-school" className="inline-flex items-center justify-center w-full">
+                    <Building2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2" /> Registrovat školu
                   </Link>
                 </Button>
-                <p className="text-xs text-gray-500 dark:text-neutral-400">Vyzkoušet demo bez registrace: přihlaste se jako <span className="font-mono">admin@eduai.cz</span> / <span className="font-mono">admin123</span> (školní admin) nebo <span className="font-mono">teacher@eduai.cz</span> / <span className="font-mono">teacher123</span> (učitel).</p>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-neutral-400 leading-relaxed">
+                    <span className="font-medium">Vyzkoušet demo bez registrace:</span><br />
+                    Přihlaste se jako <span className="font-mono bg-white dark:bg-neutral-800 px-1 rounded">admin@eduai.cz</span> / <span className="font-mono bg-white dark:bg-neutral-800 px-1 rounded">admin123</span> (školní admin)<br />
+                    nebo <span className="font-mono bg-white dark:bg-neutral-800 px-1 rounded">teacher@eduai.cz</span> / <span className="font-mono bg-white dark:bg-neutral-800 px-1 rounded">teacher123</span> (učitel)
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </Card>
 
         {/* Footer */}
-        <div className="text-center">
-          <p className="text-xs text-gray-500 dark:text-neutral-400">
+        <div className="text-center px-4">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-neutral-400">
             © 2025 EduAI-Asistent. Všechna práva vyhrazena.
           </p>
         </div>
       </div>
     </div>
+    </ResponsiveFormProvider>
   );
 };
 
