@@ -197,7 +197,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 
   if (loading) {
     return (
-      <div className="w-80 bg-card dark:bg-neutral-950 border-r border-border dark:border-neutral-800 p-4">
+      <div className="w-72 sm:w-80 bg-card dark:bg-neutral-950 border-r border-border dark:border-neutral-800 p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-foreground dark:text-neutral-100">Historie konverzací</h2>
         </div>
@@ -213,7 +213,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   }
 
   return (
-    <div className="w-80 bg-card dark:bg-neutral-950 border-r border-border dark:border-neutral-800 flex flex-col">
+    <div className="w-72 sm:w-80 bg-card dark:bg-neutral-950 border-r border-border dark:border-neutral-800 flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-border dark:border-neutral-800">
         <div className="flex items-center justify-between mb-4">
@@ -263,7 +263,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         </div>
 
         {/* Date Filter */}
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {[
             { key: 'all', label: 'Všechny' },
             { key: 'today', label: 'Dnes' },

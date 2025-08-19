@@ -1,0 +1,37 @@
+---
+globs: *.ts,*.tsx
+description: TypeScript and React coding conventions for EduAI-Asistent
+---
+
+## TypeScript and React Rules
+
+- Write all code in TypeScript. Prefer `.tsx` for React components.
+- Use clear English identifiers for variables, functions, and types. Avoid abbreviations and 1–2 character names.
+- Avoid `any`. Use precise types and interfaces. Exported/public APIs must be explicitly typed.
+- Follow guard-clauses and early returns; handle edge cases first. Avoid deep nesting beyond two to three levels.
+- Do not catch errors without meaningful handling.
+
+## UI Text and Accessibility
+
+- All user-facing text must be in Czech (`cs-CZ`).
+- Ensure accessibility: provide `aria-*` attributes, semantic HTML, and keyboard navigation.
+
+## Styling and Design
+
+- Use Tailwind CSS.
+- Follow the design system colors and typography as defined in [Docs/design_guidelines.md](mdc:Docs/design_guidelines.md) (Light Mode, primary `#4A90E2`, background `#F8F9FA`, text `#212529`).
+- Build responsive, mobile-first layouts.
+
+## Content Quality
+
+- Never use lorem ipsum. Use realistic Czech examples relevant to the context (e.g., math tasks, grammar rules).
+
+## Comments and Structure
+
+- Comment only where the intent is non-obvious. Explain "why", not "how".
+- Avoid TODO comments; implement the needed behavior.
+
+## Testing and Reliability
+
+- Add unit/integration tests when introducing significant logic.
+- Ensure no console warnings or errors in the browser when shipping UI changes.

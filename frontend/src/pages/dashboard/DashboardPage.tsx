@@ -5,23 +5,20 @@ import { useAuth } from '../../contexts/AuthContext';
 import { assistantService } from '../../services/assistantService';
 import { authService } from '../../services/authService';
 import { useToast } from '../../contexts/ToastContext';
+import { useResponsive } from '../../contexts/ResponsiveContext';
 import Header from '../../components/layout/Header';
 import AssistantCard from '../../components/dashboard/AssistantCard';
 import EditProfileModal from '../../components/dashboard/EditProfileModal';
 import DashboardHero from '../../components/dashboard/DashboardHero';
-import SparklineStatCard from '../../components/dashboard/SparklineStatCard';
+import ResponsiveCardGrid from '../../components/ui/ResponsiveCardGrid';
+import ResponsiveCreditDisplay from '../../components/dashboard/ResponsiveCreditDisplay';
+import ResponsiveUserInfo from '../../components/dashboard/ResponsiveUserInfo';
+import ResponsiveQuickStats from '../../components/dashboard/ResponsiveQuickStats';
 import { 
   Loader2, 
-  User, 
-  Calendar, 
-  School, 
   Sparkles, 
-  Edit, 
-  Plus, 
   FileText, 
   MessageSquare,
-  TrendingUp,
-  Activity,
   Users
 } from 'lucide-react';
 import Button from '../../components/ui/Button';
@@ -30,6 +27,9 @@ import { Link } from 'react-router-dom';
 
 const DashboardPage: React.FC = () => {
   const { user, updateUser } = useAuth();
+  const { viewport, state } = useResponsive();
+  const { isMobile, isTablet } = state;
+  
   useReactQuery('me-profile', authService.getProfile, {
     enabled: !!user,
     refetchOnWindowFocus: true,
@@ -72,27 +72,46 @@ const DashboardPage: React.FC = () => {
     <div className="min-h-screen bg-white dark:bg-neutral-900">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* 9.7.1 Hero Header */}
-        <DashboardHero credits={user.credits_balance} />
+      <main id="main-content" className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
+        {/* Hero Header - Mobile optimized */}
+        <div className="mb-6 sm:mb-8">
+          <DashboardHero credits={user.credits_balance} />
+        </div>
 
-        {/* Quick Navigation */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-4">
-            <Link to="/chat">
-              <Button size="lg" className="shadow-sm">
+        {/* Quick Navigation - Mobile-first responsive */}
+        <div className="mb-6 sm:mb-8">
+          <div className={`
+            flex gap-2 sm:gap-3 lg:gap-4
+            ${isMobile ? 'flex-col' : 'flex-wrap'}
+          `}>
+            <Link to="/chat" className={isMobile ? 'w-full' : ''}>
+              <Button 
+                size={isMobile ? "lg" : "lg"} 
+                className={`shadow-sm ${isMobile ? 'w-full justify-center' : ''}`}
+                style={{ minHeight: '44px' }}
+              >
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Chat s AI
               </Button>
             </Link>
-            <Link to="/materials">
-              <Button variant="outline" size="lg" className="shadow-sm">
+            <Link to="/materials" className={isMobile ? 'w-full' : ''}>
+              <Button 
+                variant="outline" 
+                size={isMobile ? "lg" : "lg"} 
+                className={`shadow-sm ${isMobile ? 'w-full justify-center' : ''}`}
+                style={{ minHeight: '44px' }}
+              >
                 <FileText className="h-4 w-4 mr-2" />
                 Materiály
               </Button>
             </Link>
-            <Link to="/materials/shared">
-              <Button variant="outline" size="lg" className="shadow-sm">
+            <Link to="/materials/shared" className={isMobile ? 'w-full' : ''}>
+              <Button 
+                variant="outline" 
+                size={isMobile ? "lg" : "lg"} 
+                className={`shadow-sm ${isMobile ? 'w-full justify-center' : ''}`}
+                style={{ minHeight: '44px' }}
+              >
                 <Users className="h-4 w-4 mr-2" />
                 Sdílené materiály
               </Button>
@@ -100,161 +119,106 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Mobile-first responsive grid layout */}
+        <div className={`
+          ${isMobile 
+            ? 'space-y-6' 
+            : isTablet 
+              ? 'grid grid-cols-1 lg:grid-cols-2 gap-6' 
+              : 'grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8'
+          }
+        `}>
+          
+          {/* Credit Balance Card - Priority on mobile */}
+          {isMobile && (
+            <ResponsiveCreditDisplay
+              credits={user.credits_balance}
+              onAddCredits={handleAddCredits}
+              isAddingCredits={isAddingCredits}
+            />
+          )}
+
           {/* Main content - AI Assistants */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card title="AI Asistenti">
+          <div className={`
+            ${isMobile 
+              ? '' 
+              : isTablet 
+                ? 'lg:col-span-1' 
+                : 'lg:col-span-2'
+            }
+          `}>
+            <Card 
+              title="AI Asistenti"
+              mobileLayout={isMobile ? "compact" : "expanded"}
+              touchActions={viewport.touchDevice}
+            >
               <div className="mb-4">
                 <div className="flex items-center mb-2">
                   <Sparkles className="h-5 w-5 mr-2 text-blue-600" />
-                  <h3 className="text-lg font-semibold dark:text-neutral-100">AI Asistenti</h3>
+                  <h3 className={`font-semibold dark:text-neutral-100 ${isMobile ? 'text-base' : 'text-lg'}`}>
+                    AI Asistenti
+                  </h3>
                 </div>
-                <p className="text-gray-600 dark:text-neutral-300 text-sm">Vyberte si asistenta podle vašich potřeb</p>
+                <p className={`text-gray-600 dark:text-neutral-300 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  Vyberte si asistenta podle vašich potřeb
+                </p>
               </div>
               {featuresLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-blue-600 mr-3" />
-                  <span className="text-gray-500 dark:text-neutral-300">Načítání asistentů...</span>
+                <div className="flex items-center justify-center py-8 sm:py-12">
+                  <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-blue-600 mr-3" />
+                  <span className="text-gray-500 dark:text-neutral-300 text-sm">
+                    Načítání asistentů...
+                  </span>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ResponsiveCardGrid
+                  columns={{
+                    mobile: 1,
+                    tablet: 1,
+                    desktop: 2
+                  }}
+                  gap={isMobile ? "sm" : "md"}
+                  minCardWidth="280px"
+                  adaptiveStacking={true}
+                >
                   {features.map((feature) => (
                     <AssistantCard key={feature.id} feature={feature} />
                   ))}
-                </div>
+                </ResponsiveCardGrid>
               )}
             </Card>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Credit Balance */}
-            <Card title="Vaše kredity" className="bg-gradient-to-br from-blue-600 to-blue-700 text-white border-0 shadow-lg">
-              <div className="text-center mb-4">
-                <div className="text-4xl font-bold mb-1">{user.credits_balance}</div>
-                <div className="text-white/80 text-sm">dostupné kreditů</div>
-              </div>
-              <div className="text-center">
-                <div className="text-xs text-white/70 mb-4">
-                  Každá zpráva stojí 1 kredit
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleAddCredits}
-                  disabled={isAddingCredits}
-                  className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30"
-                >
-                  {isAddingCredits ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Přidávám...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4 mr-2" />
-                      + Přidat 100 Demo Kreditů
-                    </>
-                  )}
-                </Button>
-              </div>
-            </Card>
+          {/* Sidebar - Stacked on mobile, sidebar on desktop */}
+          <div className={`
+            ${isMobile 
+              ? 'space-y-4' 
+              : isTablet 
+                ? 'lg:col-span-1 space-y-6' 
+                : 'space-y-6'
+            }
+          `}>
+            
+            {/* Credit Balance - Desktop/Tablet only */}
+            {!isMobile && (
+              <ResponsiveCreditDisplay
+                credits={user.credits_balance}
+                onAddCredits={handleAddCredits}
+                isAddingCredits={isAddingCredits}
+              />
+            )}
 
             {/* User Account Information */}
-            <Card title="Informace o účtu">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
-                  <User className="h-5 w-5 mr-2 text-gray-500 dark:text-neutral-400" />
-                  <h3 className="text-lg font-semibold dark:text-neutral-100">Informace o účtu</h3>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 font-medium">
-                      {user.first_name[0]}{user.last_name[0]}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-neutral-100">
-                      {user.first_name} {user.last_name}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-neutral-300">{user.email}</p>
-                  </div>
-                </div>
-                
-                {user.school && (
-                  <>
-                    <hr className="border-gray-200 dark:border-neutral-800" />
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-green-100 dark:bg-neutral-800 rounded-lg">
-                        <School className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-neutral-100">{user.school.name}</p>
-                        <p className="text-sm text-gray-500 dark:text-neutral-300">Škola</p>
-                      </div>
-                    </div>
-                  </>
-                )}
-                
-                <hr className="border-gray-200 dark:border-neutral-800" />
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-purple-100 dark:bg-neutral-800 rounded-lg">
-                    <Calendar className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-neutral-100">
-                      {new Date(user.created_at).toLocaleDateString('cs-CZ')}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-neutral-300">Člen od</p>
-                  </div>
-                </div>
-              </div>
-            </Card>
+            <ResponsiveUserInfo
+              user={user}
+              onEditProfile={() => setIsEditModalOpen(true)}
+            />
 
             {/* Quick Stats */}
-            <Card title="Rychlé statistiky">
-              <div className="flex items-center mb-4">
-                <TrendingUp className="h-5 w-5 mr-2 text-gray-500 dark:text-neutral-400" />
-                <h3 className="text-lg font-semibold dark:text-neutral-100">Rychlé statistiky</h3>
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500 dark:text-neutral-300">Dostupné kredity</span>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 rounded text-sm">
-                    {user.credits_balance}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500 dark:text-neutral-300">Dostupné asistenty</span>
-                  <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 rounded text-sm">
-                    {features.length}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500 dark:text-neutral-300">Status účtu</span>
-                  <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 rounded text-sm flex items-center">
-                    <Activity className="h-3 w-3 mr-1" />
-                    Aktivní
-                  </span>
-                </div>
-                {/* 9.7.3 Sparkline cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 items-stretch">
-                  <SparklineStatCard title="Týdenní aktivita" value={42} />
-                  <SparklineStatCard title="Počet zpráv" value={128} color="#10b981" />
-                  <SparklineStatCard title="Vytvořená cvičení" value={8} color="#a78bfa" />
-                </div>
-              </div>
-            </Card>
+            <ResponsiveQuickStats
+              creditsBalance={user.credits_balance}
+              featuresCount={features.length}
+            />
           </div>
         </div>
       </main>
