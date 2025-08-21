@@ -58,88 +58,151 @@ const AIGeneratorPage: React.FC = () => {
     <div className="text-xs text-neutral-500 mt-1">{text}</div>
   );
 
+
+
   const handleGenerate = async () => {
     setIsGenerating(true);
     setStreamPreview('');
     try {
       const createdIds: string[] = [];
-      const runWorksheet = async () => streamingService.generateWorksheetStream(derivedWorksheetTopic, {
-          onStart: () => setStreamPreview('Generuji pracovní list...'),
-          onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Pracovní list vygenerován a uložen do knihovny.' });
-            if (meta.file_id) createdIds.push(meta.file_id);
-            if (!batch && meta.file_id) {
-              window.location.href = `/materials/${meta.file_id}`;
+      
+      const runWorksheet = async () => {
+        try {
+          await streamingService.generateWorksheetStream(derivedWorksheetTopic, {
+            onStart: () => setStreamPreview('Generuji pracovní list...'),
+            onChunk: (c) => setStreamPreview((p) => p + c),
+            onEnd: (meta) => {
+              showToast({ type: 'success', message: 'Pracovní list vygenerován a uložen do knihovny.' });
+              if (meta.file_id) createdIds.push(meta.file_id);
+              if (!batch && meta.file_id) {
+                window.location.href = `/materials/${meta.file_id}`;
+              }
+            },
+            onError: (m) => {
+              showToast({ type: 'error', message: m });
+              throw new Error(m);
             }
-          },
-          onError: (m) => showToast({ type: 'error', message: m })
-        }, { question_count: questionCount, difficulty: worksheetDifficulty, teaching_style: teachingStyle });
+          }, { question_count: questionCount, difficulty: worksheetDifficulty, teaching_style: teachingStyle });
+        } catch (error) {
+          console.error('Worksheet generation failed:', error);
+          throw error;
+        }
+      };
 
-      const runLesson = async () => streamingService.generateLessonPlanStream({ title, subject, grade_level: gradeLevel }, {
-          onStart: () => setStreamPreview('Generuji plán hodiny...'),
-          onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Plán hodiny vygenerován a uložen do knihovny.' });
-            if (meta.file_id) createdIds.push(meta.file_id);
-            if (!batch && meta.file_id) {
-              window.location.href = `/materials/${meta.file_id}`;
+      const runLesson = async () => {
+        try {
+          await streamingService.generateLessonPlanStream({ title, subject, grade_level: gradeLevel }, {
+            onStart: () => setStreamPreview('Generuji plán hodiny...'),
+            onChunk: (c) => setStreamPreview((p) => p + c),
+            onEnd: (meta) => {
+              showToast({ type: 'success', message: 'Plán hodiny vygenerován a uložen do knihovny.' });
+              if (meta.file_id) createdIds.push(meta.file_id);
+              if (!batch && meta.file_id) {
+                window.location.href = `/materials/${meta.file_id}`;
+              }
+            },
+            onError: (m) => {
+              showToast({ type: 'error', message: m });
+              throw new Error(m);
             }
-          },
-          onError: (m) => showToast({ type: 'error', message: m })
-        });
+          });
+        } catch (error) {
+          console.error('Lesson plan generation failed:', error);
+          throw error;
+        }
+      };
 
-      const runQuiz = async () => streamingService.generateQuizStream({ title, subject, grade_level: gradeLevel, question_count: questionCount, time_limit: quizTimeLimit }, {
-          onStart: () => setStreamPreview('Generuji kvíz...'),
-          onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Kvíz vygenerován a uložen do knihovny.' });
-            if (meta.file_id) createdIds.push(meta.file_id);
-            if (!batch && meta.file_id) {
-              window.location.href = `/materials/${meta.file_id}`;
+      const runQuiz = async () => {
+        try {
+          await streamingService.generateQuizStream({ title, subject, grade_level: gradeLevel, question_count: questionCount, time_limit: quizTimeLimit }, {
+            onStart: () => setStreamPreview('Generuji kvíz...'),
+            onChunk: (c) => setStreamPreview((p) => p + c),
+            onEnd: (meta) => {
+              showToast({ type: 'success', message: 'Kvíz vygenerován a uložen do knihovny.' });
+              if (meta.file_id) createdIds.push(meta.file_id);
+              if (!batch && meta.file_id) {
+                window.location.href = `/materials/${meta.file_id}`;
+              }
+            },
+            onError: (m) => {
+              showToast({ type: 'error', message: m });
+              throw new Error(m);
             }
-          },
-          onError: (m) => showToast({ type: 'error', message: m })
-        });
+          });
+        } catch (error) {
+          console.error('Quiz generation failed:', error);
+          throw error;
+        }
+      };
 
-      const runProject = async () => streamingService.generateProjectStream({ title, subject, grade_level: gradeLevel, template_style: templateStyle }, {
-          onStart: () => setStreamPreview('Generuji projekt...'),
-          onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Projekt vygenerován a uložen do knihovny.' });
-            if (meta.file_id) createdIds.push(meta.file_id);
-            if (!batch && meta.file_id) {
-              window.location.href = `/materials/${meta.file_id}`;
+      const runProject = async () => {
+        try {
+          await streamingService.generateProjectStream({ title, subject, grade_level: gradeLevel, template_style: templateStyle }, {
+            onStart: () => setStreamPreview('Generuji projekt...'),
+            onChunk: (c) => setStreamPreview((p) => p + c),
+            onEnd: (meta) => {
+              showToast({ type: 'success', message: 'Projekt vygenerován a uložen do knihovny.' });
+              if (meta.file_id) createdIds.push(meta.file_id);
+              if (!batch && meta.file_id) {
+                window.location.href = `/materials/${meta.file_id}`;
+              }
+            },
+            onError: (m) => {
+              showToast({ type: 'error', message: m });
+              throw new Error(m);
             }
-          },
-          onError: (m) => showToast({ type: 'error', message: m })
-        });
+          });
+        } catch (error) {
+          console.error('Project generation failed:', error);
+          throw error;
+        }
+      };
 
-      const runPresentation = async () => streamingService.generatePresentationStream({ title, subject, grade_level: gradeLevel, template_style: templateStyle }, {
-          onStart: () => setStreamPreview('Generuji prezentaci...'),
-          onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Prezentace vygenerována a uložena do knihovny.' });
-            if (meta.file_id) createdIds.push(meta.file_id);
-            if (!batch && meta.file_id) {
-              window.location.href = `/materials/${meta.file_id}`;
+      const runPresentation = async () => {
+        try {
+          await streamingService.generatePresentationStream({ title, subject, grade_level: gradeLevel, template_style: templateStyle }, {
+            onStart: () => setStreamPreview('Generuji prezentaci...'),
+            onChunk: (c) => setStreamPreview((p) => p + c),
+            onEnd: (meta) => {
+              showToast({ type: 'success', message: 'Prezentace vygenerována a uložena do knihovny.' });
+              if (meta.file_id) createdIds.push(meta.file_id);
+              if (!batch && meta.file_id) {
+                window.location.href = `/materials/${meta.file_id}`;
+              }
+            },
+            onError: (m) => {
+              showToast({ type: 'error', message: m });
+              throw new Error(m);
             }
-          },
-          onError: (m) => showToast({ type: 'error', message: m })
-        });
+          });
+        } catch (error) {
+          console.error('Presentation generation failed:', error);
+          throw error;
+        }
+      };
 
-      const runActivity = async () => streamingService.generateActivityStream({ title, subject, grade_level: gradeLevel, duration }, {
-          onStart: () => setStreamPreview('Generuji aktivitu...'),
-          onChunk: (c) => setStreamPreview((p) => p + c),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Aktivita vygenerována a uložena do knihovny.' });
-            if (meta.file_id) createdIds.push(meta.file_id);
-            if (!batch && meta.file_id) {
-              window.location.href = `/materials/my-materials?new=${meta.file_id}`;
+      const runActivity = async () => {
+        try {
+          await streamingService.generateActivityStream({ title, subject, grade_level: gradeLevel, duration }, {
+            onStart: () => setStreamPreview('Generuji aktivitu...'),
+            onChunk: (c) => setStreamPreview((p) => p + c),
+            onEnd: (meta) => {
+              showToast({ type: 'success', message: 'Aktivita vygenerována a uložena do knihovny.' });
+              if (meta.file_id) createdIds.push(meta.file_id);
+              if (!batch && meta.file_id) {
+                window.location.href = `/materials/my-materials?new=${meta.file_id}`;
+              }
+            },
+            onError: (m) => {
+              showToast({ type: 'error', message: m });
+              throw new Error(m);
             }
-          },
-          onError: (m) => showToast({ type: 'error', message: m })
-        });
+          });
+        } catch (error) {
+          console.error('Activity generation failed:', error);
+          throw error;
+        }
+      };
 
       if (batch) {
         // Batch: generate lesson + worksheet + quiz (common course pack)
@@ -160,8 +223,10 @@ const AIGeneratorPage: React.FC = () => {
         else if (type === 'activity') await runActivity();
       }
     } catch (e) {
+      console.error('Generation failed:', e);
       const { errorToMessage } = await import('../../services/apiClient');
       showToast({ type: 'error', message: errorToMessage(e) });
+      setStreamPreview('Generování selhalo. Zkuste to prosím znovu.');
     } finally {
       setIsGenerating(false);
     }

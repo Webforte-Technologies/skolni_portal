@@ -199,14 +199,20 @@ const SimplifiedGeneratorPage: React.FC = () => {
 
     const suggestions: MaterialTypeSuggestion[] = [
       {
-        materialType: 'worksheet',
+        type: 'worksheet',
+        description: 'Vhodné pro procvičování a upevnění znalostí',
+        estimatedCredits: 5,
         confidence: 0.8,
+        priority: 1,
         reasoning: 'Vhodné pro procvičování a upevnění znalostí',
         recommendedSubtype: 'practice-problems'
       },
       {
-        materialType: 'quiz',
+        type: 'quiz',
+        description: 'Dobré pro ověření porozumění',
+        estimatedCredits: 3,
         confidence: 0.6,
+        priority: 2,
         reasoning: 'Dobré pro ověření porozumění',
         recommendedSubtype: 'formative-assessment'
       }
@@ -1138,17 +1144,17 @@ const SimplifiedGeneratorPage: React.FC = () => {
                             <div key={index} className="p-3 bg-white dark:bg-green-900 rounded-lg border border-green-200 dark:border-green-700">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="font-medium text-green-800 dark:text-green-100">
-                                  {suggestion.materialType === 'worksheet' && 'Pracovní list'}
-                                  {suggestion.materialType === 'quiz' && 'Kvíz'}
-                                  {suggestion.materialType === 'lesson-plan' && 'Plán hodiny'}
-                                  {suggestion.materialType === 'project' && 'Projekt'}
-                                  {suggestion.materialType === 'presentation' && 'Prezentace'}
-                                  {suggestion.materialType === 'activity' && 'Aktivita'}
+                                  {suggestion.type === 'worksheet' && 'Pracovní list'}
+                                  {suggestion.type === 'quiz' && 'Kvíz'}
+                                  {suggestion.type === 'lesson-plan' && 'Plán hodiny'}
+                                  {suggestion.type === 'project' && 'Projekt'}
+                                  {suggestion.type === 'presentation' && 'Prezentace'}
+                                  {suggestion.type === 'activity' && 'Aktivita'}
                                 </span>
                                 <div className="flex items-center gap-1">
                                   <Star className="w-4 h-4 text-yellow-500" />
                                   <span className="text-sm text-green-700 dark:text-green-300">
-                                    {Math.round(suggestion.confidence * 100)}%
+                                    {Math.round((suggestion.confidence || 0) * 100)}%
                                   </span>
                                 </div>
                               </div>
@@ -1167,8 +1173,8 @@ const SimplifiedGeneratorPage: React.FC = () => {
                                     'presentation': 'presentation',
                                     'activity': 'activity'
                                   };
-                                  if (typeMapping[suggestion.materialType]) {
-                                    handleInputChange('activityType', typeMapping[suggestion.materialType]);
+                                  if (typeMapping[suggestion.type]) {
+                                    handleInputChange('activityType', typeMapping[suggestion.type]);
                                   }
                                 }}
                                 className="text-xs"

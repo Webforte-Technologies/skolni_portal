@@ -60,7 +60,6 @@ export interface ActivityStreamingCallbacks {
 }
 
 export const streamingService = {
-
   // Send message with streaming response
   sendMessageStream: async (
     message: string, 
@@ -170,10 +169,6 @@ export const streamingService = {
 
     // Get the base URL from the API client
     const baseURL = apiClient.defaults.baseURL;
-    console.log('Generating worksheet with baseURL:', baseURL);
-    console.log('Topic:', topic);
-    console.log('Options:', options);
-    
     const doRequest = async (signal?: AbortSignal): Promise<Response> => {
       return fetch(`${baseURL}/ai/generate-worksheet`, {
         method: 'POST',
@@ -195,17 +190,12 @@ export const streamingService = {
     }
     clearTimeout(timeout);
 
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Response not ok:', errorData);
       throw new Error(errorData.error || 'Failed to generate worksheet');
     }
 
     if (!response.body) {
-      console.error('No response body');
       throw new Error('No response body');
     }
 
@@ -213,40 +203,29 @@ export const streamingService = {
     const decoder = new TextDecoder();
 
     try {
-      console.log('Starting to read stream...');
       while (true) {
         const { done, value } = await reader.read();
         
-        if (done) {
-          console.log('Stream done');
-          break;
-        }
+        if (done) break;
 
         const chunk = decoder.decode(value);
-        console.log('Received chunk:', chunk);
         const lines = chunk.split('\n');
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
-              const jsonStr = line.slice(6);
-              console.log('Parsing JSON:', jsonStr);
-              const data: StreamingResponse = JSON.parse(jsonStr);
-              console.log('Parsed data:', data);
+              const data: StreamingResponse = JSON.parse(line.slice(6));
               
               switch (data.type) {
                 case 'start':
-                  console.log('Received start event');
                   callbacks.onStart?.();
                   break;
                 case 'chunk':
-                  console.log('Received chunk event with content:', data.content);
                   if (data.content) {
                     callbacks.onChunk?.(data.content);
                   }
                   break;
                 case 'end':
-                  console.log('Received end event:', data);
                   if (data.worksheet && data.credits_used !== undefined && data.credits_balance !== undefined) {
                     callbacks.onEnd?.({
                       worksheet: (data as any).worksheet,
@@ -258,13 +237,11 @@ export const streamingService = {
                   }
                   break;
                 case 'error':
-                  console.error('Received error event:', data.message);
                   callbacks.onError?.(data.message || 'An error occurred');
                   break;
               }
             } catch (parseError) {
               console.error('Error parsing streaming data:', parseError);
-              console.error('Raw line:', line);
             }
           }
         }
@@ -608,4 +585,4 @@ export const streamingService = {
       reader.releaseLock();
     }
   }
-}; 
+};

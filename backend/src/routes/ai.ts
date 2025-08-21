@@ -433,6 +433,7 @@ router.get('/features', authenticateToken, async (_req: Request, res: Response) 
   }
 });
 
+
 // Generate worksheet endpoint with streaming (enhanced with assignment analysis and subtypes)
 router.post('/generate-worksheet', authenticateToken, [
   body('topic').optional().trim().isLength({ min: 3, max: 200 }).withMessage('Topic must be between 3 and 200 characters'),
@@ -1359,8 +1360,6 @@ router.post('/generate-batch', authenticateToken, [
   }
 });
 
-export default router;
-
 // Generate quiz (streaming) with enhanced assignment analysis and subtype support
 router.post('/generate-quiz', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
@@ -1803,21 +1802,72 @@ router.post('/generate-project', authenticateToken, [
       return;
     }
 
-    contentValidator.validateContent(validatedData, 'project');
-    const structuredContent = contentStructurer.structureContent(validatedData, 'project', subtype as any);
-          validatedData = structuredContent as unknown as ProjectData;
+    // Validate and structure content
+    try {
+      contentValidator.validateContent(validatedData, 'project');
+      const structuredContent = contentStructurer.structureContent(validatedData, 'project', subtype as any);
+      validatedData = structuredContent as unknown as ProjectData;
+    } catch (validationError) {
+      console.error('Content validation/structuring failed:', validationError);
+      sendSSEMessage(res, { type: 'chunk', content: 'Content validation completed with warnings...\n' });
+    }
 
-    const savedFile = await GeneratedFileModel.create({
-      user_id: req.user.id,
-      title: validatedData.title || 'Generated Project',
-      content: JSON.stringify(validatedData),
-      file_type: 'project'
-    });
+    // Save the generated file to the database
+    let savedFile: any;
+    try {
+      savedFile = await GeneratedFileModel.create({
+        user_id: req.user.id,
+        title: validatedData.title || 'Generated Project',
+        content: JSON.stringify(validatedData),
+        file_type: 'project'
+      });
+    } catch (saveError) {
+      console.error('Failed to save project to database:', saveError);
+      sendSSEMessage(res, { type: 'error', message: 'Failed to save project to database' });
+      res.end();
+      return;
+    }
 
-    await GeneratedFileModel.updateAIMetadata(savedFile.id, {
-      metadata: { raw: fullResponse, prompt: enhancedPrompt, assignmentAnalysis, subtype, qualityLevel: quality_level || 'standardní' },
-      tags: deriveTags(validatedData.title, validatedData.subject, validatedData.grade_level, title || assignment_description)
-    });
+    // Update AI metadata with enhanced information
+    try {
+      const tags = Array.isArray(validatedData.tags) && validatedData.tags.length 
+        ? validatedData.tags 
+        : deriveTags(
+            validatedData.title,
+            assignmentAnalysis?.subject || validatedData.subject,
+            assignmentAnalysis?.gradeLevel || validatedData.grade_level,
+            title || assignment_description,
+            assignmentAnalysis?.difficulty,
+            'projekt'
+          );
+
+      const enhancedMetadata = {
+        raw: fullResponse,
+        prompt: enhancedPrompt,
+        assignmentAnalysis: assignmentAnalysis || null,
+        subtype: subtype || null,
+        qualityLevel: quality_level || 'standardní',
+        generationParameters: {
+          promptVersion: '2.0-enhanced-project',
+          modelUsed: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
+          temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
+          maxTokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '3000'),
+          customInstructions: custom_instructions || null,
+          subtypeModifications: subtype?.promptModifications || null,
+          projectType: project_type,
+          groupSize: group_size,
+          assessmentCriteria: assessment_criteria
+        }
+      };
+
+      await GeneratedFileModel.updateAIMetadata(savedFile.id, {
+        metadata: enhancedMetadata,
+        tags
+      });
+    } catch (metadataError) {
+      console.error('Failed to update AI metadata:', metadataError);
+      // Continue anyway - file is already saved
+    }
 
     await CreditTransactionModel.deductCredits(req.user.id, 2, 'Enhanced project generation');
     const updatedUser = await UserModel.findById(req.user.id);
@@ -1972,21 +2022,72 @@ router.post('/generate-presentation', authenticateToken, [
       return;
     }
 
-    contentValidator.validateContent(validatedData, 'presentation');
-    const structuredContent = contentStructurer.structureContent(validatedData, 'presentation', subtype as any);
-          validatedData = structuredContent as unknown as PresentationData;
+    // Validate and structure content
+    try {
+      contentValidator.validateContent(validatedData, 'presentation');
+      const structuredContent = contentStructurer.structureContent(validatedData, 'presentation', subtype as any);
+      validatedData = structuredContent as unknown as PresentationData;
+    } catch (validationError) {
+      console.error('Content validation/structuring failed:', validationError);
+      sendSSEMessage(res, { type: 'chunk', content: 'Content validation completed with warnings...\n' });
+    }
 
-    const savedFile = await GeneratedFileModel.create({
-      user_id: req.user.id,
-      title: validatedData.title || 'Generated Presentation',
-      content: JSON.stringify(validatedData),
-      file_type: 'presentation'
-    });
+    // Save the generated file to the database
+    let savedFile: any;
+    try {
+      savedFile = await GeneratedFileModel.create({
+        user_id: req.user.id,
+        title: validatedData.title || 'Generated Presentation',
+        content: JSON.stringify(validatedData),
+        file_type: 'presentation'
+      });
+    } catch (saveError) {
+      console.error('Failed to save presentation to database:', saveError);
+      sendSSEMessage(res, { type: 'error', message: 'Failed to save presentation to database' });
+      res.end();
+      return;
+    }
 
-    await GeneratedFileModel.updateAIMetadata(savedFile.id, {
-      metadata: { raw: fullResponse, prompt: enhancedPrompt, assignmentAnalysis, subtype, qualityLevel: quality_level || 'standardní' },
-      tags: deriveTags(validatedData.title, validatedData.subject, validatedData.grade_level, title || assignment_description)
-    });
+    // Update AI metadata with enhanced information
+    try {
+      const tags = Array.isArray(validatedData.tags) && validatedData.tags.length 
+        ? validatedData.tags 
+        : deriveTags(
+            validatedData.title,
+            assignmentAnalysis?.subject || validatedData.subject,
+            assignmentAnalysis?.gradeLevel || validatedData.grade_level,
+            title || assignment_description,
+            assignmentAnalysis?.difficulty,
+            'prezentace'
+          );
+
+      const enhancedMetadata = {
+        raw: fullResponse,
+        prompt: enhancedPrompt,
+        assignmentAnalysis: assignmentAnalysis || null,
+        subtype: subtype || null,
+        qualityLevel: quality_level || 'standardní',
+        generationParameters: {
+          promptVersion: '2.0-enhanced-presentation',
+          modelUsed: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
+          temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
+          maxTokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2500'),
+          customInstructions: custom_instructions || null,
+          subtypeModifications: subtype?.promptModifications || null,
+          slideCount: slide_count,
+          presentationStyle: presentation_style,
+          targetAudience: target_audience
+        }
+      };
+
+      await GeneratedFileModel.updateAIMetadata(savedFile.id, {
+        metadata: enhancedMetadata,
+        tags
+      });
+    } catch (metadataError) {
+      console.error('Failed to update AI metadata:', metadataError);
+      // Continue anyway - file is already saved
+    }
 
     await CreditTransactionModel.deductCredits(req.user.id, 2, 'Enhanced presentation generation');
     const updatedUser = await UserModel.findById(req.user.id);
@@ -2143,22 +2244,74 @@ router.post('/generate-activity', authenticateToken, [
       return;
     }
 
-    contentValidator.validateContent(validatedData, 'activity');
-    const structuredContent = contentStructurer.structureContent(validatedData, 'activity', subtype as any);
-          validatedData = structuredContent as unknown as ActivityData;
+    // Validate and structure content
+    try {
+      contentValidator.validateContent(validatedData, 'activity');
+      const structuredContent = contentStructurer.structureContent(validatedData, 'activity', subtype as any);
+      validatedData = structuredContent as unknown as ActivityData;
+    } catch (validationError) {
+      console.error('Content validation/structuring failed:', validationError);
+      sendSSEMessage(res, { type: 'chunk', content: 'Content validation completed with warnings...\n' });
+    }
 
-    const savedFile = await GeneratedFileModel.create({
-      user_id: req.user.id,
-      title: validatedData.title || 'Generated Activity',
-      content: JSON.stringify(validatedData),
-      file_type: 'activity'
-    });
+    // Save the generated file to the database
+    let savedFile: any;
+    try {
+      savedFile = await GeneratedFileModel.create({
+        user_id: req.user.id,
+        title: validatedData.title || 'Generated Activity',
+        content: JSON.stringify(validatedData),
+        file_type: 'activity'
+      });
+    } catch (saveError) {
+      console.error('Failed to save activity to database:', saveError);
+      sendSSEMessage(res, { type: 'error', message: 'Failed to save activity to database' });
+      res.end();
+      return;
+    }
 
-    await GeneratedFileModel.updateAIMetadata(savedFile.id, {
-      metadata: { raw: fullResponse, prompt: enhancedPrompt, assignmentAnalysis, subtype, qualityLevel: quality_level || 'standardní' },
-      tags: deriveTags(validatedData.title, validatedData.subject, validatedData.grade_level, title || assignment_description)
-    });
+    // Update AI metadata with enhanced information
+    try {
+      const tags = Array.isArray(validatedData.tags) && validatedData.tags.length 
+        ? validatedData.tags 
+        : deriveTags(
+            validatedData.title,
+            assignmentAnalysis?.subject || validatedData.subject,
+            assignmentAnalysis?.gradeLevel || validatedData.grade_level,
+            title || assignment_description,
+            assignmentAnalysis?.difficulty,
+            'aktivita'
+          );
 
+      const enhancedMetadata = {
+        raw: fullResponse,
+        prompt: enhancedPrompt,
+        assignmentAnalysis: assignmentAnalysis || null,
+        subtype: subtype || null,
+        qualityLevel: quality_level || 'standardní',
+        generationParameters: {
+          promptVersion: '2.0-enhanced-activity',
+          modelUsed: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
+          temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
+          maxTokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2000'),
+          customInstructions: custom_instructions || null,
+          subtypeModifications: subtype?.promptModifications || null,
+          activityType: activity_type,
+          groupSize: group_size,
+          requiredMaterials: required_materials
+        }
+      };
+
+      await GeneratedFileModel.updateAIMetadata(savedFile.id, {
+        metadata: enhancedMetadata,
+        tags
+      });
+    } catch (metadataError) {
+      console.error('Failed to update AI metadata:', metadataError);
+      // Continue anyway - file is already saved
+    }
+
+    // Deduct credits after successful generation and save
     await CreditTransactionModel.deductCredits(req.user.id, 2, 'Enhanced activity generation');
     const updatedUser = await UserModel.findById(req.user.id);
 
@@ -2193,3 +2346,199 @@ function adaptSubtypeForPromptBuilder(subtype: any): any {
     promptModifications: subtype.promptModifications || []
   };
 }
+
+// Standalone assignment analysis endpoint
+router.post('/analyze-assignment', 
+  authenticateToken,
+  body('description').trim().isLength({ min: 10, max: 1000 }).withMessage('Assignment description must be between 10 and 1000 characters'),
+  async (req: RequestWithUser, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          error: 'Validation failed',
+          details: errors.array()
+        });
+      }
+
+      const { description } = req.body;
+
+      // Import AssignmentAnalyzer dynamically
+      const { AssignmentAnalyzer } = await import('../services/AssignmentAnalyzer');
+      const assignmentAnalyzer = new AssignmentAnalyzer();
+
+      const analysis = await assignmentAnalyzer.analyzeAssignment(description);
+
+      // Calculate confidence scores for each material type based on analysis
+      const materialTypeConfidence = (type: string): number => {
+        const baseConfidence = analysis.confidence || 0.7;
+        
+        // Adjust confidence based on material type and analysis
+        let confidence = baseConfidence;
+        
+        switch (type) {
+          case 'worksheet':
+            // Worksheets are good for most assignments
+            confidence *= 0.9;
+            break;
+          case 'lesson-plan':
+            // Lesson plans work well with clear objectives
+            confidence *= analysis.learningObjectives.length > 0 ? 0.95 : 0.8;
+            break;
+          case 'quiz':
+            // Quizzes work well for assessment
+            confidence *= analysis.keyTopics.length > 2 ? 0.9 : 0.75;
+            break;
+          case 'project':
+            // Projects need longer duration and complex topics
+            confidence *= analysis.estimatedDuration.includes('hodin') || analysis.estimatedDuration.includes('týdn') ? 0.95 : 0.7;
+            break;
+          case 'presentation':
+            // Presentations work well for explanatory content
+            confidence *= analysis.learningObjectives.length > 1 ? 0.9 : 0.75;
+            break;
+          case 'activity':
+            // Activities work well for interactive learning
+            confidence *= analysis.difficulty === 'základní' || analysis.difficulty === 'střední' ? 0.9 : 0.7;
+            break;
+          default:
+            confidence *= 0.8;
+        }
+        
+        return Math.min(Math.max(confidence, 0.1), 1.0); // Clamp between 0.1 and 1.0
+      };
+
+      // Calculate priority scores
+      const materialTypePriority = (type: string): number => {
+        switch (type) {
+          case 'worksheet': return 1; // Highest priority
+          case 'lesson-plan': return 2;
+          case 'quiz': return 3;
+          case 'activity': return 4;
+          case 'presentation': return 5;
+          case 'project': return 6; // Lowest priority
+          default: return 7;
+        }
+      };
+
+      return res.json({
+        success: true,
+        data: {
+          analysis: {
+            suggestedMaterialTypes: analysis.suggestedMaterialTypes,
+            extractedObjectives: analysis.learningObjectives,
+            detectedDifficulty: analysis.difficulty,
+            subjectArea: analysis.subject,
+            estimatedDuration: analysis.estimatedDuration,
+            keyTopics: analysis.keyTopics,
+            confidence: analysis.confidence
+          },
+          suggestions: analysis.suggestedMaterialTypes.map(type => ({
+            type,
+            description: `Vytvoř ${type === 'worksheet' ? 'cvičení' : type === 'lesson-plan' ? 'plán hodiny' : type === 'quiz' ? 'test' : type === 'project' ? 'projekt' : type === 'presentation' ? 'prezentaci' : 'aktivitu'} pro toto zadání`,
+            estimatedCredits: type === 'worksheet' || type === 'quiz' ? 1 : 2,
+            confidence: materialTypeConfidence(type),
+            priority: materialTypePriority(type),
+            reasoning: `Doporučeno na základě analýzy: ${analysis.subject}, obtížnost ${analysis.difficulty}, ${analysis.keyTopics.length} klíčových témat`
+          }))
+        }
+      });
+
+    } catch (error) {
+      console.error('Assignment analysis error:', error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'An unexpected error occurred during assignment analysis'
+      });
+    }
+  }
+);
+
+// Material type suggestions endpoint
+router.post('/suggest-material-types', 
+  authenticateToken,
+  body('analysis').isObject().withMessage('Analysis object is required'),
+  async (req: RequestWithUser, res: Response) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          error: 'Validation failed',
+          details: errors.array()
+        });
+      }
+
+      const { analysis } = req.body;
+
+      // Calculate confidence scores for each material type
+      const calculateConfidence = (type: string): number => {
+        const baseConfidence = analysis.confidence || 0.7;
+        let confidence = baseConfidence;
+        
+        switch (type) {
+          case 'worksheet':
+            confidence *= 0.9;
+            break;
+          case 'lesson-plan':
+            confidence *= analysis.extractedObjectives?.length > 0 ? 0.95 : 0.8;
+            break;
+          case 'quiz':
+            confidence *= analysis.keyTopics?.length > 2 ? 0.9 : 0.75;
+            break;
+          case 'project':
+            confidence *= analysis.estimatedDuration?.includes('hodin') || analysis.estimatedDuration?.includes('týdn') ? 0.95 : 0.7;
+            break;
+          case 'presentation':
+            confidence *= analysis.extractedObjectives?.length > 1 ? 0.9 : 0.75;
+            break;
+          case 'activity':
+            confidence *= analysis.detectedDifficulty === 'základní' || analysis.detectedDifficulty === 'střední' ? 0.9 : 0.7;
+            break;
+          default:
+            confidence *= 0.8;
+        }
+        
+        return Math.min(Math.max(confidence, 0.1), 1.0);
+      };
+
+      // Calculate priority scores
+      const calculatePriority = (type: string): number => {
+        switch (type) {
+          case 'worksheet': return 1;
+          case 'lesson-plan': return 2;
+          case 'quiz': return 3;
+          case 'activity': return 4;
+          case 'presentation': return 5;
+          case 'project': return 6;
+          default: return 7;
+        }
+      };
+
+      // Use the analysis to suggest material types
+      const suggestions = analysis.suggestedMaterialTypes?.map((type: string) => ({
+        type,
+        description: `Vytvoř ${type === 'worksheet' ? 'cvičení' : type === 'lesson-plan' ? 'plán hodiny' : type === 'quiz' ? 'test' : type === 'project' ? 'projekt' : type === 'presentation' ? 'prezentaci' : 'aktivitu'} pro toto zadání`,
+        estimatedCredits: type === 'worksheet' || type === 'quiz' ? 1 : 2,
+        confidence: calculateConfidence(type),
+        priority: calculatePriority(type),
+        reasoning: `Doporučeno na základě analýzy: ${analysis.subjectArea || 'obecný předmět'}, obtížnost ${analysis.detectedDifficulty || 'střední'}, ${analysis.keyTopics?.length || 0} klíčových témat`
+      })) || [];
+
+      return res.json({
+        success: true,
+        data: suggestions
+      });
+
+    } catch (error) {
+      console.error('Material type suggestions error:', error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'An unexpected error occurred while suggesting material types'
+      });
+    }
+  }
+);
+
+export default router;

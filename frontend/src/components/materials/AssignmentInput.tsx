@@ -54,14 +54,20 @@ const AssignmentInput: React.FC<AssignmentInputProps> = ({
 
     const suggestions: MaterialTypeSuggestion[] = [
       {
-        materialType: 'worksheet',
+        type: 'worksheet',
+        description: 'Vhodné pro procvičování a upevnění znalostí',
+        estimatedCredits: 5,
         confidence: 0.8,
+        priority: 1,
         reasoning: 'Vhodné pro procvičování a upevnění znalostí',
         recommendedSubtype: 'practice-problems'
       },
       {
-        materialType: 'quiz',
+        type: 'quiz',
+        description: 'Dobré pro ověření porozumění',
+        estimatedCredits: 3,
         confidence: 0.6,
+        priority: 2,
         reasoning: 'Dobré pro ověření porozumění',
         recommendedSubtype: 'formative-assessment'
       }

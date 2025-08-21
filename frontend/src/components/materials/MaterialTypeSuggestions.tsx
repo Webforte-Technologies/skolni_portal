@@ -84,15 +84,15 @@ const MaterialTypeSuggestions: React.FC<MaterialTypeSuggestionsProps> = ({
       <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
-            <div className={`w-12 h-12 bg-gradient-to-r ${MATERIAL_TYPE_INFO[topSuggestion.materialType].color} rounded-lg flex items-center justify-center text-white text-xl`}>
-              {MATERIAL_TYPE_INFO[topSuggestion.materialType].icon}
+            <div className={`w-12 h-12 bg-gradient-to-r ${MATERIAL_TYPE_INFO[topSuggestion.type as MaterialType].color} rounded-lg flex items-center justify-center text-white text-xl`}>
+              {MATERIAL_TYPE_INFO[topSuggestion.type as MaterialType].icon}
             </div>
           </div>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <h4 className="font-medium text-neutral-900 dark:text-neutral-100">
-                {MATERIAL_TYPE_INFO[topSuggestion.materialType].name}
+                {MATERIAL_TYPE_INFO[topSuggestion.type as MaterialType].name}
               </h4>
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-500" />
@@ -101,12 +101,12 @@ const MaterialTypeSuggestions: React.FC<MaterialTypeSuggestionsProps> = ({
                 </span>
               </div>
               <div className="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 text-xs rounded-full">
-                {Math.round(topSuggestion.confidence * 100)}% shoda
+                {Math.round((topSuggestion.confidence || 0) * 100)}% shoda
               </div>
             </div>
             
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">
-              {MATERIAL_TYPE_INFO[topSuggestion.materialType].description}
+              {topSuggestion.description}
             </p>
             
             <p className="text-sm text-neutral-700 dark:text-neutral-300 mb-3">
@@ -122,7 +122,7 @@ const MaterialTypeSuggestions: React.FC<MaterialTypeSuggestionsProps> = ({
             <div className="flex gap-2">
               <Button
                 size="sm"
-                onClick={() => onSuggestionAccept(topSuggestion.materialType, topSuggestion.recommendedSubtype)}
+                onClick={() => onSuggestionAccept(topSuggestion.type as MaterialType, topSuggestion.recommendedSubtype)}
                 className="flex items-center gap-1"
               >
                 <Check className="w-4 h-4" />
@@ -148,17 +148,17 @@ const MaterialTypeSuggestions: React.FC<MaterialTypeSuggestionsProps> = ({
                 className="p-3 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:border-neutral-300 dark:hover:border-neutral-600 transition-colors"
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 bg-gradient-to-r ${MATERIAL_TYPE_INFO[suggestion.materialType].color} rounded-md flex items-center justify-center text-white text-sm`}>
-                    {MATERIAL_TYPE_INFO[suggestion.materialType].icon}
+                  <div className={`w-8 h-8 bg-gradient-to-r ${MATERIAL_TYPE_INFO[suggestion.type as MaterialType].color} rounded-md flex items-center justify-center text-white text-sm`}>
+                    {MATERIAL_TYPE_INFO[suggestion.type as MaterialType].icon}
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h5 className="font-medium text-sm text-neutral-900 dark:text-neutral-100">
-                        {MATERIAL_TYPE_INFO[suggestion.materialType].name}
+                        {MATERIAL_TYPE_INFO[suggestion.type as MaterialType].name}
                       </h5>
                       <span className="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 text-xs rounded">
-                        {Math.round(suggestion.confidence * 100)}%
+                        {Math.round((suggestion.confidence || 0) * 100)}%
                       </span>
                     </div>
                     
@@ -169,7 +169,7 @@ const MaterialTypeSuggestions: React.FC<MaterialTypeSuggestionsProps> = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onSuggestionAccept(suggestion.materialType, suggestion.recommendedSubtype)}
+                      onClick={() => onSuggestionAccept(suggestion.type as MaterialType, suggestion.recommendedSubtype)}
                       className="text-xs"
                     >
                       Vybrat

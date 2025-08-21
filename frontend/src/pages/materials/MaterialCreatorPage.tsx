@@ -538,7 +538,7 @@ const MaterialCreatorPage: React.FC = () => {
               materialType={selectedTemplate.id as MaterialType}
               selectedSubtype={selectedSubtype || undefined}
               onSubtypeSelect={handleSubtypeSelect}
-              recommendedSubtypeId={materialSuggestions.find(s => s.materialType === selectedTemplate.id)?.recommendedSubtype}
+              recommendedSubtypeId={materialSuggestions.find(s => s.type === selectedTemplate.id)?.recommendedSubtype}
               className="mb-6"
             />
             

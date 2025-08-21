@@ -7,9 +7,12 @@ export class AssignmentAnalysisService {
    */
   static async analyzeAssignment(description: string): Promise<AssignmentAnalysisResponse> {
     try {
+      // Use a longer timeout for AI operations (30 seconds)
       const response = await api.post<AssignmentAnalysisResponse>('/ai/analyze-assignment', {
         description
-      } as AssignmentAnalysisRequest);
+      } as AssignmentAnalysisRequest, {
+        timeout: 30000 // 30 seconds for AI analysis
+      });
 
       return response.data.data || {
         analysis: {
@@ -23,8 +26,14 @@ export class AssignmentAnalysisService {
         },
         suggestions: []
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error analyzing assignment:', error);
+      
+      // Handle timeout specifically
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        throw new Error('Analýza zadání trvala příliš dlouho. Zkuste to prosím znovu nebo zkraťte popis zadání.');
+      }
+      
       throw error;
     }
   }
@@ -34,13 +43,22 @@ export class AssignmentAnalysisService {
    */
   static async getMaterialTypeSuggestions(analysis: AssignmentAnalysis): Promise<MaterialTypeSuggestion[]> {
     try {
+      // Use a longer timeout for AI operations (20 seconds)
       const response = await api.post<MaterialTypeSuggestion[]>('/ai/suggest-material-types', {
         analysis
+      }, {
+        timeout: 20000 // 20 seconds for suggestions
       });
 
       return response.data.data || [];
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting material type suggestions:', error);
+      
+      // Handle timeout specifically
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        throw new Error('Generování návrhů trvalo příliš dlouho. Zkuste to prosím znovu.');
+      }
+      
       throw error;
     }
   }

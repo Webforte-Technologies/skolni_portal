@@ -68,8 +68,11 @@ export interface AssignmentAnalysisResponse {
 }
 
 export interface MaterialTypeSuggestion {
-  materialType: MaterialType;
+  type: string; // Changed from materialType to match backend
+  description: string; // Added to match backend
+  estimatedCredits: number; // Added to match backend
   confidence: number;
+  priority: number; // Added to match backend
   reasoning: string;
   recommendedSubtype?: string;
 }
