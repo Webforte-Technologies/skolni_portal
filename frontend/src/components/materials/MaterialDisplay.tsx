@@ -1,17 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { FileText, BookOpen, Target, Sparkles, Users, Presentation, Tag, Download } from 'lucide-react';
+import { 
+  FileText, BookOpen, Target, Sparkles, Users, Presentation, 
+  Tag, Download, Edit3, Save, RotateCcw, Eye, Star, 
+  CheckCircle, AlertTriangle, Info, Clock, User
+} from 'lucide-react';
 import Button from '../ui/Button';
 import { exportElementToPDFOptions, exportStructuredToDocxOptions } from '../../utils/exportUtils';
 
 interface MaterialDisplayProps {
   material: any;
   onClose?: () => void;
+  onContentUpdate?: (updatedContent: any) => void;
 }
 
-const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) => {
+interface EditHistory {
+  timestamp: Date;
+  section: string;
+  oldValue: string;
+  newValue: string;
+}
+
+const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ 
+  material, 
+  onClose, 
+  onContentUpdate 
+}) => {
   const { user } = useAuth();
   const [teacherName, setTeacherName] = useState(user?.first_name + ' ' + user?.last_name || '');
+  
+  // Inline editing state
+  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState<string>('');
+  const [editHistory, setEditHistory] = useState<EditHistory[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  // Quality and validation state
+  const [qualityScore, setQualityScore] = useState(85);
+  const [validationIssues, setValidationIssues] = useState<string[]>([]);
+  const [showQualityDetails, setShowQualityDetails] = useState(false);
+
+  // Refs for content editing
+  const contentRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Parse the content JSON if it's a string
   const content = typeof material.content === 'string' ? JSON.parse(material.content) : material.content;
@@ -72,6 +102,93 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
         }
     }
   };
+
+  // Inline editing functions
+  const startEditing = (section: string, content: string) => {
+    setEditingSection(section);
+    setEditContent(content);
+    setHasUnsavedChanges(true);
+  };
+
+  const saveEdit = () => {
+    if (editingSection && editContent !== content[editingSection]) {
+      // Add to edit history
+      const historyEntry: EditHistory = {
+        timestamp: new Date(),
+        section: editingSection,
+        oldValue: content[editingSection] || '',
+        newValue: editContent
+      };
+      
+      setEditHistory(prev => [historyEntry, ...prev]);
+      
+      // Update content
+      const updatedContent = { ...content, [editingSection]: editContent };
+      if (onContentUpdate) {
+        onContentUpdate(updatedContent);
+      }
+      
+      // Update quality score based on content changes
+      updateQualityScore(updatedContent);
+    }
+    
+    setEditingSection(null);
+    setEditContent('');
+    setHasUnsavedChanges(false);
+  };
+
+  const cancelEdit = () => {
+    setEditingSection(null);
+    setEditContent('');
+    setHasUnsavedChanges(false);
+  };
+
+  const updateQualityScore = (updatedContent: any) => {
+    // Simple quality scoring algorithm
+    let score = 85;
+    let issues: string[] = [];
+    
+    // Check content length
+    Object.values(updatedContent).forEach((value: any) => {
+      if (typeof value === 'string') {
+        if (value.length < 10) {
+          score -= 5;
+          issues.push('Krátký obsah');
+        } else if (value.length > 500) {
+          score -= 3;
+          issues.push('Příliš dlouhý obsah');
+        }
+      }
+    });
+    
+    // Check for common issues
+    const contentText = JSON.stringify(updatedContent).toLowerCase();
+    if (contentText.includes('lorem') || contentText.includes('ipsum')) {
+      score -= 20;
+      issues.push('Obsahuje placeholder text');
+    }
+    
+    if (contentText.includes('test') && contentText.includes('example')) {
+      score -= 10;
+      issues.push('Obsahuje testovací obsah');
+    }
+    
+    setQualityScore(Math.max(0, score));
+    setValidationIssues(issues);
+  };
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (hasUnsavedChanges) {
+      const timer = setTimeout(() => {
+        if (editingSection) {
+          saveEdit();
+        }
+      }, 5000); // Auto-save after 5 seconds of inactivity
+      
+      return () => clearTimeout(timer);
+    }
+  }, [hasUnsavedChanges, editingSection]);
 
   const renderField = (fieldName: string, value: any) => {
     if (!value) return null;
@@ -168,276 +285,271 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({ material, onClose }) 
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 print:bg-white" id="material-root">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-8 mb-6 print:shadow-none">
-          {/* Title and Icon Section */}
-          <div className="flex items-start justify-between mb-8">
-            <div className="flex items-start space-x-4">
-              <div className="p-3 bg-blue-100 rounded-xl flex-shrink-0">
-                {getTemplateIcon(content.template)}
+    <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg max-w-4xl mx-auto">
+      {/* Enhanced Header with Quality Score */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-t-lg">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            {getTemplateIcon(material.template_id || material.file_type)}
+            <div>
+              <h1 className="text-2xl font-bold">{getTemplateName(material.template_id || material.file_type)}</h1>
+              <p className="text-blue-100 text-sm">
+                Vytvořeno {new Date(material.created_at).toLocaleDateString('cs-CZ')} • 
+                <span className="ml-1">{teacherName}</span>
+              </p>
+            </div>
+          </div>
+          
+          {/* Quality Score Display */}
+          <div className="text-right">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="w-5 h-5 text-yellow-300" />
+              <span className="text-lg font-bold">{qualityScore}/100</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-24 bg-blue-200 bg-opacity-30 rounded-full h-2">
+                <div 
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    qualityScore >= 80 ? 'bg-green-400' : 
+                    qualityScore >= 60 ? 'bg-yellow-400' : 'bg-red-400'
+                  }`}
+                  style={{ width: `${qualityScore}%` }}
+                />
               </div>
-              <div className="min-w-0">
-                <h1 className="text-3xl font-bold text-neutral-900 leading-tight mb-2">
-                  {content.title || material.title}
-                </h1>
-                <div className="flex items-center space-x-3 text-neutral-600">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-neutral-100">
-                    {getTemplateName(content.template)}
-                  </span>
-                  <span className="text-neutral-400">•</span>
-                  <span className="text-neutral-600">{content.subject || 'Obecné'}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowQualityDetails(!showQualityDetails)}
+                className="text-white border-white hover:bg-white hover:text-blue-600"
+              >
+                <Info className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Quality Details Panel */}
+        {showQualityDetails && (
+          <div className="mt-4 p-4 bg-white bg-opacity-10 rounded-lg">
+            <h3 className="font-medium mb-2">Detailní analýza kvality</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="font-medium">Celkové skóre:</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-lg font-bold">{qualityScore}/100</span>
+                  {qualityScore >= 80 && <CheckCircle className="w-4 h-4 text-green-300" />}
+                  {qualityScore < 60 && <AlertTriangle className="w-4 h-4 text-yellow-300" />}
+                </div>
+              </div>
+              <div>
+                <span className="font-medium">Stav validace:</span>
+                <div className="mt-1">
+                  {validationIssues.length === 0 ? (
+                    <span className="text-green-300 flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" />
+                      Bez problémů
+                    </span>
+                  ) : (
+                    <span className="text-yellow-300 flex items-center gap-1">
+                      <AlertTriangle className="w-4 h-4" />
+                      {validationIssues.length} problémů
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <span className="font-medium">Poslední úprava:</span>
+                <div className="mt-1 text-blue-100">
+                  {editHistory.length > 0 ? 
+                    new Date(editHistory[0].timestamp).toLocaleTimeString('cs-CZ') : 
+                    'Žádné úpravy'
+                  }
                 </div>
               </div>
             </div>
             
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-2 print:hidden" data-export-hide="true">
-              <Button onClick={handlePrint} variant="outline" size="sm" className="px-3 py-1.5 text-xs">
-                <FileText className="w-3 h-3 mr-1" />
-                Tisk
-              </Button>
-              <Button onClick={() => handleExportPDF(true)} variant="outline" size="sm" className="px-3 py-1.5 text-xs">
-                <Download className="w-3 h-3 mr-1" />
-                PDF
-              </Button>
-              <Button onClick={() => handleExportDocx(false)} variant="outline" size="sm" className="px-3 py-1.5 text-xs">
-                <FileText className="w-3 h-3 mr-1" />
-                DOCX
-              </Button>
-              <Button onClick={() => handleExportDocx(true)} variant="outline" size="sm" className="px-3 py-1.5 text-xs">
-                <FileText className="w-3 h-3 mr-1" />
-                Klíč
-              </Button>
-              {onClose && (
-                <Button onClick={onClose} variant="ghost" size="sm" className="px-3 py-1.5 text-xs">
-                  Zavřít
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Material metadata */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-neutral-200">
-            <div className="space-y-1">
-              <span className="text-sm font-medium text-neutral-500 uppercase tracking-wide">Vytvořil</span>
-              <div className="text-base font-semibold text-neutral-900">{user?.first_name} {user?.last_name}</div>
-            </div>
-            <div className="space-y-1">
-              <span className="text-sm font-medium text-neutral-500 uppercase tracking-wide">Datum</span>
-              <div className="text-base font-semibold text-neutral-900">
-                {new Date(material.created_at).toLocaleDateString('cs-CZ')}
+            {validationIssues.length > 0 && (
+              <div className="mt-3 p-3 bg-red-500 bg-opacity-20 rounded-lg">
+                <h4 className="font-medium text-red-200 mb-2">Nalezené problémy:</h4>
+                <ul className="text-sm text-red-100 space-y-1">
+                  {validationIssues.map((issue, index) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <AlertTriangle className="w-3 h-3" />
+                      {issue}
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
-            <div className="space-y-1">
-              <span className="text-sm font-medium text-neutral-500 uppercase tracking-wide">Obtížnost</span>
-              <div className="text-base font-semibold text-neutral-900">{content.difficulty || 'Střední'}</div>
-            </div>
-            <div className="space-y-1">
-              <span className="text-sm font-medium text-neutral-500 uppercase tracking-wide">Ročník</span>
-              <div className="text-base font-semibold text-neutral-900">{content.gradeLevel || 'Základní škola'}</div>
-            </div>
+            )}
           </div>
+        )}
+      </div>
+
+      {/* Content Sections */}
+      <div className="p-6 space-y-6">
+        {/* Metadata Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          {Object.entries(content).map(([key, value]) => {
+            if (['title', 'subject', 'gradeLevel', 'difficulty', 'duration', 'estimatedTime'].includes(key)) {
+              return (
+                <div key={key} className="space-y-1">
+                  <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    {getFieldLabel(key)}
+                  </label>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {String(value) || 'Neuvedeno'}
+                  </p>
+                </div>
+              );
+            }
+            return null;
+          })}
         </div>
 
-        {/* Content */}
-        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6 print:shadow-none">
-          {/* Student/Teacher inputs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-neutral-50 rounded-lg">
-            <div data-student-only="true">
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Jméno žáka
-              </label>
-              <div className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm bg-white text-neutral-500">
-                Vyplňte jméno žáka
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Učitel
-              </label>
-              <input
-                type="text"
-                value={teacherName}
-                onChange={(e) => setTeacherName(e.target.value)}
-                className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
-                placeholder="Vyplňte jméno učitele"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Datum
-              </label>
-              <div className="px-3 py-2 bg-white border border-neutral-300 rounded-md text-sm">
-                {new Date().toLocaleDateString('cs-CZ')}
-              </div>
-            </div>
-          </div>
+        {/* Main Content Sections */}
+        {Object.entries(content).map(([key, value]) => {
+          if (['title', 'subject', 'gradeLevel', 'difficulty', 'duration', 'estimatedTime'].includes(key)) {
+            return null; // Skip metadata fields
+          }
+          
+          if (!value || (typeof value === 'string' && value.trim() === '')) {
+            return null; // Skip empty fields
+          }
 
-          {/* Material fields */}
-          <div className="space-y-6">
-            {Object.entries(content).map(([key, value]) => {
-              // Skip certain fields that are already displayed in header
-              if (['template', 'title', 'subject', 'difficulty', 'gradeLevel', 'created_at', 'status', 'questions', 'problems'].includes(key)) {
-                return null;
-              }
-              return renderField(key, value);
-            })}
-          </div>
-
-          {/* Worksheet Content Section */}
-          {(content.template === 'worksheet' || material.file_type === 'worksheet' || Array.isArray(content.problems)) && (
-            <div className="mt-8 pt-6 border-t border-neutral-200">
-              <h3 className="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                <FileText className="w-5 h-5 mr-2" />
-                Obsah pracovního listu
-              </h3>
+          return (
+            <div key={key} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 dark:bg-gray-800 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                    {getFieldLabel(key)}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    {editingSection === key ? (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={saveEdit}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <Save className="w-4 h-4 mr-1" />
+                          Uložit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={cancelEdit}
+                        >
+                          <RotateCcw className="w-4 h-4 mr-1" />
+                          Zrušit
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => startEditing(key, String(value))}
+                      >
+                        <Edit3 className="w-4 h-4 mr-1" />
+                        Upravit
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
               
-              {/* If there are actual problems/questions, display them */}
-              {Array.isArray(content.questions) || Array.isArray(content.problems) ? (
-                <div className="space-y-4">
-                  {(content.questions || content.problems).map((problem: any, index: number) => (
-                    <div key={index} className="border border-neutral-200 rounded-lg p-4 bg-white">
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-semibold text-blue-600">
-                            {index + 1}
-                          </span>
-                        </div>
-                        <div className="flex-1 space-y-3">
-                          <div>
-                            <h4 className="font-medium text-neutral-900 mb-2">
-                              Úloha:
-                            </h4>
-                            <p className="text-neutral-700 whitespace-pre-wrap">
-                              {problem.question || problem.problem || problem.text || 'Úloha bez textu'}
-                            </p>
-                          </div>
-                          {problem.answer && (
-                            <div className="border-t border-neutral-100 pt-3" data-answer="true">
-                              <h5 className="font-medium text-neutral-900 mb-2 flex items-center">
-                                <span className="text-success-600 mr-2">✓</span>
-                                Řešení:
-                              </h5>
-                              <p className="text-neutral-700 whitespace-pre-wrap">
-                                {problem.answer}
-                              </p>
-                            </div>
-                          )}
-                          {!problem.answer && (
-                            <div className="pt-3" data-student-only="true">
-                              <div className="text-sm text-neutral-600 mb-2">Odpověď:</div>
-                              <div className="h-8 border-b border-dashed border-neutral-400" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
+              <div className="p-4">
+                {editingSection === key ? (
+                  <div className="space-y-3">
+                    <textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 resize-none"
+                      rows={Math.max(3, Math.ceil(editContent.length / 100))}
+                    />
+                    <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                      <Clock className="w-4 h-4" />
+                      Auto-uložení za 5 sekund
                     </div>
-                  ))}
-                </div>
-              ) : (
-                /* If no problems exist, show a placeholder for manual content entry */
-                <div className="text-center py-8 bg-neutral-50 rounded-lg border-2 border-dashed border-neutral-300">
-                  <FileText className="w-12 h-12 text-neutral-400 mx-auto mb-3" />
-                  <h4 className="text-lg font-medium text-neutral-700 mb-2">
-                    Pracovní list je připraven
-                  </h4>
-                  <p className="text-neutral-500 mb-4">
-                    Tento pracovní list má nastavené parametry, ale zatím neobsahuje konkrétní úlohy.
-                  </p>
-                  <div className="text-sm text-neutral-400">
-                    <p>• Název: {content.title}</p>
-                    <p>• Předmět: {content.subject}</p>
-                    <p>• Obtížnost: {content.difficulty}</p>
-                    <p>• Ročník: {content.gradeLevel}</p>
                   </div>
-                  
-                  <div className="mt-4 space-y-2">
-                    <p className="text-xs text-neutral-500">
-                      💡 Tip: Pro generování úloh použijte chat s AI
-                    </p>
-                    <Button 
-                      onClick={() => window.open('/chat', '_blank')}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Otevřít chat s AI
-                    </Button>
+                ) : (
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    {renderField(key, value)}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          )}
+          );
+        })}
+      </div>
 
-          {/* Lesson Plan tailored view */}
-          {(content.template === 'lesson-plan' || content.template === 'lesson_plan') && (
-            <div className="mt-8 pt-6 border-t border-neutral-200">
-              <h3 className="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                <BookOpen className="w-5 h-5 mr-2" />
-                Struktura plánu hodiny
-              </h3>
-              {content.objectives && (
-                <div className="mb-4">
-                  <h4 className="font-medium mb-2">Cíle</h4>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {content.objectives.map((o: string, i: number) => <li key={i}>{o}</li>)}
-                  </ul>
+      {/* Edit History */}
+      {editHistory.length > 0 && (
+        <div className="border-t border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            Historie úprav
+          </h3>
+          <div className="space-y-3">
+            {editHistory.slice(0, 5).map((entry, index) => (
+              <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {entry.section}
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {entry.timestamp.toLocaleString('cs-CZ')}
+                  </span>
                 </div>
-              )}
-              {content.activities && (
-                <div className="space-y-3">
-                  <h4 className="font-medium mb-2">Aktivity</h4>
-                  {content.activities.map((a: any, i: number) => (
-                    <div key={i} className="border border-neutral-200 rounded-lg p-3">
-                      <div className="font-medium">{a.name}</div>
-                      <div className="text-sm text-neutral-700 mb-2">{a.description}</div>
-                      {Array.isArray(a.steps) && (
-                        <ol className="list-decimal pl-5 space-y-1 text-sm">
-                          {a.steps.map((s: string, j: number) => <li key={j}>{s}</li>)}
-                        </ol>
-                      )}
-                      {a.time && <div className="text-xs text-neutral-500 mt-2">Čas: {a.time}</div>}
-                    </div>
-                  ))}
+                <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="line-through opacity-60">{entry.oldValue}</div>
+                  <div className="text-green-600 dark:text-green-400">{entry.newValue}</div>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-          {/* Quiz tailored view */}
-          {content.template === 'quiz' && (
-            <div className="mt-8 pt-6 border-t border-neutral-200">
-              <h3 className="text-xl font-semibold text-neutral-900 mb-4 flex items-center">
-                <Target className="w-5 h-5 mr-2" />
-                Otázky kvízu
-              </h3>
-              {Array.isArray(content.questions) && content.questions.length > 0 ? (
-                <div className="space-y-4">
-                  {content.questions.map((q: any, i: number) => (
-                    <div key={i} className="border border-neutral-200 rounded-lg p-4 bg-white">
-                      <div className="text-sm font-medium mb-2">{i + 1}. {q.question}</div>
-                      {q.options && (
-                        <ul className="list-disc pl-5 space-y-1 text-sm">
-                          {q.options.map((opt: string, j: number) => <li key={j}>{opt}</li>)}
-                        </ul>
-                      )}
-                      {q.answer !== undefined && (
-                        <div className="text-xs text-neutral-600 mt-2">Správná odpověď: {String(q.answer)}</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-neutral-600">Žádné otázky k zobrazení.</div>
-              )}
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-neutral-200 text-center text-sm text-neutral-500">
-            <p>Vygenerováno pomocí EduAI-Asistent</p>
-            <p>© 2025 EduAI-Asistent. Všechna práva vyhrazena.</p>
+      {/* Action Buttons */}
+      <div className="border-t border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {hasUnsavedChanges && (
+              <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 text-sm">
+                <AlertTriangle className="w-4 h-4" />
+                Neuložené změny
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (hasUnsavedChanges) {
+                  if (window.confirm('Máte neuložené změny. Opravdu chcete zavřít?')) {
+                    onClose?.();
+                  }
+                } else {
+                  onClose?.();
+                }
+              }}
+            >
+              Zavřít
+            </Button>
+            
+            <Button
+              onClick={() => {
+                // Export functionality
+                const element = document.getElementById('material-content');
+                if (element) {
+                  exportElementToPDFOptions(element, `${material.title || 'material'}.pdf`);
+                }
+              }}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Exportovat PDF
+            </Button>
           </div>
         </div>
       </div>

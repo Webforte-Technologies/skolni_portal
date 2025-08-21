@@ -4,12 +4,17 @@ import Header from '../../components/layout/Header';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useToast } from '../../contexts/ToastContext';
+import { AssignmentAnalysisService } from '../../services/assignmentAnalysisService';
+import { AssignmentAnalysis, MaterialTypeSuggestion } from '../../types/MaterialTypes';
+import { getSubtypesForMaterial } from '../../data/materialSubtypes';
 
 import { streamingService } from '../../services/streamingService';
 import { 
   BookOpen, FileText, Target, Sparkles, Presentation, Users,
-  Zap, Eye, ArrowRight, Clock, CheckCircle, Lightbulb
+  Zap, Eye, ArrowRight, Clock, CheckCircle, Lightbulb,
+  Brain, Search, Star, Info, AlertCircle, Settings
 } from 'lucide-react';
+import { MaterialType } from '../../types/MaterialTypes';
 
 interface ActivityPreview {
   id: string;
@@ -31,6 +36,32 @@ interface GenerationRequest {
   questionCount?: number;
   questionTypes?: string[];
   timeLimit?: string;
+  // Worksheet-specific fields
+  worksheetDifficulty?: 'easy' | 'medium' | 'hard' | string;
+  estimatedTime?: string;
+  // Lesson-specific fields
+  lessonDifficulty?: 'easy' | 'medium' | 'hard' | string;
+  lessonDuration?: string;
+  // Presentation-specific fields
+  slideCount?: number;
+  presentationDifficulty?: 'easy' | 'medium' | 'hard' | string;
+  // Project-specific fields
+  projectDifficulty?: 'easy' | 'medium' | 'hard' | string;
+  projectDuration?: string;
+  // Activity-specific fields
+  groupSize?: string;
+  activityDuration?: string;
+  // Common fields
+  learningObjectives?: string;
+  materials?: string;
+  instructions?: string;
+  activities?: string;
+  keyPoints?: string;
+  visualElements?: string[];
+  projectSteps?: string;
+  qualityLevel?: 'basic' | 'standard' | 'high';
+  customInstructions?: string;
+  specialRequirements?: string[];
 }
 
 const SimplifiedGeneratorPage: React.FC = () => {
@@ -49,6 +80,16 @@ const SimplifiedGeneratorPage: React.FC = () => {
     questionTypes: ['multiple_choice', 'true_false'],
     timeLimit: '20 min'
   });
+
+  // Assignment analysis state
+  const [assignmentDescription, setAssignmentDescription] = useState('');
+  const [assignmentAnalysis, setAssignmentAnalysis] = useState<AssignmentAnalysis | null>(null);
+  const [materialSuggestions, setMaterialSuggestions] = useState<MaterialTypeSuggestion[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisConfidence, setAnalysisConfidence] = useState(0);
+
+  // Subtype selection state
+  const [selectedSubtypes, setSelectedSubtypes] = useState<Record<string, any>>({});
 
   // Update duration when activity type changes
   useEffect(() => {
@@ -83,6 +124,99 @@ const SimplifiedGeneratorPage: React.FC = () => {
     };
     localStorage.setItem('eduai.generator.preferences', JSON.stringify(prefs));
   }, [request.gradeLevel, request.duration]);
+
+  // Assignment analysis functions
+  const analyzeAssignment = async () => {
+    if (!assignmentDescription.trim()) {
+      showToast({ type: 'error', message: 'Prosím zadejte popis úkolu' });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const response = await AssignmentAnalysisService.analyzeAssignment(assignmentDescription);
+      setAssignmentAnalysis(response.analysis);
+      setMaterialSuggestions(response.suggestions);
+      setAnalysisConfidence(response.analysis.confidence);
+      
+      // Auto-populate form fields from analysis
+      if (response.analysis.suggestedMaterialTypes.length > 0) {
+        const suggestedType = response.analysis.suggestedMaterialTypes[0];
+        const typeMapping: Record<string, string> = {
+          'worksheet': 'worksheet',
+          'quiz': 'quiz',
+          'lesson-plan': 'lesson',
+          'project': 'project',
+          'presentation': 'presentation',
+          'activity': 'activity'
+        };
+        
+        if (typeMapping[suggestedType]) {
+          handleInputChange('activityType', typeMapping[suggestedType]);
+        }
+      }
+      
+      if (response.analysis.detectedDifficulty) {
+        const difficultyMapping: Record<string, string> = {
+          'Začátečník': 'easy',
+          'Snadné': 'easy',
+          'Střední': 'medium',
+          'Těžké': 'hard',
+          'Pokročilé': 'hard'
+        };
+        
+        const difficulty = difficultyMapping[response.analysis.detectedDifficulty] || 'medium';
+        handleInputChange('lessonDifficulty', difficulty);
+        handleInputChange('worksheetDifficulty', difficulty);
+        handleInputChange('projectDifficulty', difficulty);
+        handleInputChange('presentationDifficulty', difficulty);
+      }
+      
+      if (response.analysis.estimatedDuration) {
+        handleInputChange('duration', response.analysis.estimatedDuration);
+      }
+      
+      showToast({ type: 'success', message: 'Analýza úkolu dokončena!' });
+    } catch (error) {
+      console.error('Assignment analysis error:', error);
+      showToast({ type: 'error', message: 'Nepodařilo se analyzovat úkol. Zkuste to prosím znovu.' });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const quickAnalyze = () => {
+    // Fallback analysis using local methods
+    const analysis: AssignmentAnalysis = {
+      suggestedMaterialTypes: ['worksheet', 'quiz'],
+      extractedObjectives: AssignmentAnalysisService.extractLearningObjectives(assignmentDescription),
+      detectedDifficulty: AssignmentAnalysisService.detectDifficulty(assignmentDescription),
+      subjectArea: AssignmentAnalysisService.detectSubjectArea(assignmentDescription),
+      estimatedDuration: AssignmentAnalysisService.estimateDuration(assignmentDescription),
+      keyTopics: assignmentDescription.split(' ').filter(word => word.length > 4).slice(0, 5),
+      confidence: 0.7
+    };
+
+    const suggestions: MaterialTypeSuggestion[] = [
+      {
+        materialType: 'worksheet',
+        confidence: 0.8,
+        reasoning: 'Vhodné pro procvičování a upevnění znalostí',
+        recommendedSubtype: 'practice-problems'
+      },
+      {
+        materialType: 'quiz',
+        confidence: 0.6,
+        reasoning: 'Dobré pro ověření porozumění',
+        recommendedSubtype: 'formative-assessment'
+      }
+    ];
+
+    setAssignmentAnalysis(analysis);
+    setMaterialSuggestions(suggestions);
+    setAnalysisConfidence(0.7);
+    showToast({ type: 'success', message: 'Rychlá analýza dokončena!' });
+  };
 
   const activityTypes = [
     { 
@@ -147,6 +281,34 @@ const SimplifiedGeneratorPage: React.FC = () => {
     }
   };
 
+  // Get subtypes for material type
+  const getSubtypesForCurrentType = () => {
+    const materialType = getMaterialTypeFromActivityType(request.activityType);
+    return materialType ? getSubtypesForMaterial(materialType) : [];
+  };
+
+  // Convert GenerationRequest activity type to MaterialType
+  const getMaterialTypeFromActivityType = (activityType: string): MaterialType | null => {
+    const typeMapping: Record<string, MaterialType> = {
+      'worksheet': 'worksheet',
+      'quiz': 'quiz',
+      'lesson': 'lesson-plan',
+      'project': 'project',
+      'presentation': 'presentation',
+      'activity': 'activity'
+    };
+    
+    return typeMapping[activityType] || null;
+  };
+
+  // Handle subtype selection
+  const handleSubtypeSelect = (subtypeId: string, subtype: any) => {
+    setSelectedSubtypes(prev => ({
+      ...prev,
+      [request.activityType]: { id: subtypeId, ...subtype }
+    }));
+  };
+
   // Quiz-specific options
   const questionTypeOptions = [
     { value: 'multiple_choice', label: 'Výběr z možností' },
@@ -166,105 +328,503 @@ const SimplifiedGeneratorPage: React.FC = () => {
   };
 
   const renderDynamicFields = () => {
-    switch (request.activityType) {
-      case 'quiz':
-        return (
-          <Card className="bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800">
+    const subtypes = getSubtypesForCurrentType();
+    const currentSubtype = selectedSubtypes[request.activityType];
+
+    return (
+      <>
+        {/* Subtype Selection */}
+        {subtypes.length > 0 && (
+          <Card className="bg-indigo-50 dark:bg-indigo-950 border-indigo-200 dark:border-indigo-800 mb-4">
             <div className="flex items-center gap-2 mb-4">
-              <Target className="w-4 h-4 text-purple-500" />
-              <h3 className="font-medium text-purple-900 dark:text-purple-100">Nastavení kvízu</h3>
+              <Info className="w-4 h-4 text-indigo-500" />
+              <h3 className="font-medium text-indigo-900 dark:text-indigo-100">Vyberte specifický typ</h3>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
-                  Počet otázek
-                </label>
-                <input
-                  type="number"
-                  min="5"
-                  max="50"
-                  value={request.questionCount}
-                  onChange={(e) => handleInputChange('questionCount', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-purple-300 dark:border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-purple-900 text-purple-900 dark:text-purple-100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
-                  Časový limit
-                </label>
-                <select
-                  value={request.timeLimit}
-                  onChange={(e) => handleInputChange('timeLimit', e.target.value)}
-                  className="w-full px-3 py-2 border border-purple-300 dark:border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-purple-900 text-purple-900 dark:text-purple-100"
-                >
-                  {timeLimitOptions.map(option => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
-                  Typy otázek
-                </label>
-                <div className="relative">
-                  <select
-                    multiple
-                    value={request.questionTypes}
-                    onChange={(e) => {
-                      const selected = Array.from(e.target.selectedOptions, option => option.value);
-                      handleInputChange('questionTypes', selected);
-                    }}
-                    className="w-full px-3 py-2 border border-purple-300 dark:border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-purple-900 text-purple-900 dark:text-purple-100 min-h-[120px]"
-                    size={4}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {subtypes.map((subtype) => {
+                const isSelected = currentSubtype?.id === subtype.id;
+                const currentMaterialType = getMaterialTypeFromActivityType(request.activityType);
+                const isRecommended = currentMaterialType && assignmentAnalysis?.suggestedMaterialTypes.includes(currentMaterialType);
+                
+                return (
+                  <div
+                    key={subtype.id}
+                    className={`relative p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md ${
+                      isSelected
+                        ? 'border-indigo-500 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300'
+                        : 'border-indigo-200 dark:border-indigo-700 hover:border-indigo-300 dark:hover:border-indigo-600'
+                    }`}
+                    onClick={() => handleSubtypeSelect(subtype.id, subtype)}
                   >
-                    {questionTypeOptions.map(option => (
-                      <option 
-                        key={option.value} 
-                        value={option.value}
-                        className="py-1 px-2 hover:bg-purple-100 dark:hover:bg-purple-800"
-                      >
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {request.questionTypes?.map(type => {
-                      const option = questionTypeOptions.find(opt => opt.value === type);
-                      return option ? (
-                        <span 
-                          key={type}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-300 rounded-full"
-                        >
-                          {option.label}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newTypes = request.questionTypes?.filter(t => t !== type) || [];
-                              handleInputChange('questionTypes', newTypes);
-                            }}
-                            className="ml-1 text-purple-500 hover:text-purple-700 dark:hover:text-purple-100"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ) : null;
-                    })}
+                    {/* Recommended Badge */}
+                    {isRecommended && (
+                      <div className="absolute -top-1 -right-1 bg-yellow-500 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                        <Star className="w-3 h-3" />
+                      </div>
+                    )}
+
+                    {/* Selection Indicator */}
+                    {isSelected && (
+                      <div className="absolute top-1 right-1 w-4 h-4 bg-indigo-500 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">{subtype.name}</h4>
+                      <p className="text-xs opacity-80">{subtype.description}</p>
+                      
+                      {subtype.specialFields.length > 0 && (
+                        <div className="text-xs opacity-70">
+                          <span className="font-medium">Speciální možnosti:</span>
+                          <ul className="list-disc list-inside mt-1 ml-2">
+                            {subtype.specialFields.slice(0, 2).map((field) => (
+                              <li key={field.name}>{field.label}</li>
+                            ))}
+                            {subtype.specialFields.length > 2 && <li>a další...</li>}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                    Držte Ctrl (Cmd na Mac) pro výběr více
-                  </p>
+                );
+              })}
+            </div>
+
+            {/* Selected Subtype Details */}
+            {currentSubtype && (
+              <div className="mt-4 p-3 bg-white dark:bg-indigo-900 rounded-lg border border-indigo-200 dark:border-indigo-700">
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="font-medium text-indigo-900 dark:text-indigo-100">
+                      Vybrán: {currentSubtype.name}
+                    </h4>
+                    <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">
+                      {currentSubtype.description}
+                    </p>
+                    {currentSubtype.promptModifications.length > 0 && (
+                      <div className="mt-2">
+                        <p className="text-xs font-medium text-indigo-800 dark:text-indigo-200 mb-1">
+                          Toto ovlivní generování:
+                        </p>
+                        <ul className="text-xs text-indigo-700 dark:text-indigo-300 list-disc list-inside space-y-0.5">
+                          {currentSubtype.promptModifications.slice(0, 2).map((modification: string, index: number) => (
+                            <li key={index}>{modification}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </Card>
-        );
+        )}
 
-      default:
-        return null;
-    }
+        {/* Existing Dynamic Fields */}
+        {(() => {
+          switch (request.activityType) {
+            case 'quiz':
+              return (
+                <Card className="bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Target className="w-4 h-4 text-purple-500" />
+                    <h3 className="font-medium text-purple-900 dark:text-purple-100">Nastavení kvízu</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
+                        Počet otázek
+                      </label>
+                      <input
+                        type="number"
+                        min="5"
+                        max="50"
+                        value={request.questionCount}
+                        onChange={(e) => handleInputChange('questionCount', parseInt(e.target.value))}
+                        className="w-full px-3 py-2 border border-purple-300 dark:border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-purple-900 text-purple-900 dark:text-purple-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
+                        Časový limit
+                      </label>
+                      <select
+                        value={request.timeLimit}
+                        onChange={(e) => handleInputChange('timeLimit', e.target.value)}
+                        className="w-full px-3 py-2 border border-purple-300 dark:border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-purple-900 text-purple-900 dark:text-purple-100"
+                      >
+                        {timeLimitOptions.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
+                        Typy otázek
+                      </label>
+                      <div className="relative">
+                        <select
+                          multiple
+                          value={request.questionTypes}
+                          onChange={(e) => {
+                            const selected = Array.from(e.target.selectedOptions, option => option.value);
+                            handleInputChange('questionTypes', selected);
+                          }}
+                          className="w-full px-3 py-2 border border-purple-300 dark:border-purple-600 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-purple-900 text-purple-900 dark:text-purple-100 min-h-[120px]"
+                          size={4}
+                        >
+                          {questionTypeOptions.map(option => (
+                            <option 
+                              key={option.value} 
+                              value={option.value}
+                              className="py-1 px-2 hover:bg-purple-100 dark:hover:bg-purple-800"
+                            >
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {request.questionTypes?.map(type => {
+                            const option = questionTypeOptions.find(opt => opt.value === type);
+                            return option ? (
+                              <span 
+                                key={type}
+                                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-300 rounded-full"
+                              >
+                                {option.label}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newTypes = request.questionTypes?.filter(t => t !== type) || [];
+                                    handleInputChange('questionTypes', newTypes);
+                                  }}
+                                  className="ml-1 text-purple-500 hover:text-purple-700 dark:hover:text-purple-100"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                        <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                          Držte Ctrl (Cmd na Mac) pro výběr více
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Additional Quiz Settings */}
+                  <div className="mt-4 space-y-4">
+                    {/* Removed Výukové cíle - AI will generate this automatically */}
+                  </div>
+                </Card>
+              );
+
+            case 'worksheet':
+              return (
+                <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center gap-2 mb-4">
+                    <FileText className="w-4 h-4 text-blue-500" />
+                    <h3 className="font-medium text-blue-900 dark:text-blue-100">Nastavení pracovního listu</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                        Obtížnost
+                      </label>
+                      <select
+                        value={request.worksheetDifficulty || 'medium'}
+                        onChange={(e) => handleInputChange('worksheetDifficulty', e.target.value)}
+                        className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-blue-900 text-blue-900 dark:text-blue-100"
+                      >
+                        <option value="easy">Snadná</option>
+                        <option value="medium">Střední</option>
+                        <option value="hard">Náročná</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                        Počet otázek
+                      </label>
+                      <input
+                        type="number"
+                        min="5"
+                        max="50"
+                        value={request.questionCount}
+                        onChange={(e) => handleInputChange('questionCount', parseInt(e.target.value))}
+                        className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-blue-900 text-blue-900 dark:text-blue-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                        Odhadovaný čas
+                      </label>
+                      <select
+                        value={request.estimatedTime || '15-30 min'}
+                        onChange={(e) => handleInputChange('estimatedTime', e.target.value)}
+                        className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-blue-900 text-blue-900 dark:text-blue-100"
+                      >
+                        <option value="5-10 min">5-10 min</option>
+                        <option value="10-15 min">10-15 min</option>
+                        <option value="15-30 min">15-30 min</option>
+                        <option value="30-45 min">30-45 min</option>
+                        <option value="45-60 min">45-60 min</option>
+                        <option value="60+ min">60+ min</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Additional Worksheet Settings */}
+                  <div className="mt-4 space-y-4">
+                    {/* Removed Výukové cíle - AI will generate this automatically */}
+                    {/* Removed Instrukce pro studenty - AI will generate this automatically */}
+                  </div>
+                </Card>
+              );
+
+            case 'lesson':
+              return (
+                <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                  <div className="flex items-center gap-2 mb-4">
+                    <BookOpen className="w-4 h-4 text-green-600" />
+                    <h3 className="font-medium text-green-900 dark:text-green-100">Nastavení hodiny</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-green-700 dark:text-green-300 mb-2">
+                        Obtížnost
+                      </label>
+                      <select
+                        value={request.lessonDifficulty || 'medium'}
+                        onChange={(e) => handleInputChange('lessonDifficulty', e.target.value)}
+                        className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-green-900 text-green-900 dark:text-green-100"
+                      >
+                        <option value="easy">Snadná</option>
+                        <option value="medium">Střední</option>
+                        <option value="hard">Náročná</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-green-700 dark:text-green-300 mb-2">
+                        Délka hodiny
+                      </label>
+                      <select
+                        value={request.lessonDuration || '45 min'}
+                        onChange={(e) => handleInputChange('lessonDuration', e.target.value)}
+                        className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-green-900 text-green-900 dark:text-green-100"
+                      >
+                        <option value="30 min">30 min</option>
+                        <option value="45 min">45 min</option>
+                        <option value="60 min">60 min</option>
+                        <option value="90 min">90 min</option>
+                        <option value="120 min">120 min</option>
+                        <option value="Celý den">Celý den</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Additional Lesson Settings */}
+                  <div className="mt-4 space-y-4">
+                    {/* Removed Výukové cíle - AI will generate this automatically */}
+                    {/* Removed Potřebné materiály - AI will generate this automatically */}
+                    {/* Removed Aktivity hodiny - AI will generate this automatically */}
+                  </div>
+                </Card>
+              );
+
+            case 'presentation':
+              return (
+                <Card className="bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Presentation className="w-4 h-4 text-red-600" />
+                    <h3 className="font-medium text-red-900 dark:text-red-100">Nastavení prezentace</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-red-700 dark:text-red-300 mb-2">
+                        Počet slidů
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={request.slideCount || 10}
+                        onChange={(e) => handleInputChange('slideCount', parseInt(e.target.value))}
+                        className="w-full px-3 py-2 border border-red-300 dark:border-red-600 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-red-900 text-red-900 dark:text-red-100"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-red-700 dark:text-red-300 mb-2">
+                        Obtížnost
+                      </label>
+                      <select
+                        value={request.presentationDifficulty || 'medium'}
+                        onChange={(e) => handleInputChange('presentationDifficulty', e.target.value)}
+                        className="w-full px-3 py-2 border border-red-300 dark:border-red-600 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-red-900 text-red-900 dark:text-red-100"
+                      >
+                        <option value="easy">Snadná</option>
+                        <option value="medium">Střední</option>
+                        <option value="hard">Náročná</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Additional Presentation Settings */}
+                  <div className="mt-4 space-y-4">
+                    {/* Removed Výukové cíle - AI will generate this automatically */}
+                    {/* Removed Klíčové body - AI will generate this automatically */}
+                    <div>
+                      <label className="block text-sm font-medium text-red-700 dark:text-red-300 mb-2">
+                        Vizuální prvky
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Obrázky', 'Grafy', 'Diagramy', 'Videa', 'Animace', 'Interaktivní prvky'].map(option => (
+                          <label key={option} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={Array.isArray(request.visualElements) && request.visualElements.includes(option)}
+                              onChange={(e) => {
+                                const currentValues = Array.isArray(request.visualElements) ? request.visualElements : [];
+                                if (e.target.checked) {
+                                  handleInputChange('visualElements', [...currentValues, option]);
+                                } else {
+                                  handleInputChange('visualElements', currentValues.filter(v => v !== option));
+                                }
+                              }}
+                              className="rounded border-red-300 text-red-600 focus:ring-red-500"
+                            />
+                            <span className="text-sm text-red-700 dark:text-red-300">{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+
+            case 'project':
+              return (
+                <Card className="bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="w-4 h-4 text-orange-600" />
+                    <h3 className="font-medium text-orange-900 dark:text-orange-100">Nastavení projektu</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-orange-700 dark:text-orange-300 mb-2">
+                        Obtížnost
+                      </label>
+                      <select
+                        value={request.projectDifficulty || 'medium'}
+                        onChange={(e) => handleInputChange('projectDifficulty', e.target.value)}
+                        className="w-full px-3 py-2 border border-orange-300 dark:border-orange-600 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-orange-900 text-orange-900 dark:text-orange-100"
+                      >
+                        <option value="easy">Snadná</option>
+                        <option value="medium">Střední</option>
+                        <option value="hard">Náročná</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-orange-700 dark:text-orange-300 mb-2">
+                        Délka projektu
+                      </label>
+                      <select
+                        value={request.projectDuration || '1 týden'}
+                        onChange={(e) => handleInputChange('projectDuration', e.target.value)}
+                        className="w-full px-3 py-2 border border-orange-300 dark:border-orange-600 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-orange-900 text-orange-900 dark:text-orange-100"
+                      >
+                        <option value="1-2 dny">1-2 dny</option>
+                        <option value="1 týden">1 týden</option>
+                        <option value="2 týdny">2 týdny</option>
+                        <option value="1 měsíc">1 měsíc</option>
+                        <option value="Semestr">Semestr</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Additional Project Settings */}
+                  <div className="mt-4 space-y-4">
+                    {/* Removed Výukové cíle - AI will generate this automatically */}
+                    {/* Removed Potřebné materiály - AI will generate this automatically */}
+                    {/* Removed Kroky projektu - AI will generate this automatically */}
+                  </div>
+                </Card>
+              );
+
+            case 'activity':
+              return (
+                <Card className="bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Users className="w-4 h-4 text-yellow-600" />
+                    <h3 className="font-medium text-yellow-900 dark:text-yellow-100">Nastavení aktivity</h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-2">
+                        Velikost skupiny
+                      </label>
+                      <select
+                        value={request.groupSize || 'Individuální'}
+                        onChange={(e) => handleInputChange('groupSize', e.target.value)}
+                        className="w-full px-3 py-2 border border-yellow-300 dark:border-yellow-600 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-yellow-900 text-yellow-900 dark:text-yellow-100"
+                      >
+                        <option value="Individuální">Individuální</option>
+                        <option value="Dvojice">Dvojice</option>
+                        <option value="Malé skupiny (3-4)">Malé skupiny (3-4)</option>
+                        <option value="Velké skupiny (5-8)">Velké skupiny (5-8)</option>
+                        <option value="Celá třída">Celá třída</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-yellow-700 dark:text-yellow-300 mb-2">
+                        Délka aktivity
+                      </label>
+                      <select
+                        value={request.activityDuration || '20-30 min'}
+                        onChange={(e) => handleInputChange('activityDuration', e.target.value)}
+                        className="w-full px-3 py-2 border border-yellow-300 dark:border-yellow-600 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-yellow-900 text-yellow-900 dark:text-yellow-100"
+                      >
+                        <option value="10-15 min">10-15 min</option>
+                        <option value="15-20 min">15-20 min</option>
+                        <option value="20-30 min">20-30 min</option>
+                        <option value="30-45 min">30-45 min</option>
+                        <option value="45-60 min">45-60 min</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Additional Activity Settings */}
+                  <div className="mt-4 space-y-4">
+                    {/* Removed Výukové cíle - AI will generate this automatically */}
+                    {/* Removed Potřebné materiály - AI will generate this automatically */}
+                    {/* Removed Instrukce k aktivitě - AI will generate this automatically */}
+                  </div>
+                </Card>
+              );
+
+            default:
+              return null;
+          }
+        })()}
+      </>
+    );
   };
 
   const generateActivityPreview = async () => {
@@ -360,6 +920,40 @@ const SimplifiedGeneratorPage: React.FC = () => {
     setGenerationProgress(0);
   };
 
+  const getFieldLabel = (name: string) => {
+    const labels: Record<string, string> = {
+      title: 'Název',
+      subject: 'Předmět',
+      gradeLevel: 'Ročník',
+      grade_level: 'Ročník',
+      difficulty: 'Obtížnost',
+      learningObjectives: 'Výukové cíle',
+      instructions: 'Instrukce',
+      estimatedTime: 'Odhadovaný čas',
+      duration: 'Délka',
+      materials: 'Potřebné materiály',
+      activities: 'Aktivity',
+      assessment: 'Hodnocení',
+      steps: 'Kroky',
+      evaluation: 'Kritéria hodnocení',
+      slideCount: 'Počet slidů',
+      keyPoints: 'Klíčové body',
+      visualElements: 'Vizuální prvky',
+      groupSize: 'Velikost skupiny',
+      questionCount: 'Počet otázek',
+      questions: 'Otázky',
+      problems: 'Úlohy',
+      timeLimit: 'Časový limit',
+      questionTypes: 'Typy otázek',
+      tags: 'Štítky',
+      customInstructions: 'Vlastní instrukce',
+      specialRequirements: 'Speciální požadavky',
+      qualityLevel: 'Úroveň kvality'
+    };
+    
+    return labels[name] || name.charAt(0).toUpperCase() + name.slice(1).replace(/([A-Z])/g, ' $1');
+  };
+
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
       <Header />
@@ -429,6 +1023,166 @@ const SimplifiedGeneratorPage: React.FC = () => {
                   />
                 </div>
 
+                {/* Assignment Description with AI Analysis */}
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                    <Brain className="w-4 h-4 inline mr-2 text-blue-500" />
+                    Popis úkolu (AI analýza)
+                  </label>
+                  <div className="space-y-3">
+                    <textarea
+                      value={assignmentDescription}
+                      onChange={(e) => setAssignmentDescription(e.target.value)}
+                      placeholder="Popište podrobně, co mají studenti dělat nebo co se mají naučit. AI vám pomůže vybrat nejvhodnější typ materiálu a nastavení..."
+                      rows={4}
+                      className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 resize-none"
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={analyzeAssignment}
+                        disabled={!assignmentDescription.trim() || isAnalyzing}
+                        isLoading={isAnalyzing}
+                        className="flex-1"
+                      >
+                        <Search className="w-4 h-4 mr-2" />
+                        {isAnalyzing ? 'Analyzuji...' : 'Analyzovat úkol'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={quickAnalyze}
+                        disabled={!assignmentDescription.trim() || isAnalyzing}
+                        className="whitespace-nowrap"
+                      >
+                        Rychlá analýza
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Assignment Analysis Results */}
+                {assignmentAnalysis && (
+                  <Card className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                    <div className="flex items-start gap-3 mb-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-green-900 dark:text-green-100">
+                          Analýza úkolu dokončena
+                        </h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-yellow-500" />
+                            <span className="text-sm text-green-700 dark:text-green-300">
+                              Spolehlivost: {Math.round(analysisConfidence * 100)}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4">
+                      <div>
+                        <strong className="text-green-800 dark:text-green-200">Předmět:</strong>
+                        <span className="ml-2 text-green-700 dark:text-green-300">{assignmentAnalysis.subjectArea}</span>
+                      </div>
+                      <div>
+                        <strong className="text-green-800 dark:text-green-200">Obtížnost:</strong>
+                        <span className="ml-2 text-green-700 dark:text-green-300">{assignmentAnalysis.detectedDifficulty}</span>
+                      </div>
+                      <div>
+                        <strong className="text-green-800 dark:text-green-200">Odhadovaný čas:</strong>
+                        <span className="ml-2 text-green-700 dark:text-green-300">{assignmentAnalysis.estimatedDuration}</span>
+                      </div>
+                      <div>
+                        <strong className="text-green-800 dark:text-green-200">Doporučené typy:</strong>
+                        <span className="ml-2 text-green-700 dark:text-green-300">
+                          {assignmentAnalysis.suggestedMaterialTypes.join(', ')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {assignmentAnalysis.extractedObjectives.length > 0 && (
+                      <div className="mb-4">
+                        <strong className="text-green-800 dark:text-green-200">Výukové cíle:</strong>
+                        <ul className="mt-1 list-disc list-inside text-sm text-green-700 dark:text-green-300">
+                          {assignmentAnalysis.extractedObjectives.map((objective, index) => (
+                            <li key={index}>{objective}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {assignmentAnalysis.keyTopics.length > 0 && (
+                      <div className="mb-4">
+                        <strong className="text-green-800 dark:text-green-200">Klíčová témata:</strong>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {assignmentAnalysis.keyTopics.map((topic, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-xs rounded-full"
+                            >
+                              {topic}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Material Type Suggestions */}
+                    {materialSuggestions.length > 0 && (
+                      <div>
+                        <strong className="text-green-800 dark:text-green-200">Doporučení AI:</strong>
+                        <div className="mt-2 space-y-2">
+                          {materialSuggestions.map((suggestion, index) => (
+                            <div key={index} className="p-3 bg-white dark:bg-green-900 rounded-lg border border-green-200 dark:border-green-700">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium text-green-800 dark:text-green-100">
+                                  {suggestion.materialType === 'worksheet' && 'Pracovní list'}
+                                  {suggestion.materialType === 'quiz' && 'Kvíz'}
+                                  {suggestion.materialType === 'lesson-plan' && 'Plán hodiny'}
+                                  {suggestion.materialType === 'project' && 'Projekt'}
+                                  {suggestion.materialType === 'presentation' && 'Prezentace'}
+                                  {suggestion.materialType === 'activity' && 'Aktivita'}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <Star className="w-4 h-4 text-yellow-500" />
+                                  <span className="text-sm text-green-700 dark:text-green-300">
+                                    {Math.round(suggestion.confidence * 100)}%
+                                  </span>
+                                </div>
+                              </div>
+                              <p className="text-sm text-green-700 dark:text-green-300 mb-2">
+                                {suggestion.reasoning}
+                              </p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const typeMapping: Record<string, string> = {
+                                    'worksheet': 'worksheet',
+                                    'quiz': 'quiz',
+                                    'lesson-plan': 'lesson',
+                                    'project': 'project',
+                                    'presentation': 'presentation',
+                                    'activity': 'activity'
+                                  };
+                                  if (typeMapping[suggestion.materialType]) {
+                                    handleInputChange('activityType', typeMapping[suggestion.materialType]);
+                                  }
+                                }}
+                                className="text-xs"
+                              >
+                                Použít doporučení
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                )}
+
                 {/* Activity Type */}
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
@@ -497,18 +1251,83 @@ const SimplifiedGeneratorPage: React.FC = () => {
 
                 {/* Dynamic Fields based on Activity Type */}
                 {renderDynamicFields()}
-              </div>
 
-              <div className="flex justify-end mt-6">
-                <Button
-                  onClick={generateActivityPreview}
-                  disabled={!canGenerate || isGenerating}
-                  isLoading={isGenerating}
-                  className="px-8 py-3"
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Vytvořit náhled aktivity
-                </Button>
+                {/* Advanced Parameter Controls */}
+                <Card className="bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Settings className="w-4 h-4 text-gray-500" />
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Pokročilé nastavení</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Úroveň kvality
+                      </label>
+                      <select
+                        value={request.qualityLevel || 'standard'}
+                        onChange={(e) => handleInputChange('qualityLevel', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                      >
+                        <option value="basic">Základní (rychlejší)</option>
+                        <option value="standard">Standardní (vyvážené)</option>
+                        <option value="high">Vysoká (nejlepší kvalita)</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Vlastní instrukce
+                      </label>
+                      <textarea
+                        value={request.customInstructions || ''}
+                        onChange={(e) => handleInputChange('customInstructions', e.target.value)}
+                        placeholder="Přidejte specifické požadavky nebo instrukce pro AI..."
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-gray-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 resize-none"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Speciální požadavky
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {['Interaktivní prvky', 'Vizuální podpora', 'Praktické příklady', 'Teoretické základy'].map(requirement => (
+                        <label key={requirement} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={Array.isArray(request.specialRequirements) && request.specialRequirements.includes(requirement)}
+                            onChange={(e) => {
+                              const currentValues = Array.isArray(request.specialRequirements) ? request.specialRequirements : [];
+                              if (e.target.checked) {
+                                handleInputChange('specialRequirements', [...currentValues, requirement]);
+                              } else {
+                                handleInputChange('specialRequirements', currentValues.filter(v => v !== requirement));
+                              }
+                            }}
+                            className="rounded border-gray-300 text-gray-600 focus:ring-gray-500"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{requirement}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Final Button */}
+                <div className="flex justify-end mt-6">
+                  <Button
+                    onClick={generateActivityPreview}
+                    disabled={!canGenerate || isGenerating}
+                    isLoading={isGenerating}
+                    className="px-8 py-3"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    Vytvořit náhled aktivity
+                  </Button>
+                </div>
               </div>
             </Card>
           </div>

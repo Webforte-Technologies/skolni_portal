@@ -1,6 +1,9 @@
 -- Phase 16: AI Metadata and Content Analytics
 -- Add missing columns for AI-powered features
 
+-- Enable required extensions for GIN indexes
+CREATE EXTENSION IF NOT EXISTS "btree_gin";
+
 -- Add AI metadata columns to generated_files table
 ALTER TABLE generated_files 
 ADD COLUMN IF NOT EXISTS ai_category VARCHAR(100),

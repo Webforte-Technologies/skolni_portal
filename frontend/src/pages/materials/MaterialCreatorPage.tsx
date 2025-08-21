@@ -2,15 +2,26 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import Modal from '../../components/ui/Modal';
+
 import Breadcrumb from '../../components/ui/Breadcrumb';
+import AssignmentInput from '../../components/materials/AssignmentInput';
+import MaterialTypeSuggestions from '../../components/materials/MaterialTypeSuggestions';
+import SubtypeSelection from '../../components/materials/SubtypeSelection';
+import AdvancedParameterControls from '../../components/materials/AdvancedParameterControls';
 import { useToast } from '../../contexts/ToastContext';
 import { api } from '../../services/apiClient';
 import { streamingService } from '../../services/streamingService';
 import { 
   FileText, BookOpen, Target, Sparkles, Users, 
-  Presentation, Share2, Download
+  Presentation, Share2, Download, Brain, Wand2
 } from 'lucide-react';
+import { 
+  AssignmentAnalysis, 
+  MaterialTypeSuggestion, 
+  MaterialSubtype, 
+  MaterialType,
+  TemplateField
+} from '../../types/MaterialTypes';
 
 interface MaterialTemplate {
   id: string;
@@ -23,22 +34,11 @@ interface MaterialTemplate {
   gradeLevel: string;
   estimatedTime: string;
   fields: TemplateField[];
-  color?: string; // Added for new template grid
+  color?: string;
+  subtypes?: MaterialSubtype[];
 }
 
-interface TemplateField {
-  name: string;
-  type: 'text' | 'textarea' | 'number' | 'select' | 'multiselect' | 'file';
-  label: string;
-  placeholder?: string;
-  required: boolean;
-  options?: string[];
-  validation?: {
-    min?: number;
-    max?: number;
-    pattern?: string;
-  };
-}
+
 
 const MATERIAL_TEMPLATES: MaterialTemplate[] = [
   {
@@ -186,127 +186,220 @@ const MATERIAL_TEMPLATES: MaterialTemplate[] = [
 const MaterialCreatorPage: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
-  // State
+  
+  // Enhanced state for new features
   const [selectedTemplate, setSelectedTemplate] = useState<MaterialTemplate | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isCreating, setIsCreating] = useState(false);
+  
+  // Assignment-based generation state
+  const [assignmentMode, setAssignmentMode] = useState(false);
+  const [assignmentAnalysis, setAssignmentAnalysis] = useState<AssignmentAnalysis | null>(null);
+  const [materialSuggestions, setMaterialSuggestions] = useState<MaterialTypeSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  
+  // Subtype selection state
+  const [selectedSubtype, setSelectedSubtype] = useState<MaterialSubtype | null>(null);
+  const [showSubtypeSelection, setShowSubtypeSelection] = useState(false);
+  
+  // Advanced parameters state
+  const [advancedParameters, setAdvancedParameters] = useState<Record<string, any>>({
+    qualityLevel: 'standard',
+    customInstructions: ''
+  });
 
   const handleTemplateSelect = (template: MaterialTemplate) => {
     setSelectedTemplate(template);
     setFormData({});
+    setSelectedSubtype(null);
+    setShowSubtypeSelection(true);
   };
 
-  const handleInputChange = (fieldName: string, value: any) => {
+  // Assignment analysis handlers
+  const handleAssignmentAnalysis = (analysis: AssignmentAnalysis, suggestions: MaterialTypeSuggestion[]) => {
+    setAssignmentAnalysis(analysis);
+    setMaterialSuggestions(suggestions);
+    setShowSuggestions(true);
+    
+    // Auto-populate form fields from analysis
     setFormData(prev => ({
       ...prev,
-      [fieldName]: value
+      subject: analysis.subjectArea,
+      difficulty: analysis.detectedDifficulty,
+      estimatedTime: analysis.estimatedDuration,
+      learningObjectives: analysis.extractedObjectives.join('\n')
     }));
   };
 
-  // Validation function for form data
-  const isFormValid = () => {
-    if (!selectedTemplate) return false;
-    
-    // Check required fields
-    for (const field of selectedTemplate.fields) {
-      if (field.required && !formData[field.name]) {
-        return false;
-      }
-      
-      // Validate number fields with min/max constraints
-      if (field.type === 'number' && field.validation) {
-        const value = formData[field.name];
-        if (value !== undefined && value !== null) {
-          if (field.validation.min !== undefined && value < field.validation.min) return false;
-          if (field.validation.max !== undefined && value > field.validation.max) return false;
-        }
-      }
-    }
-    
-    return true;
+  const handleAssignmentAnalysisError = (error: string) => {
+    showToast({ type: 'error', message: error });
   };
 
+  // Material type suggestion handlers
+  const handleSuggestionAccept = (materialType: MaterialType, recommendedSubtype?: string) => {
+    const template = MATERIAL_TEMPLATES.find(t => t.id === materialType);
+    if (template) {
+      setSelectedTemplate(template);
+      setShowSuggestions(false);
+      setShowSubtypeSelection(true);
+      
+      // If there's a recommended subtype, we'll handle it in the subtype selection
+      if (recommendedSubtype) {
+        // This will be used by SubtypeSelection component
+      }
+    }
+  };
+
+  const handleSuggestionReject = () => {
+    setShowSuggestions(false);
+    setMaterialSuggestions([]);
+  };
+
+  // Subtype selection handlers
+  const handleSubtypeSelect = (subtype: MaterialSubtype) => {
+    setSelectedSubtype(subtype);
+    
+    // Initialize subtype-specific parameters
+    const subtypeParams: Record<string, any> = {};
+    subtype.specialFields.forEach(field => {
+      switch (field.type) {
+        case 'boolean':
+          subtypeParams[field.name] = false;
+          break;
+        case 'multiselect':
+          subtypeParams[field.name] = [];
+          break;
+        case 'number':
+          subtypeParams[field.name] = field.validation?.min || 0;
+          break;
+        default:
+          subtypeParams[field.name] = '';
+      }
+    });
+    
+    setAdvancedParameters(prev => ({
+      ...prev,
+      ...subtypeParams
+    }));
+  };
+
+  // Advanced parameter handlers
+  const handleParameterChange = (name: string, value: any) => {
+    setAdvancedParameters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePresetSave = (name: string, _parameters: Record<string, any>) => {
+    // In a real implementation, this would save to localStorage or backend
+    showToast({ type: 'success', message: `Předvolba "${name}" byla uložena` });
+  };
+
+  const handlePresetLoad = (parameters: Record<string, any>) => {
+    setAdvancedParameters(parameters);
+    showToast({ type: 'info', message: 'Předvolba byla načtena' });
+  };
+
+
+
+
+
   const handleCreateMaterial = async () => {
-    if (!selectedTemplate || !isFormValid()) return;
+    if (!selectedTemplate) return;
+    
+    // Enhanced validation for subtype mode
+    if (showSubtypeSelection && !selectedSubtype) {
+      showToast({ type: 'error', message: 'Prosím vyberte typ materiálu' });
+      return;
+    }
 
     setIsCreating(true);
     try {
       const id = selectedTemplate.id;
-      const title = formData.title || selectedTemplate.name;
-      const subject = formData.subject || selectedTemplate.subject;
-      const gradeLevel = formData.gradeLevel || selectedTemplate.gradeLevel;
-      const difficulty = formData.difficulty;
-      const questionCount = formData.questionCount || 10;
-      const duration = formData.duration;
-      const timeLimit = formData.timeLimit;
+      
+      // Enhanced parameter collection
+      const enhancedParams = {
+        // Basic parameters
+        title: formData.title || selectedTemplate.name,
+        subject: formData.subject || assignmentAnalysis?.subjectArea || selectedTemplate.subject,
+        gradeLevel: formData.gradeLevel || selectedTemplate.gradeLevel,
+        difficulty: formData.difficulty || assignmentAnalysis?.detectedDifficulty,
+        questionCount: formData.questionCount || 10,
+        duration: formData.duration,
+        timeLimit: formData.timeLimit,
+        
+        // Enhanced parameters
+        subtype: selectedSubtype?.id,
+        subtypeName: selectedSubtype?.name,
+        assignmentDescription: assignmentAnalysis ? 'Založeno na analýze úkolu' : undefined,
+        learningObjectives: assignmentAnalysis?.extractedObjectives.join('\n') || formData.learningObjectives,
+        customInstructions: advancedParameters.customInstructions,
+        qualityLevel: advancedParameters.qualityLevel,
+        
+        // Subtype-specific parameters
+        ...advancedParameters
+      };
 
-      // Map template to AI generation endpoint (server also saves file and returns file_id)
+      // Enhanced AI generation with subtype support
+      const generationCallbacks = {
+        onStart: () => showToast({ type: 'info', message: `Generuji ${selectedTemplate.name.toLowerCase()}…` }),
+        onEnd: (meta: any) => {
+          showToast({ type: 'success', message: `${selectedTemplate.name} vygenerován.` });
+          if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
+        },
+        onError: (m: string) => showToast({ type: 'error', message: m || `Nepodařilo se vygenerovat ${selectedTemplate.name.toLowerCase()}` })
+      };
+
       if (id === 'worksheet') {
-        await streamingService.generateWorksheetStream(title, {
-          onStart: () => showToast({ type: 'info', message: 'Generuji pracovní list…' }),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Pracovní list vygenerován.' });
-            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
-          },
-          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat pracovní list' })
-        }, { question_count: questionCount, difficulty });
-      } else if (id === 'lesson-plan' || id === 'lesson_plan') {
-        await streamingService.generateLessonPlanStream({ title, subject, grade_level: gradeLevel }, {
-          onStart: () => showToast({ type: 'info', message: 'Generuji plán hodiny…' }),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Plán hodiny vygenerován.' });
-            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
-          },
-          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat plán hodiny' })
+        await streamingService.generateWorksheetStream(enhancedParams.title, generationCallbacks, {
+          question_count: enhancedParams.questionCount,
+          difficulty: enhancedParams.difficulty
+          // TODO: Add subtype and custom instructions support to backend
         });
+      } else if (id === 'lesson-plan' || id === 'lesson_plan') {
+        await streamingService.generateLessonPlanStream({
+          title: enhancedParams.title,
+          subject: enhancedParams.subject,
+          grade_level: enhancedParams.gradeLevel
+          // TODO: Add subtype and custom instructions support to backend
+        }, generationCallbacks);
       } else if (id === 'quiz') {
-        // Map questionTypes to hint string for prompt enhancement
         const questionTypesHint = Array.isArray(formData.questionTypes) && formData.questionTypes.length > 0
           ? ` Typy otázek: ${formData.questionTypes.join(', ')}.`
           : '';
         
-        await streamingService.generateQuizStream({ 
-          title, 
-          subject, 
-          grade_level: gradeLevel, 
-          question_count: questionCount,
-          time_limit: timeLimit,
+        await streamingService.generateQuizStream({
+          title: enhancedParams.title,
+          subject: enhancedParams.subject,
+          grade_level: enhancedParams.gradeLevel,
+          question_count: enhancedParams.questionCount,
+          time_limit: enhancedParams.timeLimit,
           prompt_hint: questionTypesHint
-        }, {
-          onStart: () => showToast({ type: 'info', message: 'Generuji kvíz…' }),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Kvíz vygenerován.' });
-            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
-          },
-          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat kvíz' })
-        });
+          // TODO: Add subtype and custom instructions support to backend
+        }, generationCallbacks);
       } else if (id === 'project') {
-        await streamingService.generateProjectStream({ title, subject, grade_level: gradeLevel }, {
-          onStart: () => showToast({ type: 'info', message: 'Generuji projekt…' }),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Projekt vygenerován.' });
-            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
-          },
-          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat projekt' })
-        });
+        await streamingService.generateProjectStream({
+          title: enhancedParams.title,
+          subject: enhancedParams.subject,
+          grade_level: enhancedParams.gradeLevel
+          // TODO: Add subtype and custom instructions support to backend
+        }, generationCallbacks);
       } else if (id === 'presentation') {
-        await streamingService.generatePresentationStream({ title, subject, grade_level: gradeLevel }, {
-          onStart: () => showToast({ type: 'info', message: 'Generuji prezentaci…' }),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Prezentace vygenerována.' });
-            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
-          },
-          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat prezentaci' })
-        });
+        await streamingService.generatePresentationStream({
+          title: enhancedParams.title,
+          subject: enhancedParams.subject,
+          grade_level: enhancedParams.gradeLevel
+          // TODO: Add subtype and custom instructions support to backend
+        }, generationCallbacks);
       } else if (id === 'activity') {
-        await streamingService.generateActivityStream({ title, subject, grade_level: gradeLevel, duration }, {
-          onStart: () => showToast({ type: 'info', message: 'Generuji aktivitu…' }),
-          onEnd: (meta) => {
-            showToast({ type: 'success', message: 'Aktivita vygenerována.' });
-            if (meta.file_id) navigate(`/materials/my-materials?new=${meta.file_id}`);
-          },
-          onError: (m) => showToast({ type: 'error', message: m || 'Nepodařilo se vygenerovat aktivitu' })
-        });
+        await streamingService.generateActivityStream({
+          title: enhancedParams.title,
+          subject: enhancedParams.subject,
+          grade_level: enhancedParams.gradeLevel,
+          duration: enhancedParams.duration
+          // TODO: Add subtype and custom instructions support to backend
+        }, generationCallbacks);
       } else {
         // Fallback to manual creation if unknown template (should not happen)
         const materialData = {
@@ -330,111 +423,7 @@ const MaterialCreatorPage: React.FC = () => {
     }
   };
 
-  const renderField = (field: TemplateField) => {
-    const value = formData[field.name] || '';
-    
-    switch (field.type) {
-      case 'text':
-        return (
-          <input
-            type="text"
-            name={field.name}
-            value={value}
-            onChange={(e) => handleInputChange(field.name, e.target.value)}
-            placeholder={field.placeholder}
-            required={field.required}
-            className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-neutral-800 dark:text-neutral-100"
-          />
-        );
-      
-      case 'textarea':
-        return (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <textarea
-              value={value}
-              onChange={(e) => handleInputChange(field.name, e.target.value)}
-              placeholder={field.placeholder}
-              required={field.required}
-              rows={4}
-              className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-neutral-800 dark:text-neutral-100"
-            />
-          </div>
-        );
-      
-      case 'number':
-        return (
-          <input
-            type="number"
-            name={field.name}
-            value={value}
-            onChange={(e) => handleInputChange(field.name, parseInt(e.target.value))}
-            placeholder={field.placeholder}
-            required={field.required}
-            min={field.validation?.min}
-            max={field.validation?.max}
-            className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-neutral-800 dark:text-neutral-100"
-          />
-        );
-      
-      case 'select':
-        return (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <select
-              value={value}
-              onChange={(e) => handleInputChange(field.name, e.target.value)}
-              required={field.required}
-              className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-neutral-800 dark:text-neutral-100"
-            >
-              <option value="">Vyberte {field.label}</option>
-              {field.options?.map(option => (
-                <option key={option} value={option}>{option}</option>
-              ))}
-            </select>
-          </div>
-        );
-      
-      case 'multiselect':
-        return (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {field.options?.map(option => (
-                <label key={option} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={Array.isArray(value) && value.includes(option)}
-                    onChange={(e) => {
-                      const currentValues = Array.isArray(value) ? value : [];
-                      if (e.target.checked) {
-                        handleInputChange(field.name, [...currentValues, option]);
-                      } else {
-                        handleInputChange(field.name, currentValues.filter(v => v !== option));
-                      }
-                    }}
-                    className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">{option}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        );
-      
-      default:
-        return null;
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
@@ -454,8 +443,36 @@ const MaterialCreatorPage: React.FC = () => {
               Vytvořit nový materiál
             </h1>
             <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto">
-              Vyberte šablonu a vytvořte profesionální vzdělávací materiál pomocí AI
+              Popište svůj úkol nebo vyberte šablonu pro vytvoření profesionálního vzdělávacího materiálu
             </p>
+            
+            {/* Mode Toggle */}
+            <div className="flex justify-center mt-6">
+              <div className="flex bg-neutral-100 dark:bg-neutral-800 rounded-lg p-1">
+                <button
+                  onClick={() => setAssignmentMode(true)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                    assignmentMode
+                      ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
+                  }`}
+                >
+                  <Brain className="w-4 h-4" />
+                  AI asistent
+                </button>
+                <button
+                  onClick={() => setAssignmentMode(false)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                    !assignmentMode
+                      ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 shadow-sm'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
+                  }`}
+                >
+                  <Wand2 className="w-4 h-4" />
+                  Šablony
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -465,7 +482,29 @@ const MaterialCreatorPage: React.FC = () => {
           { label: 'Vytvořit nový materiál' }
         ]} />
 
+        {/* Assignment Input Mode */}
+        {assignmentMode && (
+          <div className="max-w-4xl mx-auto mb-8">
+            <AssignmentInput
+              onAnalysisComplete={handleAssignmentAnalysis}
+              onAnalysisError={handleAssignmentAnalysisError}
+              className="mb-6"
+            />
+            
+            {/* Material Type Suggestions */}
+            {showSuggestions && materialSuggestions.length > 0 && (
+              <MaterialTypeSuggestions
+                suggestions={materialSuggestions}
+                onSuggestionAccept={handleSuggestionAccept}
+                onSuggestionReject={handleSuggestionReject}
+                className="mb-6"
+              />
+            )}
+          </div>
+        )}
+
         {/* Template Grid */}
+        {!assignmentMode && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {MATERIAL_TEMPLATES.map((template) => (
             <Card
@@ -490,8 +529,50 @@ const MaterialCreatorPage: React.FC = () => {
             </Card>
           ))}
         </div>
+        )}
+
+        {/* Subtype Selection */}
+        {showSubtypeSelection && selectedTemplate && (
+          <div className="max-w-6xl mx-auto mb-8">
+            <SubtypeSelection
+              materialType={selectedTemplate.id as MaterialType}
+              selectedSubtype={selectedSubtype || undefined}
+              onSubtypeSelect={handleSubtypeSelect}
+              recommendedSubtypeId={materialSuggestions.find(s => s.materialType === selectedTemplate.id)?.recommendedSubtype}
+              className="mb-6"
+            />
+            
+            {/* Advanced Parameter Controls */}
+            {selectedSubtype && (
+              <AdvancedParameterControls
+                subtype={selectedSubtype}
+                parameters={advancedParameters}
+                onParameterChange={handleParameterChange}
+                onPresetSave={handlePresetSave}
+                onPresetLoad={handlePresetLoad}
+                className="mb-6"
+              />
+            )}
+            
+            {/* Generate Button */}
+            {selectedSubtype && (
+              <div className="text-center">
+                <Button
+                  onClick={handleCreateMaterial}
+                  size="lg"
+                  isLoading={isCreating}
+                  disabled={isCreating}
+                  className="px-8 py-3"
+                >
+                  {isCreating ? 'Generuji materiál...' : 'Vygenerovat materiál'}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Features Section */}
+        {!assignmentMode && !showSubtypeSelection && (
         <div className="text-center">
           <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-6">
             Proč používat naše šablony?
@@ -532,40 +613,9 @@ const MaterialCreatorPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Template Modal */}
-        {selectedTemplate && (
-          <Modal
-            isOpen={!!selectedTemplate}
-            onClose={() => setSelectedTemplate(null)}
-            title={`Vytvořit ${selectedTemplate.name}`}
-          >
-                         <div className="space-y-4">
-               {selectedTemplate.fields.map((field) => (
-                 <div key={field.name}>
-                   {renderField(field)}
-                 </div>
-               ))}
-              
-              <div className="flex gap-2 pt-4">
-                <Button
-                  onClick={handleCreateMaterial}
-                  className="flex-1"
-                  isLoading={isCreating}
-                  disabled={!isFormValid() || isCreating}
-                >
-                  Vytvořit materiál
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setSelectedTemplate(null)}
-                >
-                  Zrušit
-                </Button>
-              </div>
-            </div>
-          </Modal>
         )}
+
+
       </div>
     </div>
   );

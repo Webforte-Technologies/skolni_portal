@@ -1,8 +1,9 @@
 -- EduAI-Asistent Database Schema
 -- PostgreSQL database schema for the MVP
 
--- Enable UUID extension
+-- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "btree_gin";
 
 -- Schools table (must be created first due to foreign key reference)
 CREATE TABLE schools (

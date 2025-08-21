@@ -97,6 +97,7 @@ export interface ActivityData {
 export interface SSEStartMessage {
   type: 'start';
   message: string;
+  [key: string]: any; // Allow additional properties
 }
 
 export interface SSEChunkMessage {
@@ -106,8 +107,8 @@ export interface SSEChunkMessage {
 
 export interface SSEEndMessage {
   type: 'end';
-  file_id: string;
-  file_type: string;
+  file_id?: string;
+  file_type?: string;
   credits_used: number;
   credits_balance: number;
   [key: string]: any; // For the actual generated content (worksheet, lesson_plan, etc.)
@@ -118,7 +119,17 @@ export interface SSEErrorMessage {
   message: string;
 }
 
-export type SSEMessage = SSEStartMessage | SSEChunkMessage | SSEEndMessage | SSEErrorMessage;
+export interface SSEProgressMessage {
+  type: 'progress';
+  message: string;
+  current_step?: number;
+  total_steps?: number;
+  phase?: string;
+  current_material?: any;
+  completed_material?: any;
+}
+
+export type SSEMessage = SSEStartMessage | SSEChunkMessage | SSEEndMessage | SSEErrorMessage | SSEProgressMessage;
 
 // Time parsing utilities
 export const parseTimeToMinutes = (timeStr: string): number => {
