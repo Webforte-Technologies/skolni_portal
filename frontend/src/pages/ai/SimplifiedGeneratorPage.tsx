@@ -897,6 +897,104 @@ const SimplifiedGeneratorPage: React.FC = () => {
           });
           break;
 
+        case 'worksheet':
+          await streamingService.generateWorksheetStream(request.topic, {
+            onStart: () => {
+              setStreamContent('Generuji pracovní list...\n');
+              setGenerationProgress(20);
+            },
+            onChunk: (chunk) => setStreamContent(prev => prev + chunk),
+            onEnd: (meta) => {
+              if (meta.file_id) files.push(meta.file_id);
+              setGenerationProgress(60);
+            },
+            onError: (error) => showToast({ type: 'error', message: error })
+          }, { 
+            question_count: request.questionCount, 
+            difficulty: request.worksheetDifficulty, 
+            teaching_style: 'interactive' 
+          });
+          break;
+
+        case 'lesson':
+          await streamingService.generateLessonPlanStream({
+            title: request.topic,
+            subject: request.topic,
+            grade_level: request.gradeLevel
+          }, {
+            onStart: () => {
+              setStreamContent('Generuji plán hodiny...\n');
+              setGenerationProgress(20);
+            },
+            onChunk: (chunk) => setStreamContent(prev => prev + chunk),
+            onEnd: (meta) => {
+              if (meta.file_id) files.push(meta.file_id);
+              setGenerationProgress(60);
+            },
+            onError: (error) => showToast({ type: 'error', message: error })
+          });
+          break;
+
+        case 'project':
+          await streamingService.generateProjectStream({
+            title: request.topic,
+            subject: request.topic,
+            grade_level: request.gradeLevel
+          }, {
+            onStart: () => {
+              setStreamContent('Generuji projekt...\n');
+              setGenerationProgress(20);
+            },
+            onChunk: (chunk) => setStreamContent(prev => prev + chunk),
+            onEnd: (meta) => {
+              if (meta.file_id) files.push(meta.file_id);
+              setGenerationProgress(60);
+            },
+            onError: (error) => showToast({ type: 'error', message: error })
+          });
+          break;
+
+        case 'presentation':
+          await streamingService.generatePresentationStream({
+            title: request.topic,
+            subject: request.topic,
+            grade_level: request.gradeLevel,
+            slide_count: request.slideCount || 10
+          }, {
+            onStart: () => {
+              setStreamContent('Generuji prezentaci...\n');
+              setGenerationProgress(20);
+            },
+            onChunk: (chunk) => setStreamContent(prev => prev + chunk),
+            onEnd: (meta) => {
+              if (meta.file_id) files.push(meta.file_id);
+              setGenerationProgress(60);
+            },
+            onError: (error) => showToast({ type: 'error', message: error })
+          });
+          break;
+
+        case 'activity':
+          await streamingService.generateActivityStream({
+            title: request.topic,
+            subject: request.topic,
+            grade_level: request.gradeLevel,
+            activity_type: 'interactive',
+            group_size: 1
+          }, {
+            onStart: () => {
+              setStreamContent('Generuji aktivitu...\n');
+              setGenerationProgress(20);
+            },
+            onChunk: (chunk) => setStreamContent(prev => prev + chunk),
+            onEnd: (meta) => {
+              if (meta.file_id) files.push(meta.file_id);
+              setGenerationProgress(60);
+            },
+            onError: (error) => showToast({ type: 'error', message: error })
+          });
+          break;
+
         default:
           setStreamContent('Generuji materiál...\n');
           setGenerationProgress(40);
@@ -912,6 +1010,7 @@ const SimplifiedGeneratorPage: React.FC = () => {
       });
 
     } catch (error) {
+      console.error('Generation failed:', error);
       showToast({ type: 'error', message: 'Chyba při generování materiálů' });
       setCurrentStep('preview');
     } finally {

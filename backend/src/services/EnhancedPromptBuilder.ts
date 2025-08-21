@@ -285,7 +285,7 @@ Vrať JSON objekt s následující strukturou:
       "type": "multiple_choice|true_false|short_answer",
       "question": "Znění otázky",
       "options": ["možnosti pro multiple_choice"],
-      "answer": "správná odpověď"
+      "answer": "správná odpověď (pro true_false použij 'pravda' nebo 'nepravda')"
     }
   ],
   "tags": ["relevantní štítky"]

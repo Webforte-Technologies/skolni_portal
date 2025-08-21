@@ -65,20 +65,66 @@ PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
   "subject": "Předmět",
   "grade_level": "Ročník",
   "duration": "2 týdny",
-  "objectives": ["cíl 1", "cíl 2"],
+  "project_type": "výzkumný projekt",
+  "group_size": 1,
+  "objectives": ["cíl 1", "cíl 2", "cíl 3"],
   "description": "Stručné zadání projektu",
+  "phases": ["Přípravná fáze", "Realizační fáze", "Prezentační fáze"],
   "deliverables": ["co mají odevzdat"],
-  "rubric": [
-    { "criteria": "kritérium", "levels": ["výborné", "dobré", "dostačující", "nedostačující"] }
-  ]
+  "rubric": {
+    "criteria": [
+      {
+        "name": "Obsah",
+        "weight": 0.4,
+        "levels": ["Nedostatečný", "Dostatečný", "Dobrý", "Výborný"],
+        "descriptors": [
+          "Výborně (4): Obsah splněn na vysoké úrovni",
+          "Dobře (3): Obsah splněn s drobnými nedostatky",
+          "Dostatečně (2): Obsah splněn základně",
+          "Nedostatečně (1): Obsah nesplněn nebo s velkými nedostatky"
+        ]
+      },
+      {
+        "name": "Prezentace",
+        "weight": 0.3,
+        "levels": ["Nedostatečný", "Dostatečný", "Dobrý", "Výborný"],
+        "descriptors": [
+          "Výborně (4): Prezentace je jasná a profesionální",
+          "Dobře (3): Prezentace je srozumitelná",
+          "Dostatečně (2): Prezentace je základní",
+          "Nedostatečně (1): Prezentace není srozumitelná"
+        ]
+      },
+      {
+        "name": "Originalita",
+        "weight": 0.3,
+        "levels": ["Nedostatečný", "Dostatečný", "Dobrý", "Výborný"],
+        "descriptors": [
+          "Výborně (4): Vysoce originální přístup",
+          "Dobře (3): Originální prvky",
+          "Dostatečně (2): Základní originalita",
+          "Nedostatečně (1): Chybí originalita"
+        ]
+      }
+    ]
+  },
+  "timeline": {
+    "milestones": [
+      {"task": "Výběr tématu a plán", "week": 1},
+      {"task": "Výzkum a sběr dat", "week": 2}
+    ]
+  },
+  "tags": ["relevantní štítky"]
 }
 
 POŽADAVKY:
 - Vždy odpovídej česky
 - Zaměř se na praktické výstupy a hodnoticí kritéria
-- Výstup musí být platný JSON bez dalšího textu.`;
+- Výstup musí být platný JSON bez dalšího textu
+- Používej pouze uvozovky pro řetězce, ne kulaté závorky
+- Zajisti, že všechny JSON objekty jsou správně uzavřeny`;
 
-// Specialized system prompt for presentation outline generation
+// Specialized system prompt for presentation generation
 const PRESENTATION_SYSTEM_PROMPT = `Jsi zkušený český učitel. Vytvoř osnovu prezentace v čistém JSON formátu dle následující struktury a pravidel.
 
 PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
@@ -88,34 +134,48 @@ PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
   "subject": "Předmět",
   "grade_level": "Ročník",
   "slides": [
-    { "heading": "Nadpis snímku", "bullets": ["bod", "bod", "bod"] }
-  ]
+    {
+      "slideNumber": 1,
+      "heading": "Nadpis slidu",
+      "bullets": ["bod 1", "bod 2", "bod 3"],
+      "estimatedTime": "2 minuty",
+      "visualSuggestions": "Návrh vizuálního prvku",
+      "transitionSuggestion": "Návrh přechodu"
+    }
+  ],
+  "speakerNotes": "Poznámky pro přednášejícího",
+  "visualSuggestions": "Celkové návrhy vizuálních prvků",
+  "tags": ["štítek1", "štítek2"]
 }
 
-POŽADAVKY:
-- Vždy odpovídej česky
-- Použij jasné, krátké body
-- Výstup musí být platný JSON bez dalšího textu.`;
+DŮLEŽITÉ: Používej pouze složené závorky {} a ne kulaté závorky (). Každý slide musí být kompletní objekt.`;
 
 // Specialized system prompt for classroom activity generation
-const ACTIVITY_SYSTEM_PROMPT = `Jsi zkušený český učitel. Vytvoř krátkou aktivitu do hodiny v čistém JSON formátu dle následující struktury a pravidel.
+const ACTIVITY_SYSTEM_PROMPT = `Jsi zkušený český učitel. Vytvoř strukturu aktivity v čistém JSON formátu dle následující struktury a pravidel.
 
 PRAVIDLA A STRUKTURA (pouze JSON, žádný další text):
 {
+  "template": "activity",
   "title": "Název aktivity",
   "subject": "Předmět",
   "grade_level": "Ročník",
-  "duration": "15 min",
+  "duration": "Délka aktivity",
   "goal": "Cíl aktivity",
-  "instructions": ["krok 1", "krok 2"],
-  "materials": ["potřebné materiály"],
-  "variation": "Jak upravit aktivitu"
+  "instructions": ["Krok 1", "Krok 2", "Krok 3"],
+  "materials": ["materiál 1", "materiál 2"],
+  "group_size": 4,
+  "assessment_criteria": ["Kritérium 1", "Kritérium 2"],
+  "variation": "Varianta pro různé úrovně",
+  "safety_notes": "Bezpečnostní poznámky",
+  "structuredInstructions": {
+    "preparation": ["Příprava 1", "Příprava 2"],
+    "execution": ["Provedení 1", "Provedení 2"],
+    "conclusion": ["Závěr 1", "Závěr 2"]
+  },
+  "tags": ["štítek1", "štítek2"]
 }
 
-POŽADAVKY:
-- Vždy odpovídej česky
-- Zaměř se na praktické aktivity
-- Výstup musí být platný JSON bez dalšího textu.`;
+DŮLEŽITÉ: Používej pouze složené závorky {} a ne kulaté závorky (). Každá sekce musí být kompletní objekt.`;
 
 // Read constants to satisfy TS noUnusedLocals in dev if routes are temporarily disabled
 void PROJECT_SYSTEM_PROMPT;
@@ -165,12 +225,31 @@ function deriveTags(...parts: Array<string | undefined>): string[] {
 
 // Utility function to send SSE messages
 function sendSSEMessage(res: Response, message: SSEMessage): void {
-  res.write(`data: ${JSON.stringify(message)}\n\n`);
+  try {
+    const jsonString = JSON.stringify(message);
+    res.write(`data: ${jsonString}\n\n`);
+  } catch (error) {
+    console.error('Failed to stringify SSE message:', error);
+    // Send a safe error message instead
+    res.write(`data: {"type":"error","message":"Failed to send message due to encoding error"}\n\n`);
+  }
 }
 
-// Utility function to escape content for SSE
+// Utility function to escape content for SSE - improved to handle all JSON-breaking characters
 function escapeSSEContent(content: string): string {
-  return content.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+  if (!content || typeof content !== 'string') {
+    return '';
+  }
+  
+  // More comprehensive escaping for JSON content
+  return content
+    .replace(/\\/g, '\\\\')  // Escape backslashes first
+    .replace(/"/g, '\\"')    // Escape quotes
+    .replace(/\n/g, '\\n')   // Escape newlines
+    .replace(/\r/g, '\\r')   // Escape carriage returns
+    .replace(/\t/g, '\\t')   // Escape tabs
+    .replace(/\f/g, '\\f')   // Escape form feeds
+    .replace(/\b/g, '\\b');  // Escape backspace
 }
 
 
@@ -583,12 +662,26 @@ router.post('/generate-worksheet', authenticateToken, [
     });
 
     let fullResponse = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        fullResponse += content;
-        sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+    try {
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          fullResponse += content;
+          sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+        }
       }
+    } catch (streamError) {
+      console.error('OpenAI streaming error:', streamError);
+      sendSSEMessage(res, { type: 'error', message: 'Failed to receive AI response. Please try again.' });
+      res.end();
+      return;
+    }
+
+    // Check if we received any content
+    if (!fullResponse.trim()) {
+      sendSSEMessage(res, { type: 'error', message: 'No content received from AI. Please try again.' });
+      res.end();
+      return;
     }
 
     // Parse and validate JSON response
@@ -892,12 +985,26 @@ PREFEROVANÉ METODY: ${userInputs.teaching_methods.join(', ')}`;
     });
 
     let fullResponse = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        fullResponse += content;
-        sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+    try {
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          fullResponse += content;
+          sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+        }
       }
+    } catch (streamError) {
+      console.error('OpenAI streaming error:', streamError);
+      sendSSEMessage(res, { type: 'error', message: 'Failed to receive AI response. Please try again.' });
+      res.end();
+      return;
+    }
+
+    // Check if we received any content
+    if (!fullResponse.trim()) {
+      sendSSEMessage(res, { type: 'error', message: 'No content received from AI. Please try again.' });
+      res.end();
+      return;
     }
 
     // Parse and validate JSON response with enhanced validation
@@ -909,8 +1016,8 @@ PREFEROVANÉ METODY: ${userInputs.teaching_methods.join(', ')}`;
       // Additional validation for enhanced lesson plans
       if (Array.isArray(validatedData.activities)) {
         validatedData.activities.forEach((activity: any, index: number) => {
-          if (!activity.outcome) {
-            throw new Error(`Activity ${index + 1}: Missing expected outcome`);
+          if (!activity.name || !activity.description || !activity.steps || !activity.time) {
+            throw new Error(`Activity ${index + 1}: Missing required fields (name, description, steps, or time)`);
           }
         });
       }
@@ -930,13 +1037,39 @@ PREFEROVANÉ METODY: ${userInputs.teaching_methods.join(', ')}`;
         sendSSEMessage(res, { type: 'chunk', content: `Content validation warnings: ${validationResult.suggestions.join(', ')}\n` });
       }
 
-      const structuredContent = contentStructurer.structureContent(validatedData, 'lesson-plan', subtype as any);
-      validatedData = structuredContent as unknown as LessonPlanData;
+      const structuredContentResult = contentStructurer.structureContent(validatedData, 'lesson-plan', subtype as any);
+      validatedData = structuredContentResult.structuredContent as LessonPlanData;
+      
+      // Debug: Log the data structure after content structuring
+      console.log('Data after content structuring:', {
+        hasActivities: !!validatedData.activities,
+        activitiesType: typeof validatedData.activities,
+        activitiesLength: Array.isArray(validatedData.activities) ? validatedData.activities.length : 'N/A',
+        hasDuration: !!validatedData.duration,
+        durationValue: validatedData.duration
+      });
+      
+      // Additional safety check after content structuring
+      if (!validatedData || typeof validatedData !== 'object') {
+        throw new Error('Content structuring failed - invalid data structure returned');
+      }
     } catch (validationError) {
       console.error('Content validation/structuring failed:', validationError);
       sendSSEMessage(res, { type: 'chunk', content: 'Content validation completed with warnings...\n' });
     }
 
+    // Additional validation before saving
+    if (!validatedData.title || !validatedData.activities || !validatedData.duration) {
+      console.error('Missing required fields after content structuring:', {
+        hasTitle: !!validatedData.title,
+        hasActivities: !!validatedData.activities,
+        hasDuration: !!validatedData.duration
+      });
+      sendSSEMessage(res, { type: 'error', message: 'Generated lesson plan is missing required fields' });
+      res.end();
+      return;
+    }
+    
     // Save the generated file to the database
     let savedFile: any;
     try {
@@ -997,10 +1130,24 @@ PREFEROVANÉ METODY: ${userInputs.teaching_methods.join(', ')}`;
     const updatedUser = await UserModel.findById(req.user.id);
 
     // Calculate timing validation metrics
+    if (!validatedData.activities || !Array.isArray(validatedData.activities)) {
+      console.error('Activities array is missing or invalid after content structuring');
+      sendSSEMessage(res, { type: 'error', message: 'Generated lesson plan is missing activities' });
+      res.end();
+      return;
+    }
+    
     const totalActivityTime = validatedData.activities.reduce((sum, activity) => {
       const match = /(\d+)\s*min/.exec(activity.time || '');
       return sum + (match && match[1] ? parseInt(match[1]) : 0);
     }, 0);
+    
+    if (!validatedData.duration) {
+      console.error('Duration field is missing after content structuring');
+      sendSSEMessage(res, { type: 'error', message: 'Generated lesson plan is missing duration' });
+      res.end();
+      return;
+    }
     
     const targetTime = /(\d+)\s*min/.exec(validatedData.duration || '');
     const timingAccuracy = targetTime && targetTime[1] ? (totalActivityTime / parseInt(targetTime[1])) : 1;
@@ -1195,15 +1342,29 @@ router.post('/generate-batch', authenticateToken, [
         });
 
         let fullResponse = '';
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content;
-          if (content) {
-            fullResponse += content;
-            // Send abbreviated chunks for batch generation to avoid overwhelming the client
-            if (fullResponse.length % 200 === 0) {
-              sendSSEMessage(res, { type: 'chunk', content: '.' });
+        try {
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content;
+            if (content) {
+              fullResponse += content;
+              // Send abbreviated chunks for batch generation to avoid overwhelming the client
+              if (fullResponse.length % 200 === 0) {
+                sendSSEMessage(res, { type: 'chunk', content: '.' });
+              }
             }
           }
+        } catch (streamError) {
+          console.error('OpenAI streaming error:', streamError);
+          sendSSEMessage(res, { type: 'error', message: 'Failed to receive AI response. Please try again.' });
+          res.end();
+          return;
+        }
+
+        // Check if we received any content
+        if (!fullResponse.trim()) {
+          sendSSEMessage(res, { type: 'error', message: 'No content received from AI. Please try again.' });
+          res.end();
+          return;
         }
 
         // Validate and structure content
@@ -1236,8 +1397,8 @@ router.post('/generate-batch', authenticateToken, [
           }
 
           contentValidator.validateContent(validatedData, material.type as any);
-          const structuredContent = contentStructurer.structureContent(validatedData, material.type as any, subtype as any);
-          validatedData = structuredContent;
+          const structuredContentResult = contentStructurer.structureContent(validatedData, material.type as any, subtype as any);
+          validatedData = structuredContentResult.structuredContent;
 
         } catch (parseError) {
           batchErrors.push(`Material ${materialNumber} (${material.type}): Failed to parse or validate content`);
@@ -1538,18 +1699,36 @@ ${prompt_hint ? `DODATEČNÉ POKYNY: ${prompt_hint}` : ''}`;
     });
 
     let fullResponse = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        fullResponse += content;
-        sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+    try {
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          fullResponse += content;
+          sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+        }
       }
+    } catch (streamError) {
+      console.error('OpenAI streaming error:', streamError);
+      sendSSEMessage(res, { type: 'error', message: 'Failed to receive AI response. Please try again.' });
+      res.end();
+      return;
+    }
+
+    // Check if we received any content
+    if (!fullResponse.trim()) {
+      sendSSEMessage(res, { type: 'error', message: 'No content received from AI. Please try again.' });
+      res.end();
+      return;
     }
 
     // Parse and validate JSON response
     let validatedData: QuizData;
     try {
       const parsedData = JSON.parse(fullResponse);
+      
+      // Debug: Log the parsed data to see what the AI is returning
+      console.log('Parsed quiz data:', JSON.stringify(parsedData, null, 2));
+      
       validatedData = validateQuiz(parsedData);
     } catch (parseError) {
       console.error('Failed to parse quiz JSON:', parseError);
@@ -1567,8 +1746,15 @@ ${prompt_hint ? `DODATEČNÉ POKYNY: ${prompt_hint}` : ''}`;
         sendSSEMessage(res, { type: 'chunk', content: `Content validation warnings: ${validationResult.suggestions.join(', ')}\n` });
       }
 
-      const structuredContent = contentStructurer.structureContent(validatedData, 'quiz', subtype as any);
-      validatedData = structuredContent as unknown as QuizData;
+      const structuredContentResult = contentStructurer.structureContent(validatedData, 'quiz', subtype as any);
+      validatedData = structuredContentResult.structuredContent as QuizData;
+      
+      // Debug: Log the data structure after content structuring
+      console.log('Quiz data after content structuring:', {
+        hasQuestions: !!validatedData.questions,
+        questionsType: typeof validatedData.questions,
+        questionsLength: Array.isArray(validatedData.questions) ? validatedData.questions.length : 'N/A'
+      });
     } catch (validationError) {
       console.error('Content validation/structuring failed:', validationError);
       sendSSEMessage(res, { type: 'chunk', content: 'Content validation completed with warnings...\n' });
@@ -1634,6 +1820,11 @@ ${prompt_hint ? `DODATEČNÉ POKYNY: ${prompt_hint}` : ''}`;
     const updatedUser = await UserModel.findById(req.user.id);
 
     // Calculate quality metrics
+    if (!validatedData.questions || !Array.isArray(validatedData.questions)) {
+      console.error('Invalid quiz data structure - questions array is missing or invalid:', validatedData);
+      throw new Error('Quiz data structure is invalid - questions array is missing');
+    }
+    
     const questionTypeDistribution = validatedData.questions.reduce((acc: any, q) => {
       acc[q.type] = (acc[q.type] || 0) + 1;
       return acc;
@@ -1668,21 +1859,96 @@ ${prompt_hint ? `DODATEČNÉ POKYNY: ${prompt_hint}` : ''}`;
   }
 });
 
-// Generate project (streaming) with enhanced assignment analysis and specialized validation
+// Utility function to construct a basic project structure from malformed AI response
+function constructBasicProjectStructure(rawResponse: string): string {
+  console.log('Constructing basic project structure from raw response');
+  
+  // Extract basic information using regex patterns
+  const titleMatch = rawResponse.match(/"title":\s*"([^"]+)"/) || rawResponse.match(/title[:\s]+([^\n,]+)/i);
+  const subjectMatch = rawResponse.match(/"subject":\s*"([^"]+)"/) || rawResponse.match(/subject[:\s]+([^\n,]+)/i);
+  const gradeMatch = rawResponse.match(/"grade_level":\s*"([^"]+)"/) || rawResponse.match(/grade[:\s]+([^\n,]+)/i);
+  const durationMatch = rawResponse.match(/"duration":\s*"([^"]+)"/) || rawResponse.match(/duration[:\s]+([^\n,]+)/i);
+  
+  // Extract objectives
+  const objectivesMatch = rawResponse.match(/"objectives":\s*\[([^\]]+)\]/) || rawResponse.match(/objectives[:\s]+([^\n]+)/i);
+  let objectives: string[] = [];
+  if (objectivesMatch && objectivesMatch[1]) {
+    objectives = objectivesMatch[1].split(',').map(obj => obj.trim().replace(/"/g, ''));
+  }
+  
+  // Extract description
+  const descriptionMatch = rawResponse.match(/"description":\s*"([^"]+)"/) || rawResponse.match(/description[:\s]+([^\n]+)/i);
+  
+  // Extract phases
+  const phasesMatch = rawResponse.match(/"phases":\s*\[([^\]]+)\]/) || rawResponse.match(/phases[:\s]+([^\n]+)/i);
+  let phases: string[] = [];
+  if (phasesMatch && phasesMatch[1]) {
+    phases = phasesMatch[1].split(',').map(phase => phase.trim().replace(/"/g, ''));
+  }
+  
+  // Extract deliverables
+  const deliverablesMatch = rawResponse.match(/"deliverables":\s*\[([^\]]+)\]/) || rawResponse.match(/deliverables[:\s]+([^\n]+)/i);
+  let deliverables: string[] = [];
+  if (deliverablesMatch && deliverablesMatch[1]) {
+    deliverables = deliverablesMatch[1].split(',').map(del => del.trim().replace(/"/g, ''));
+  }
+  
+  // Construct basic structure
+  const basicStructure = {
+    title: titleMatch && titleMatch[1] ? titleMatch[1].trim() : "Generated Project",
+    subject: subjectMatch && subjectMatch[1] ? subjectMatch[1].trim() : "General",
+    grade_level: gradeMatch && gradeMatch[1] ? gradeMatch[1].trim() : "7. třída ZŠ",
+    duration: durationMatch && durationMatch[1] ? durationMatch[1].trim() : "2 týdny",
+    project_type: "výzkumný projekt",
+    group_size: 1,
+    objectives: objectives.length > 0 ? objectives : ["Cíle projektu budou specifikovány"],
+    description: descriptionMatch && descriptionMatch[1] ? descriptionMatch[1].trim() : "Projekt byl generován s základní strukturou.",
+    phases: phases.length > 0 ? phases : ["Přípravná fáze", "Realizační fáze", "Prezentační fáze"],
+    deliverables: deliverables.length > 0 ? deliverables : ["Písemná práce", "Prezentace"],
+    rubric: {
+      criteria: [
+        {
+          name: "Obsah",
+          weight: 0.4,
+          levels: ["Nedostatečný", "Dostatečný", "Dobrý", "Výborný"]
+        },
+        {
+          name: "Prezentace",
+          weight: 0.3,
+          levels: ["Nedostatečný", "Dostatečný", "Dobrý", "Výborný"]
+        },
+        {
+          name: "Originalita",
+          weight: 0.3,
+          levels: ["Nedostatečný", "Dostatečný", "Dobrý", "Výborný"]
+        }
+      ]
+    },
+    timeline: {
+      milestones: [
+        { task: "Příprava a plánování", week: 1 },
+        { task: "Výzkum a sběr dat", week: 2 }
+      ]
+    },
+    tags: [
+      titleMatch && titleMatch[1] ? titleMatch[1].trim() : "projekt", 
+      subjectMatch && subjectMatch[1] ? subjectMatch[1].trim() : "obecný"
+    ]
+  };
+  
+  return JSON.stringify(basicStructure);
+}
+
+// Generate project (streaming) with enhanced assignment analysis and visual suggestions
 router.post('/generate-project', authenticateToken, [
   body('title').optional().isLength({ min: 3, max: 200 }),
   body('subject').optional().isLength({ min: 2, max: 100 }),
   body('grade_level').optional().isLength({ min: 2, max: 100 }),
   body('assignment_description').optional().trim().isLength({ min: 10, max: 1000 }),
   body('subtype_id').optional().isUUID(),
-  body('duration').optional().isString(),
-  body('project_type').optional().isString(),
-  body('group_size').optional().isInt({ min: 1, max: 10 }),
-  body('assessment_criteria').optional().isArray(),
-  body('quality_level').optional().isIn(['základní', 'standardní', 'vysoká', 'expertní']),
-  body('custom_instructions').optional().isString().isLength({ max: 500 })
+
 ], async (req: RequestWithUser, res: Response) => {
-  const { title, subject, grade_level, assignment_description, subtype_id, duration, project_type, group_size, assessment_criteria, quality_level, custom_instructions } = req.body;
+  const { title, subject, grade_level, assignment_description, subtype_id } = req.body;
   
   try {
     const errors = validationResult(req);
@@ -1715,13 +1981,11 @@ router.post('/generate-project', authenticateToken, [
 
     // Initialize services
     const { AssignmentAnalyzer } = await import('../services/AssignmentAnalyzer');
-    const { EnhancedPromptBuilder } = await import('../services/EnhancedPromptBuilder');
     const { ContentValidator } = await import('../services/ContentValidator');
     const { ContentStructurer } = await import('../services/ContentStructurer');
     const { MaterialSubtypeModel } = await import('../models/MaterialSubtype');
 
     const assignmentAnalyzer = new AssignmentAnalyzer();
-    const promptBuilder = new EnhancedPromptBuilder();
     const contentValidator = new ContentValidator();
     const contentStructurer = new ContentStructurer();
     const subtypeModel = new MaterialSubtypeModel();
@@ -1751,31 +2015,20 @@ router.post('/generate-project', authenticateToken, [
       }
     }
 
-    const userInputs = {
-      title: title || (assignmentAnalysis ? `Projekt: ${assignmentAnalysis.keyTopics.slice(0, 2).join(' a ')}` : ''),
-      subject: subject || assignmentAnalysis?.subject,
-      grade_level: grade_level || assignmentAnalysis?.gradeLevel,
-      duration: duration || assignmentAnalysis?.estimatedDuration || '2 týdny',
-      project_type: project_type || 'výzkumný projekt',
-      group_size: group_size || 1,
-      assessment_criteria: assessment_criteria || ['obsah', 'prezentace', 'originalita', 'zpracování']
-    };
 
-    const enhancedPrompt = await promptBuilder.buildPrompt({
-      materialType: 'project',
-      subtype: subtype as any,
-      assignment: assignmentAnalysis as any,
-      userInputs,
-      qualityLevel: quality_level || 'standardní',
-      customInstructions: custom_instructions
-    });
 
     sendSSEMessage(res, { type: 'chunk', content: 'Generating project content...\n' });
+
+    // Add timeout for the streaming
+    const streamTimeout = setTimeout(() => {
+      sendSSEMessage(res, { type: 'error', message: 'Generation timed out. Please try again.' });
+      res.end();
+    }, 120000); // 2 minutes timeout
 
     const stream = await openai.chat.completions.create({
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: enhancedPrompt },
+        { role: 'system', content: PROJECT_SYSTEM_PROMPT },
         { role: 'user', content: assignment_description || `Vytvoř projekt${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}` }
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '3000'),
@@ -1784,20 +2037,111 @@ router.post('/generate-project', authenticateToken, [
     });
 
     let fullResponse = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        fullResponse += content;
-        sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+    try {
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          fullResponse += content;
+          sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+        }
+      }
+      // Clear timeout on successful completion
+      clearTimeout(streamTimeout);
+    } catch (streamError) {
+      clearTimeout(streamTimeout);
+      console.error('OpenAI streaming error:', streamError);
+      sendSSEMessage(res, { type: 'error', message: 'Failed to receive AI response. Please try again.' });
+      res.end();
+      return;
+    }
+
+    // Check if we received any content
+    if (!fullResponse.trim()) {
+      sendSSEMessage(res, { type: 'error', message: 'No content received from AI. Please try again.' });
+      res.end();
+      return;
+    }
+
+    // Try to clean the response before parsing
+    let cleanedResponse = fullResponse.trim();
+    
+    // Log the original response for debugging
+    console.log('Original AI response:', fullResponse);
+    
+    // Fix common AI formatting issues
+    cleanedResponse = cleanedResponse
+      // Replace common AI formatting mistakes
+      .replace(/\(\s*"([^"]+)":/g, '{"$1":')  // Fix ( "key": to {"key":
+      .replace(/,\s*\)/g, '}')                 // Fix trailing ,) to }
+      .replace(/\(\s*\)/g, '{}')               // Fix empty () to {}
+      .replace(/\(\s*"([^"]+)":\s*"([^"]*)"\s*\)/g, '{"$1":"$2"}')  // Fix simple ( "key":"value" ) to {"key":"value"}
+      
+      // Fix incomplete JSON structures
+      .replace(/,\s*$/g, '')                   // Remove trailing commas
+      .replace(/,\s*\)/g, '}')                 // Fix ,) to }
+      .replace(/,\s*]/g, ']')                  // Fix ,] to ]
+      
+      // Fix common array formatting issues
+      .replace(/\(\s*"([^"]+)"/g, '["$1"')    // Fix ( "item" to ["item"
+      .replace(/"\s*\)/g, '"]')                // Fix "item" ) to "item"]
+      
+      // Fix incomplete object structures
+      .replace(/\(\s*"([^"]+)":\s*\[/g, '{"$1":[')  // Fix ( "key": [ to {"key":[
+      .replace(/\]\s*\)/g, ']}')                     // Fix ] ) to ]}
+      
+      // Fix incomplete milestone structures
+      .replace(/\(\s*"task":\s*"([^"]+)",\s*"week":\s*(\d+)/g, '{"task":"$1","week":$2}')
+      .replace(/\(\s*"task":\s*"([^"]+)"/g, '{"task":"$1"}')
+      
+      // Fix incomplete criteria structures
+      .replace(/\(\s*"levels":\s*\[([^\]]+)\],\s*"weight":\s*([^,]+),\s*"criteria":\s*"([^"]+)"/g, '{"levels":[$1],"weight":$2,"criteria":"$3"')
+      .replace(/\(\s*"levels":\s*\[([^\]]+)\]/g, '{"levels":[$1]')
+      
+      // Remove any remaining standalone parentheses
+      .replace(/\(\s*([^)]*)\s*\)/g, '$1')
+      
+      // Ensure proper JSON structure
+      .trim();
+    
+    // If the response doesn't start with {, try to find the first {
+    if (!cleanedResponse.startsWith('{')) {
+      const firstBraceIndex = cleanedResponse.indexOf('{');
+      if (firstBraceIndex !== -1) {
+        cleanedResponse = cleanedResponse.substring(firstBraceIndex);
+      } else {
+        // If no { found, try to construct a basic structure
+        console.log('No JSON structure found, attempting to construct basic project structure');
+        cleanedResponse = constructBasicProjectStructure(fullResponse);
       }
     }
+    
+    // If the response doesn't end with }, try to find the last }
+    if (!cleanedResponse.endsWith('}')) {
+      const lastBraceIndex = cleanedResponse.lastIndexOf('}');
+      if (lastBraceIndex !== -1) {
+        cleanedResponse = cleanedResponse.substring(0, lastBraceIndex + 1);
+      }
+    }
+    
+    // Final cleanup - remove any remaining malformed structures
+    cleanedResponse = cleanedResponse
+      .replace(/,\s*}/g, '}')                  // Remove trailing commas before }
+      .replace(/,\s*]/g, ']')                  // Remove trailing commas before ]
+      .replace(/,\s*$/g, '')                   // Remove trailing commas at end
+      .replace(/}\s*,\s*$/g, '}')             // Remove trailing ,} at end
+      .replace(/]\s*,\s*$/g, ']');            // Remove trailing ,] at end
+    
+    console.log('Cleaned response:', cleanedResponse);
 
     let validatedData: ProjectData;
     try {
-      const parsedData = JSON.parse(fullResponse);
+      const parsedData = JSON.parse(cleanedResponse);
       validatedData = validateProject(parsedData);
     } catch (parseError) {
-      sendSSEMessage(res, { type: 'error', message: 'The AI response could not be parsed as a valid project.' });
+      console.error('Failed to parse project JSON:', parseError);
+      console.error('Original response:', fullResponse);
+      console.error('Cleaned response:', cleanedResponse);
+      sendSSEMessage(res, { type: 'error', message: 'The AI response could not be parsed as a valid project. Please try again.' });
       res.end();
       return;
     }
@@ -1805,8 +2149,8 @@ router.post('/generate-project', authenticateToken, [
     // Validate and structure content
     try {
       contentValidator.validateContent(validatedData, 'project');
-      const structuredContent = contentStructurer.structureContent(validatedData, 'project', subtype as any);
-      validatedData = structuredContent as unknown as ProjectData;
+      const structuredContentResult = contentStructurer.structureContent(validatedData, 'project', subtype as any);
+      validatedData = structuredContentResult.structuredContent as ProjectData;
     } catch (validationError) {
       console.error('Content validation/structuring failed:', validationError);
       sendSSEMessage(res, { type: 'chunk', content: 'Content validation completed with warnings...\n' });
@@ -1843,20 +2187,20 @@ router.post('/generate-project', authenticateToken, [
 
       const enhancedMetadata = {
         raw: fullResponse,
-        prompt: enhancedPrompt,
+        prompt: PROJECT_SYSTEM_PROMPT,
         assignmentAnalysis: assignmentAnalysis || null,
         subtype: subtype || null,
-        qualityLevel: quality_level || 'standardní',
+        qualityLevel: 'standardní',
         generationParameters: {
           promptVersion: '2.0-enhanced-project',
           modelUsed: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
           temperature: parseFloat(process.env['OPENAI_TEMPERATURE_MATERIALS'] || '0.3'),
           maxTokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '3000'),
-          customInstructions: custom_instructions || null,
+          customInstructions: null,
           subtypeModifications: subtype?.promptModifications || null,
-          projectType: project_type,
-          groupSize: group_size,
-          assessmentCriteria: assessment_criteria
+          projectType: 'výzkumný projekt',
+          groupSize: 1,
+          assessmentCriteria: ['obsah', 'prezentace', 'originalita', 'zpracování']
         }
       };
 
@@ -1936,13 +2280,11 @@ router.post('/generate-presentation', authenticateToken, [
 
     // Initialize services
     const { AssignmentAnalyzer } = await import('../services/AssignmentAnalyzer');
-    const { EnhancedPromptBuilder } = await import('../services/EnhancedPromptBuilder');
     const { ContentValidator } = await import('../services/ContentValidator');
     const { ContentStructurer } = await import('../services/ContentStructurer');
     const { MaterialSubtypeModel } = await import('../models/MaterialSubtype');
 
     const assignmentAnalyzer = new AssignmentAnalyzer();
-    const promptBuilder = new EnhancedPromptBuilder();
     const contentValidator = new ContentValidator();
     const contentStructurer = new ContentStructurer();
     const subtypeModel = new MaterialSubtypeModel();
@@ -1972,30 +2314,14 @@ router.post('/generate-presentation', authenticateToken, [
       }
     }
 
-    const userInputs = {
-      title: title || (assignmentAnalysis ? assignmentAnalysis.keyTopics.slice(0, 2).join(' - ') : ''),
-      subject: subject || assignmentAnalysis?.subject,
-      grade_level: grade_level || assignmentAnalysis?.gradeLevel,
-      slide_count: slide_count || 12,
-      presentation_style: presentation_style || 'vzdělávací',
-      target_audience: target_audience || 'studenti'
-    };
 
-    const enhancedPrompt = await promptBuilder.buildPrompt({
-      materialType: 'presentation',
-      subtype: subtype as any,
-      assignment: assignmentAnalysis as any,
-      userInputs,
-      qualityLevel: quality_level || 'standardní',
-      customInstructions: custom_instructions
-    });
 
     sendSSEMessage(res, { type: 'chunk', content: 'Generating presentation content...\n' });
 
     const stream = await openai.chat.completions.create({
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: enhancedPrompt },
+        { role: 'system', content: PRESENTATION_SYSTEM_PROMPT },
         { role: 'user', content: assignment_description || `Vytvoř osnovu prezentace${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}` }
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2500'),
@@ -2004,29 +2330,84 @@ router.post('/generate-presentation', authenticateToken, [
     });
 
     let fullResponse = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        fullResponse += content;
-        sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
-      }
-    }
-
-    let validatedData: PresentationData;
     try {
-      const parsedData = JSON.parse(fullResponse);
-      validatedData = validatePresentation(parsedData);
-    } catch (parseError) {
-      sendSSEMessage(res, { type: 'error', message: 'The AI response could not be parsed as a valid presentation.' });
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          fullResponse += content;
+          sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+        }
+      }
+    } catch (streamError) {
+      console.error('OpenAI streaming error:', streamError);
+      sendSSEMessage(res, { type: 'error', message: 'Failed to receive AI response. Please try again.' });
       res.end();
       return;
+    }
+
+    // Check if we received any content
+    if (!fullResponse.trim()) {
+      sendSSEMessage(res, { type: 'error', message: 'No content received from AI. Please try again.' });
+      res.end();
+      return;
+    }
+
+    // Try to clean the response before parsing
+    let cleanedResponse = fullResponse.trim();
+    
+    // Log the original response for debugging
+    console.log('Original AI response:', fullResponse);
+    
+    // Fix common AI formatting issues
+    cleanedResponse = cleanedResponse
+      // Replace common AI formatting mistakes
+      .replace(/\(\s*"([^"]+)":/g, '{"$1":')  // Fix ( "key": to {"key":
+      .replace(/,\s*\)/g, '}')                 // Fix trailing ,) to }
+      .replace(/\(\s*\)/g, '{}')               // Fix empty () to {}
+      .replace(/\(\s*"([^"]+)":\s*"([^"]*)"\s*\)/g, '{"$1":"$2"}')  // Fix simple ( "key":"value" ) to {"key":"value"}
+      
+      // Fix incomplete JSON structures
+      .replace(/,\s*$/g, '')                   // Remove trailing commas
+      .replace(/,\s*\)/g, '}')                 // Fix ,) to }
+      .replace(/,\s*]/g, ']')                  // Fix ,] to ]
+      
+      // Fix slide array formatting
+      .replace(/\(\s*"([^"]+)":\s*\[/g, '{"$1":[')  // Fix ( "slides": [ to {"slides": [
+      .replace(/\]\s*\)/g, ']}')               // Fix ] ) to ]}
+      
+      // Fix individual slide formatting
+      .replace(/\(\s*"([^"]+)":\s*"([^"]*)"\s*,\s*"([^"]+)":\s*\[/g, '{"$1":"$2","$3":[')  // Fix slide object formatting
+      
+      // Ensure proper JSON structure
+      .replace(/^\s*\(\s*/, '{')               // Fix starting ( to {
+      .replace(/\s*\)\s*$/, '}')              // Fix ending ) to }
+
+    // Try to parse the cleaned response
+    let validatedData: PresentationData;
+    try {
+      const parsedData = JSON.parse(cleanedResponse);
+      validatedData = validatePresentation(parsedData);
+    } catch (parseError) {
+      console.error('Failed to parse cleaned response:', parseError);
+      console.log('Cleaned response:', cleanedResponse);
+      
+      // Try to construct a basic presentation structure from the raw response
+      try {
+        const basicStructure = constructBasicPresentationStructure(fullResponse);
+        validatedData = validatePresentation(basicStructure);
+      } catch (fallbackError) {
+        console.error('Fallback structure construction failed:', fallbackError);
+        sendSSEMessage(res, { type: 'error', message: 'The AI response could not be parsed as a valid presentation. Please try again.' });
+        res.end();
+        return;
+      }
     }
 
     // Validate and structure content
     try {
       contentValidator.validateContent(validatedData, 'presentation');
-      const structuredContent = contentStructurer.structureContent(validatedData, 'presentation', subtype as any);
-      validatedData = structuredContent as unknown as PresentationData;
+      const structuredContentResult = contentStructurer.structureContent(validatedData, 'presentation', subtype as any);
+      validatedData = structuredContentResult.structuredContent as PresentationData;
     } catch (validationError) {
       console.error('Content validation/structuring failed:', validationError);
       sendSSEMessage(res, { type: 'chunk', content: 'Content validation completed with warnings...\n' });
@@ -2058,12 +2439,12 @@ router.post('/generate-presentation', authenticateToken, [
             assignmentAnalysis?.gradeLevel || validatedData.grade_level,
             title || assignment_description,
             assignmentAnalysis?.difficulty,
-            'prezentace'
-          );
+                      'prezentace'
+        );
 
       const enhancedMetadata = {
         raw: fullResponse,
-        prompt: enhancedPrompt,
+        prompt: PRESENTATION_SYSTEM_PROMPT,
         assignmentAnalysis: assignmentAnalysis || null,
         subtype: subtype || null,
         qualityLevel: quality_level || 'standardní',
@@ -2157,13 +2538,11 @@ router.post('/generate-activity', authenticateToken, [
 
     // Initialize services
     const { AssignmentAnalyzer } = await import('../services/AssignmentAnalyzer');
-    const { EnhancedPromptBuilder } = await import('../services/EnhancedPromptBuilder');
     const { ContentValidator } = await import('../services/ContentValidator');
     const { ContentStructurer } = await import('../services/ContentStructurer');
     const { MaterialSubtypeModel } = await import('../models/MaterialSubtype');
 
     const assignmentAnalyzer = new AssignmentAnalyzer();
-    const promptBuilder = new EnhancedPromptBuilder();
     const contentValidator = new ContentValidator();
     const contentStructurer = new ContentStructurer();
     const subtypeModel = new MaterialSubtypeModel();
@@ -2193,31 +2572,14 @@ router.post('/generate-activity', authenticateToken, [
       }
     }
 
-    const userInputs = {
-      title: title || (assignmentAnalysis ? `Aktivita: ${assignmentAnalysis.keyTopics[0]}` : ''),
-      subject: subject || assignmentAnalysis?.subject,
-      grade_level: grade_level || assignmentAnalysis?.gradeLevel,
-      duration: duration || '15 min',
-      activity_type: activity_type || 'skupinová práce',
-      group_size: group_size || 4,
-      required_materials: required_materials || ['papír', 'tužky', 'tabule']
-    };
 
-    const enhancedPrompt = await promptBuilder.buildPrompt({
-      materialType: 'activity',
-      subtype: subtype as any,
-      assignment: assignmentAnalysis as any,
-      userInputs,
-      qualityLevel: quality_level || 'standardní',
-      customInstructions: custom_instructions
-    });
 
     sendSSEMessage(res, { type: 'chunk', content: 'Generating activity content...\n' });
 
     const stream = await openai.chat.completions.create({
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: enhancedPrompt },
+        { role: 'system', content: ACTIVITY_SYSTEM_PROMPT },
         { role: 'user', content: assignment_description || `Vytvoř krátkou aktivitu${title ? ` s názvem "${title}"` : ''}${subject ? ` pro předmět ${subject}` : ''}${grade_level ? ` pro ročník ${grade_level}` : ''}${duration ? ` na dobu ${duration}` : ''}` }
       ],
       max_tokens: parseInt(process.env['OPENAI_MAX_TOKENS'] || '2000'),
@@ -2226,29 +2588,84 @@ router.post('/generate-activity', authenticateToken, [
     });
 
     let fullResponse = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        fullResponse += content;
-        sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
-      }
-    }
-
-    let validatedData: ActivityData;
     try {
-      const parsedData = JSON.parse(fullResponse);
-      validatedData = validateActivity(parsedData);
-    } catch (parseError) {
-      sendSSEMessage(res, { type: 'error', message: 'The AI response could not be parsed as a valid activity.' });
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (content) {
+          fullResponse += content;
+          sendSSEMessage(res, { type: 'chunk', content: escapeSSEContent(content) });
+        }
+      }
+    } catch (streamError) {
+      console.error('OpenAI streaming error:', streamError);
+      sendSSEMessage(res, { type: 'error', message: 'Failed to receive AI response. Please try again.' });
       res.end();
       return;
+    }
+
+    // Check if we received any content
+    if (!fullResponse.trim()) {
+      sendSSEMessage(res, { type: 'error', message: 'No content received from AI. Please try again.' });
+      res.end();
+      return;
+    }
+
+    // Try to clean the response before parsing
+    let cleanedResponse = fullResponse.trim();
+    
+    // Log the original response for debugging
+    console.log('Original AI response:', fullResponse);
+    
+    // Fix common AI formatting issues
+    cleanedResponse = cleanedResponse
+      // Replace common AI formatting mistakes
+      .replace(/\(\s*"([^"]+)":/g, '{"$1":')  // Fix ( "key": to {"key":
+      .replace(/,\s*\)/g, '}')                 // Fix trailing ,) to }
+      .replace(/\(\s*\)/g, '{}')               // Fix empty () to {}
+      .replace(/\(\s*"([^"]+)":\s*"([^"]*)"\s*\)/g, '{"$1":"$2"}')  // Fix simple ( "key":"value" ) to {"key":"value"}
+      
+      // Fix incomplete JSON structures
+      .replace(/,\s*$/g, '')                   // Remove trailing commas
+      .replace(/,\s*\)/g, '}')                 // Fix ,) to }
+      .replace(/,\s*]/g, ']')                  // Fix ,] to ]
+      
+      // Fix structuredInstructions formatting
+      .replace(/\(\s*"([^"]+)":\s*\[/g, '{"$1":[')  // Fix ( "structuredInstructions": [ to {"structuredInstructions": [
+      .replace(/\]\s*\)/g, ']}')               // Fix ] ) to ]}
+      
+      // Fix individual instruction sections
+      .replace(/\(\s*"([^"]+)":\s*"([^"]*)"\s*,\s*"([^"]+)":\s*\[/g, '{"$1":"$2","$3":[')  // Fix section object formatting
+      
+      // Ensure proper JSON structure
+      .replace(/^\s*\(\s*/, '{')               // Fix starting ( to {
+      .replace(/\s*\)\s*$/, '}')              // Fix ending ) to }
+
+    // Try to parse the cleaned response
+    let validatedData: ActivityData;
+    try {
+      const parsedData = JSON.parse(cleanedResponse);
+      validatedData = validateActivity(parsedData);
+    } catch (parseError) {
+      console.error('Failed to parse cleaned response:', parseError);
+      console.log('Cleaned response:', cleanedResponse);
+      
+      // Try to construct a basic activity structure from the raw response
+      try {
+        const basicStructure = constructBasicActivityStructure(fullResponse);
+        validatedData = validateActivity(basicStructure);
+      } catch (fallbackError) {
+        console.error('Fallback structure construction failed:', fallbackError);
+        sendSSEMessage(res, { type: 'error', message: 'The AI response could not be parsed as a valid activity. Please try again.' });
+        res.end();
+        return;
+      }
     }
 
     // Validate and structure content
     try {
       contentValidator.validateContent(validatedData, 'activity');
-      const structuredContent = contentStructurer.structureContent(validatedData, 'activity', subtype as any);
-      validatedData = structuredContent as unknown as ActivityData;
+      const structuredContentResult = contentStructurer.structureContent(validatedData, 'activity', subtype as any);
+      validatedData = structuredContentResult.structuredContent as ActivityData;
     } catch (validationError) {
       console.error('Content validation/structuring failed:', validationError);
       sendSSEMessage(res, { type: 'chunk', content: 'Content validation completed with warnings...\n' });
@@ -2280,12 +2697,12 @@ router.post('/generate-activity', authenticateToken, [
             assignmentAnalysis?.gradeLevel || validatedData.grade_level,
             title || assignment_description,
             assignmentAnalysis?.difficulty,
-            'aktivita'
-          );
+                      'aktivita'
+        );
 
       const enhancedMetadata = {
         raw: fullResponse,
-        prompt: enhancedPrompt,
+        prompt: ACTIVITY_SYSTEM_PROMPT,
         assignmentAnalysis: assignmentAnalysis || null,
         subtype: subtype || null,
         qualityLevel: quality_level || 'standardní',
@@ -2540,5 +2957,172 @@ router.post('/suggest-material-types',
     }
   }
 );
+
+// Utility function to construct a basic presentation structure from malformed AI response
+function constructBasicPresentationStructure(rawResponse: string): string {
+  console.log('Constructing basic presentation structure from raw response');
+  
+  // Extract basic information using regex patterns
+  const titleMatch = rawResponse.match(/"title":\s*"([^"]+)"/) || rawResponse.match(/title[:\\s]+([^\\n,]+)/i);
+  const subjectMatch = rawResponse.match(/"subject":\s*"([^"]+)"/) || rawResponse.match(/subject[:\\s]+([^\\n,]+)/i);
+  const gradeMatch = rawResponse.match(/"grade_level":\s*"([^"]+)"/) || rawResponse.match(/grade[:\\s]+([^\\n,]+)/i);
+  
+  // Extract slides content
+  const slidesMatch = rawResponse.match(/"slides":\s*\[(.*?)\]/s);
+  let slides: Array<{
+    slideNumber: number;
+    heading: string;
+    bullets: string[];
+    estimatedTime: string;
+    visualSuggestions: string;
+    transitionSuggestion: string;
+  }> = [];
+  
+  if (slidesMatch) {
+    // Try to extract individual slides
+    const slideMatches = rawResponse.match(/\(\s*"([^"]+)":\s*"([^"]*)"\s*,\s*"([^"]+)":\s*\[(.*?)\]/g);
+    if (slideMatches) {
+      slides = slideMatches.map((match, index) => {
+        const headingMatch = match.match(/"heading":\s*"([^"]+)"/);
+        const bulletsMatch = match.match(/"bullets":\s*\[(.*?)\]/);
+        
+        return {
+          slideNumber: index + 1,
+          heading: headingMatch && headingMatch[1] ? headingMatch[1] : `Slide ${index + 1}`,
+          bullets: bulletsMatch && bulletsMatch[1] ? bulletsMatch[1].split(',').map(b => b.trim().replace(/"/g, '')) : ['Content'],
+          estimatedTime: '2 minuty',
+          visualSuggestions: 'Použijte jednoduché schéma',
+          transitionSuggestion: 'Plynulý přechod'
+        };
+      });
+    }
+  }
+  
+  // If no slides found, create a basic structure
+  if (slides.length === 0) {
+    slides = [
+      {
+        slideNumber: 1,
+        heading: 'Úvod',
+        bullets: ['Základní informace'],
+        estimatedTime: '2 minuty',
+        visualSuggestions: 'Použijte jednoduché schéma',
+        transitionSuggestion: 'Plynulý přechod'
+      }
+    ];
+  }
+  
+  const title = titleMatch ? titleMatch[1] : 'Prezentace';
+  const subject = subjectMatch ? subjectMatch[1] : 'Předmět';
+  const grade_level = gradeMatch ? gradeMatch[1] : 'Ročník';
+  
+  const basicStructure = {
+    template: 'presentation',
+    title: title,
+    subject: subject,
+    grade_level: grade_level,
+    slides: slides,
+    speakerNotes: 'Poznámky pro přednášejícího',
+    visualSuggestions: 'Celkové návrhy vizuálních prvků',
+    tags: ['prezentace', 'vzdělávací']
+  };
+  
+  return JSON.stringify(basicStructure);
+}
+
+// Utility function to construct a basic activity structure from malformed AI response
+function constructBasicActivityStructure(rawResponse: string): string {
+  console.log('Constructing basic activity structure from raw response');
+  
+  // Extract basic information using regex patterns
+  const titleMatch = rawResponse.match(/"title":\s*"([^"]+)"/) || rawResponse.match(/title[:\\s]+([^\\n,]+)/i);
+  const subjectMatch = rawResponse.match(/"subject":\s*"([^"]+)"/) || rawResponse.match(/subject[:\\s]+([^\\n,]+)/i);
+  const gradeMatch = rawResponse.match(/"grade_level":\s*"([^"]+)"/) || rawResponse.match(/grade[:\\s]+([^\\n,]+)/i);
+  const durationMatch = rawResponse.match(/"duration":\s*"([^"]+)"/) || rawResponse.match(/duration[:\\s]+([^\\n,]+)/i);
+  const goalMatch = rawResponse.match(/"goal":\s*"([^"]+)"/) || rawResponse.match(/goal[:\\s]+([^\\n,]+)/i);
+  
+  // Extract instructions content
+  const instructionsMatch = rawResponse.match(/"instructions":\s*\[(.*?)\]/s);
+  let instructions: string[] = [];
+  
+  if (instructionsMatch) {
+    // Try to extract individual instructions
+    const instructionMatches = rawResponse.match(/"([^"]+)"/g);
+    if (instructionMatches) {
+      instructions = instructionMatches.map(match => match.replace(/"/g, '')).filter(text => text.length > 5);
+    }
+  }
+  
+  // If no instructions found, create basic ones
+  if (instructions.length === 0) {
+    instructions = [
+      'Připravte potřebné materiály',
+      'Vysvětlete žákům cíl aktivity',
+      'Proveďte aktivitu podle plánu',
+      'Vyhodnoťte výsledky'
+    ];
+  }
+  
+  // Extract structured instructions
+  const structuredInstructionsMatch = rawResponse.match(/"structuredInstructions":\s*\{([^}]+)\}/s);
+  let structuredInstructions = {
+    preparation: ['Příprava materiálů', 'Rozdělení do skupin'],
+    execution: ['Vysvětlení pravidel', 'Provedení aktivity'],
+    conclusion: ['Prezentace výsledků', 'Reflexe a hodnocení']
+  };
+  
+  if (structuredInstructionsMatch) {
+    // Try to extract preparation, execution, conclusion
+    const prepMatch = rawResponse.match(/"preparation":\s*\[(.*?)\]/s);
+    const execMatch = rawResponse.match(/"execution":\s*\[(.*?)\]/s);
+    const conclMatch = rawResponse.match(/"conclusion":\s*\[(.*?)\]/s);
+    
+    if (prepMatch && prepMatch[1]) {
+      const prepItems = prepMatch[1].match(/"([^"]+)"/g);
+      if (prepItems) {
+        structuredInstructions.preparation = prepItems.map(item => item.replace(/"/g, ''));
+      }
+    }
+    
+    if (execMatch && execMatch[1]) {
+      const execItems = execMatch[1].match(/"([^"]+)"/g);
+      if (execItems) {
+        structuredInstructions.execution = execItems.map(item => item.replace(/"/g, ''));
+      }
+    }
+    
+    if (conclMatch && conclMatch[1]) {
+      const conclItems = conclMatch[1].match(/"([^"]+)"/g);
+      if (conclItems) {
+        structuredInstructions.conclusion = conclItems.map(item => item.replace(/"/g, ''));
+      }
+    }
+  }
+  
+  const title = titleMatch ? titleMatch[1] : 'Aktivita';
+  const subject = subjectMatch ? subjectMatch[1] : 'Předmět';
+  const grade_level = gradeMatch ? gradeMatch[1] : 'Ročník';
+  const duration = durationMatch ? durationMatch[1] : '15 min';
+  const goal = goalMatch ? goalMatch[1] : 'Cílem je procvičit probírané učivo';
+  
+  const basicStructure = {
+    template: 'activity',
+    title: title,
+    subject: subject,
+    grade_level: grade_level,
+    duration: duration,
+    goal: goal,
+    instructions: instructions,
+    materials: ['papír', 'tužky', 'tabule'],
+    group_size: 4,
+    assessment_criteria: ['Aktivní účast', 'Dodržování pravidel', 'Kvalita výsledků'],
+    variation: 'Pro pokročilejší žáky můžete přidat složitější úkoly',
+    safety_notes: 'Dodržujte pokyny učitele a pracujte opatrně',
+    structuredInstructions: structuredInstructions,
+    tags: ['aktivita', 'vzdělávací', 'interaktivní']
+  };
+  
+  return JSON.stringify(basicStructure);
+}
 
 export default router;

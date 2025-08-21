@@ -26,7 +26,7 @@ export interface ValidationIssue {
 
 export class ContentValidator {
   private czechStopWords: Set<string>;
-  private ageAppropriateVocabulary: Map<string, string[]>;
+  // private ageAppropriateVocabulary: Map<string, string[]>;
   private mathematicalPatterns: RegExp[];
 
   constructor() {
@@ -34,12 +34,12 @@ export class ContentValidator {
       'a', 'aby', 'ale', 'ani', 'ano', 'asi', 'až', 'bez', 'být', 'co', 'či', 'do', 'ho', 'i', 'já', 'je', 'jeho', 'její', 'jejich', 'jen', 'již', 'jsem', 'jsi', 'jsme', 'jsou', 'jste', 'k', 'kam', 'kde', 'kdo', 'kdy', 'když', 'ma', 'má', 'mají', 'máme', 'máš', 'máte', 'mi', 'mít', 'mně', 'mnou', 'můj', 'může', 'my', 'na', 'nad', 'nám', 'námi', 'nás', 'náš', 'ne', 'nebo', 'něco', 'něj', 'není', 'nějak', 'někde', 'někdo', 'němu', 'ni', 'nic', 'ním', 'nimi', 'o', 'od', 'po', 'pod', 'pokud', 'pro', 'proč', 'před', 'při', 's', 'se', 'si', 'sice', 'svá', 'své', 'svůj', 'ta', 'tak', 'také', 'tam', 'te', 'tě', 'těm', 'těmi', 'ti', 'to', 'toto', 'tu', 'ty', 'u', 'už', 'v', 've', 'více', 'všech', 'vy', 'z', 'za', 'ze', 'že'
     ]);
 
-    this.ageAppropriateVocabulary = new Map([
-      ['1.-3. třída ZŠ', ['jednoduchý', 'snadný', 'základní', 'malý', 'velký', 'krásný', 'dobrý']],
-      ['4.-6. třída ZŠ', ['složitější', 'pokročilejší', 'důležitý', 'zajímavý', 'užitečný', 'praktický']],
-      ['7.-9. třída ZŠ', ['komplexní', 'analytický', 'systematický', 'teoretický', 'abstraktní']],
-      ['SŠ', ['sofistikovaný', 'konceptuální', 'metodologický', 'epistemologický', 'paradigmatický']]
-    ]);
+    // this.ageAppropriateVocabulary = new Map([
+    //   ['1.-3. třída ZŠ', ['jednoduchý', 'snadný', 'základní', 'malý', 'velký', 'krásný', 'dobrý']],
+    //   ['4.-6. třída ZŠ', ['složitější', 'pokročilejší', 'důležitý', 'zajímavý', 'užitečný', 'praktický']],
+    //   ['7.-9. třída ZŠ', ['komplexní', 'analytický', 'systematický', 'teoretický', 'abstraktní']],
+    //   ['SŠ', ['sofistikovaný', 'konceptuální', 'metodologický', 'epistemologický', 'paradigmatický']]
+    // ]);
 
     this.mathematicalPatterns = [
       /\d+\s*[\+\-\*\/]\s*\d+/g, // Basic operations
@@ -208,7 +208,7 @@ export class ContentValidator {
     }
   }
 
-  private validateAccuracy(content: any, type: MaterialType, issues: ValidationIssue[]): number {
+  private validateAccuracy(content: any, _type: MaterialType, issues: ValidationIssue[]): number {
     let score = 1.0;
 
     // Check mathematical accuracy
@@ -292,7 +292,7 @@ export class ContentValidator {
 
   private validateClarity(content: any, issues: ValidationIssue[]): number {
     let score = 1.0;
-    const textContent = this.extractTextContent(content);
+    // const textContent = this.extractTextContent(content);
 
     // Check instruction clarity
     const instructions = this.extractInstructions(content);
@@ -640,7 +640,7 @@ export class ContentValidator {
     return found;
   }
 
-  private checkBasicFactualAccuracy(content: any): ValidationIssue[] {
+  private checkBasicFactualAccuracy(_content: any): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
     // Basic factual checks would go here
     // For now, return empty array

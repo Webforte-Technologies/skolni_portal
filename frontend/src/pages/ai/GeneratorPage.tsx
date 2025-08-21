@@ -137,7 +137,7 @@ const AIGeneratorPage: React.FC = () => {
 
       const runProject = async () => {
         try {
-          await streamingService.generateProjectStream({ title, subject, grade_level: gradeLevel, template_style: templateStyle }, {
+          await streamingService.generateProjectStream({ title, subject, grade_level: gradeLevel }, {
             onStart: () => setStreamPreview('Generuji projekt...'),
             onChunk: (c) => setStreamPreview((p) => p + c),
             onEnd: (meta) => {
@@ -160,7 +160,7 @@ const AIGeneratorPage: React.FC = () => {
 
       const runPresentation = async () => {
         try {
-          await streamingService.generatePresentationStream({ title, subject, grade_level: gradeLevel, template_style: templateStyle }, {
+          await streamingService.generatePresentationStream({ title, subject, grade_level: gradeLevel }, {
             onStart: () => setStreamPreview('Generuji prezentaci...'),
             onChunk: (c) => setStreamPreview((p) => p + c),
             onEnd: (meta) => {

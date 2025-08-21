@@ -49,9 +49,25 @@ export interface QuizData {
   tags?: string[];
 }
 
-export interface ProjectRubricItem {
-  criteria: string;
+export interface ProjectRubricCriteria {
+  name: string;
+  weight: number;
   levels: string[];
+  descriptors: string[];
+}
+
+export interface ProjectRubric {
+  criteria: ProjectRubricCriteria[];
+}
+
+export interface ProjectTimelineMilestone {
+  week?: number;
+  task: string;
+  description?: string;
+}
+
+export interface ProjectTimeline {
+  milestones: ProjectTimelineMilestone[];
 }
 
 export interface ProjectData {
@@ -60,10 +76,14 @@ export interface ProjectData {
   subject: string;
   grade_level: string;
   duration: string;
+  project_type?: string;
+  group_size?: number;
   objectives: string[];
   description: string;
+  phases?: string[];
   deliverables: string[];
-  rubric: ProjectRubricItem[];
+  rubric: ProjectRubric;
+  timeline: ProjectTimeline;
   tags?: string[];
 }
 
@@ -238,6 +258,9 @@ export const validateQuiz = (data: any): QuizData => {
     }
     
     const type = question.type;
+    
+    // Debug: Log question details for troubleshooting
+    console.log(`Validating question ${index}: type=${type}, answer=${JSON.stringify(question.answer)}`);
     if (type === 'multiple_choice') {
       if (!Array.isArray(question.options) || question.options.length < 2) {
         throw new Error(`Invalid quiz question options at index ${index}: must be array with at least 2 items`);
@@ -249,8 +272,25 @@ export const validateQuiz = (data: any): QuizData => {
         throw new Error(`Invalid quiz question answer at index ${index}: answer must be one of the options`);
       }
     } else if (type === 'true_false') {
-      if (typeof question.answer !== 'boolean') {
-        throw new Error(`Invalid quiz question answer at index ${index}: must be boolean for true/false`);
+      // Handle boolean, English, and Czech representations of true/false
+      if (typeof question.answer === 'string') {
+        const lowerAnswer = question.answer.toLowerCase();
+        // English representations
+        if (lowerAnswer === 'true' || lowerAnswer === 'false') {
+          question.answer = lowerAnswer === 'true';
+        }
+        // Czech representations
+        else if (lowerAnswer === 'pravda' || lowerAnswer === 'ano' || lowerAnswer === 'správně' || lowerAnswer === 'správné' || lowerAnswer === 'platí') {
+          question.answer = true;
+        }
+        else if (lowerAnswer === 'nepravda' || lowerAnswer === 'ne' || lowerAnswer === 'nesprávně' || lowerAnswer === 'nesprávné' || lowerAnswer === 'neplatí') {
+          question.answer = false;
+        }
+        else {
+          throw new Error(`Invalid quiz question answer at index ${index}: must be boolean, English 'true'/'false', or Czech 'pravda'/'nepravda' for true/false`);
+        }
+      } else if (typeof question.answer !== 'boolean') {
+        throw new Error(`Invalid quiz question answer at index ${index}: must be boolean, English 'true'/'false', or Czech 'pravda'/'nepravda' for true/false`);
       }
     } else if (type === 'short_answer') {
       if (typeof question.answer !== 'string') {
@@ -288,14 +328,53 @@ export const validateProject = (data: any): ProjectData => {
     throw new Error('Invalid project.deliverables: must be an array');
   }
   
-  if (!Array.isArray(data.rubric)) {
-    throw new Error('Invalid project.rubric: must be an array');
+  // Validate new rubric structure
+  if (!data.rubric || typeof data.rubric !== 'object') {
+    throw new Error('Invalid project.rubric: must be an object');
   }
   
-  for (const [index, rubricItem] of data.rubric.entries()) {
-    if (!rubricItem || typeof rubricItem.criteria !== 'string' || !Array.isArray(rubricItem.levels) || rubricItem.levels.length === 0) {
-      throw new Error(`Invalid project rubric item at index ${index}: must have criteria as string and levels as non-empty array`);
+  if (!Array.isArray(data.rubric.criteria)) {
+    throw new Error('Invalid project.rubric.criteria: must be an array');
+  }
+  
+  for (const [index, rubricItem] of data.rubric.criteria.entries()) {
+    if (!rubricItem || typeof rubricItem.name !== 'string' || !Array.isArray(rubricItem.levels) || rubricItem.levels.length === 0) {
+      throw new Error(`Invalid project rubric criteria at index ${index}: must have name as string and levels as non-empty array`);
     }
+    
+    // Validate weight if present
+    if (rubricItem.weight !== undefined && (typeof rubricItem.weight !== 'number' || rubricItem.weight < 0 || rubricItem.weight > 1)) {
+      throw new Error(`Invalid project rubric criteria weight at index ${index}: must be a number between 0 and 1`);
+    }
+    
+    // Validate descriptors if present
+    if (rubricItem.descriptors && (!Array.isArray(rubricItem.descriptors) || rubricItem.descriptors.length !== rubricItem.levels.length)) {
+      throw new Error(`Invalid project rubric criteria descriptors at index ${index}: must be an array with same length as levels`);
+    }
+  }
+  
+  // Validate timeline if present
+  if (data.timeline) {
+    if (typeof data.timeline !== 'object') {
+      throw new Error('Invalid project.timeline: must be an object');
+    }
+    
+    if (data.timeline.milestones && !Array.isArray(data.timeline.milestones)) {
+      throw new Error('Invalid project.timeline.milestones: must be an array');
+    }
+    
+    if (data.timeline.milestones) {
+      for (const [index, milestone] of data.timeline.milestones.entries()) {
+        if (!milestone || typeof milestone.task !== 'string' || typeof milestone.week !== 'number') {
+          throw new Error(`Invalid project timeline milestone at index ${index}: must have task as string and week as number`);
+        }
+      }
+    }
+  }
+  
+  // Validate phases if present
+  if (data.phases && !Array.isArray(data.phases)) {
+    throw new Error('Invalid project.phases: must be an array');
   }
   
   return data as ProjectData;

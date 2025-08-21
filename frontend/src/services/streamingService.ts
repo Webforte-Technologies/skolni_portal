@@ -229,42 +229,23 @@ export const streamingService = {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
-              const jsonStr = line.slice(6);
-              console.log('Parsing JSON:', jsonStr);
-              const data: StreamingResponse = JSON.parse(jsonStr);
-              console.log('Parsed data:', data);
-              
+              const data: StreamingResponse = JSON.parse(line.slice(6));
               switch (data.type) {
-                case 'start':
-                  console.log('Received start event');
-                  callbacks.onStart?.();
-                  break;
-                case 'chunk':
-                  console.log('Received chunk event with content:', data.content);
-                  if (data.content) {
-                    callbacks.onChunk?.(data.content);
-                  }
-                  break;
+                case 'start': callbacks.onStart?.(); break;
+                case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
                 case 'end':
-                  console.log('Received end event:', data);
-                  if (data.worksheet && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                    callbacks.onEnd?.({
-                      worksheet: (data as any).worksheet,
-                      file_id: (data as any).file_id,
-                      file_type: (data as any).file_type,
-                      credits_used: data.credits_used,
-                      credits_balance: data.credits_balance
-                    });
+                  if ((data as any).worksheet && data.credits_used !== undefined && data.credits_balance !== undefined) {
+                    callbacks.onEnd?.({ worksheet: (data as any).worksheet, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
                   }
                   break;
-                case 'error':
-                  console.error('Received error event:', data.message);
-                  callbacks.onError?.(data.message || 'An error occurred');
-                  break;
+                case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
               }
             } catch (parseError) {
-              console.error('Error parsing streaming data:', parseError);
-              console.error('Raw line:', line);
+              console.error('Failed to parse SSE data:', parseError, 'Raw line:', line);
+              // Try to extract any useful information from the malformed line
+              if (line.includes('error') || line.includes('Error')) {
+                callbacks.onError?.('Received malformed response from server');
+              }
             }
           }
         }
@@ -322,16 +303,24 @@ export const streamingService = {
         const lines = chunk.split('\n');
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data: StreamingResponse = JSON.parse(line.slice(6));
-            switch (data.type) {
-              case 'start': callbacks.onStart?.(); break;
-              case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
-              case 'end':
-                if ((data as any).lesson_plan && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                  callbacks.onEnd?.({ lesson_plan: (data as any).lesson_plan, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
-                }
-                break;
-              case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
+            try {
+              const data: StreamingResponse = JSON.parse(line.slice(6));
+              switch (data.type) {
+                case 'start': callbacks.onStart?.(); break;
+                case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
+                case 'end':
+                  if ((data as any).lesson_plan && data.credits_used !== undefined && data.credits_balance !== undefined) {
+                    callbacks.onEnd?.({ lesson_plan: (data as any).lesson_plan, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
+                  }
+                  break;
+                case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
+              }
+            } catch (parseError) {
+              console.error('Failed to parse SSE data:', parseError, 'Raw line:', line);
+              // Try to extract any useful information from the malformed line
+              if (line.includes('error') || line.includes('Error')) {
+                callbacks.onError?.('Received malformed response from server');
+              }
             }
           }
         }
@@ -390,16 +379,24 @@ export const streamingService = {
         const lines = chunk.split('\n');
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data: StreamingResponse = JSON.parse(line.slice(6));
-            switch (data.type) {
-              case 'start': callbacks.onStart?.(); break;
-              case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
-              case 'end':
-                if ((data as any).quiz && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                  callbacks.onEnd?.({ quiz: (data as any).quiz, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
-                }
-                break;
-              case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
+            try {
+              const data: StreamingResponse = JSON.parse(line.slice(6));
+              switch (data.type) {
+                case 'start': callbacks.onStart?.(); break;
+                case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
+                case 'end':
+                  if ((data as any).quiz && data.credits_used !== undefined && data.credits_balance !== undefined) {
+                    callbacks.onEnd?.({ quiz: (data as any).quiz, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
+                  }
+                  break;
+                case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
+              }
+            } catch (parseError) {
+              console.error('Failed to parse SSE data:', parseError, 'Raw line:', line);
+              // Try to extract any useful information from the malformed line
+              if (line.includes('error') || line.includes('Error')) {
+                callbacks.onError?.('Received malformed response from server');
+              }
             }
           }
         }
@@ -457,16 +454,24 @@ export const streamingService = {
         const lines = chunk.split('\n');
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data: StreamingResponse = JSON.parse(line.slice(6));
-            switch (data.type) {
-              case 'start': callbacks.onStart?.(); break;
-              case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
-              case 'end':
-                if ((data as any).project && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                  callbacks.onEnd?.({ project: (data as any).project, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
-                }
-                break;
-              case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
+            try {
+              const data: StreamingResponse = JSON.parse(line.slice(6));
+              switch (data.type) {
+                case 'start': callbacks.onStart?.(); break;
+                case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
+                case 'end':
+                  if ((data as any).project && data.credits_used !== undefined && data.credits_balance !== undefined) {
+                    callbacks.onEnd?.({ project: (data as any).project, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
+                  }
+                  break;
+                case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
+              }
+            } catch (parseError) {
+              console.error('Failed to parse SSE data:', parseError, 'Raw line:', line);
+              // Try to extract any useful information from the malformed line
+              if (line.includes('error') || line.includes('Error')) {
+                callbacks.onError?.('Received malformed response from server');
+              }
             }
           }
         }
@@ -523,16 +528,24 @@ export const streamingService = {
         const lines = chunk.split('\n');
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data: StreamingResponse = JSON.parse(line.slice(6));
-            switch (data.type) {
-              case 'start': callbacks.onStart?.(); break;
-              case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
-              case 'end':
-                if ((data as any).presentation && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                  callbacks.onEnd?.({ presentation: (data as any).presentation, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
-                }
-                break;
-              case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
+            try {
+              const data: StreamingResponse = JSON.parse(line.slice(6));
+              switch (data.type) {
+                case 'start': callbacks.onStart?.(); break;
+                case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
+                case 'end':
+                  if ((data as any).presentation && data.credits_used !== undefined && data.credits_balance !== undefined) {
+                    callbacks.onEnd?.({ presentation: (data as any).presentation, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
+                  }
+                  break;
+                case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
+              }
+            } catch (parseError) {
+              console.error('Failed to parse SSE data:', parseError, 'Raw line:', line);
+              // Try to extract any useful information from the malformed line
+              if (line.includes('error') || line.includes('Error')) {
+                callbacks.onError?.('Received malformed response from server');
+              }
             }
           }
         }
@@ -590,16 +603,24 @@ export const streamingService = {
         const lines = chunk.split('\n');
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data: StreamingResponse = JSON.parse(line.slice(6));
-            switch (data.type) {
-              case 'start': callbacks.onStart?.(); break;
-              case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
-              case 'end':
-                if ((data as any).activity && data.credits_used !== undefined && data.credits_balance !== undefined) {
-                  callbacks.onEnd?.({ activity: (data as any).activity, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
-                }
-                break;
-              case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
+            try {
+              const data: StreamingResponse = JSON.parse(line.slice(6));
+              switch (data.type) {
+                case 'start': callbacks.onStart?.(); break;
+                case 'chunk': if (data.content) callbacks.onChunk?.(data.content); break;
+                case 'end':
+                  if ((data as any).activity && data.credits_used !== undefined && data.credits_balance !== undefined) {
+                    callbacks.onEnd?.({ activity: (data as any).activity, file_id: (data as any).file_id, file_type: (data as any).file_type, credits_used: data.credits_used!, credits_balance: data.credits_balance! });
+                  }
+                  break;
+                case 'error': callbacks.onError?.(data.message || 'An error occurred'); break;
+              }
+            } catch (parseError) {
+              console.error('Failed to parse SSE data:', parseError, 'Raw line:', line);
+              // Try to extract any useful information from the malformed line
+              if (line.includes('error') || line.includes('Error')) {
+                callbacks.onError?.('Received malformed response from server');
+              }
             }
           }
         }

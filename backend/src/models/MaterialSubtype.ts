@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { pool } from '../database/connection';
+import pool from '../database/connection';
 import { MaterialType } from '../services/AssignmentAnalyzer';
 
 export interface MaterialSubtypeData {
@@ -267,14 +267,14 @@ export class MaterialSubtypeModel {
     `;
 
     const result = await this.pool.query(query, [id]);
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async hardDelete(id: string): Promise<boolean> {
     // Hard delete - only use if no references exist
     const query = `DELETE FROM material_subtypes WHERE id = $1`;
     const result = await this.pool.query(query, [id]);
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getSubtypesByMaterialType(): Promise<Record<MaterialType, MaterialSubtypeData[]>> {
@@ -285,7 +285,7 @@ export class MaterialSubtypeModel {
       if (!grouped[subtype.parentType]) {
         grouped[subtype.parentType] = [];
       }
-      grouped[subtype.parentType].push(subtype);
+      grouped[subtype.parentType]!.push(subtype);
     }
 
     return grouped as Record<MaterialType, MaterialSubtypeData[]>;
@@ -304,7 +304,7 @@ export class MaterialSubtypeModel {
   async getDefaultSubtype(parentType: MaterialType): Promise<MaterialSubtypeData | null> {
     // Get the first active subtype for the given parent type
     const subtypes = await this.findByParentType(parentType);
-    return subtypes.length > 0 ? subtypes[0] : null;
+    return subtypes.length > 0 ? subtypes[0]! : null;
   }
 
   async searchSubtypes(searchTerm: string, parentType?: MaterialType): Promise<MaterialSubtypeData[]> {

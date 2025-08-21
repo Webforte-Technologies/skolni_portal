@@ -228,7 +228,7 @@ export class ContentStructurer {
     return content;
   }
 
-  private organizeLessonPlanContent(content: any, subtype?: MaterialSubtype): any {
+  private organizeLessonPlanContent(content: any, _subtype?: MaterialSubtype): any {
     if (content.activities && Array.isArray(content.activities)) {
       // Ensure proper lesson structure
       content.activities = this.structureLessonActivities(content.activities);
@@ -243,7 +243,7 @@ export class ContentStructurer {
     return content;
   }
 
-  private organizeQuizContent(content: any, subtype?: MaterialSubtype): any {
+  private organizeQuizContent(content: any, _subtype?: MaterialSubtype): any {
     if (content.questions && Array.isArray(content.questions)) {
       // Organize by question type and difficulty
       content.questions = this.organizeQuizQuestions(content.questions);
@@ -258,7 +258,7 @@ export class ContentStructurer {
     return content;
   }
 
-  private organizeProjectContent(content: any, subtype?: MaterialSubtype): any {
+  private organizeProjectContent(content: any, _subtype?: MaterialSubtype): any {
     // Add project phases
     content.phases = this.generateProjectPhases(content);
     
@@ -273,7 +273,7 @@ export class ContentStructurer {
     return content;
   }
 
-  private organizePresentationContent(content: any, subtype?: MaterialSubtype): any {
+  private organizePresentationContent(content: any, _subtype?: MaterialSubtype): any {
     if (content.slides && Array.isArray(content.slides)) {
       // Add slide types and transitions
       content.slides = this.enhancePresentationSlides(content.slides);
@@ -288,7 +288,7 @@ export class ContentStructurer {
     return content;
   }
 
-  private organizeActivityContent(content: any, subtype?: MaterialSubtype): any {
+  private organizeActivityContent(content: any, _subtype?: MaterialSubtype): any {
     // Structure instructions into clear phases
     if (content.instructions) {
       content.structuredInstructions = this.structureActivityInstructions(content.instructions);
@@ -432,7 +432,7 @@ export class ContentStructurer {
     return scaffolding;
   }
 
-  private generateConnectionScaffolding(content: any): ScaffoldingElement[] {
+  private generateConnectionScaffolding(_content: any): ScaffoldingElement[] {
     const scaffolding: ScaffoldingElement[] = [];
     
     scaffolding.push({
@@ -445,11 +445,11 @@ export class ContentStructurer {
     return scaffolding;
   }
 
-  private generateProgressiveScaffolding(content: any): ScaffoldingElement[] {
+  private generateProgressiveScaffolding(_content: any): ScaffoldingElement[] {
     const scaffolding: ScaffoldingElement[] = [];
     
-    if (content.questions && Array.isArray(content.questions)) {
-      const midPoint = Math.floor(content.questions.length / 2);
+    if (_content.questions && Array.isArray(_content.questions)) {
+      const midPoint = Math.floor(_content.questions.length / 2);
       
       scaffolding.push({
         type: 'reminder',
@@ -462,7 +462,7 @@ export class ContentStructurer {
     return scaffolding;
   }
 
-  private generateBasicScaffolding(content: any): ScaffoldingElement[] {
+  private generateBasicScaffolding(_content: any): ScaffoldingElement[] {
     return [{
       type: 'reminder',
       content: 'Nezapomeňte si průběžně kontrolovat svou práci a ptát se, pokud něčemu nerozumíte',
@@ -528,7 +528,7 @@ export class ContentStructurer {
     return levels;
   }
 
-  private createBasicProgression(content: any): DifficultyLevel[] {
+  private createBasicProgression(_content: any): DifficultyLevel[] {
     return [
       {
         level: 1,
@@ -602,7 +602,7 @@ export class ContentStructurer {
     return styles;
   }
 
-  private determineAssessmentType(content: any, type: MaterialType): string {
+  private determineAssessmentType(_content: any, type: MaterialType): string {
     switch (type) {
       case 'quiz':
         return 'Formativní hodnocení';
@@ -617,7 +617,7 @@ export class ContentStructurer {
     }
   }
 
-  private generateDifferentiationOptions(content: any, type: MaterialType): string[] {
+  private generateDifferentiationOptions(_content: any, type: MaterialType): string[] {
     const options = [
       'Různé úrovně obtížnosti úloh',
       'Volba způsobu prezentace výsledků',
@@ -666,7 +666,7 @@ export class ContentStructurer {
     return [...new Set(prerequisites)].slice(0, 5); // Remove duplicates and limit
   }
 
-  private calculateCognitiveLoad(content: any, type: MaterialType): CognitiveLoad {
+  private calculateCognitiveLoad(content: any, _type: MaterialType): CognitiveLoad {
     const text = this.extractTextContent(content);
     
     // Intrinsic load - complexity of the material
@@ -732,7 +732,7 @@ export class ContentStructurer {
     return names[style as keyof typeof names] || style;
   }
 
-  private generateSampleSolution(question: any): string {
+  private generateSampleSolution(_question: any): string {
     return `Pro řešení této úlohy postupujte následovně: 1) Analyzujte zadání, 2) Identifikujte známé hodnoty, 3) Aplikujte vhodný vzorec nebo postup.`;
   }
 
@@ -822,7 +822,7 @@ export class ContentStructurer {
     return transitions;
   }
 
-  private enhanceDifferentiation(existing: string, activities: any[]): string {
+  private enhanceDifferentiation(existing: string, _activities: any[]): string {
     let enhanced = existing || '';
     
     enhanced += '\n\nDodatečné možnosti diferenciace:';
@@ -865,7 +865,7 @@ export class ContentStructurer {
     };
   }
 
-  private generateProjectPhases(content: any): any[] {
+  private generateProjectPhases(_content: any): any[] {
     return [
       {
         name: 'Přípravná fáze',
@@ -958,7 +958,7 @@ export class ContentStructurer {
     return notes;
   }
 
-  private generateActivityAssessment(content: any): string[] {
+  private generateActivityAssessment(_content: any): string[] {
     return [
       'Aktivní účast v činnosti',
       'Dodržování pokynů',

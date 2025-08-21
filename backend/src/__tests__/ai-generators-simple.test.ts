@@ -167,24 +167,43 @@ describe('AI Generators - Core Functionality', () => {
       objectives: ['Learn method'],
       description: 'Create experiment',
       deliverables: ['Report'],
-      rubric: [
-        { criteria: 'Quality', levels: ['Good', 'Fair'] }
-      ]
+      phases: ['Preparation', 'Implementation', 'Presentation'],
+      rubric: {
+        criteria: [
+          {
+            name: 'Quality',
+            weight: 0.4,
+            levels: ['Good', 'Fair', 'Poor'],
+            descriptors: [
+              'Excellent quality work',
+              'Good quality work',
+              'Poor quality work'
+            ]
+          }
+        ]
+      },
+      timeline: {
+        milestones: [
+          { week: 1, task: 'Planning' },
+          { week: 2, task: 'Implementation' }
+        ]
+      }
     };
 
     it('should validate correct project structure', () => {
       expect(() => validateProject(validProject)).not.toThrow();
       const result = validateProject(validProject);
       expect(result.title).toBe('Science Project');
-      expect(result.rubric).toHaveLength(1);
+      expect(result.rubric.criteria).toHaveLength(1);
+      expect(result.timeline.milestones).toHaveLength(2);
     });
 
     it('should validate rubric structure', () => {
       const invalidRubric = {
         ...validProject,
-        rubric: [{ criteria: 'Test' }] // missing levels
+        rubric: { criteria: [{ name: 'Test' }] } // missing levels
       };
-      expect(() => validateProject(invalidRubric)).toThrow('must have criteria as string and levels as non-empty array');
+      expect(() => validateProject(invalidRubric)).toThrow('must have name as string and levels as non-empty array');
     });
   });
 
