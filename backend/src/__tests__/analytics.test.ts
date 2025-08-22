@@ -32,7 +32,8 @@ describe('Analytics API', () => {
   afterAll(async () => {
     // Clean up test data
     await pool.query('DELETE FROM users WHERE id = $1', [adminUserId]);
-    await pool.end();
+    // Note: pool.end() removed to prevent breaking other tests
+    // Pool shutdown should be handled globally in Jest teardown
   });
 
   describe('GET /api/admin/analytics/dashboard', () => {

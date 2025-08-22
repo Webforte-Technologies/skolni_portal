@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { 
   Users, CreditCard, Activity, TrendingUp, 
   AlertTriangle, CheckCircle, Server, Database, Zap, Bell, BarChart3
@@ -50,6 +50,22 @@ const AdminDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [criticalAlerts, setCriticalAlerts] = useState<any[]>([]);
   const { showToast } = useToast();
+
+  // Memoize callback functions to prevent infinite re-renders
+  const handleMetricClick = useCallback((metric: any) => {
+    // Show detailed performance view
+  }, []);
+
+  const handleAlert = useCallback((message: string, severity: 'warning' | 'critical') => {
+    showToast({ 
+      type: severity === 'critical' ? 'error' : 'warning', 
+      message 
+    });
+  }, [showToast]);
+
+  const handleRealTimeMetricClick = useCallback((metricId: string) => {
+    // Navigate to detailed view or show modal
+  }, []);
 
   // Real-time data hooks for enhanced dashboard
   const { data: realTimeMetrics, loading: metricsLoading } = useRealTimeData({
@@ -406,9 +422,7 @@ const AdminDashboardPage: React.FC = () => {
                 color: 'blue'
               }
             ]}
-            onMetricClick={(metricId) => {
-              // Navigate to detailed view or show modal
-            }}
+            onMetricClick={handleRealTimeMetricClick}
           />
         </ErrorBoundary>
 
@@ -488,15 +502,8 @@ const AdminDashboardPage: React.FC = () => {
               showCharts={true}
               showThresholds={true}
               showTrends={true}
-              onMetricClick={(metric) => {
-                // Show detailed performance view
-              }}
-              onAlert={(message, severity) => {
-                showToast({ 
-                  type: severity === 'critical' ? 'error' : 'warning', 
-                  message 
-                });
-              }}
+              onMetricClick={handleMetricClick}
+              onAlert={handleAlert}
             />
 
                     {/* Credits Overview */}

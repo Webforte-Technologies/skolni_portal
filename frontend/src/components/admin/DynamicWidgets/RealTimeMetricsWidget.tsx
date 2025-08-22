@@ -98,6 +98,18 @@ const RealTimeMetricsWidget: React.FC<RealTimeMetricsWidgetProps> = ({
     return colorMap[color as keyof typeof colorMap] || 'from-gray-50 to-gray-100';
   };
 
+  const formatLastUpdated = (lastUpdated: string | Date | null): string => {
+    if (!lastUpdated) return '-';
+    
+    try {
+      const date = lastUpdated instanceof Date ? lastUpdated : new Date(lastUpdated);
+      if (isNaN(date.getTime())) return '-';
+      return date.toLocaleTimeString('cs-CZ');
+    } catch {
+      return '-';
+    }
+  };
+
   if (error) {
     return (
       <Card title={title} className={cn('bg-red-50 border-red-200', className)}>
@@ -139,7 +151,7 @@ const RealTimeMetricsWidget: React.FC<RealTimeMetricsWidgetProps> = ({
       {/* Last updated timestamp */}
       {showLastUpdated && lastUpdated && (
         <div className="text-xs text-gray-500 mb-4 text-right">
-          Poslední aktualizace: {lastUpdated.toLocaleTimeString()}
+          Poslední aktualizace: {formatLastUpdated(lastUpdated)}
         </div>
       )}
 

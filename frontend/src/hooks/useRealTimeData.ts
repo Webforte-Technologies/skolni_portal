@@ -42,6 +42,25 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const retryCountRef = useRef(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isAutoRefreshingRef = useRef(autoRefresh);
+  
+  // Store callbacks in refs to prevent unnecessary re-renders
+  const onDataUpdateRef = useRef(onDataUpdate);
+  const onErrorRef = useRef(onError);
+  const transformDataRef = useRef(transformData);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onDataUpdateRef.current = onDataUpdate;
+    onErrorRef.current = onError;
+    transformDataRef.current = transformData;
+    if (isAutoRefreshingRef.current !== autoRefresh) {
+      isAutoRefreshingRef.current = autoRefresh;
+      setIsAutoRefreshing(autoRefresh);
+    }
+  }, [onDataUpdate, onError, transformData, autoRefresh]);
 
   const fetchData = useCallback(async (isRetry = false) => {
     if (abortControllerRef.current) {
@@ -51,22 +70,56 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
     abortControllerRef.current = new AbortController();
     
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(prev => {
+        // Only update if the loading state actually changed
+        if (!prev) {
+          return true;
+        }
+        return prev;
+      });
+      setError(prev => {
+        // Only update if the error state actually changed
+        if (prev !== null) {
+          return null;
+        }
+        return prev;
+      });
 
       const response = await api.get(endpoint, {
         signal: abortControllerRef.current.signal
       });
 
       const rawData = response.data?.data || response.data;
-      const transformedData: T = transformData ? transformData(rawData) : (rawData as T);
+      const transformedData: T = transformDataRef.current ? transformDataRef.current(rawData) : (rawData as T);
 
-      setData(transformedData);
-      setLastUpdated(new Date());
-      setRetryCount(0);
+      setData(prev => {
+        // Only update if the data actually changed
+        if (JSON.stringify(prev) !== JSON.stringify(transformedData)) {
+          return transformedData;
+        }
+        return prev;
+      });
+      
+      // Only update lastUpdated if the data actually changed to prevent unnecessary re-renders
+      setLastUpdated(prev => {
+        const newTime = new Date();
+        // Only update if more than 1 second has passed or if this is the first update
+        if (!prev || newTime.getTime() - prev.getTime() > 1000) {
+          return newTime;
+        }
+        return prev;
+      });
+      
+      setRetryCount(prev => {
+        // Only update if the retry count actually changed
+        if (prev !== 0) {
+          return 0;
+        }
+        return prev;
+      });
 
-      if (onDataUpdate) {
-        onDataUpdate(transformedData);
+      if (onDataUpdateRef.current) {
+        onDataUpdateRef.current(transformedData);
       }
 
     } catch (err: any) {
@@ -75,39 +128,64 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
       }
 
       const error = err instanceof Error ? err : new Error(err?.message || 'Unknown error');
-      setError(error);
+      setError(prev => {
+        // Only update if the error actually changed
+        if (!prev || prev.message !== error.message) {
+          return error;
+        }
+        return prev;
+      });
       
-      // Use functional update to avoid dependency issues
+      // Update retry count
+      retryCountRef.current += 1;
       setRetryCount(prev => {
-        const newRetryCount = prev + 1;
-        
-        // Auto-retry on network errors (max 3 retries)
-        if (isRetry && newRetryCount < 3 && (error.message.includes('network') || error.message.includes('timeout'))) {
-          setTimeout(() => fetchData(true), 5000 * newRetryCount);
+        // Only update if the retry count actually changed
+        if (prev !== retryCountRef.current) {
+          return retryCountRef.current;
+        }
+        return prev;
+      });
+      
+      // Auto-retry on network errors (max 3 retries)
+      if (!isRetry && retryCountRef.current < 3 && (error.message.includes('network') || error.message.includes('timeout'))) {
+        // Clear any existing timeout
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
         }
         
-        return newRetryCount;
-      });
+        timeoutRef.current = setTimeout(() => {
+          fetchData(true);
+        }, 5000 * retryCountRef.current);
+      }
 
-      if (onError) {
-        onError(error);
+      if (onErrorRef.current) {
+        onErrorRef.current(error);
       }
     } finally {
-      setLoading(false);
+      setLoading(prev => {
+        // Only update if the loading state actually changed
+        if (prev) {
+          return false;
+        }
+        return prev;
+      });
     }
-  }, [endpoint, transformData, onDataUpdate, onError, ...dependencies]);
+  }, [endpoint, ...dependencies]); // Remove callback dependencies
 
   const refresh = useCallback(async () => {
     await fetchData();
   }, [fetchData]);
 
   const setAutoRefresh = useCallback((enabled: boolean) => {
-    setIsAutoRefreshing(enabled);
+    if (isAutoRefreshingRef.current !== enabled) {
+      isAutoRefreshingRef.current = enabled;
+      setIsAutoRefreshing(enabled);
+    }
   }, []);
 
   // Set up auto-refresh interval
   useEffect(() => {
-    if (isAutoRefreshing && refreshInterval > 0) {
+    if (isAutoRefreshingRef.current && refreshInterval > 0) {
       intervalRef.current = setInterval(() => {
         fetchData();
       }, refreshInterval);
@@ -118,7 +196,7 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
         }
       };
     }
-  }, [isAutoRefreshing, refreshInterval, fetchData]);
+  }, [refreshInterval, fetchData]);
 
   // Initial data fetch
   useEffect(() => {
@@ -133,6 +211,9 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
       }
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
     };
   }, []);

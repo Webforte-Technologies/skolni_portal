@@ -144,12 +144,16 @@ router.get('/schools', async (req: RequestWithUser, res: express.Response) => {
     if (q) { conds.push(`(name ILIKE $${i} OR city ILIKE $${i})`); vals.push(`%${q}%`); i++; }
     const where = conds.length ? `WHERE ${conds.join(' AND ')}` : '';
     const rows = (await pool.query(`
-      SELECT s.id, s.name, s.city, s.is_active, s.created_at,
-             COUNT(u.*) FILTER (WHERE u.id IS NOT NULL) as users_count
+      SELECT s.id, s.name, s.address, s.city, s.postal_code, s.contact_phone as phone, s.contact_email as email, s.logo_url as website, s.is_active, s.created_at,
+             COUNT(u.*) FILTER (WHERE u.id IS NOT NULL) as users_count,
+             COUNT(u.*) FILTER (WHERE u.role = 'teacher_school') as teacher_count,
+             COUNT(u.*) FILTER (WHERE u.role = 'student') as student_count,
+             'basic' as subscription_plan,
+             COALESCE(SUM(u.credits_balance), 0) as credits_balance
       FROM schools s
       LEFT JOIN users u ON u.school_id = s.id
       ${where}
-      GROUP BY s.id
+      GROUP BY s.id, s.address, s.city, s.postal_code, s.contact_phone, s.contact_email, s.logo_url
       ORDER BY s.created_at DESC
       LIMIT $${i} OFFSET $${i+1}
     `, [...vals, limit, offset])).rows;

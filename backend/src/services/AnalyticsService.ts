@@ -854,16 +854,16 @@ export class AnalyticsService {
 
   // Helper methods for trend analysis
   private static async getUserTrends(timeRange: TimeRange): Promise<any> {
-    const days = timeRange.days || 30;
+    const days = Math.max(1, Math.min(365, timeRange.days || 30)); // Clamp between 1 and 365 days
     const result = await pool.query(`
       SELECT 
         DATE(created_at) as date,
         COUNT(*) as new_users
       FROM users 
-      WHERE created_at >= NOW() - INTERVAL '${days} days'
+      WHERE created_at >= NOW() - INTERVAL '1 day' * $1
       GROUP BY DATE(created_at)
       ORDER BY date
-    `);
+    `, [days]);
     
     return {
       daily_growth: result.rows,
@@ -873,17 +873,17 @@ export class AnalyticsService {
   }
 
   private static async getCreditTrends(timeRange: TimeRange): Promise<any> {
-    const days = timeRange.days || 30;
+    const days = Math.max(1, Math.min(365, timeRange.days || 30)); // Clamp between 1 and 365 days
     const result = await pool.query(`
       SELECT 
         DATE(created_at) as date,
         SUM(CASE WHEN transaction_type = 'purchase' THEN amount ELSE 0 END) as purchased,
         SUM(CASE WHEN transaction_type = 'usage' THEN amount ELSE 0 END) as used
       FROM credit_transactions 
-      WHERE created_at >= NOW() - INTERVAL '${days} days'
+      WHERE created_at >= NOW() - INTERVAL '1 day' * $1
       GROUP BY DATE(created_at)
       ORDER BY date
-    `);
+    `, [days]);
     
     return {
       daily_transactions: result.rows,
@@ -893,16 +893,16 @@ export class AnalyticsService {
   }
 
   private static async getContentTrends(timeRange: TimeRange): Promise<any> {
-    const days = timeRange.days || 30;
+    const days = Math.max(1, Math.min(365, timeRange.days || 30)); // Clamp between 1 and 365 days
     const result = await pool.query(`
       SELECT 
         DATE(created_at) as date,
         COUNT(*) as new_content
       FROM generated_files 
-      WHERE created_at >= NOW() - INTERVAL '${days} days'
+      WHERE created_at >= NOW() - INTERVAL '1 day' * $1
       GROUP BY DATE(created_at)
       ORDER BY date
-    `);
+    `, [days]);
     
     return {
       daily_creation: result.rows,
@@ -912,16 +912,16 @@ export class AnalyticsService {
   }
 
   private static async getRevenueTrends(timeRange: TimeRange): Promise<any> {
-    const days = timeRange.days || 30;
+    const days = Math.max(1, Math.min(365, timeRange.days || 30)); // Clamp between 1 and 365 days
     const result = await pool.query(`
       SELECT 
         DATE(created_at) as date,
         SUM(amount) as daily_revenue
       FROM credit_transactions 
-      WHERE transaction_type = 'purchase' AND created_at >= NOW() - INTERVAL '${days} days'
+      WHERE transaction_type = 'purchase' AND created_at >= NOW() - INTERVAL '1 day' * $1
       GROUP BY DATE(created_at)
       ORDER BY date
-    `);
+    `, [days]);
     
     return {
       daily_revenue: result.rows,

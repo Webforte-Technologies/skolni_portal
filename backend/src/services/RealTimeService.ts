@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { AnalyticsService } from './AnalyticsService';
 import { webSocketService } from './WebSocketService';
 
@@ -208,11 +209,20 @@ class RealTimeConnectionManager implements ConnectionManager {
 export class RealTimeService {
   private connectionManager: RealTimeConnectionManager;
   private metricsUpdateInterval: NodeJS.Timeout | null = null;
+  private cleanupInterval: NodeJS.Timeout | null = null;
   private isInitialized = false;
   private reconnectTokens: Map<string, { userId: string; expiresAt: Date }> = new Map();
 
   constructor() {
     this.connectionManager = new RealTimeConnectionManager();
+  }
+
+  /**
+   * Hash reconnect token for secure storage
+   */
+  private hashReconnectToken(token: string): string {
+    const secret = process.env['RECONNECT_TOKEN_SECRET'] || 'default-secret-change-in-production';
+    return crypto.createHmac('sha256', secret).update(token).digest('hex');
   }
 
   /**
@@ -227,6 +237,11 @@ export class RealTimeService {
     this.metricsUpdateInterval = setInterval(async () => {
       await this.broadcastMetricsUpdate();
     }, 30000); // Update every 30 seconds
+
+    // Start periodic cleanup of expired tokens
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupExpiredTokens();
+    }, 60000); // Cleanup every minute
 
     this.isInitialized = true;
   }
@@ -262,7 +277,9 @@ export class RealTimeService {
     };
 
     // Store reconnect token
-    this.reconnectTokens.set(reconnectToken, {
+    // Store hashed reconnect token for potential reconnection
+    const hashedToken = this.hashReconnectToken(reconnectToken);
+    this.reconnectTokens.set(hashedToken, {
       userId,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
     });
@@ -319,11 +336,12 @@ export class RealTimeService {
    * Handle reconnection attempt
    */
   handleReconnection(reconnectToken: string, res: Response): boolean {
-    const tokenData = this.reconnectTokens.get(reconnectToken);
+    const hashedToken = this.hashReconnectToken(reconnectToken);
+    const tokenData = this.reconnectTokens.get(hashedToken);
     
     if (!tokenData || tokenData.expiresAt < new Date()) {
       // Token expired or invalid
-      this.reconnectTokens.delete(reconnectToken);
+      this.reconnectTokens.delete(hashedToken);
       return false;
     }
 
@@ -548,6 +566,18 @@ export class RealTimeService {
     this.connectionManager.removeConnection(connectionId);
   }
 
+  /**
+   * Cleanup expired reconnect tokens
+   */
+  private cleanupExpiredTokens(): void {
+    const now = new Date();
+    for (const [token, data] of this.reconnectTokens.entries()) {
+      if (data.expiresAt < now) {
+        this.reconnectTokens.delete(token);
+      }
+    }
+  }
+
 
   /**
    * Cleanup and destroy the service
@@ -556,6 +586,11 @@ export class RealTimeService {
     if (this.metricsUpdateInterval) {
       clearInterval(this.metricsUpdateInterval);
       this.metricsUpdateInterval = null;
+    }
+    
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
     }
     
     if (this.connectionManager) {

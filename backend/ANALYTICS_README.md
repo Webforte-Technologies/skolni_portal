@@ -135,7 +135,7 @@ Export analytics data in various formats.
 
 **Example:**
 ```
-GET /api/admin/analytics/export?type=users&format=csv&timeRangeStart=2024-01-01&timeRangeEnd=2024-12-31
+GET /api/admin/analytics/export?type=users&format=csv&timeRange=2024-01-01_2024-12-31
 ```
 
 ## Database Schema
@@ -248,9 +248,7 @@ function RealTimeMetrics() {
   const [metrics, setMetrics] = useState(null);
 
   useEffect(() => {
-    const eventSource = new EventSource('/api/admin/analytics/stream?metrics=dashboard,alerts', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const eventSource = new EventSource(`/api/admin/analytics/stream?metrics=dashboard,alerts&token=${encodeURIComponent(token)}`);
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);

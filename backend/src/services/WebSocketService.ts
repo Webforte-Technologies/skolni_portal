@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { v4 as uuidv4 } from 'uuid';
+import jwt from 'jsonwebtoken';
 
 export interface WebSocketConnection {
   id: string;
@@ -160,11 +161,28 @@ export class WebSocketService implements WebSocketService {
     });
 
     this.wss.on('connection', (ws: WebSocket, request) => {
-      // Extract user ID from query parameters or headers
+      // Extract and validate authentication token
       const url = new URL(request.url || '', `http://${request.headers.host}`);
-      const userId = url.searchParams.get('userId') || 'anonymous';
+      const token = url.searchParams.get('token') || request.headers.authorization?.replace('Bearer ', '');
       
-      this.handleConnection(ws, userId);
+      if (!token) {
+        ws.close(1008, 'Authentication required');
+        return;
+      }
+
+      try {
+        // Validate JWT token and extract userId
+        const userId = this.validateTokenAndExtractUserId(token);
+        if (!userId) {
+          ws.close(1008, 'Invalid authentication token');
+          return;
+        }
+        
+        this.handleConnection(ws, userId);
+      } catch (error) {
+        console.error('WebSocket authentication error:', error);
+        ws.close(1008, 'Authentication failed');
+      }
     });
 
     this.wss.on('error', (error) => {
@@ -258,6 +276,26 @@ export class WebSocketService implements WebSocketService {
 
     // Store ping interval reference for cleanup
     connection.pingInterval = pingInterval;
+  }
+
+  /**
+   * Validate JWT token and extract userId
+   */
+  private validateTokenAndExtractUserId(token: string): string | null {
+    try {
+      const secret = process.env['JWT_SECRET'] || 'default-secret-change-in-production';
+      const decoded = jwt.verify(token, secret) as { userId: string };
+      
+      // Validate userId format (should be a valid UUID)
+      if (!decoded.userId || typeof decoded.userId !== 'string' || decoded.userId.length !== 36) {
+        return null;
+      }
+      
+      return decoded.userId;
+    } catch (error) {
+      console.error('JWT validation failed:', error);
+      return null;
+    }
   }
 
   /**

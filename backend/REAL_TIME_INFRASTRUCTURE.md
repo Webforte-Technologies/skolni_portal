@@ -37,6 +37,8 @@ Establishes a Server-Sent Events connection for real-time data streaming.
 Content-Type: text/event-stream
 Cache-Control: no-cache
 Connection: keep-alive
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
 X-Reconnect-Token: <uuid>
 ```
 

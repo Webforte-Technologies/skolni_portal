@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Activity, Cpu, HardDrive, Network, Zap, AlertTriangle, CheckCircle, Clock, TrendingUp, Database } from 'lucide-react';
 import Card from '../../ui/Card';
 import { useRealTimeData } from '../../../hooks/useRealTimeData';
@@ -42,6 +42,108 @@ export interface PerformanceMonitorWidgetProps {
   onAlert?: (message: string, severity: 'warning' | 'critical') => void;
 }
 
+// Utility functions moved outside component to prevent recreation
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'critical':
+      return '#EF4444';
+    case 'warning':
+      return '#F59E0B';
+    case 'healthy':
+      return '#10B981';
+    default:
+      return '#6B7280';
+  }
+};
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'critical':
+      return <AlertTriangle className="w-5 h-5 text-red-600" />;
+    case 'warning':
+      return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
+    case 'healthy':
+      return <CheckCircle className="w-5 h-5 text-green-600" />;
+    default:
+      return <Activity className="w-5 h-5 text-gray-600" />;
+  }
+};
+
+const getStatusBgColor = (status: string) => {
+  switch (status) {
+    case 'critical':
+      return 'bg-red-50 border-red-200';
+    case 'warning':
+      return 'bg-yellow-50 border-yellow-200';
+    case 'healthy':
+      return 'bg-green-50 border-green-200';
+    default:
+      return 'bg-gray-50 border-gray-200';
+  }
+};
+
+const getTrendIcon = (trend: string) => {
+  switch (trend) {
+    case 'up':
+      return <TrendingUp className="w-4 h-4 text-red-600" />;
+    case 'down':
+      return <TrendingUp className="w-4 h-4 text-green-600 transform rotate-180" />;
+    default:
+      return <Clock className="w-4 h-4 text-gray-400" />;
+  }
+};
+
+const formatUptime = (seconds: number) => {
+  if (!seconds || isNaN(seconds)) return '0m';
+  
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+};
+
+// Generate chart data for metrics
+const generateChartData = (metric: PerformanceMetric): ChartDataPoint[] => {
+  if (!metric || !metric.history || metric.history.length === 0) {
+    // Generate completely stable mock data to prevent unnecessary re-renders
+    const mockLabels = ['09:00', '09:01', '09:02', '09:03', '09:04', '09:05', '09:06', '09:07', '09:08', '09:09'];
+    return mockLabels.map((label, i) => ({
+      label,
+      value: (metric?.value || 0) + (i * 0.5), // Use stable increment
+      color: getStatusColor(metric?.status || 'healthy')
+    }));
+  }
+
+  return metric.history.slice(-10).map((point) => ({
+    label: new Date(point.timestamp).toLocaleTimeString('cs-CZ', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    }),
+    value: point.value,
+    color: getStatusColor(metric.status)
+  }));
+};
+
+// Transform backend data structure to frontend expected structure
+const transformMetric = (value: number, name: string, unit: string, warningThreshold = 80, criticalThreshold = 95): PerformanceMetric => {
+  let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+  if (value >= criticalThreshold) status = 'critical';
+  else if (value >= warningThreshold) status = 'warning';
+
+  return {
+    name,
+    value,
+    unit,
+    threshold: { warning: warningThreshold, critical: criticalThreshold },
+    trend: 'stable',
+    status,
+    history: []
+  };
+};
+
 const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
   title,
   endpoint,
@@ -53,148 +155,194 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
   onMetricClick,
   onAlert
 }) => {
-  const { data, loading, error, refresh, isAutoRefreshing, lastUpdated } = useRealTimeData({
+  const { data, loading, error, refresh, isAutoRefreshing } = useRealTimeData({
     endpoint,
     refreshInterval,
     autoRefresh: true
   });
 
+  // Track sent alerts to prevent duplicates
+  const sentAlertsRef = useRef<Set<string>>(new Set());
+  const alertTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Process performance data
   const performanceData = useMemo(() => {
     if (!data) return null;
 
-    const rawData = Array.isArray(data) ? data : data?.performance || data;
-    
-    // Transform raw data to our interface
-    const transformMetric = (rawMetric: any): PerformanceMetric => {
-      const value = rawMetric.value || 0;
-      const warning = rawMetric.threshold?.warning || 80;
-      const critical = rawMetric.threshold?.critical || 95;
+    // Handle the actual backend data structure
+    if (data.performance) {
+      const perf = data.performance;
       
-      let status: 'healthy' | 'warning' | 'critical' = 'healthy';
-      if (value >= critical) status = 'critical';
-      else if (value >= warning) status = 'warning';
-
+      // Create metrics
+      const cpu = transformMetric(perf.cpu_usage || 0, 'CPU', 'ms', 70, 90);
+      const memory = transformMetric(perf.memory_usage || 0, 'Paměť', 'MB', 80, 95);
+      const disk = transformMetric(0, 'Disk', 'GB', 80, 95); // Not provided by backend
+      const network = transformMetric(0, 'Síť', 'Mbps', 80, 95); // Not provided by backend
+      const responseTime = transformMetric(perf.response_time || 0, 'Odezva', 'ms', 100, 500);
+      const errorRate = transformMetric(perf.error_rate || 0, 'Chyby', '%', 5, 10);
+      
+      // Calculate overall status based on critical metrics
+      let overallStatus: 'healthy' | 'warning' | 'critical' = 'healthy';
+      if (cpu.status === 'critical' || memory.status === 'critical' || errorRate.status === 'critical') {
+        overallStatus = 'critical';
+      } else if (cpu.status === 'warning' || memory.status === 'warning' || errorRate.status === 'warning') {
+        overallStatus = 'warning';
+      }
+      
       return {
-        name: rawMetric.name || 'Unknown',
-        value,
-        unit: rawMetric.unit || '',
-        threshold: { warning, critical },
-        trend: rawMetric.trend || 'stable',
-        status,
-        history: rawMetric.history || []
+        cpu,
+        memory,
+        disk,
+        network,
+        responseTime,
+        errorRate,
+        uptime: perf.uptime || 0,
+        lastCheck: perf.timestamp || data.timestamp || 'N/A',
+        overallStatus
       };
-    };
+    }
 
+    // Fallback for other data structures
     return {
-      cpu: transformMetric(rawData.cpu),
-      memory: transformMetric(rawData.memory),
-      disk: transformMetric(rawData.disk),
-      network: transformMetric(rawData.network),
-      responseTime: transformMetric(rawData.responseTime),
-      errorRate: transformMetric(rawData.errorRate),
-      uptime: rawData.uptime || 0,
-      lastCheck: rawData.lastCheck || new Date().toISOString(),
-      overallStatus: rawData.overallStatus || 'healthy'
+      cpu: transformMetric(0, 'CPU', 'ms'),
+      memory: transformMetric(0, 'Paměť', 'MB'),
+      disk: transformMetric(0, 'Disk', 'GB'),
+      network: transformMetric(0, 'Síť', 'Mbps'),
+      responseTime: transformMetric(0, 'Odezva', 'ms'),
+      errorRate: transformMetric(0, 'Chyby', '%'),
+      uptime: 0,
+      lastCheck: data.timestamp || 'N/A',
+      overallStatus: 'healthy'
     };
   }, [data]);
 
-  // Generate chart data for metrics
-  const generateChartData = (metric: PerformanceMetric): ChartDataPoint[] => {
-    if (!metric.history || metric.history.length === 0) {
-      // Generate mock data if no history
-      const now = new Date();
-      return Array.from({ length: 10 }, (_, i) => ({
-        label: new Date(now.getTime() - (9 - i) * 60000).toLocaleTimeString('cs-CZ', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }),
-        value: metric.value + (Math.random() - 0.5) * 10,
-        color: getStatusColor(metric.status)
-      }));
-    }
+  // Memoize chart data to prevent unnecessary recalculations
+  const chartData = useMemo(() => {
+    if (!performanceData) return { cpuMemory: [], responseError: [] };
 
-    return metric.history.slice(-10).map((point, index) => ({
-      label: new Date(point.timestamp).toLocaleTimeString('cs-CZ', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      }),
-      value: point.value,
-      color: getStatusColor(metric.status)
-    }));
-  };
+    return {
+      cpuMemory: [
+        ...generateChartData(performanceData.cpu),
+        ...generateChartData(performanceData.memory)
+      ].filter(Boolean),
+      responseError: [
+        ...generateChartData(performanceData.responseTime),
+        ...generateChartData(performanceData.errorRate)
+      ].filter(Boolean)
+    };
+  }, [performanceData]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'critical':
-        return '#EF4444';
-      case 'warning':
-        return '#F59E0B';
-      case 'healthy':
-        return '#10B981';
-      default:
-        return '#6B7280';
-    }
-  };
+  // Memoize formatted values to prevent unnecessary recalculations
+  const formattedValues = useMemo(() => {
+    if (!performanceData) return { uptime: '0m', lastCheck: 'N/A' };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'critical':
-        return <AlertTriangle className="w-5 h-5 text-red-600" />;
-      case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
-      case 'healthy':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
-      default:
-        return <Activity className="w-5 h-5 text-gray-600" />;
-    }
-  };
+    return {
+      uptime: formatUptime(performanceData.uptime),
+      lastCheck: performanceData.lastCheck && performanceData.lastCheck !== 'N/A' ? new Date(performanceData.lastCheck).toLocaleTimeString() : 'N/A'
+    };
+  }, [performanceData]);
 
-  const getStatusBgColor = (status: string) => {
-    switch (status) {
-      case 'critical':
-        return 'bg-red-50 border-red-200';
-      case 'warning':
-        return 'bg-yellow-50 border-yellow-200';
-      case 'healthy':
-        return 'bg-green-50 border-green-200';
-      default:
-        return 'bg-gray-50 border-gray-200';
-    }
-  };
+  // Memoize metrics array to prevent recreation on every render
+  const metrics = useMemo(() => [
+    { key: 'cpu', icon: <Cpu className="w-5 h-5" />, label: 'CPU' },
+    { key: 'memory', icon: <Database className="w-5 h-5" />, label: 'Paměť' },
+    { key: 'disk', icon: <HardDrive className="w-5 h-5" />, label: 'Disk' },
+    { key: 'network', icon: <Network className="w-5 h-5" />, label: 'Síť' },
+    { key: 'responseTime', icon: <Zap className="w-5 h-5" />, label: 'Odezva' },
+    { key: 'errorRate', icon: <AlertTriangle className="w-5 h-5" />, label: 'Chyby' }
+  ], []);
 
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'up':
-        return <TrendingUp className="w-4 h-4 text-red-600" />;
-      case 'down':
-        return <TrendingUp className="w-4 h-4 text-green-600 transform rotate-180" />;
-      default:
-        return <Clock className="w-4 h-4 text-gray-400" />;
-    }
-  };
+  // Memoize real chart data to prevent unnecessary recalculations
+  const realChartData = useMemo(() => {
+    if (!performanceData) return { cpuMemory: [], responseError: [] };
 
-  const formatUptime = (seconds: number) => {
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    
-    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-  };
+    const cpuMemoryData = performanceData.cpu.history && performanceData.cpu.history.length > 0
+      ? performanceData.cpu.history.slice(-10).map((point) => ({
+          label: new Date(point.timestamp).toLocaleTimeString('cs-CZ', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          value: point.value,
+          color: getStatusColor(performanceData.cpu.status)
+        }))
+      : [];
+
+    const memoryData = performanceData.memory.history && performanceData.memory.history.length > 0
+      ? performanceData.memory.history.slice(-10).map((point) => ({
+          label: new Date(point.timestamp).toLocaleTimeString('cs-CZ', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          value: point.value,
+          color: getStatusColor(performanceData.memory.status)
+        }))
+      : [];
+
+    const responseTimeData = performanceData.responseTime.history && performanceData.responseTime.history.length > 0
+      ? performanceData.responseTime.history.slice(-10).map((point) => ({
+          label: new Date(point.timestamp).toLocaleTimeString('cs-CZ', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          value: point.value,
+          color: getStatusColor(performanceData.responseTime.status)
+        }))
+      : [];
+
+    const errorRateData = performanceData.errorRate.history && performanceData.errorRate.history.length > 0
+      ? performanceData.errorRate.history.slice(-10).map((point) => ({
+          label: new Date(point.timestamp).toLocaleTimeString('cs-CZ', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          value: point.value,
+          color: getStatusColor(performanceData.errorRate.status)
+        }))
+      : [];
+
+    return {
+      cpuMemory: [...cpuMemoryData, ...memoryData],
+      responseError: [...responseTimeData, ...errorRateData]
+    };
+  }, [performanceData]);
 
   // Check for alerts
   React.useEffect(() => {
     if (performanceData && onAlert) {
-      Object.values(performanceData).forEach((metric: any) => {
-        if (metric.status === 'critical') {
-          onAlert(`${metric.name} je v kritickém stavu: ${metric.value}${metric.unit}`, 'critical');
-        } else if (metric.status === 'warning') {
-          onAlert(`${metric.name} je ve varovném stavu: ${metric.value}${metric.unit}`, 'warning');
+      // Only check actual metrics, not the overall status properties
+      const metricKeys = ['cpu', 'memory', 'disk', 'network', 'responseTime', 'errorRate'];
+      metricKeys.forEach((key) => {
+        const metric = performanceData[key as keyof SystemPerformance] as PerformanceMetric;
+        if (metric && metric.status === 'critical') {
+          const alertKey = `${key}-critical-${metric.value}`;
+          if (!sentAlertsRef.current.has(alertKey)) {
+            onAlert(`${metric.name} je v kritickém stavu: ${metric.value}${metric.unit}`, 'critical');
+            sentAlertsRef.current.add(alertKey);
+          }
+        } else if (metric && metric.status === 'warning') {
+          const alertKey = `${key}-warning-${metric.value}`;
+          if (!sentAlertsRef.current.has(alertKey)) {
+            onAlert(`${metric.name} je ve varovném stavu: ${metric.value}${metric.unit}`, 'warning');
+            sentAlertsRef.current.add(alertKey);
+          }
         }
       });
+
+      // Clear old alerts after some time to allow new alerts for the same metric
+      if (alertTimeoutRef.current) {
+        clearTimeout(alertTimeoutRef.current);
+      }
+      alertTimeoutRef.current = setTimeout(() => {
+        sentAlertsRef.current.clear();
+      }, 60000); // Clear after 1 minute
     }
+
+    // Cleanup function
+    return () => {
+      if (alertTimeoutRef.current) {
+        clearTimeout(alertTimeoutRef.current);
+      }
+    };
   }, [performanceData, onAlert]);
 
   if (error) {
@@ -224,15 +372,6 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
     );
   }
 
-  const metrics = [
-    { key: 'cpu', icon: <Cpu className="w-5 h-5" />, label: 'CPU' },
-    { key: 'memory', icon: <Database className="w-5 h-5" />, label: 'Paměť' },
-    { key: 'disk', icon: <HardDrive className="w-5 h-5" />, label: 'Disk' },
-    { key: 'network', icon: <Network className="w-5 h-5" />, label: 'Síť' },
-    { key: 'responseTime', icon: <Zap className="w-5 h-5" />, label: 'Odezva' },
-    { key: 'errorRate', icon: <AlertTriangle className="w-5 h-5" />, label: 'Chyby' }
-  ];
-
   return (
     <Card 
       title={title} 
@@ -242,20 +381,20 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
       {/* Overall Status */}
       <div className={cn(
         'p-4 rounded-lg border mb-6',
-        getStatusBgColor(performanceData.overallStatus)
+        getStatusBgColor(performanceData.overallStatus || 'healthy')
       )}>
         <div className="flex items-center gap-3">
-          {getStatusIcon(performanceData.overallStatus)}
+          {getStatusIcon(performanceData.overallStatus || 'healthy')}
           <div>
             <div className="font-semibold">Celkový stav systému</div>
             <div className="text-sm opacity-80">
-              Doba běhu: {formatUptime(performanceData.uptime)}
+              Doba běhu: {formattedValues.uptime}
             </div>
           </div>
           <div className="ml-auto text-right">
             <div className="text-sm opacity-80">Poslední kontrola</div>
             <div className="font-medium">
-              {new Date(performanceData.lastCheck).toLocaleTimeString()}
+              {formattedValues.lastCheck}
             </div>
           </div>
         </div>
@@ -289,13 +428,13 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
               </div>
 
               <div className="text-2xl font-bold mb-2">
-                {metric.value.toFixed(1)}{metric.unit}
+                {metric.value?.toFixed(1) || '0.0'}{metric.unit}
               </div>
 
               {showThresholds && (
                 <div className="text-sm opacity-70 mb-2">
-                  <div>Varování: {metric.threshold.warning}{metric.unit}</div>
-                  <div>Kritické: {metric.threshold.critical}{metric.unit}</div>
+                  <div>Varování: {metric.threshold?.warning || 0}{metric.unit}</div>
+                  <div>Kritické: {metric.threshold?.critical || 0}{metric.unit}</div>
                 </div>
               )}
 
@@ -323,10 +462,7 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
             <div>
               <h4 className="font-medium text-gray-700 mb-3">CPU & Paměť</h4>
               <ResponsiveChart
-                data={[
-                  ...generateChartData(performanceData.cpu),
-                  ...generateChartData(performanceData.memory)
-                ]}
+                data={realChartData.cpuMemory.length > 0 ? realChartData.cpuMemory : chartData.cpuMemory}
                 type="line"
                 height={{ mobile: 200, tablet: 250, desktop: 300 }}
                 showLegend={true}
@@ -339,10 +475,7 @@ const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
             <div>
               <h4 className="font-medium text-gray-700 mb-3">Odezva & Chyby</h4>
               <ResponsiveChart
-                data={[
-                  ...generateChartData(performanceData.responseTime),
-                  ...generateChartData(performanceData.errorRate)
-                ]}
+                data={realChartData.responseError.length > 0 ? realChartData.responseError : chartData.responseError}
                 type="line"
                 height={{ mobile: 200, tablet: 250, desktop: 300 }}
                 showLegend={true}

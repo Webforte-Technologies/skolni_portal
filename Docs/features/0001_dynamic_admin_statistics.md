@@ -142,10 +142,13 @@ CREATE INDEX idx_analytics_events_occurred ON analytics_events(occurred_at DESC)
 
 **System Alerts Table:**
 ```sql
+-- Create severity enum type
+CREATE TYPE severity_enum AS ENUM ('low', 'medium', 'high', 'critical');
+
 CREATE TABLE system_alerts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   alert_type VARCHAR(100) NOT NULL,
-  severity 'low' | 'medium' | 'high' | 'critical' NOT NULL,
+  severity severity_enum NOT NULL,
   message TEXT NOT NULL,
   metric_value NUMERIC,
   threshold_value NUMERIC,

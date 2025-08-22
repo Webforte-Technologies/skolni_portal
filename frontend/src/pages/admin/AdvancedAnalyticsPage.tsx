@@ -12,11 +12,41 @@ import {
   DashboardLayoutManager
 } from '../../components/admin/DynamicWidgets';
 
+interface TrendData {
+  type: string;
+  data: {
+    total_growth?: number;
+    total_purchased?: number;
+    total_created?: number;
+    total_revenue?: number;
+  };
+}
+
+interface PredictionData {
+  type: string;
+  data: {
+    confidence?: number;
+  };
+}
+
+interface AnomalyData {
+  type: string;
+  severity?: string | number;
+}
+
+interface LayoutData {
+  name: string;
+}
+
+interface ExportData {
+  [key: string]: any;
+}
+
 const AdvancedAnalyticsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('trends');
   const [showExportModal, setShowExportModal] = useState(false);
-  const [exportData, setExportData] = useState<any>(null);
-  const [exportFormat, setExportFormat] = useState<string>('json');
+  const [exportData, setExportData] = useState<ExportData | null>(null);
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('json');
   const { showToast } = useToast();
 
   const tabs = [
@@ -26,7 +56,7 @@ const AdvancedAnalyticsPage: React.FC = () => {
     { id: 'layouts', name: 'Správa rozložení', icon: <Grid3X3 className="w-4 h-4" /> }
   ];
 
-  const handleExport = (data: any, format: string) => {
+  const handleExport = (data: ExportData, format: 'csv' | 'json') => {
     setExportData(data);
     setExportFormat(format);
     setShowExportModal(true);
@@ -68,7 +98,7 @@ const AdvancedAnalyticsPage: React.FC = () => {
     }
   };
 
-  const convertToCSV = (data: any): string => {
+  const convertToCSV = (data: ExportData): string => {
     if (typeof data !== 'object' || data === null) {
       return String(data);
     }
@@ -82,10 +112,22 @@ const AdvancedAnalyticsPage: React.FC = () => {
       for (const row of data) {
         const values = headers.map(header => {
           const value = row[header];
-          if (typeof value === 'string' && value.includes(',')) {
-            return `"${value}"`;
+          // Handle different value types safely
+          let stringValue: string;
+          if (value === null || value === undefined) {
+            stringValue = '';
+          } else if (typeof value === 'object') {
+            stringValue = JSON.stringify(value);
+          } else {
+            stringValue = String(value);
           }
-          return value;
+          
+          // Escape quotes and wrap in quotes if contains comma, newline, or quote
+          const escapedValue = stringValue.replace(/"/g, '""');
+          if (escapedValue.includes(',') || escapedValue.includes('\n') || escapedValue.includes('"')) {
+            return `"${escapedValue}"`;
+          }
+          return escapedValue;
         });
         csvRows.push(values.join(','));
       }
@@ -96,49 +138,72 @@ const AdvancedAnalyticsPage: React.FC = () => {
       const headers = Object.keys(data);
       const values = headers.map(header => {
         const value = data[header];
-        if (typeof value === 'string' && value.includes(',')) {
-          return `"${value}"`;
+        // Handle different value types safely
+        let stringValue: string;
+        if (value === null || value === undefined) {
+          stringValue = '';
+        } else if (typeof value === 'object') {
+          stringValue = JSON.stringify(value);
+        } else {
+          stringValue = String(value);
         }
-        return value;
+        
+        // Escape quotes and wrap in quotes if contains comma, newline, or quote
+        const escapedValue = stringValue.replace(/"/g, '""');
+        if (escapedValue.includes(',') || escapedValue.includes('\n') || escapedValue.includes('"')) {
+          return `"${escapedValue}"`;
+        }
+        return escapedValue;
       });
       
       return [headers.join(','), values.join(',')].join('\n');
     }
   };
 
-  const handleTrendClick = (trend: any) => {
+  const handleTrendClick = (trend: TrendData) => {
     showToast({ 
       type: 'info', 
       message: `Trend kliknut: ${trend.type} - ${trend.data.total_growth || trend.data.total_purchased || trend.data.total_created || trend.data.total_revenue || 0}` 
     });
   };
 
-  const handlePredictionClick = (prediction: any) => {
+  const handlePredictionClick = (prediction: PredictionData) => {
     showToast({ 
       type: 'info', 
-      message: `Predikce kliknuta: ${prediction.type} - Jistota: ${Math.round(prediction.data.confidence * 100)}%` 
+      message: `Predikce kliknuta: ${prediction.type} - Jistota: ${Math.round((prediction.data.confidence || 0) * 100)}%` 
     });
   };
 
-  const handleAnomalyClick = (anomaly: any) => {
+  const handleAnomalyClick = (anomaly: AnomalyData) => {
     showToast({ 
       type: 'info', 
       message: `Anomálie kliknuta: ${anomaly.type} - Závažnost: ${anomaly.severity}` 
     });
   };
 
-  const handleLayoutChange = (layout: any) => {
+  const handleLayoutChange = (layout: LayoutData) => {
     showToast({ 
       type: 'success', 
       message: `Rozložení změněno na: ${layout.name}` 
     });
   };
 
-  const handleLayoutSave = (layout: any) => {
+  const handleLayoutSave = (layout: LayoutData) => {
     showToast({ 
       type: 'success', 
       message: `Rozložení uloženo: ${layout.name}` 
     });
+  };
+
+  const handleExportClick = () => {
+    if (exportData) {
+      setShowExportModal(true);
+    } else {
+      showToast({ 
+        type: 'warning', 
+        message: 'Žádná data k exportu. Nejdříve načtěte data z některé z karet.' 
+      });
+    }
   };
 
   return (
@@ -155,8 +220,9 @@ const AdvancedAnalyticsPage: React.FC = () => {
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => setShowExportModal(true)}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={handleExportClick}
+                disabled={!exportData}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Export
@@ -250,7 +316,7 @@ const AdvancedAnalyticsPage: React.FC = () => {
                     </label>
                     <select
                       value={exportFormat}
-                      onChange={(e) => setExportFormat(e.target.value)}
+                      onChange={(e) => setExportFormat(e.target.value as 'csv' | 'json')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="json">JSON</option>

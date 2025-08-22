@@ -89,7 +89,12 @@ const TrendChartWidget: React.FC<TrendChartWidgetProps> = ({
 
     const csvContent = [
       'Timestamp,Value,Label',
-      ...chartData.map(point => `${point.label},${point.value}`)
+      ...chartData.map(point => {
+        const timestamp = point.timestamp || new Date().toISOString();
+        const escapedLabel = point.label.includes(',') ? `"${point.label.replace(/"/g, '""')}"` : point.label;
+        const escapedValue = point.value.toString().includes(',') ? `"${point.value.toString().replace(/"/g, '""')}"` : point.value.toString();
+        return `${timestamp},${escapedValue},${escapedLabel}`;
+      })
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -205,6 +210,7 @@ const TrendChartWidget: React.FC<TrendChartWidgetProps> = ({
           showValues={false}
           emptyMessage="Žádná data k zobrazení"
           className="cursor-pointer"
+          onClick={handleDataPointClick}
         />
 
         {/* Loading overlay */}

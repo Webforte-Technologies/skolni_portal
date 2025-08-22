@@ -5,6 +5,7 @@ export interface ChartDataPoint {
   label: string;
   value: number;
   color?: string;
+  timestamp?: string | Date;
 }
 
 export interface ResponsiveChartProps {
@@ -21,6 +22,7 @@ export interface ResponsiveChartProps {
   showValues?: boolean;
   colors?: string[];
   emptyMessage?: string;
+  onClick?: (index: number) => void;
 }
 
 export const ResponsiveChart: React.FC<ResponsiveChartProps> = ({
@@ -36,11 +38,60 @@ export const ResponsiveChart: React.FC<ResponsiveChartProps> = ({
     '#06B6D4', '#F97316', '#84CC16', '#EC4899', '#6B7280'
   ],
   emptyMessage = 'Žádná data k zobrazení',
+  onClick,
 }) => {
   const { state } = useResponsive();
   const { isMobile, isTablet } = state;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [chartDimensions, setChartDimensions] = useState({ width: 0, height: 0 });
+
+  // Handle canvas click
+  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!onClick || !data.length) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // Calculate which data point was clicked
+    const padding = state.isMobile ? 20 : 40;
+    const legendHeight = showLegend ? (state.isMobile ? 60 : 80) : 0;
+    const titleHeight = title ? (state.isMobile ? 30 : 40) : 0;
+    
+    const chartArea = {
+      x: padding,
+      y: padding + titleHeight,
+      width: chartDimensions.width - (padding * 2),
+      height: chartDimensions.height - (padding * 2) - legendHeight - titleHeight,
+    };
+    
+    // Check if click is within chart area
+    if (x >= chartArea.x && x <= chartArea.x + chartArea.width &&
+        y >= chartArea.y && y <= chartArea.y + chartArea.height) {
+      
+      // Calculate data point index based on chart type
+      let index = 0;
+      if (type === 'bar' || type === 'line') {
+        const barWidth = chartArea.width / data.length;
+        index = Math.floor((x - chartArea.x) / barWidth);
+      } else if (type === 'pie' || type === 'doughnut') {
+        // For pie charts, calculate angle from center
+        const centerX = chartArea.x + chartArea.width / 2;
+        const centerY = chartArea.y + chartArea.height / 2;
+        const angle = Math.atan2(y - centerY, x - centerX);
+        const normalizedAngle = angle < 0 ? angle + 2 * Math.PI : angle;
+        index = Math.floor((normalizedAngle / (2 * Math.PI)) * data.length);
+      }
+      
+      // Ensure index is within bounds
+      if (index >= 0 && index < data.length) {
+        onClick(index);
+      }
+    }
+  };
 
   // Get responsive height
   const currentHeight = isMobile ? height.mobile : isTablet ? height.tablet : height.desktop;
@@ -291,6 +342,7 @@ export const ResponsiveChart: React.FC<ResponsiveChartProps> = ({
         ref={canvasRef}
         className="w-full"
         style={{ height: currentHeight }}
+        onClick={handleCanvasClick}
       />
     </div>
   );

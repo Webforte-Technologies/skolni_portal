@@ -5,11 +5,16 @@ import { useRealTimeData } from '../../../hooks/useRealTimeData';
 import { cn } from '../../../utils/cn';
 import Button from '../../ui/Button';
 
-export interface PredictionData {
+interface PredictionData {
   current_daily_average: number;
   projected_total: number;
   confidence: number;
   factors: string[];
+}
+
+interface ExportPayload {
+  predictions: Record<string, PredictionData>;
+  metadata?: Record<string, any>;
 }
 
 export interface PredictiveInsightsData {
@@ -34,8 +39,8 @@ export interface PredictiveInsightsWidgetProps {
   showFilters?: boolean;
   showActions?: boolean;
   className?: string;
-  onPredictionClick?: (prediction: any) => void;
-  onExport?: (data: any, format: string) => void;
+  onPredictionClick?: (prediction: { type: string; data: PredictionData }) => void;
+  onExport?: (data: ExportPayload, format: 'csv' | 'json') => void;
 }
 
 const PredictiveInsightsWidget: React.FC<PredictiveInsightsWidgetProps> = ({
@@ -116,7 +121,15 @@ const PredictiveInsightsWidget: React.FC<PredictiveInsightsWidgetProps> = ({
     return typeof value === 'number' && !isNaN(value);
   };
 
-  const handleExport = (format: string) => {
+  // Format time range for display
+  const formatTimeRange = (timeRange: string | number): string => {
+    const months = Number(timeRange) || 0;
+    if (months === 1) return '1 měsíc';
+    if (months < 5) return `${months} měsíce`;
+    return `${months} měsíců`;
+  };
+
+  const handleExport = (format: 'csv' | 'json') => {
     if (onExport && data) {
       onExport(data, format);
     }
@@ -288,7 +301,7 @@ const PredictiveInsightsWidget: React.FC<PredictiveInsightsWidgetProps> = ({
                           </div>
                           
                           <div className="flex justify-between">
-                            <span className="text-sm text-gray-600">Prognóza za {timeRange} měsíců:</span>
+                            <span className="text-sm text-gray-600">Prognóza za {formatTimeRange(timeRange)} měsíců:</span>
                             <span className="font-bold text-blue-600">
                               {formatMetricValue(prediction.projected_total, key)}
                             </span>

@@ -10,16 +10,21 @@ import AdminLayout from '../../components/admin/AdminLayout';
 interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   role: string;
-  status: 'active' | 'inactive' | 'suspended';
-  school?: string;
-  credits: number;
-  lastLogin: string;
-  createdAt: string;
-  emailVerified: boolean;
-  phone?: string;
+  is_active: boolean;
+  school_id?: string;
+  credits_balance: number;
+  created_at: string;
+  school_name?: string;
+}
+
+interface UsersListResponse {
+  data: User[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 interface UserFilters {
@@ -55,7 +60,7 @@ const UserManagementPage: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/users', {
+      const response = await api.get<{ success: boolean; data: UsersListResponse }>('/admin/users', {
         params: {
           page: currentPage,
           limit: pageSize,
@@ -63,8 +68,15 @@ const UserManagementPage: React.FC = () => {
           ...filters
         }
       });
-      setUsers((response.data.data as User[]) || []);
-      setTotalUsers((response.data.data as any)?.total || 0);
+      // The backend returns: { success: true, data: { data: rows, total, limit, offset } }
+      const usersData = response.data.data;
+      if (usersData?.data) {
+        setUsers(usersData.data);
+        setTotalUsers(usersData.total);
+      } else {
+        setUsers([]);
+        setTotalUsers(0);
+      }
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při načítání uživatelů' });
     } finally {
@@ -369,20 +381,18 @@ const UserManagementPage: React.FC = () => {
                         <div className="flex-shrink-0 h-10 w-10">
                           <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                             <span className="text-sm font-medium text-blue-800">
-                              {user.firstName[0]}{user.lastName[0]}
+                              {user.first_name[0]}{user.last_name[0]}
                             </span>
                           </div>
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {user.firstName} {user.lastName}
+                            {user.first_name} {user.last_name}
                           </div>
                           <div className="text-sm text-gray-500 flex items-center">
                             <Mail className="w-3 h-3 mr-1" />
                             {user.email}
-                            {user.emailVerified && (
-                              <CheckCircle className="w-3 h-3 ml-1 text-green-500" />
-                            )}
+                            {/* Note: emailVerified field not available in backend response */}
                           </div>
                         </div>
                       </div>
@@ -399,25 +409,22 @@ const UserManagementPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.status === 'active' ? 'bg-green-100 text-green-800' :
-                        user.status === 'suspended' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
+                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                       }`}>
-                        {user.status === 'active' ? 'Aktivní' :
-                         user.status === 'suspended' ? 'Pozastaven' : 'Neaktivní'}
+                        {user.is_active ? 'Aktivní' : 'Neaktivní'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {user.school || 'Bez školy'}
+                      {user.school_name || 'Bez školy'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex items-center">
                         <CreditCard className="w-4 h-4 mr-1 text-blue-500" />
-                        {user.credits}
+                        {user.credits_balance}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(user.lastLogin).toLocaleDateString('cs-CZ')}
+                      {new Date(user.created_at).toLocaleDateString('cs-CZ')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
@@ -425,15 +432,15 @@ const UserManagementPage: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleUserAction(user.id, 'activate')}
-                          disabled={user.status === 'active'}
+                          disabled={user.is_active}
                         >
                           <CheckCircle className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleUserAction(user.id, 'suspend')}
-                          disabled={user.status === 'suspended'}
+                          onClick={() => handleUserAction(user.id, 'deactivate')}
+                          disabled={!user.is_active}
                         >
                           <XCircle className="w-4 h-4" />
                         </Button>

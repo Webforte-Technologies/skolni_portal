@@ -46,7 +46,7 @@ const TrendAnalysisWidget: React.FC<TrendAnalysisWidgetProps> = ({
   const [showDetails, setShowDetails] = useState(false);
 
   const { data, loading, error, refresh, isAutoRefreshing, lastUpdated } = useRealTimeData({
-    endpoint: `${endpoint}?timeRange=${JSON.stringify({ days: parseInt(timeRange) })}&metrics=${selectedMetrics.join(',')}`,
+    endpoint: `${endpoint}?timeRange=${encodeURIComponent(JSON.stringify({ days: parseInt(timeRange) }))}&metrics=${encodeURIComponent(selectedMetrics.join(','))}`,
     refreshInterval,
     autoRefresh: true
   });

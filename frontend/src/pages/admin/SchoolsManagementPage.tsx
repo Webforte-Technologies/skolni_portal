@@ -13,11 +13,11 @@ import AdminLayout from '../../components/admin/AdminLayout';
 interface School {
   id: string;
   name: string;
-  address: string;
-  city: string;
-  postal_code: string;
-  phone: string;
-  email: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  phone?: string;
+  email?: string;
   website?: string;
   teacher_count: number;
   student_count: number;
@@ -129,7 +129,7 @@ const SchoolsManagementPage: React.FC = () => {
                   <h3 className="font-semibold text-gray-900 text-lg">{school.name}</h3>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <MapPin className="w-4 h-4" />
-                    {school.city}, {school.postal_code}
+                    {school.city || 'N/A'}{school.postal_code ? `, ${school.postal_code}` : ''}
                   </div>
                 </div>
               </div>
@@ -147,11 +147,11 @@ const SchoolsManagementPage: React.FC = () => {
             <div className="space-y-3 mb-4">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Phone className="w-4 h-4" />
-                {school.phone}
+                {school.phone || 'N/A'}
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Mail className="w-4 h-4" />
-                {school.email}
+                {school.email || 'N/A'}
               </div>
               {school.website && (
                 <div className="flex items-center gap-2 text-sm text-blue-600">
@@ -170,31 +170,28 @@ const SchoolsManagementPage: React.FC = () => {
                   <Users className="w-4 h-4 text-blue-600" />
                   <span className="text-sm text-gray-600">Učitelé</span>
                 </div>
-                <div className="text-xl font-bold text-gray-900">{school.teacher_count}</div>
+                <div className="text-xl font-bold text-gray-900">{school.teacher_count || 0}</div>
               </div>
               <div className="text-center p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <Users className="w-4 h-4 text-green-600" />
                   <span className="text-sm text-gray-600">Studenti</span>
                 </div>
-                <div className="text-xl font-bold text-gray-900">{school.student_count}</div>
+                <div className="text-xl font-bold text-gray-900">{school.student_count || 0}</div>
               </div>
             </div>
 
-            {/* Subscription and Credits */}
+            {/* Credits Information */}
             <div className="space-y-3 mb-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Předplatný plán</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSubscriptionPlanColor(school.subscription_plan)}`}>
-                  {getSubscriptionPlanName(school.subscription_plan)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Kredity</span>
+                <span className="text-sm text-gray-600">Celkové kredity školy</span>
                 <div className="flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-purple-600" />
-                  <span className="font-medium">{school.credits_balance.toLocaleString()}</span>
+                  <span className="font-medium">{(school.credits_balance || 0).toLocaleString()}</span>
                 </div>
+              </div>
+              <div className="text-xs text-gray-500">
+                Kredity jsou rozděleny mezi učitele školy
               </div>
             </div>
 

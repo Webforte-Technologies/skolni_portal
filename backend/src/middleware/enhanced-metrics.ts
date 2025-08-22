@@ -144,16 +144,24 @@ export const getSystemMetrics = async (): Promise<SystemMetrics> => {
 export const getPerformanceMetrics = (): PerformanceMetrics => {
   const avg = state.totalRequests > 0 ? state.totalResponseMs / state.totalRequests : 0;
   
-  // Calculate percentiles
-  const sortedTimes = [...state.responseTimes].sort((a, b) => a - b);
-  const p95Index = Math.floor(sortedTimes.length * 0.95);
-  const p99Index = Math.floor(sortedTimes.length * 0.99);
+  // Calculate percentiles with safe fallbacks
+  let p95_response_ms = 0;
+  let p99_response_ms = 0;
+  
+  if (state.responseTimes.length > 0) {
+    const sortedTimes = [...state.responseTimes].sort((a, b) => a - b);
+    const p95Index = Math.floor(sortedTimes.length * 0.95);
+    const p99Index = Math.floor(sortedTimes.length * 0.99);
+    
+    p95_response_ms = sortedTimes[p95Index] || 0;
+    p99_response_ms = sortedTimes[p99Index] || 0;
+  }
   
   return {
     total_requests: state.totalRequests,
     avg_response_ms: Math.round(avg),
-    p95_response_ms: sortedTimes[p95Index] || 0,
-    p99_response_ms: sortedTimes[p99Index] || 0,
+    p95_response_ms,
+    p99_response_ms,
     error_count_by_status: { ...state.errorCountByStatus },
     request_count_by_endpoint: { ...state.requestCountByEndpoint },
     started_at: state.startedAt.toISOString()

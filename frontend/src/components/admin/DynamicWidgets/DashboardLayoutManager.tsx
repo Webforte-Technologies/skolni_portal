@@ -139,7 +139,14 @@ const DashboardLayoutManager: React.FC<DashboardLayoutManagerProps> = ({
   const handleSaveLayout = async (layout: DashboardLayout) => {
     try {
       setLoading(true);
-      const response = await api.post('/admin/analytics/dashboard-layouts', {
+      
+      // Use PUT for updates, POST for new layouts
+      const endpoint = layout.id 
+        ? `/admin/analytics/dashboard-layouts/${layout.id}`
+        : '/admin/analytics/dashboard-layouts';
+      
+      const method = layout.id ? 'put' : 'post';
+      const response = await api[method](endpoint, {
         ...layout,
         updated_at: new Date().toISOString()
       });
@@ -166,13 +173,22 @@ const DashboardLayoutManager: React.FC<DashboardLayoutManagerProps> = ({
 
     try {
       setLoading(true);
-      // Note: This would need a DELETE endpoint in the backend
-      // For now, we'll just remove it from the local state
-      setLayouts(layouts.filter(l => l.id !== layoutId));
-      if (currentLayout?.id === layoutId) {
-        setCurrentLayout(layouts[0] || null);
+      
+      // Call backend DELETE endpoint
+      const response = await api.delete(`/admin/analytics/dashboard-layouts/${layoutId}`);
+      
+      if (response.data.success) {
+        // Optimistically update local state
+        const updatedLayouts = layouts.filter(l => l.id !== layoutId);
+        setLayouts(updatedLayouts);
+        
+        // Update current layout if needed
+        if (currentLayout?.id === layoutId) {
+          setCurrentLayout(updatedLayouts[0] || null);
+        }
+        
+        showToast({ type: 'success', message: 'Rozložení bylo smazáno' });
       }
-      showToast({ type: 'success', message: 'Rozložení bylo smazáno' });
     } catch (error) {
       console.error('Failed to delete layout:', error);
       showToast({ type: 'error', message: 'Chyba při mazání rozložení' });

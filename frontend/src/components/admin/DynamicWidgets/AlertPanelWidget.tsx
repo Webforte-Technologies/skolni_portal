@@ -78,10 +78,12 @@ const AlertPanelWidget: React.FC<AlertPanelWidgetProps> = ({
       alerts = alerts.filter(alert => !alert.acknowledged);
     }
 
-    // Sort by severity and timestamp
+    // Sort by severity and timestamp with safe fallbacks
     alerts.sort((a, b) => {
-      const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-      const severityDiff = severityOrder[b.severity] - severityOrder[a.severity];
+      const severityOrder: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 };
+      const severityA = severityOrder[a.severity?.toLowerCase()] || 0;
+      const severityB = severityOrder[b.severity?.toLowerCase()] || 0;
+      const severityDiff = severityB - severityA;
       if (severityDiff !== 0) return severityDiff;
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
@@ -143,9 +145,18 @@ const AlertPanelWidget: React.FC<AlertPanelWidgetProps> = ({
     const diffDays = Math.floor(diffMs / 86400000);
 
     if (diffMins < 1) return 'Právě teď';
-    if (diffMins < 60) return `Před ${diffMins} min`;
-    if (diffHours < 24) return `Před ${diffHours} hod`;
-    if (diffDays < 7) return `Před ${diffDays} dny`;
+    if (diffMins < 60) {
+      if (diffMins === 1) return 'Před 1 minutou';
+      return `Před ${diffMins} minutami`;
+    }
+    if (diffHours < 24) {
+      if (diffHours === 1) return 'Před 1 hodinou';
+      return `Před ${diffHours} hodinami`;
+    }
+    if (diffDays < 7) {
+      if (diffDays === 1) return 'Před 1 dnem';
+      return `Před ${diffDays} dny`;
+    }
     return date.toLocaleDateString();
   };
 
