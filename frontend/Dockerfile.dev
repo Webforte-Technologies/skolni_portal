@@ -1,0 +1,49 @@
+# Frontend Development Dockerfile for EduAI-Asistent
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies for native modules and development tools
+RUN apk add --no-cache \
+    libc6-compat \
+    curl \
+    bash \
+    git
+
+# Create app user for security
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+
+# Set environment variables for development
+ENV NODE_ENV=development
+ENV PATH=/app/node_modules/.bin:$PATH
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install all dependencies (including devDependencies for development)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Install Vite and TypeScript globally for development
+RUN npm install -g vite typescript
+
+# Change ownership of the app directory to nodejs user
+RUN chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
+
+# Expose the Vite development server port
+EXPOSE 5173
+
+# Health check for Vite dev server
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:5173/ || exit 1
+
+# Start the Vite development server with hot reload
+# The --host 0.0.0.0 allows external connections (from Docker host)
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
