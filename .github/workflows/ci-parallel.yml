@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline - Parallel E2E
 
 on:
   push:
@@ -102,9 +102,17 @@ jobs:
         working-directory: ./frontend
         run: npm run build
 
-  # E2E Tests
-  e2e-tests:
-    name: E2E Tests
+      - name: Cache frontend build
+        uses: actions/cache@v4
+        with:
+          path: frontend/dist
+          key: frontend-build-${{ github.sha }}
+          restore-keys: |
+            frontend-build-
+
+  # Parallel E2E Tests - Authentication
+  e2e-auth:
+    name: E2E Tests - Authentication
     runs-on: ubuntu-latest
     needs: [backend-ci, frontend-ci]
     
@@ -142,12 +150,148 @@ jobs:
         working-directory: ./frontend
         run: npx playwright install --with-deps
 
-      - name: Run E2E tests
+      - name: Restore frontend build cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/dist
+          key: frontend-build-${{ github.sha }}
+
+      - name: Run Authentication E2E tests
         working-directory: ./frontend
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-        run: npm run test:e2e
+        run: npm run test:e2e:auth
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-auth-results
+          path: frontend/test-results/
+          retention-days: 7
+
+  # Parallel E2E Tests - Dashboard
+  e2e-dashboard:
+    name: E2E Tests - Dashboard
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+    
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        run: npx playwright install --with-deps
+
+      - name: Restore frontend build cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/dist
+          key: frontend-build-${{ github.sha }}
+
+      - name: Run Dashboard E2E tests
+        working-directory: ./frontend
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        run: npm run test:e2e:dashboard
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-dashboard-results
+          path: frontend/test-results/
+          retention-days: 7
+
+  # Parallel E2E Tests - AI Generator
+  e2e-ai-generator:
+    name: E2E Tests - AI Generator
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+    
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        run: npx playwright install --with-deps
+
+      - name: Restore frontend build cache
+        uses: actions/cache@v4
+        with:
+          path: frontend/dist
+          key: frontend-build-${{ github.sha }}
+
+      - name: Run AI Generator E2E tests
+        working-directory: ./frontend
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        run: npm run test:e2e:ai-generator
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-ai-generator-results
+          path: frontend/test-results/
+          retention-days: 7
 
   # Security scanning
   security-scan:
@@ -180,7 +324,7 @@ jobs:
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [backend-ci, frontend-ci, e2e-tests, security-scan]
+    needs: [backend-ci, frontend-ci, e2e-auth, e2e-dashboard, e2e-ai-generator, security-scan]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     environment: production

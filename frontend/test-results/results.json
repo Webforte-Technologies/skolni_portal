@@ -1,0 +1,2293 @@
+{
+  "config": {
+    "configFile": "C:\\Projects\\skolni_portal\\frontend\\playwright.config.ts",
+    "rootDir": "C:/Projects/skolni_portal/frontend/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 8
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "test-results/html-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/Projects/skolni_portal/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/Projects/skolni_portal/frontend/tests",
+        "testIgnore": [
+          "**/old/**"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "C:/Projects/skolni_portal/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 8
+        },
+        "id": "mobile-chrome",
+        "name": "mobile-chrome",
+        "testDir": "C:/Projects/skolni_portal/frontend/tests",
+        "testIgnore": [
+          "**/old/**"
+        ],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.2",
+    "workers": 8,
+    "webServer": {
+      "command": "npm run preview:build",
+      "port": 4173,
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "VITE_API_URL": "http://localhost:3001/api",
+        "NODE_ENV": "test"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "ai-generator-realistic.spec.ts",
+      "file": "ai-generator-realistic.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "AI Generator - Realistic Tests",
+          "file": "ai-generator-realistic.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Complete AI Generator Flow - Quiz Creation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4141,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:27.746Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-bf4cac087a7d1e6550d2",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 85,
+              "column": 3
+            },
+            {
+              "title": "Complete AI Generator Flow - Lesson Plan Creation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 4409,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:27.763Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-51a12d5758cf8357a0f5",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 119,
+              "column": 3
+            },
+            {
+              "title": "Assignment Analysis Feature",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 6160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:27.762Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-025e4a6342e37376bf67",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 151,
+              "column": 3
+            },
+            {
+              "title": "Form Validation - Required Fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 4208,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:27.795Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-b95866f833e60933f806",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 176,
+              "column": 3
+            },
+            {
+              "title": "Material Type Selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 4174,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:27.758Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-71da3814d2fcba8d38dc",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 202,
+              "column": 3
+            },
+            {
+              "title": "Grade Level Selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 4057,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:27.761Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-49f5903dc8bf9bff6d70",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 222,
+              "column": 3
+            },
+            {
+              "title": "Responsive Design - Mobile View",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 4110,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:27.794Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-cb4163f0597f6dbd1587",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 245,
+              "column": 3
+            },
+            {
+              "title": "Error Handling - API Failure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 4471,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:27.732Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-8c7b28f08daa38c59849",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 262,
+              "column": 3
+            },
+            {
+              "title": "Complete AI Generator Flow - Quiz Creation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 3853,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:39.923Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-76868317f36ad7b8cfd0",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 85,
+              "column": 3
+            },
+            {
+              "title": "Complete AI Generator Flow - Lesson Plan Creation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3890,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:39.981Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-a904c23687baba56563a",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 119,
+              "column": 3
+            },
+            {
+              "title": "Assignment Analysis Feature",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 5835,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:40.193Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-af1deb907601c41e4d44",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 151,
+              "column": 3
+            },
+            {
+              "title": "Form Validation - Required Fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 3620,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:40.439Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-e9dbb24f96a3d6bb9abf",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 176,
+              "column": 3
+            },
+            {
+              "title": "Material Type Selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 3698,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:40.883Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-4042e66bb4761498bcbc",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 202,
+              "column": 3
+            },
+            {
+              "title": "Grade Level Selection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 3632,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:41.105Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-44e3216ae4951762dda5",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 222,
+              "column": 3
+            },
+            {
+              "title": "Responsive Design - Mobile View",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 3526,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:43.883Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-2a717ca1170814510e39",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 245,
+              "column": 3
+            },
+            {
+              "title": "Error Handling - API Failure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 3967,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:45.134Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f0a0ca5b875e7f556df-93efb42b995ceba8654f",
+              "file": "ai-generator-realistic.spec.ts",
+              "line": 262,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "auth-core.spec.ts",
+      "file": "auth-core.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication Core Functionality",
+          "file": "auth-core.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Login page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 1071,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:32.000Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-69e4eae18f73f0a59869",
+              "file": "auth-core.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "Registration page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1017,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:32.027Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-a7c06871e84bb4e25795",
+              "file": "auth-core.spec.ts",
+              "line": 15,
+              "column": 3
+            },
+            {
+              "title": "School registration page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 898,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:32.113Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-0443b97320a9af8942b3",
+              "file": "auth-core.spec.ts",
+              "line": 25,
+              "column": 3
+            },
+            {
+              "title": "Landing page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 1261,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:32.132Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-d9c990d9ce0ec587f939",
+              "file": "auth-core.spec.ts",
+              "line": 35,
+              "column": 3
+            },
+            {
+              "title": "Responsive Design - Mobile View",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 824,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:32.259Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-9881c71ebe7b40c11eea",
+              "file": "auth-core.spec.ts",
+              "line": 53,
+              "column": 3
+            },
+            {
+              "title": "Responsive Design - Tablet View",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 903,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:32.321Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-ae97a830df835de47438",
+              "file": "auth-core.spec.ts",
+              "line": 66,
+              "column": 3
+            },
+            {
+              "title": "Login page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 726,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:44.001Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-6d10bbecd15058b61e7b",
+              "file": "auth-core.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "Registration page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 761,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:44.221Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-226433e540f9991b8699",
+              "file": "auth-core.spec.ts",
+              "line": 15,
+              "column": 3
+            },
+            {
+              "title": "School registration page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 704,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:46.217Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-cc2a00642cbb8b3a4f1b",
+              "file": "auth-core.spec.ts",
+              "line": 25,
+              "column": 3
+            },
+            {
+              "title": "Landing page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 1670,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:44.688Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-cd049a2ab26a209db942",
+              "file": "auth-core.spec.ts",
+              "line": 35,
+              "column": 3
+            },
+            {
+              "title": "Responsive Design - Mobile View",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 782,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:44.736Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-fb5b4079885e0f8379bf",
+              "file": "auth-core.spec.ts",
+              "line": 53,
+              "column": 3
+            },
+            {
+              "title": "Responsive Design - Tablet View",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 1125,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:44.844Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e47a898a81a98fd16dc4-e2711c3f73e648968f2a",
+              "file": "auth-core.spec.ts",
+              "line": 66,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "dashboard-core.spec.ts",
+      "file": "dashboard-core.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Dashboard Core Functionality",
+          "file": "dashboard-core.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Dashboard loads and shows user information",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 5905,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        },
+                        {
+                          "text": "Page content length: \u001b[33m41311\u001b[39m\n"
+                        },
+                        {
+                          "text": "Page text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nEduAI-Asistent\nVytvořit materiál\nNástroje\nTest Učitel\nOdhlásit se\nVítejte zpět!\n\nVyberte si AI asistenta nebo začněte nový chat. Materiály, cvičení a výpočty na jednom místě.\n\n100\nDOSTUPNÉ KREDITY\nZačít nový chat\nVytvořit materiál\nMateriály\nChat s AI\nVytvořit materiál\nMateriály\nSdílené materiály\nAI Asistenti\nAI Asistenti\n\nVyberte si asistenta podle vašich potřeb\n\nkredit\nKlikněte pro detaily\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:32.336Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0f44f661aa746352bc3-0126fbf158db6aa8a5e4",
+              "file": "dashboard-core.spec.ts",
+              "line": 133,
+              "column": 3
+            },
+            {
+              "title": "Dashboard shows credit balance",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 5725,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:33.038Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0f44f661aa746352bc3-2342a6f2efbb019a87be",
+              "file": "dashboard-core.spec.ts",
+              "line": 166,
+              "column": 3
+            },
+            {
+              "title": "Dashboard navigation works",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5710,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:33.074Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0f44f661aa746352bc3-fd54ac4715bef49facfb",
+              "file": "dashboard-core.spec.ts",
+              "line": 176,
+              "column": 3
+            },
+            {
+              "title": "Responsive Design - Mobile View",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 5654,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:33.105Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0f44f661aa746352bc3-6af792f08f6227034600",
+              "file": "dashboard-core.spec.ts",
+              "line": 187,
+              "column": 3
+            },
+            {
+              "title": "Responsive Design - Tablet View",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 5901,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:33.125Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0f44f661aa746352bc3-e857c438bd062972b8c4",
+              "file": "dashboard-core.spec.ts",
+              "line": 200,
+              "column": 3
+            },
+            {
+              "title": "Dashboard loads and shows user information",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6602,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        },
+                        {
+                          "text": "Page content length: \u001b[33m46925\u001b[39m\n"
+                        },
+                        {
+                          "text": "Page text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nOtevřít menu\nMenu\n\nTest Učitel\n\nteacher@example.com\n\nDashboard\nNástroje a cvičení\nVytvořit materiál\nMoje materiály\nNotifikace\nKlávesové zkratky\nNápověda\nNastavení\nOdhlásit se\nEduAI-Asistent\nVítejte zpět!\n\nVyberte si AI asistenta nebo začněte nový chat. Materiály, cvičení a výpočty na jednom místě.\n\n100\nDOSTUPNÉ KREDITY\nZačít nový chat\nVytvořit materiál\nMateriály\nChat s AI\nVytvořit materiál\n\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:45.015Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0f44f661aa746352bc3-8e6b7080114e0ae2ef83",
+              "file": "dashboard-core.spec.ts",
+              "line": 133,
+              "column": 3
+            },
+            {
+              "title": "Dashboard shows credit balance",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5860,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:45.545Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0f44f661aa746352bc3-a13603338468961db465",
+              "file": "dashboard-core.spec.ts",
+              "line": 166,
+              "column": 3
+            },
+            {
+              "title": "Dashboard navigation works",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 6044,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:45.998Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0f44f661aa746352bc3-fd16eeefd2a3f51c2422",
+              "file": "dashboard-core.spec.ts",
+              "line": 176,
+              "column": 3
+            },
+            {
+              "title": "Responsive Design - Mobile View",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 5950,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:46.188Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0f44f661aa746352bc3-d80c0aeb199b933073d4",
+              "file": "dashboard-core.spec.ts",
+              "line": 187,
+              "column": 3
+            },
+            {
+              "title": "Responsive Design - Tablet View",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 6352,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:46.388Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a0f44f661aa746352bc3-2eff5424c071db8abb0f",
+              "file": "dashboard-core.spec.ts",
+              "line": 200,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "debug.spec.ts",
+      "file": "debug.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Debug Tests",
+          "file": "debug.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Debug - Check what is rendered on login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6064,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Page HTML length: \u001b[33m12024\u001b[39m\n"
+                        },
+                        {
+                          "text": "Root div content length: \u001b[33m6945\u001b[39m\n"
+                        },
+                        {
+                          "text": "React elements found (data-reactroot): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "React elements found (data-reactid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "React elements found (data-testid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "React elements found (class*=\"react\"): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Main script elements found: \u001b[33m1\u001b[39m\n"
+                        },
+                        {
+                          "text": "Script errors: []\n"
+                        },
+                        {
+                          "text": "Console errors: [\n  \u001b[32m'Warning: forwardRef render functions accept exactly two parameters: props and ref. %s Did you forget to use the ref parameter?'\u001b[39m,\n  \u001b[32m'Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s touchOptimized touchoptimized \\n'\u001b[39m +\n    \u001b[32m'    at input\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:13937\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at form\\n'\u001b[39m +\n    \u001b[32m'    at Ye (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:17422)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at F (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:11845)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at de (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:12249)\\n'\u001b[39m +\n    \u001b[32m'    at O (http://localhost:4173/assets/pages-auth-CU1nFBfp.js:1:458)\\n'\u001b[39m +\n    \u001b[32m'    at cU (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:3259)\\n'\u001b[39m +\n    \u001b[32m'    at t5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:8945)\\n'\u001b[39m +\n    \u001b[32m'    at Suspense\\n'\u001b[39m +\n    \u001b[32m'    at ss (http://localhost:4173/assets/components-misc-BVTAcLJe.js:1:4145)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at main\\n'\u001b[39m +\n    \u001b[32m'    at We (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:5246)\\n'\u001b[39m +\n    \u001b[32m'    at CU (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:8047)\\n'\u001b[39m +\n    \u001b[32m'    at n5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:2735)\\n'\u001b[39m +\n    \u001b[32m'    at ie (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:10639)\\n'\u001b[39m +\n    \u001b[32m'    at ue (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:11327)\\n'\u001b[39m +\n    \u001b[32m'    at ne (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:8730)\\n'\u001b[39m +\n    \u001b[32m'    at se (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:4656)\\n'\u001b[39m +\n    \u001b[32m'    at Y (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:299)\\n'\u001b[39m +\n    \u001b[32m'    at X (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:1749)\\n'\u001b[39m +\n    \u001b[32m'    at ee (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:3323)\\n'\u001b[39m +\n    \u001b[32m'    at zR (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:57639)\\n'\u001b[39m +\n    \u001b[32m'    at a5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:46786)\\n'\u001b[39m +\n    \u001b[32m'    at ve (http://localhost:4173/assets/main-CbtHVXm0.js:2:6936)'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Console logs: [\n  \u001b[32m'Using runtime config API URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'API Client configured with baseURL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'Starting React application...'\u001b[39m,\n  \u001b[32m'React application rendered successfully'\u001b[39m,\n  \u001b[32m'App component rendering...'\u001b[39m,\n  \u001b[32m'App component rendering...'\u001b[39m,\n  \u001b[32m'AuthContext: Initializing authentication...'\u001b[39m,\n  \u001b[32m'AuthContext: Initializing authentication...'\u001b[39m,\n  \u001b[32m'=== Environment Debug Info ==='\u001b[39m,\n  \u001b[32m'VITE_API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'window.ENV_API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'window.APP_CONFIG: {API_URL: http://localhost:3001/api, API_TIMEOUT: 10000, APP_NAME: EduAI-Asistent, APP_VERSION: 1.0.0, ENABLE_ANALYTICS: false}'\u001b[39m,\n  \u001b[32m'window.APP_CONFIG?.API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'Current location: http://localhost:4173/login'\u001b[39m,\n  \u001b[32m'Expected backend URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'============================='\u001b[39m,\n  \u001b[32m'✅ Backend health check successful: {success: true, data: Object, error: null}'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Body text length: \u001b[33m315\u001b[39m\n"
+                        },
+                        {
+                          "text": "Body text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nEduAI-Asistent\n\nPřihlaste se do svého účtu\n\nPřihlášení\nPřihlášení\n\nZadejte své přihlašovací ú\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:33.261Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5ee6126738e1012db859-6cdbab59145a7fcd61b5",
+              "file": "debug.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "Debug - Check what is rendered on landing page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "passed",
+                      "duration": 6510,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Landing page React elements found (data-reactroot): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Landing page React elements found (data-reactid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Landing page React elements found (data-testid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Landing page React elements found (class*=\"react\"): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Landing page buttons: [\n  \u001b[32m''\u001b[39m,\n  \u001b[32m'Přihlásit se'\u001b[39m,\n  \u001b[32m'Registrovat školu'\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m'Začít zdarma'\u001b[39m,\n  \u001b[32m'Zobrazit demo'\u001b[39m,\n  \u001b[32m'Vyzkoušet všechny funkce'\u001b[39m,\n  \u001b[32m'Spustit živou ukázku'\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m'Začít zdarma'\u001b[39m,\n  \u001b[32m'Začít zkušební verzi'\u001b[39m,\n  \u001b[32m'Kontaktovat'\u001b[39m,\n  \u001b[32m'Kontaktovat prodejce'\u001b[39m,\n  \u001b[32m'Požádat o demo'\u001b[39m,\n  \u001b[32m'Registrovat školu zdarma'\u001b[39m,\n  \u001b[32m'Kontaktovat prodejce'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Landing page links: [\n  \u001b[32m'Přeskočit na hlavní obsah'\u001b[39m,\n  \u001b[32m'Přeskočit na navigaci'\u001b[39m,\n  \u001b[32m'Přejít na hlavní obsah'\u001b[39m,\n  \u001b[32m'Přejít na navigaci'\u001b[39m,\n  \u001b[32m'Přejít na zápatí'\u001b[39m,\n  \u001b[32m' Funkce'\u001b[39m,\n  \u001b[32m' Ceny'\u001b[39m,\n  \u001b[32m' Reference'\u001b[39m,\n  \u001b[32m'Přihlásit se'\u001b[39m,\n  \u001b[32m'Registrovat školu'\u001b[39m,\n  \u001b[32m'Začít zdarma'\u001b[39m,\n  \u001b[32m'Vyzkoušet všechny funkce'\u001b[39m,\n  \u001b[32m'Začít zdarma'\u001b[39m,\n  \u001b[32m'Začít zkušební verzi'\u001b[39m,\n  \u001b[32m'Kontaktovat'\u001b[39m,\n  \u001b[32m'Kontaktovat prodejce'\u001b[39m,\n  \u001b[32m'podmínkami ochrany osobních údajů'\u001b[39m,\n  \u001b[32m'Registrovat školu zdarma'\u001b[39m,\n  \u001b[32m'📧'\u001b[39m,\n  \u001b[32m'📱'\u001b[39m,\n  \u001b[32m'💬'\u001b[39m,\n  \u001b[32m'Funkce'\u001b[39m,\n  \u001b[32m'Ceny'\u001b[39m,\n  \u001b[32m'Reference'\u001b[39m,\n  \u001b[32m'Demo'\u001b[39m,\n  \u001b[32m'Nápověda'\u001b[39m,\n  \u001b[32m'Kontakt'\u001b[39m,\n  \u001b[32m'Dokumentace'\u001b[39m,\n  \u001b[32m'Stav služby'\u001b[39m,\n  \u001b[32m'Ochrana osobních údajů'\u001b[39m,\n  \u001b[32m'Podmínky použití'\u001b[39m,\n  \u001b[32m'Cookies'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Landing page body text length: \u001b[33m3826\u001b[39m\n"
+                        },
+                        {
+                          "text": "Landing page body text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nEduAI-Asistent\nFunkce\nCeny\nReference\nPřihlásit se\nRegistrovat školu\nAI‑Powered Education\nRevo\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:33.430Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5ee6126738e1012db859-8240a7acf222c81d72bb",
+              "file": "debug.spec.ts",
+              "line": 106,
+              "column": 3
+            },
+            {
+              "title": "Debug - Check school registration page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 5630,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "School registration React elements found (data-reactroot): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "School registration React elements found (data-reactid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "School registration React elements found (data-testid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "School registration React elements found (class*=\"react\"): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "School registration body text length: \u001b[33m471\u001b[39m\n"
+                        },
+                        {
+                          "text": "School registration body text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nEduAI-Asistent\n\nRegistrace školy\n\nRegistrace školy\nRegistrace školy\n\nVyplňte údaje školy a ad\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:34.108Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5ee6126738e1012db859-9bedd3d561161b68f5a4",
+              "file": "debug.spec.ts",
+              "line": 164,
+              "column": 3
+            },
+            {
+              "title": "Debug - Check dashboard navigation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 5618,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "LocalStorage after navigation: {\n  authToken: \u001b[32m'test-token-123'\u001b[39m,\n  user: \u001b[32m'{\"id\":\"u1\",\"email\":\"teacher@example.com\",\"first_name\":\"Test\",\"last_name\":\"Učitel\",\"credits_balance\":100,\"is_active\":true,\"created_at\":\"2024-01-01T00:00:00Z\",\"updated_at\":\"2024-01-01T00:00:00Z\",\"role\":\"teacher_school\",\"school\":null}'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Error messages found: \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Dashboard content found: \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Dashboard body text length: \u001b[33m905\u001b[39m\n"
+                        },
+                        {
+                          "text": "Dashboard body text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nEduAI-Asistent\nVytvořit materiál\nNástroje\nTest Učitel\nOdhlásit se\nVítejte zpět!\n\nVyberte si A\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:38.268Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5ee6126738e1012db859-9473e58a281f23d101b9",
+              "file": "debug.spec.ts",
+              "line": 215,
+              "column": 3
+            },
+            {
+              "title": "Debug - Check dashboard content",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 5816,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Dashboard page text length: \u001b[33m905\u001b[39m\n"
+                        },
+                        {
+                          "text": "Dashboard page text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nEduAI-Asistent\nVytvořit materiál\nNástroje\nTest Učitel\nOdhlásit se\nVítejte zpět!\n\nVyberte si AI asistenta nebo začněte nový chat. Materiály, cvičení a výpočty na jednom místě.\n\n100\nDOSTUPNÉ KREDITY\nZačít nový chat\nVytvořit materiál\nMateriály\nChat s AI\nVytvořit materiál\nMateriály\nSdílené materiály\nAI Asistenti\nAI Asistenti\n\nVyberte si asistenta podle vašich potřeb\n\nkredit\nKlikněte pro detaily\n"
+                        },
+                        {
+                          "text": "Dashboard headings: [\n  \u001b[32m'EduAI-Asistent'\u001b[39m,\n  \u001b[32m'Vítejte zpět!'\u001b[39m,\n  \u001b[32m'AI Asistenti'\u001b[39m,\n  \u001b[32m'AI Asistenti'\u001b[39m,\n  \u001b[32m'Matematika'\u001b[39m,\n  \u001b[32m'Vaše kredity'\u001b[39m,\n  \u001b[32m'Informace o účtu'\u001b[39m,\n  \u001b[32m'Informace o účtu'\u001b[39m,\n  \u001b[32m'Rychlé statistiky'\u001b[39m,\n  \u001b[32m'Rychlé statistiky'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Dashboard buttons: [\n  \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m'Odhlásit se'\u001b[39m,\n  \u001b[32m'Začít nový chat'\u001b[39m,\n  \u001b[32m'Vytvořit materiál'\u001b[39m,\n  \u001b[32m'Materiály'\u001b[39m,\n  \u001b[32m'Chat s AI'\u001b[39m,\n  \u001b[32m'Vytvořit materiál'\u001b[39m,\n  \u001b[32m'Materiály'\u001b[39m,\n  \u001b[32m'Sdílené materiály'\u001b[39m,\n  \u001b[32m'+ Přidat 100 Demo Kreditů'\u001b[39m,\n  \u001b[32m''\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Dashboard links: [\n  \u001b[32m'Přeskočit na hlavní obsah'\u001b[39m,\n  \u001b[32m'Přeskočit na navigaci'\u001b[39m,\n  \u001b[32m'Přejít na hlavní obsah'\u001b[39m,\n  \u001b[32m'Přejít na navigaci'\u001b[39m,\n  \u001b[32m'Přejít na zápatí'\u001b[39m,\n  \u001b[32m'EduAI-Asistent'\u001b[39m,\n  \u001b[32m'Vytvořit materiál'\u001b[39m,\n  \u001b[32m'Nástroje'\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m'Vytvořit materiál'\u001b[39m,\n  \u001b[32m'Materiály'\u001b[39m,\n  \u001b[32m'Chat s AI'\u001b[39m,\n  \u001b[32m'Vytvořit materiál'\u001b[39m,\n  \u001b[32m'Materiály'\u001b[39m,\n  \u001b[32m'Sdílené materiály'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Error messages found: \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Page has content: \u001b[33mtrue\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:38.776Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5ee6126738e1012db859-0947ecdd9daa59dc9df8",
+              "file": "debug.spec.ts",
+              "line": 333,
+              "column": 3
+            },
+            {
+              "title": "Debug - Check what is rendered on login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 5729,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Page HTML length: \u001b[33m12699\u001b[39m\n"
+                        },
+                        {
+                          "text": "Root div content length: \u001b[33m7583\u001b[39m\n"
+                        },
+                        {
+                          "text": "React elements found (data-reactroot): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "React elements found (data-reactid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "React elements found (data-testid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "React elements found (class*=\"react\"): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Main script elements found: \u001b[33m1\u001b[39m\n"
+                        },
+                        {
+                          "text": "Script errors: []\n"
+                        },
+                        {
+                          "text": "Console errors: [\n  \u001b[32m'Warning: forwardRef render functions accept exactly two parameters: props and ref. %s Did you forget to use the ref parameter?'\u001b[39m,\n  \u001b[32m'Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s touchOptimized touchoptimized \\n'\u001b[39m +\n    \u001b[32m'    at input\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:13937\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at form\\n'\u001b[39m +\n    \u001b[32m'    at Ye (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:17422)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at F (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:11845)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at de (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:12249)\\n'\u001b[39m +\n    \u001b[32m'    at O (http://localhost:4173/assets/pages-auth-CU1nFBfp.js:1:458)\\n'\u001b[39m +\n    \u001b[32m'    at cU (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:3259)\\n'\u001b[39m +\n    \u001b[32m'    at t5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:8945)\\n'\u001b[39m +\n    \u001b[32m'    at Suspense\\n'\u001b[39m +\n    \u001b[32m'    at ss (http://localhost:4173/assets/components-misc-BVTAcLJe.js:1:4145)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at main\\n'\u001b[39m +\n    \u001b[32m'    at We (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:5246)\\n'\u001b[39m +\n    \u001b[32m'    at CU (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:8047)\\n'\u001b[39m +\n    \u001b[32m'    at n5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:2735)\\n'\u001b[39m +\n    \u001b[32m'    at ie (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:10639)\\n'\u001b[39m +\n    \u001b[32m'    at ue (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:11327)\\n'\u001b[39m +\n    \u001b[32m'    at ne (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:8730)\\n'\u001b[39m +\n    \u001b[32m'    at se (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:4656)\\n'\u001b[39m +\n    \u001b[32m'    at Y (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:299)\\n'\u001b[39m +\n    \u001b[32m'    at X (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:1749)\\n'\u001b[39m +\n    \u001b[32m'    at ee (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:3323)\\n'\u001b[39m +\n    \u001b[32m'    at zR (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:57639)\\n'\u001b[39m +\n    \u001b[32m'    at a5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:46786)\\n'\u001b[39m +\n    \u001b[32m'    at ve (http://localhost:4173/assets/main-CbtHVXm0.js:2:6936)'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Console logs: [\n  \u001b[32m'Using runtime config API URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'API Client configured with baseURL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'Starting React application...'\u001b[39m,\n  \u001b[32m'React application rendered successfully'\u001b[39m,\n  \u001b[32m'App component rendering...'\u001b[39m,\n  \u001b[32m'App component rendering...'\u001b[39m,\n  \u001b[32m'AuthContext: Initializing authentication...'\u001b[39m,\n  \u001b[32m'AuthContext: Initializing authentication...'\u001b[39m,\n  \u001b[32m'=== Environment Debug Info ==='\u001b[39m,\n  \u001b[32m'VITE_API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'window.ENV_API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'window.APP_CONFIG: {API_URL: http://localhost:3001/api, API_TIMEOUT: 10000, APP_NAME: EduAI-Asistent, APP_VERSION: 1.0.0, ENABLE_ANALYTICS: false}'\u001b[39m,\n  \u001b[32m'window.APP_CONFIG?.API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'Current location: http://localhost:4173/login'\u001b[39m,\n  \u001b[32m'Expected backend URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'============================='\u001b[39m,\n  \u001b[32m'✅ Backend health check successful: {success: true, data: Object, error: null}'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Body text length: \u001b[33m315\u001b[39m\n"
+                        },
+                        {
+                          "text": "Body text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nEduAI-Asistent\n\nPřihlaste se do svého účtu\n\nPřihlášení\nPřihlášení\n\nZadejte své přihlašovací ú\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:47.089Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5ee6126738e1012db859-12c1eadd6e271e25a400",
+              "file": "debug.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "Debug - Check what is rendered on landing page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 4,
+                      "status": "passed",
+                      "duration": 8058,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Landing page React elements found (data-reactroot): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Landing page React elements found (data-reactid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Landing page React elements found (data-testid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Landing page React elements found (class*=\"react\"): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Landing page buttons: [\n  \u001b[32m''\u001b[39m,\n  \u001b[32m'Přihlásit se'\u001b[39m,\n  \u001b[32m'Registrovat školu'\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m'Začít zdarma'\u001b[39m,\n  \u001b[32m'Zobrazit demo'\u001b[39m,\n  \u001b[32m'Vyzkoušet všechny funkce'\u001b[39m,\n  \u001b[32m'Spustit živou ukázku'\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m,\n  \u001b[32m'Začít zdarma'\u001b[39m,\n  \u001b[32m'Začít zkušební verzi'\u001b[39m,\n  \u001b[32m'Kontaktovat'\u001b[39m,\n  \u001b[32m'Kontaktovat prodejce'\u001b[39m,\n  \u001b[32m'Požádat o demo'\u001b[39m,\n  \u001b[32m'Registrovat školu zdarma'\u001b[39m,\n  \u001b[32m'Kontaktovat prodejce'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Landing page links: [\n  \u001b[32m'Přeskočit na hlavní obsah'\u001b[39m,\n  \u001b[32m'Přeskočit na navigaci'\u001b[39m,\n  \u001b[32m'Přejít na hlavní obsah'\u001b[39m,\n  \u001b[32m'Přejít na navigaci'\u001b[39m,\n  \u001b[32m'Přejít na zápatí'\u001b[39m,\n  \u001b[32m' Funkce'\u001b[39m,\n  \u001b[32m' Ceny'\u001b[39m,\n  \u001b[32m' Reference'\u001b[39m,\n  \u001b[32m'Přihlásit se'\u001b[39m,\n  \u001b[32m'Registrovat školu'\u001b[39m,\n  \u001b[32m'Začít zdarma'\u001b[39m,\n  \u001b[32m'Vyzkoušet všechny funkce'\u001b[39m,\n  \u001b[32m'Začít zdarma'\u001b[39m,\n  \u001b[32m'Začít zkušební verzi'\u001b[39m,\n  \u001b[32m'Kontaktovat'\u001b[39m,\n  \u001b[32m'Kontaktovat prodejce'\u001b[39m,\n  \u001b[32m'podmínkami ochrany osobních údajů'\u001b[39m,\n  \u001b[32m'Registrovat školu zdarma'\u001b[39m,\n  \u001b[32m'📧'\u001b[39m,\n  \u001b[32m'📱'\u001b[39m,\n  \u001b[32m'💬'\u001b[39m,\n  \u001b[32m'Funkce'\u001b[39m,\n  \u001b[32m'Ceny'\u001b[39m,\n  \u001b[32m'Reference'\u001b[39m,\n  \u001b[32m'Demo'\u001b[39m,\n  \u001b[32m'Nápověda'\u001b[39m,\n  \u001b[32m'Kontakt'\u001b[39m,\n  \u001b[32m'Dokumentace'\u001b[39m,\n  \u001b[32m'Stav služby'\u001b[39m,\n  \u001b[32m'Ochrana osobních údajů'\u001b[39m,\n  \u001b[32m'Podmínky použití'\u001b[39m,\n  \u001b[32m'Cookies'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Landing page body text length: \u001b[33m3737\u001b[39m\n"
+                        },
+                        {
+                          "text": "Landing page body text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nEduAI\nAI Education\nRevoluce ve\nmatematickém vzdělávání\n\nAI asistent, který pomáhá učitelům vy\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:47.433Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5ee6126738e1012db859-2819d23c60ea2fac74f8",
+              "file": "debug.spec.ts",
+              "line": 106,
+              "column": 3
+            },
+            {
+              "title": "Debug - Check school registration page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 7,
+                      "status": "passed",
+                      "duration": 5877,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "School registration React elements found (data-reactroot): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "School registration React elements found (data-reactid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "School registration React elements found (data-testid): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "School registration React elements found (class*=\"react\"): \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "School registration body text length: \u001b[33m471\u001b[39m\n"
+                        },
+                        {
+                          "text": "School registration body text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nEduAI-Asistent\n\nRegistrace školy\n\nRegistrace školy\nRegistrace školy\n\nVyplňte údaje školy a ad\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:49.272Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5ee6126738e1012db859-cd6dc26a5468fef1cd0d",
+              "file": "debug.spec.ts",
+              "line": 164,
+              "column": 3
+            },
+            {
+              "title": "Debug - Check dashboard navigation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6425,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        },
+                        {
+                          "text": "LocalStorage after navigation: {\n  authToken: \u001b[32m'test-token-123'\u001b[39m,\n  user: \u001b[32m'{\"id\":\"u1\",\"email\":\"teacher@example.com\",\"first_name\":\"Test\",\"last_name\":\"Učitel\",\"credits_balance\":100,\"is_active\":true,\"created_at\":\"2024-01-01T00:00:00Z\",\"updated_at\":\"2024-01-01T00:00:00Z\",\"role\":\"teacher_school\",\"school\":null}'\u001b[39m\n}\n"
+                        },
+                        {
+                          "text": "Error messages found: \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Dashboard content found: \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Dashboard body text length: \u001b[33m960\u001b[39m\n"
+                        },
+                        {
+                          "text": "Dashboard body text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nOtevřít menu\nMenu\n\nTest Učitel\n\nteacher@example.com\n\nDashboard\nNástroje a cvičení\nVytvořit ma\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:51.429Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5ee6126738e1012db859-d633e16d986f3f72a1d5",
+              "file": "debug.spec.ts",
+              "line": 215,
+              "column": 3
+            },
+            {
+              "title": "Debug - Check dashboard content",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6475,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
+                        },
+                        {
+                          "text": "Dashboard page text length: \u001b[33m960\u001b[39m\n"
+                        },
+                        {
+                          "text": "Dashboard page text preview: Přeskočit na hlavní obsah\nPřeskočit na navigaci\nPřejít na hlavní obsah\nPřejít na navigaci\nPřejít na zápatí\nOtevřít menu\nMenu\n\nTest Učitel\n\nteacher@example.com\n\nDashboard\nNástroje a cvičení\nVytvořit materiál\nMoje materiály\nNotifikace\nKlávesové zkratky\nNápověda\nNastavení\nOdhlásit se\nEduAI-Asistent\nVítejte zpět!\n\nVyberte si AI asistenta nebo začněte nový chat. Materiály, cvičení a výpočty na jednom místě.\n\n100\nDOSTUPNÉ KREDITY\nZačít nový chat\nVytvořit materiál\nMateriály\nChat s AI\nVytvořit materiál\n\n"
+                        },
+                        {
+                          "text": "Dashboard headings: [\n  \u001b[32m'Menu'\u001b[39m,\n  \u001b[32m'EduAI-Asistent'\u001b[39m,\n  \u001b[32m'Vítejte zpět!'\u001b[39m,\n  \u001b[32m'AI Asistenti'\u001b[39m,\n  \u001b[32m'AI Asistenti'\u001b[39m,\n  \u001b[32m'Matematika'\u001b[39m,\n  \u001b[32m'Informace o účtu'\u001b[39m,\n  \u001b[32m'Informace o účtu'\u001b[39m,\n  \u001b[32m'Rychlé statistiky'\u001b[39m,\n  \u001b[32m'Rychlé statistiky'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Dashboard buttons: [\n  \u001b[32m'Otevřít menu'\u001b[39m,      \u001b[32m''\u001b[39m,\n  \u001b[32m'Notifikace'\u001b[39m,        \u001b[32m'Klávesové zkratky'\u001b[39m,\n  \u001b[32m'Nápověda'\u001b[39m,          \u001b[32m'Nastavení'\u001b[39m,\n  \u001b[32m'Odhlásit se'\u001b[39m,       \u001b[32m''\u001b[39m,\n  \u001b[32m'Začít nový chat'\u001b[39m,   \u001b[32m'Vytvořit materiál'\u001b[39m,\n  \u001b[32m'Materiály'\u001b[39m,         \u001b[32m'Chat s AI'\u001b[39m,\n  \u001b[32m'Vytvořit materiál'\u001b[39m, \u001b[32m'Materiály'\u001b[39m,\n  \u001b[32m'Sdílené materiály'\u001b[39m, \u001b[32m''\u001b[39m,\n  \u001b[32m''\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Dashboard links: [\n  \u001b[32m'Přeskočit na hlavní obsah'\u001b[39m,\n  \u001b[32m'Přeskočit na navigaci'\u001b[39m,\n  \u001b[32m'Přejít na hlavní obsah'\u001b[39m,\n  \u001b[32m'Přejít na navigaci'\u001b[39m,\n  \u001b[32m'Přejít na zápatí'\u001b[39m,\n  \u001b[32m'Dashboard'\u001b[39m,\n  \u001b[32m'Nástroje a cvičení'\u001b[39m,\n  \u001b[32m'Vytvořit materiál'\u001b[39m,\n  \u001b[32m'Moje materiály'\u001b[39m,\n  \u001b[32m'EduAI-Asistent'\u001b[39m,\n  \u001b[32m'Vytvořit materiál'\u001b[39m,\n  \u001b[32m'Materiály'\u001b[39m,\n  \u001b[32m'Chat s AI'\u001b[39m,\n  \u001b[32m'Vytvořit materiál'\u001b[39m,\n  \u001b[32m'Materiály'\u001b[39m,\n  \u001b[32m'Sdílené materiály'\u001b[39m\n]\n"
+                        },
+                        {
+                          "text": "Error messages found: \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "Page has content: \u001b[33mtrue\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-22T19:44:51.661Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5ee6126738e1012db859-de6c18673552ca506bc8",
+              "file": "debug.spec.ts",
+              "line": 333,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-08-22T19:44:03.531Z",
+    "duration": 54807.354,
+    "expected": 48,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

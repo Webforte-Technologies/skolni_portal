@@ -5,11 +5,10 @@ export default defineConfig({
   testIgnore: '**/old/**',
   timeout: 60_000,
   expect: { timeout: 10_000 },
-  fullyParallel: true,
+  fullyParallel: false, // Disable parallel for debugging
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  // Increase workers for better parallelization
-  workers: process.env.CI ? 4 : undefined,
+  retries: 0, // No retries for debugging
+  workers: 1, // Single worker for debugging
   reporter: [
     ['list'],
     ['html', { outputFolder: 'test-results/html-report' }],
@@ -20,17 +19,14 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'off',
-    // Add action timeout for better performance
     actionTimeout: 10000,
-    // Add navigation timeout
     navigationTimeout: 30000,
   },
   webServer: {
-    command: process.env.PW_PREVIEW_CMD || 'npm run preview:build',
+    command: 'npm run build:simple && vite preview',
     port: 4173,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
-    // Set environment variables for the web server
     env: {
       VITE_API_URL: process.env.VITE_API_URL || 'http://localhost:3001/api',
       NODE_ENV: 'test',
@@ -41,12 +37,5 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
     },
-    // Add mobile testing for better coverage
-    {
-      name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
-    },
   ],
 });
-
-
