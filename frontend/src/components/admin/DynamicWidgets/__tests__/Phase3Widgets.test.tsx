@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { act } from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import TrendAnalysisWidget from '../TrendAnalysisWidget';
 import PredictiveInsightsWidget from '../PredictiveInsightsWidget';
@@ -39,9 +38,6 @@ jest.mock('@/services/apiClient', () => ({
 // Get references to the mocked functions
 const mockApiClient = jest.requireMock('@/services/apiClient');
 const mockApiGet = mockApiClient.api.get;
-const mockApiPost = mockApiClient.api.post;
-const mockApiPut = mockApiClient.api.put;
-const mockApiDelete = mockApiClient.api.delete;
 
 const mockUseRealTimeData = jest.requireMock('@/hooks/useRealTimeData').useRealTimeData;
 
