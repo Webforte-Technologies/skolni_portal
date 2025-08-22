@@ -1,0 +1,62 @@
+# Branch Protection Rules for EduAI-Asistent
+# This file defines the protection rules for the main branch
+
+# Main branch protection rules
+main:
+  # Require status checks to pass before merging
+  required_status_checks:
+    strict: true
+    contexts:
+      - "Backend CI"
+      - "Frontend CI"
+      - "E2E Tests"
+      - "Security Scan"
+  
+  # Require branches to be up to date before merging
+  enforce_admins: false
+  required_pull_request_reviews:
+    required_approving_review_count: 2
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: false
+    require_last_push_approval: true
+  
+  # Restrict pushes to matching branches
+  restrictions:
+    users: []
+    teams: []
+    apps: []
+  
+  # Require linear history
+  required_linear_history: true
+  
+  # Allow force pushes (disabled for security)
+  allow_force_pushes: false
+  
+  # Allow deletions (disabled for security)
+  allow_deletions: false
+  
+  # Require conversation resolution
+  required_conversation_resolution: true
+  
+  # Require signed commits (optional, enable if you have GPG keys)
+  required_signatures: false
+  
+  # Require deployment status checks
+  required_deployment_environments: []
+
+# Develop branch protection rules (if you want to keep it)
+develop:
+  required_status_checks:
+    strict: false
+    contexts:
+      - "Backend CI"
+      - "Frontend CI"
+  
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+  
+  required_linear_history: false
+  allow_force_pushes: false
+  allow_deletions: false
+  required_conversation_resolution: true
