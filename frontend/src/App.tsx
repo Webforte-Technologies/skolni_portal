@@ -27,7 +27,36 @@ const MaterialViewPage = React.lazy(() => import('./pages/materials/MaterialView
 
 const SharedMaterialsPage = React.lazy(() => import('./pages/materials/SharedMaterialsPage'));
 const SchoolAdminPage = React.lazy(() => import('./pages/dashboard/SchoolAdminPage'));
-const DeveloperAdminPage = React.lazy(() => import('./pages/dashboard/DeveloperAdminPage'));
+// Admin pages
+const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminDashboardPage'));
+const UserManagementPage = React.lazy(() => import('./pages/admin/UserManagementPage'));
+const SchoolsManagementPage = React.lazy(() => import('./pages/admin/SchoolsManagementPage'));
+const RolesPermissionsPage = React.lazy(() => import('./pages/admin/RolesPermissionsPage'));
+const CreditsManagementPage = React.lazy(() => import('./pages/admin/CreditsManagementPage'));
+const SystemHealthPage = React.lazy(() => import('./pages/admin/SystemHealthPage'));
+const ContentManagementPage = React.lazy(() => import('./pages/admin/ContentManagementPage'));
+const DeveloperToolsPage = React.lazy(() => import('./pages/admin/DeveloperToolsPage'));
+
+// New admin pages
+const AnalyticsPage = React.lazy(() => import('./pages/admin/AnalyticsPage'));
+const NotificationsPage = React.lazy(() => import('./pages/admin/NotificationsPage'));
+const TeachersPage = React.lazy(() => import('./pages/admin/TeachersPage'));
+const SubscriptionsPage = React.lazy(() => import('./pages/admin/SubscriptionsPage'));
+const RevenuePage = React.lazy(() => import('./pages/admin/RevenuePage'));
+const BillingPage = React.lazy(() => import('./pages/admin/BillingPage'));
+const SystemPerformancePage = React.lazy(() => import('./pages/admin/SystemPerformancePage'));
+const SystemConfigPage = React.lazy(() => import('./pages/admin/SystemConfigPage'));
+const SystemMonitoringPage = React.lazy(() => import('./pages/admin/SystemMonitoringPage'));
+const ContentModerationPage = React.lazy(() => import('./pages/admin/ContentModerationPage'));
+const ContentCategoriesPage = React.lazy(() => import('./pages/admin/ContentCategoriesPage'));
+const ContentAnalyticsPage = React.lazy(() => import('./pages/admin/ContentAnalyticsPage'));
+const SecuritySettingsPage = React.lazy(() => import('./pages/admin/SecuritySettingsPage'));
+const SecurityAuditPage = React.lazy(() => import('./pages/admin/SecurityAuditPage'));
+const SecurityBannedPage = React.lazy(() => import('./pages/admin/SecurityBannedPage'));
+const SecurityAnalyticsPage = React.lazy(() => import('./pages/admin/SecurityAnalyticsPage'));
+const ApiManagementPage = React.lazy(() => import('./pages/admin/ApiManagementPage'));
+const TestingToolsPage = React.lazy(() => import('./pages/admin/TestingToolsPage'));
+const DocumentationPage = React.lazy(() => import('./pages/admin/DocumentationPage'));
 const UserProfilePage = React.lazy(() => import('./pages/dashboard/UserProfilePage'));
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
 import ErrorBoundary from './components/layout/ErrorBoundary';
@@ -163,10 +192,216 @@ function App() {
                     </RequireRole>
                   </PrivateRoute>
                 } />
+                {/* Admin routes */}
+                <Route path="/admin" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <AdminDashboardPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                
+                {/* Dashboard section */}
+                <Route path="/admin/analytics" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <AnalyticsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/notifications" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <NotificationsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                
+                {/* User Management section */}
+                <Route path="/admin/users" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <UserManagementPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/schools" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SchoolsManagementPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/teachers" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <TeachersPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/roles" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <RolesPermissionsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                
+                {/* Business & Finance section */}
+                <Route path="/admin/credits" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <CreditsManagementPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/subscriptions" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SubscriptionsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/revenue" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <RevenuePage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/billing" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <BillingPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                
+                {/* System Administration section */}
+                <Route path="/admin/system" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SystemHealthPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/system/performance" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SystemPerformancePage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/system/config" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SystemConfigPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/system/monitoring" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SystemMonitoringPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                
+                {/* Content Management section */}
+                <Route path="/admin/content" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <ContentManagementPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/content/moderation" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <ContentModerationPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/content/categories" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <ContentCategoriesPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/content/analytics" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <ContentAnalyticsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                
+                {/* Security & Compliance section */}
+                <Route path="/admin/security/settings" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SecuritySettingsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/security/audit" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SecurityAuditPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/security/banned" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SecurityBannedPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/security/analytics" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SecurityAnalyticsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                
+                {/* Developer Tools section */}
+                <Route path="/admin/dev" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <DeveloperToolsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/dev/api" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <ApiManagementPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/dev/testing" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <TestingToolsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/dev/docs" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <DocumentationPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                
+                {/* Legacy admin route for backward compatibility */}
                 <Route path="/dev-admin" element={
                   <PrivateRoute>
                     <RequireRole roles={['platform_admin']}>
-                      <DeveloperAdminPage />
+                      <AdminDashboardPage />
                     </RequireRole>
                   </PrivateRoute>
                 } />

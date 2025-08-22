@@ -6,6 +6,7 @@ import { getMetricsSnapshot } from '../middleware/metrics';
 import { CreditTransactionModel } from '../models/CreditTransaction';
 import { FeatureFlagModel } from '../models/FeatureFlag';
 import { GeneratedFileModel } from '../models/GeneratedFile';
+import { ContentCategoryModel, ContentCategoryFilters } from '../models/ContentCategory';
 
 const router = express.Router();
 
@@ -51,9 +52,9 @@ router.get('/users', async (req: RequestWithUser, res: express.Response) => {
     const countSql = `SELECT COUNT(*) FROM users u ${where}`;
     const rows = (await pool.query(sql, [...values, limit, offset])).rows;
     const total = parseInt((await pool.query(countSql, values)).rows[0].count);
-    ok(res, { data: rows, total, limit, offset });
+    return ok(res, { data: rows, total, limit, offset });
   } catch (e) {
-    bad(res, 500, 'Failed to list users');
+    return bad(res, 500, 'Failed to list users');
   }
 });
 
@@ -74,11 +75,9 @@ router.put('/users/:id', async (req: RequestWithUser, res: express.Response) => 
     if (!updates.length) return bad(res, 400, 'No changes provided');
     vals.push(id);
     const result = await pool.query(`UPDATE users SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${i} RETURNING id, email, first_name, last_name, role, is_active, school_id, credits_balance, created_at`, vals);
-    ok(res, result.rows[0]);
-    return;
+    return ok(res, result.rows[0]);
   } catch (e) {
-    bad(res, 500, 'Failed to update user');
-    return;
+    return bad(res, 500, 'Failed to update user');
   }
 });
 
@@ -91,11 +90,9 @@ router.post('/users/:id/credits', async (req: RequestWithUser, res: express.Resp
     const amt = Number(amount);
     if (!Number.isFinite(amt) || amt <= 0) return bad(res, 400, 'Amount must be positive');
     const tx = type === 'add' ? await CreditTransactionModel.addCredits(id as string, amt, description) : await CreditTransactionModel.deductCredits(id as string, amt, description);
-    ok(res, tx);
-    return;
+    return ok(res, tx);
   } catch (e) {
-    bad(res, 500, 'Failed to adjust credits');
-    return;
+    return bad(res, 500, 'Failed to adjust credits');
   }
 });
 
@@ -103,14 +100,13 @@ router.post('/users/:id/credits', async (req: RequestWithUser, res: express.Resp
 router.post('/users/bulk', async (req: RequestWithUser, res: express.Response) => {
   try {
     const { action, user_ids, amount } = req.body as { action: string; user_ids: string[]; amount?: number };
-    if (!Array.isArray(user_ids) || user_ids.length === 0) { bad(res, 400, 'user_ids array required'); return; }
+    if (!Array.isArray(user_ids) || user_ids.length === 0) { return bad(res, 400, 'user_ids array required'); }
 
     if (action === 'activate' || action === 'deactivate') {
       const state = action === 'activate';
       const placeholders = user_ids.map((_, idx) => `$${idx + 2}`).join(',');
       await pool.query(`UPDATE users SET is_active = $1 WHERE id IN (${placeholders})`, [state, ...user_ids]);
-      ok(res, { processed: user_ids.length });
-      return;
+      return ok(res, { processed: user_ids.length });
     }
 
     if (action === 'addCredits' || action === 'deductCredits') {
@@ -120,23 +116,19 @@ router.post('/users/bulk', async (req: RequestWithUser, res: express.Response) =
       for (const id of user_ids) {
         await CreditTransactionModel[action === 'addCredits' ? 'addCredits' : 'deductCredits'](id, finalAmount, `Bulk ${action}`);
       }
-      ok(res, { processed: user_ids.length });
-      return;
+      return ok(res, { processed: user_ids.length });
     }
 
     if (action === 'delete') {
       // Perform soft-delete as deactivate
       const placeholders = user_ids.map((_, idx) => `$${idx + 1}`).join(',');
       await pool.query(`UPDATE users SET is_active = false WHERE id IN (${placeholders})`, [...user_ids]);
-      ok(res, { processed: user_ids.length });
-      return;
+      return ok(res, { processed: user_ids.length });
     }
 
-    bad(res, 400, 'Unsupported action');
-    return;
+    return bad(res, 400, 'Unsupported action');
   } catch (e) {
-    bad(res, 500, 'Failed to run bulk operation');
-    return;
+    return bad(res, 500, 'Failed to run bulk operation');
   }
 });
 
@@ -162,9 +154,9 @@ router.get('/schools', async (req: RequestWithUser, res: express.Response) => {
       LIMIT $${i} OFFSET $${i+1}
     `, [...vals, limit, offset])).rows;
     const total = parseInt((await pool.query(`SELECT COUNT(*) FROM schools ${where}`, vals)).rows[0].count);
-    ok(res, { data: rows, total, limit, offset });
+    return ok(res, { data: rows, total, limit, offset });
   } catch (e) {
-    bad(res, 500, 'Failed to list schools');
+    return bad(res, 500, 'Failed to list schools');
   }
 });
 
@@ -174,7 +166,7 @@ router.get('/system/health', async (_req: RequestWithUser, res: express.Response
     const before = Date.now();
     const dbRes = await pool.query('SELECT 1');
     const latency = Date.now() - before;
-    ok(res, {
+    return ok(res, {
       status: 'OK',
       process: {
         uptime_s: Math.round(process.uptime()),
@@ -184,15 +176,15 @@ router.get('/system/health', async (_req: RequestWithUser, res: express.Response
       db: { roundtrip_ms: latency, ok: dbRes.rowCount === 1 },
     });
   } catch (e) {
-    bad(res, 500, 'Health check failed');
+    return bad(res, 500, 'Health check failed');
   }
 });
 
 router.get('/system/metrics', async (_req: RequestWithUser, res: express.Response) => {
   try {
-    ok(res, getMetricsSnapshot());
+    return ok(res, getMetricsSnapshot());
   } catch (e) {
-    bad(res, 500, 'Metrics retrieval failed');
+    return bad(res, 500, 'Metrics retrieval failed');
   }
 });
 
@@ -221,9 +213,9 @@ router.get('/audit-logs', async (req: RequestWithUser, res: express.Response) =>
       LIMIT $${i} OFFSET $${i+1}
     `, [...vals, limit, offset])).rows;
     const total = parseInt((await pool.query(`SELECT COUNT(*) FROM audit_logs ${where}`, vals)).rows[0].count);
-    ok(res, { data: rows, total, limit, offset });
+    return ok(res, { data: rows, total, limit, offset });
   } catch (e) {
-    bad(res, 500, 'Failed to list audit logs');
+    return bad(res, 500, 'Failed to list audit logs');
   }
 });
 
@@ -234,9 +226,9 @@ router.get('/moderation/queue', async (req: RequestWithUser, res: express.Respon
     const limit = Math.min(parseInt(String((req.query as any)['limit'] || '50')), 200);
     const offset = parseInt(String((req.query as any)['offset'] || '0'));
     const rows = await GeneratedFileModel.listForModeration(status, limit, offset);
-    ok(res, { data: rows, total: rows.length, limit, offset });
+    return ok(res, { data: rows, total: rows.length, limit, offset });
   } catch (e) {
-    bad(res, 500, 'Failed to get moderation queue');
+    return bad(res, 500, 'Failed to get moderation queue');
   }
 });
 
@@ -249,11 +241,9 @@ router.post('/moderation/:id/decision', async (req: RequestWithUser, res: expres
     if (notes !== undefined) payload.notes = notes;
     if (quality_score !== undefined) payload.quality_score = quality_score;
     const updated = await GeneratedFileModel.setModerationDecision(id as string, payload, req.user!.id);
-    ok(res, updated);
-    return;
+    return ok(res, updated);
   } catch (e) {
-    bad(res, 500, 'Failed to set moderation decision');
-    return;
+    return bad(res, 500, 'Failed to set moderation decision');
   }
 });
 
@@ -285,14 +275,14 @@ router.get('/quality/metrics', async (_req: RequestWithUser, res: express.Respon
       WHERE created_at >= NOW() - INTERVAL '30 days'
       GROUP BY 1 ORDER BY 1 ASC
     `)).rows;
-    ok(res, {
+    return ok(res, {
       counts,
       avg_overall: avgOverall?.avg_quality ?? null,
       by_type: byType,
       trends: { d7: recent7, d30: recent30 },
     });
   } catch (e) {
-    bad(res, 500, 'Failed to compute quality metrics');
+    return bad(res, 500, 'Failed to compute quality metrics');
   }
 });
 
@@ -303,9 +293,9 @@ router.get('/subscriptions', async (req: RequestWithUser, res: express.Response)
     const where = userId ? 'WHERE user_id = $1' : '';
     const vals = userId ? [userId] : [];
     const rows = (await pool.query(`SELECT * FROM subscriptions ${where} ORDER BY created_at DESC`, vals)).rows;
-    ok(res, rows);
+    return ok(res, rows);
   } catch (e) {
-    bad(res, 500, 'Failed to list subscriptions');
+    return bad(res, 500, 'Failed to list subscriptions');
   }
 });
 
@@ -317,9 +307,9 @@ router.post('/subscriptions', async (req: RequestWithUser, res: express.Response
        VALUES ($1,$2,$3,$4,$5,$6,COALESCE($7, true)) RETURNING *`,
       [user_id, plan_type, credits_per_month, price_per_month, start_date, end_date || null, auto_renew]
     )).rows[0];
-    ok(res, row);
+    return ok(res, row);
   } catch (e) {
-    bad(res, 500, 'Failed to create subscription');
+    return bad(res, 500, 'Failed to create subscription');
   }
 });
 
@@ -336,11 +326,9 @@ router.put('/subscriptions/:id', async (req: RequestWithUser, res: express.Respo
     if (!updates.length) return bad(res, 400, 'No changes provided');
     vals.push(id);
     const row = (await pool.query(`UPDATE subscriptions SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${i} RETURNING *`, vals)).rows[0];
-    ok(res, row);
-    return;
+    return ok(res, row);
   } catch (e) {
-    bad(res, 500, 'Failed to update subscription');
-    return;
+    return bad(res, 500, 'Failed to update subscription');
   }
 });
 
@@ -348,28 +336,27 @@ router.delete('/subscriptions/:id', async (req: RequestWithUser, res: express.Re
   try {
     const id = req.params['id'] as string;
     await pool.query('DELETE FROM subscriptions WHERE id = $1', [id]);
-    ok(res, { deleted: true });
+    return ok(res, { deleted: true });
   } catch (e) {
-    bad(res, 500, 'Failed to delete subscription');
+    return bad(res, 500, 'Failed to delete subscription');
   }
 });
 
 // Feature flags
 router.get('/feature-flags', async (_req: RequestWithUser, res: express.Response) => {
-  try { ok(res, await FeatureFlagModel.list()); } catch { bad(res, 500, 'Failed to list flags'); }
+  try { return ok(res, await FeatureFlagModel.list()); } catch { return bad(res, 500, 'Failed to list flags'); }
 });
 router.put('/feature-flags/:key', async (req: RequestWithUser, res: express.Response) => {
   try {
     const key = req.params['key'] as string; const { value, description } = req.body as { value: boolean; description?: string };
     if (typeof value !== 'boolean') return bad(res, 400, 'value must be boolean');
-    ok(res, await FeatureFlagModel.set(key as string, value, description));
-    return;
-  } catch (e) { bad(res, 500, 'Failed to set flag'); return; }
+    return ok(res, await FeatureFlagModel.set(key as string, value, description));
+  } catch (e) { return bad(res, 500, 'Failed to set flag'); }
 });
 
 // Developer tools
 router.get('/docs', async (_req: RequestWithUser, res: express.Response) => {
-  ok(res, {
+  return ok(res, {
     info: 'Admin API docs',
     base: '/api/admin',
     endpoints: [
@@ -380,6 +367,8 @@ router.get('/docs', async (_req: RequestWithUser, res: express.Response) => {
       'GET /moderation/queue', 'POST /moderation/:id/decision',
       'GET /quality/metrics', 'GET /credits/analytics',
       'GET /subscriptions', 'POST /subscriptions', 'PUT /subscriptions/:id', 'DELETE /subscriptions/:id',
+      'GET /content/categories', 'POST /content/categories', 'PUT /content/categories/:id', 'DELETE /content/categories/:id',
+      'GET /content/categories/statistics/overview',
       'GET /feature-flags', 'PUT /feature-flags/:key',
       'GET /ping'
     ]
@@ -428,14 +417,142 @@ router.get('/credits/analytics', async (_req: RequestWithUser, res: express.Resp
       LIMIT 10
     `)).rows;
 
-    ok(res, {
+    return ok(res, {
       totals: { balance: Number(totalBalance) || 0, purchased: Number(totalPurchased) || 0, used: Number(totalUsed) || 0 },
       monthly: { purchases: monthlyPurchases, usage: monthlyUsage },
       top_users: topUsers,
       top_schools: topSchools,
     });
   } catch (e) {
-    bad(res, 500, 'Failed to compute credits analytics');
+    return bad(res, 500, 'Failed to compute credits analytics');
+  }
+});
+
+// Content Categories Management
+router.get('/content/categories', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const filters: ContentCategoryFilters = {
+      status: (req.query as any)['status'] as string,
+      subject: (req.query as any)['subject'] as string,
+      search: (req.query as any)['q'] as string,
+      parent_id: (req.query as any)['parent_id'] as string,
+      limit: parseInt(String((req.query as any)['limit'] || '50')),
+      offset: parseInt(String((req.query as any)['offset'] || '0'))
+    };
+
+    // Filter out undefined values
+    Object.keys(filters).forEach(key => {
+      if (filters[key as keyof ContentCategoryFilters] === undefined) {
+        delete filters[key as keyof ContentCategoryFilters];
+      }
+    });
+
+    const result = await ContentCategoryModel.findAll(filters);
+    return ok(res, result);
+  } catch (e) {
+    return bad(res, 500, 'Failed to list content categories');
+  }
+});
+
+router.get('/content/categories/:id', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const id = req.params['id'] as string;
+    const category = await ContentCategoryModel.findById(id);
+    
+    if (!category) {
+      return bad(res, 404, 'Content category not found');
+    }
+    
+    return ok(res, category);
+  } catch (e) {
+    return bad(res, 500, 'Failed to get content category');
+  }
+});
+
+router.post('/content/categories', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const { name, description, slug, parent_id, subject, grade, color, icon, tags, status } = req.body;
+    
+    if (!name || !slug || !subject || !grade) {
+      return bad(res, 400, 'Missing required fields: name, slug, subject, grade');
+    }
+
+    // Check if slug already exists
+    const existingCategory = await ContentCategoryModel.findBySlug(slug);
+    if (existingCategory) {
+      return bad(res, 400, 'Slug already exists');
+    }
+
+    const category = await ContentCategoryModel.create({
+      name, description, slug, parent_id, subject, grade, color, icon, tags, status
+    });
+
+    return ok(res, category);
+  } catch (e) {
+    return bad(res, 500, 'Failed to create content category');
+  }
+});
+
+router.put('/content/categories/:id', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const id = req.params['id'] as string;
+    const { name, description, slug, parent_id, subject, grade, color, icon, tags, status } = req.body;
+    
+    // Check if slug already exists (if being updated)
+    if (slug) {
+      const existingCategory = await ContentCategoryModel.findBySlug(slug);
+      if (existingCategory && existingCategory.id !== id) {
+        return bad(res, 400, 'Slug already exists');
+      }
+    }
+
+    const category = await ContentCategoryModel.update(id, {
+      name, description, slug, parent_id, subject, grade, color, icon, tags, status
+    });
+
+    return ok(res, category);
+  } catch (e) {
+    return bad(res, 500, 'Failed to update content category');
+  }
+});
+
+router.delete('/content/categories/:id', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const id = req.params['id'] as string;
+    const deleted = await ContentCategoryModel.delete(id);
+    
+    if (!deleted) {
+      return bad(res, 404, 'Content category not found');
+    }
+
+    return ok(res, { deleted: true });
+  } catch (e) {
+    return bad(res, 500, 'Failed to delete content category');
+  }
+});
+
+router.get('/content/categories/:id/statistics', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const id = req.params['id'] as string;
+    await ContentCategoryModel.updateCounts(id);
+    const category = await ContentCategoryModel.findById(id);
+    
+    if (!category) {
+      return bad(res, 404, 'Content category not found');
+    }
+    
+    return ok(res, category);
+  } catch (e) {
+    return bad(res, 500, 'Failed to update category statistics');
+  }
+});
+
+router.get('/content/categories/statistics/overview', async (_req: RequestWithUser, res: express.Response) => {
+  try {
+    const stats = await ContentCategoryModel.getStatistics();
+    return ok(res, stats);
+  } catch (e) {
+    return bad(res, 500, 'Failed to get content categories statistics');
   }
 });
 
