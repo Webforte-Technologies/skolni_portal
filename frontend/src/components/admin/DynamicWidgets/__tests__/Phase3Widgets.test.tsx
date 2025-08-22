@@ -7,26 +7,26 @@ import AnomalyDetectionWidget from '../AnomalyDetectionWidget';
 import DashboardLayoutManager from '../DashboardLayoutManager';
 
 // Mock the useRealTimeData hook
-jest.mock('../../../hooks/useRealTimeData', () => ({
+jest.mock('@/hooks/useRealTimeData', () => ({
   useRealTimeData: jest.fn()
 }));
 
 // Mock the useToast context
-jest.mock('../../../contexts/ToastContext', () => ({
+jest.mock('@/contexts/ToastContext', () => ({
   useToast: () => ({
     showToast: jest.fn()
   })
 }));
 
 // Mock the api client
-jest.mock('../../../services/apiClient', () => ({
+jest.mock('@/services/apiClient', () => ({
   api: {
     get: jest.fn(),
     post: jest.fn()
   }
 }));
 
-const mockUseRealTimeData = jest.requireMock('../../../hooks/useRealTimeData').useRealTimeData;
+const mockUseRealTimeData = jest.requireMock('@/hooks/useRealTimeData').useRealTimeData;
 
 const renderWithRouter = (component: React.ReactElement) => {
   return render(

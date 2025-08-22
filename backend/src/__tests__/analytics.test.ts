@@ -15,17 +15,18 @@ jest.mock('../middleware/auth', () => ({
     req.user = { id: 'test-admin-id', role: 'platform_admin' };
     next();
   },
-  requireRole: (roles: string[]) => (req: any, _res: any, next: any) => {
+  requireRole: (roles: string[]) => (_req: any, _res: any, next: any) => {
     if (roles.includes('platform_admin')) {
       next();
     } else {
-      res.status(403).json({ error: 'Forbidden' });
+      _res.status(403).json({ error: 'Forbidden' });
     }
   }
 }));
 
 // Mock the entire admin analytics routes module
 jest.mock('../routes/admin/analytics', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const express = require('express');
   const router = express.Router();
   
