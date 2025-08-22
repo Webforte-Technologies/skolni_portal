@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Code, Flag, Database, TestTube, BookOpen, 
   Plus, Edit, Trash2, ToggleLeft, ToggleRight,
@@ -43,7 +43,7 @@ const DeveloperToolsPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const fetchFeatureFlags = async () => {
+  const fetchFeatureFlags = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get<any>('/admin/dev/feature-flags');
@@ -53,21 +53,21 @@ const DeveloperToolsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  const fetchApiEndpoints = async () => {
+  const fetchApiEndpoints = useCallback(async () => {
     try {
       const res = await api.get<any>('/admin/dev/api/endpoints');
       setApiEndpoints(res.data.data || []);
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při načítání API endpointů' });
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchFeatureFlags();
     fetchApiEndpoints();
-  }, []);
+  }, [fetchFeatureFlags, fetchApiEndpoints]);
 
   const toggleFeatureFlag = async (flagId: string, enabled: boolean) => {
     try {
@@ -141,7 +141,14 @@ const DeveloperToolsPage: React.FC = () => {
       {/* Feature Flags Section */}
       <Card title="Feature Flagy" icon={<Flag className="w-5 h-5" />}>
         <div className="space-y-4">
-          {featureFlags.map((flag) => (
+          {loading && (
+            <div className="text-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="text-gray-500 mt-2">Načítání feature flagů...</p>
+            </div>
+          )}
+          
+          {!loading && featureFlags.map((flag) => (
             <div key={flag.id} className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -240,7 +247,7 @@ const DeveloperToolsPage: React.FC = () => {
             </div>
           ))}
           
-          {featureFlags.length === 0 && (
+          {!loading && featureFlags.length === 0 && (
             <div className="text-center py-8">
               <Flag className="w-16 h-16 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Žádné feature flagy</h3>
@@ -249,6 +256,68 @@ const DeveloperToolsPage: React.FC = () => {
           )}
         </div>
       </Card>
+
+      {/* Create/Edit Feature Flag Modal */}
+      {showCreateFlag && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              {selectedFlag ? 'Upravit feature flag' : 'Nový feature flag'}
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Název</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Název feature flagu"
+                  defaultValue={selectedFlag?.name || ''}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Klíč</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="feature_flag_key"
+                  defaultValue={selectedFlag?.key || ''}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Popis</label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                  placeholder="Popis účelu feature flagu"
+                  defaultValue={selectedFlag?.description || ''}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowCreateFlag(false);
+                  setSelectedFlag(null);
+                }}
+              >
+                Zrušit
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  // TODO: Implement create/edit functionality
+                  showToast({ type: 'info', message: 'Funkce bude implementována' });
+                  setShowCreateFlag(false);
+                  setSelectedFlag(null);
+                }}
+              >
+                {selectedFlag ? 'Uložit' : 'Vytvořit'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* API Management Section */}
       <Card title="API Management" icon={<Database className="w-5 h-5" />}>

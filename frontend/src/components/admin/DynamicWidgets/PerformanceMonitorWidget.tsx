@@ -147,7 +147,7 @@ const transformMetric = (value: number, name: string, unit: string, warningThres
 const PerformanceMonitorWidget: React.FC<PerformanceMonitorWidgetProps> = ({
   title,
   endpoint,
-  refreshInterval = 10000, // Very frequent updates for performance monitoring
+      refreshInterval = 60000, // Reduced from 10s to 60s to prevent API spam
   showCharts = true,
   showThresholds = true,
   showTrends = true,

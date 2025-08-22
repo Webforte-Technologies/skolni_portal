@@ -300,6 +300,35 @@ const BillingPage: React.FC = () => {
   const paidInvoices = invoices.filter(inv => inv.status === 'paid').length;
   const overdueInvoices = invoices.filter(inv => inv.status === 'overdue').length;
 
+  // Add new invoice handler
+  const handleAddInvoice = (invoiceData: Partial<Invoice>) => {
+    const newInvoice: Invoice = {
+      id: Date.now().toString(),
+      invoiceNumber: `INV-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(3, '0')}`,
+      schoolId: invoiceData.schoolId || '',
+      schoolName: invoiceData.schoolName || '',
+      contactPerson: invoiceData.contactPerson || '',
+      contactEmail: invoiceData.contactEmail || '',
+      amount: invoiceData.amount || 0,
+      currency: 'CZK',
+      status: 'draft',
+      issueDate: new Date(),
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      paymentMethod: 'Faktura',
+      items: invoiceData.items || [],
+      taxRate: 21,
+      subtotal: 0,
+      taxAmount: 0,
+      totalAmount: invoiceData.amount || 0
+    };
+    
+    setInvoices(prev => [newInvoice, ...prev]);
+    setShowAddModal(false);
+  };
+
+  // Edit invoice handler
+  
+
   if (loading) {
     return (
       <AdminLayout>
@@ -602,6 +631,89 @@ const BillingPage: React.FC = () => {
             </table>
           </div>
         </Card>
+
+        {/* Add Invoice Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+              <h2 className="text-xl font-bold mb-4">Nová faktura</h2>
+              <div className="space-y-4">
+                <Input
+                  placeholder="Název školy"
+                  onChange={() => {/* Handle input change */}}
+                />
+                <Input
+                  placeholder="Kontaktní osoba"
+                  onChange={() => {/* Handle input change */}}
+                />
+                <Input
+                  placeholder="Email"
+                  type="email"
+                  onChange={() => {/* Handle input change */}}
+                />
+                <Input
+                  placeholder="Částka (CZK)"
+                  type="number"
+                  onChange={() => {/* Handle input change */}}
+                />
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <Button onClick={() => setShowAddModal(false)} variant="outline">
+                  Zrušit
+                </Button>
+                <Button onClick={() => handleAddInvoice({})}>
+                  Vytvořit
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Invoice Modal */}
+        {editingInvoice && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+              <h2 className="text-xl font-bold mb-4">Upravit fakturu</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Číslo faktury
+                  </label>
+                  <div className="text-sm text-gray-900">{editingInvoice.invoiceNumber}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Škola
+                  </label>
+                  <div className="text-sm text-gray-900">{editingInvoice.schoolName}</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Částka
+                  </label>
+                  <div className="text-sm text-gray-900">{editingInvoice.totalAmount} CZK</div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <div className="text-sm text-gray-900">{getStatusName(editingInvoice.status)}</div>
+                </div>
+              </div>
+              <div className="flex space-x-3 mt-6">
+                <Button onClick={() => setEditingInvoice(null)} variant="outline">
+                  Zavřít
+                </Button>
+                <Button 
+                  onClick={() => deleteInvoice(editingInvoice.id)}
+                  variant="danger"
+                >
+                  Smazat
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

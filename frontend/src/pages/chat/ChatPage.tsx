@@ -532,11 +532,15 @@ const ChatPage: React.FC = () => {
     setIsImageUploadOpen(true);
   };
 
-  const handleImageProcessed = (text: string, _imageUrl: string) => {
+  const handleImageProcessed = (text: string, imageUrl: string) => {
     // Insert the OCR text into the message input
     if (composerRef.current) {
       composerRef.current.insertText(`Obrázek matematického problému:\n${text}\n\nProsím pomozte mi s tímto příkladem.`);
     }
+    
+    // Store the image URL for potential future use (e.g., displaying in chat history)
+    // Currently not used but kept for interface compatibility
+    console.log('Image processed:', { text, imageUrl });
     
     // You could also automatically send the message or add it as a special message type
     showToast({ type: 'success', message: 'Obrázek byl zpracován a text vložen do chatu' });

@@ -16,90 +16,88 @@ export default defineConfig({
       },
       output: {
         manualChunks: (id) => {
-          // Vendor chunks
+          // Vendor chunks - simplified and more stable
           if (id.includes('node_modules')) {
-            // Heavy libraries for desktop
-            if (id.includes('jspdf') || id.includes('html2canvas')) {
-              return 'pdf-desktop';
-            }
-            // Note: recharts temporarily removed to fix React compatibility issues
-            // if (id.includes('recharts')) {
-            //   return 'charts-desktop';
-            // }
-            if (id.includes('katex')) {
-              return 'math-rendering';
-            }
-            if (id.includes('docx')) {
-              return 'document-generation';
-            }
             // Core React libraries
             if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
+              return 'vendor-react';
             }
-            // Router and query libraries
-            if (id.includes('react-router') || id.includes('react-query')) {
-              return 'routing-state';
+            // Router
+            if (id.includes('react-router')) {
+              return 'vendor-router';
             }
-            // UI and animation libraries
-            if (id.includes('framer-motion') || id.includes('lucide-react')) {
-              return 'ui-animations';
+            // UI libraries
+            if (id.includes('lucide-react') || id.includes('framer-motion')) {
+              return 'vendor-ui';
             }
-            // Form libraries
+            // Form and validation libraries
             if (id.includes('react-hook-form') || id.includes('zod')) {
-              return 'forms';
+              return 'vendor-forms';
+            }
+            // HTTP client
+            if (id.includes('axios')) {
+              return 'vendor-http';
+            }
+            // Math rendering
+            if (id.includes('katex') || id.includes('mathjax')) {
+              return 'vendor-math';
+            }
+            // PDF generation
+            if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('docx')) {
+              return 'vendor-pdf';
             }
             // Other vendor libraries
             return 'vendor';
           }
           
-          // Application chunks based on features
+          // Application chunks - simplified
           if (id.includes('/pages/')) {
-            if (id.includes('auth/')) return 'auth-pages';
-            if (id.includes('dashboard/')) return 'dashboard-pages';
-            if (id.includes('chat/')) return 'chat-pages';
-            return 'pages';
+            if (id.includes('admin/')) return 'pages-admin';
+            if (id.includes('auth/')) return 'pages-auth';
+            if (id.includes('dashboard/')) return 'pages-dashboard';
+            if (id.includes('chat/')) return 'pages-chat';
+            if (id.includes('materials/')) return 'pages-materials';
+            return 'pages-misc';
           }
           
-          // Component chunks
+          // Component chunks - simplified
           if (id.includes('/components/')) {
-            if (id.includes('math/')) return 'math-components';
-            if (id.includes('chat/')) return 'chat-components';
-            if (id.includes('dashboard/')) return 'dashboard-components';
-            if (id.includes('ui/')) return 'ui-components';
-            if (id.includes('performance/')) return 'performance-components';
-            return 'components';
+            if (id.includes('ui/')) return 'components-ui';
+            if (id.includes('admin/')) return 'components-admin';
+            if (id.includes('chat/')) return 'components-chat';
+            if (id.includes('math/')) return 'components-math';
+            return 'components-misc';
           }
           
-          // Utility chunks
-          if (id.includes('/hooks/') || id.includes('/utils/')) {
-            return 'utilities';
-          }
-          
-          // Services and API
-          if (id.includes('/services/')) {
-            return 'services';
-          }
+          // Other chunks
+          if (id.includes('/contexts/')) return 'contexts';
+          if (id.includes('/services/')) return 'services';
+          if (id.includes('/hooks/')) return 'hooks';
+          if (id.includes('/utils/')) return 'utils';
         },
       },
     },
-    chunkSizeWarningLimit: 900,
+    chunkSizeWarningLimit: 1200,
   },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
   },
-  // Replace environment variables in HTML template
   esbuild: {
     define: {
       global: 'globalThis',
     },
   },
-  // Custom plugin to replace environment variables in HTML
+  // Replace environment variables in HTML template
   plugins: [
     react(),
     {
       name: 'html-transform',
       transformIndexHtml(html) {
-        return html.replace(/%VITE_API_URL%/g, process.env.VITE_API_URL || '');
+        // Get API URL from environment or use fallback
+        const apiUrl = process.env.VITE_API_URL || 
+                      process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:3001/api';
+        
+        return html.replace(/%VITE_API_URL%/g, apiUrl);
       },
     },
   ],

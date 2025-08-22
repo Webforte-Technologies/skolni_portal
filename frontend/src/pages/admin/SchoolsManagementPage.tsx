@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Building2, Search, Plus, Edit, Eye, Users, CreditCard, 
    MapPin, Phone, Mail
@@ -37,7 +37,7 @@ const SchoolsManagementPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const fetchSchools = async () => {
+  const fetchSchools = useCallback(async () => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({
@@ -54,31 +54,13 @@ const SchoolsManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchQuery, pageSize, showToast]);
 
   useEffect(() => {
     fetchSchools();
-  }, [currentPage, searchQuery]);
+  }, [currentPage, searchQuery, fetchSchools]);
 
   const totalPages = Math.ceil(totalSchools / pageSize);
-
-  const getSubscriptionPlanColor = (plan: string) => {
-    const colorMap: Record<string, string> = {
-      'basic': 'bg-gray-100 text-gray-800',
-      'premium': 'bg-blue-100 text-blue-800',
-      'enterprise': 'bg-purple-100 text-purple-800'
-    };
-    return colorMap[plan] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getSubscriptionPlanName = (plan: string) => {
-    const nameMap: Record<string, string> = {
-      'basic': 'Základní',
-      'premium': 'Premium',
-      'enterprise': 'Enterprise'
-    };
-    return nameMap[plan] || plan;
-  };
 
   return (
     <AdminLayout>

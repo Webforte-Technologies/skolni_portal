@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   X, 
@@ -146,6 +146,53 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
     };
   }, [viewport.touchDevice, isOpen, onClose]);
 
+  const handleNotificationsClick = useCallback(() => {
+    onShowNotifications();
+    onClose();
+  }, [onShowNotifications, onClose]);
+
+  const handleShortcutsClick = useCallback(() => {
+    onShowShortcuts();
+    onClose();
+  }, [onShowShortcuts, onClose]);
+
+  const handleHelpClick = useCallback(() => {
+    onShowHelp();
+    onClose();
+  }, [onShowHelp, onClose]);
+
+  const handlePreferencesClick = useCallback(() => {
+    onShowPreferences();
+    onClose();
+  }, [onShowPreferences, onClose]);
+
+  const actionItems = useMemo(() => [
+    {
+      label: 'Notifikace',
+      onClick: handleNotificationsClick,
+      icon: Bell,
+      testId: 'nav-notifications',
+    },
+    {
+      label: 'Klávesové zkratky',
+      onClick: handleShortcutsClick,
+      icon: Keyboard,
+      testId: 'nav-shortcuts',
+    },
+    {
+      label: 'Nápověda',
+      onClick: handleHelpClick,
+      icon: HelpCircle,
+      testId: 'nav-help',
+    },
+    {
+      label: 'Nastavení',
+      onClick: handlePreferencesClick,
+      icon: Settings,
+      testId: 'nav-settings',
+    },
+  ], [handleNotificationsClick, handleShortcutsClick, handleHelpClick, handlePreferencesClick]);
+
   if (!user) return null;
 
   const navigationItems = [
@@ -172,45 +219,6 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
       href: '/materials/my-materials',
       icon: FileText,
       testId: 'nav-my-materials',
-    },
-  ];
-
-  const actionItems = [
-    {
-      label: 'Notifikace',
-      onClick: () => {
-        onShowNotifications();
-        onClose();
-      },
-      icon: Bell,
-      testId: 'nav-notifications',
-    },
-    {
-      label: 'Klávesové zkratky',
-      onClick: () => {
-        onShowShortcuts();
-        onClose();
-      },
-      icon: Keyboard,
-      testId: 'nav-shortcuts',
-    },
-    {
-      label: 'Nápověda',
-      onClick: () => {
-        onShowHelp();
-        onClose();
-      },
-      icon: HelpCircle,
-      testId: 'nav-help',
-    },
-    {
-      label: 'Nastavení',
-      onClick: () => {
-        onShowPreferences();
-        onClose();
-      },
-      icon: Settings,
-      testId: 'nav-settings',
     },
   ];
 

@@ -149,13 +149,66 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
     }
   }, []);
 
+  const applyAccessibilityStyles = useCallback(() => {
+    const root = document.documentElement;
+    
+    // Apply high contrast
+    if (settings.highContrast || state.highContrastMode) {
+      root.style.setProperty('--text-color', '#000000');
+      root.style.setProperty('--bg-color', '#FFFFFF');
+      root.style.setProperty('--accent-color', '#0000FF');
+      root.style.setProperty('--border-color', '#000000');
+    } else {
+      root.style.setProperty('--text-color', '#212529');
+      root.style.setProperty('--bg-color', '#F8F9FA');
+      root.style.setProperty('--accent-color', '#4A90E2');
+      root.style.setProperty('--border-color', '#DEE2E6');
+    }
+
+    // Apply font size
+    const fontSizeMap = {
+      small: '14px',
+      medium: '16px',
+      large: '18px'
+    };
+    root.style.setProperty('--font-size-base', fontSizeMap[settings.fontSize]);
+
+    // Apply reduced motion
+    if (settings.reducedMotion || state.prefersReducedMotion) {
+      root.style.setProperty('--transition-duration', '0s');
+      root.style.setProperty('--animation-duration', '0s');
+    } else {
+      root.style.setProperty('--transition-duration', '0.2s');
+      root.style.setProperty('--animation-duration', '0.3s');
+    }
+
+    // Apply focus indicator
+    if (settings.focusIndicator) {
+      root.style.setProperty('--focus-outline', '2px solid #4A90E2');
+    } else {
+      root.style.setProperty('--focus-outline', 'none');
+    }
+
+    // Apply color blindness adjustments
+    if (settings.colorBlindness !== 'none') {
+      const colorBlindnessFilters = {
+        protanopia: 'brightness(0.8) saturate(1.2)',
+        deuteranopia: 'brightness(0.8) saturate(1.2)',
+        tritanopia: 'brightness(0.9) saturate(1.1)'
+      };
+      root.style.setProperty('--color-filter', colorBlindnessFilters[settings.colorBlindness]);
+    } else {
+      root.style.setProperty('--color-filter', 'none');
+    }
+  }, [settings, state.highContrastMode, state.prefersReducedMotion]);
+
   useEffect(() => {
     // Save settings to localStorage whenever they change
     localStorage.setItem('accessibilitySettings', JSON.stringify(settings));
     
     // Apply accessibility styles
     applyAccessibilityStyles();
-  }, [settings]);
+  }, [settings, applyAccessibilityStyles]);
 
   const updateSetting = <K extends keyof AccessibilitySettings>(key: K, value: AccessibilitySettings[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -242,60 +295,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
     };
   }, [isMobile]);
 
-  const applyAccessibilityStyles = () => {
-    const root = document.documentElement;
-    
-    // Apply high contrast
-    if (settings.highContrast || state.highContrastMode) {
-      root.classList.add('high-contrast');
-    } else {
-      root.classList.remove('high-contrast');
-    }
 
-    // Apply font size
-    root.classList.remove('font-size-small', 'font-size-medium', 'font-size-large');
-    root.classList.add(`font-size-${settings.fontSize}`);
-
-    // Apply reduced motion
-    if (settings.reducedMotion || state.prefersReducedMotion) {
-      root.classList.add('reduced-motion');
-    } else {
-      root.classList.remove('reduced-motion');
-    }
-
-    // Apply focus indicator
-    if (settings.focusIndicator) {
-      root.classList.add('focus-indicator');
-    } else {
-      root.classList.remove('focus-indicator');
-    }
-
-    // Apply color blindness simulation
-    root.classList.remove('color-blind-protanopia', 'color-blind-deuteranopia', 'color-blind-tritanopia');
-    if (settings.colorBlindness !== 'none') {
-      root.classList.add(`color-blind-${settings.colorBlindness}`);
-    }
-
-    // Apply keyboard navigation styles
-    if (settings.keyboardNavigation || state.keyboardNavigationActive) {
-      root.classList.add('keyboard-navigation');
-    } else {
-      root.classList.remove('keyboard-navigation');
-    }
-
-    // Apply device-specific classes
-    if (isMobile) {
-      root.classList.add('mobile-device');
-    } else {
-      root.classList.remove('mobile-device');
-    }
-
-    if (isTablet) {
-      root.classList.add('tablet-device');
-    } else {
-      root.classList.remove('tablet-device');
-    }
-  };
 
   const value: AccessibilityContextType = {
     settings,

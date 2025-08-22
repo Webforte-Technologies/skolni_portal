@@ -291,7 +291,7 @@ const MaterialCreatorPage: React.FC = () => {
     }));
   };
 
-  const handlePresetSave = (name: string, _parameters: Record<string, any>) => {
+  const handlePresetSave = (name: string) => {
     // In a real implementation, this would save to localStorage or backend
     showToast({ type: 'success', message: `Předvolba "${name}" byla uložena` });
   };

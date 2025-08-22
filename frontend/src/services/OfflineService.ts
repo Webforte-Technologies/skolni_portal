@@ -60,7 +60,7 @@ class OfflineService {
   private db: IDBPDatabase<OfflineDBSchema> | null = null;
   private isOnline: boolean = navigator.onLine;
   private syncInProgress: boolean = false;
-  private eventListeners: Map<string, Function[]> = new Map();
+  private eventListeners: Map<string, ((data?: any) => void)[]> = new Map();
 
   async init(): Promise<void> {
     try {
@@ -117,14 +117,14 @@ class OfflineService {
   }
 
   // Event handling
-  on(event: string, callback: Function): void {
+  on(event: string, callback: (data?: any) => void): void {
     if (!this.eventListeners.has(event)) {
       this.eventListeners.set(event, []);
     }
     this.eventListeners.get(event)!.push(callback);
   }
 
-  off(event: string, callback: Function): void {
+  off(event: string, callback: (data?: any) => void): void {
     const listeners = this.eventListeners.get(event);
     if (listeners) {
       const index = listeners.indexOf(callback);

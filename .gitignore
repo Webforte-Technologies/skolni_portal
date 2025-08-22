@@ -170,3 +170,6 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+docker-compose.env
+docker-compose.env.local

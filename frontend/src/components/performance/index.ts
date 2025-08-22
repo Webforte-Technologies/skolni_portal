@@ -1,6 +1,6 @@
 // Lazy Loading Components
 export { 
-  LazyComponentWrapper, 
+  default as LazyComponentWrapper, 
   DynamicLazyComponent, 
   withLazyLoading, 
   createLazyComponent 

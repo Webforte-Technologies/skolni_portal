@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Modal from './Modal';
 import Button from './Button';
 import Card from './Card';
@@ -96,7 +96,7 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ isOpen, on
   useEffect(() => {
     const active = getActiveShortcuts();
     setShortcuts(prev => prev.map(s => ({ ...s, currentKey: active[s.id as keyof typeof active] || s.defaultKey })));
-  }, []);
+  }, [getActiveShortcuts]);
 
   // Save changes through context store when a key changes
   useEffect(() => {
@@ -106,7 +106,7 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ isOpen, on
       const desired = s.currentKey;
       if ((active as any)[shortcutId] !== desired) setShortcut(s.id as any, desired);
     });
-  }, [shortcuts]);
+  }, [shortcuts, getActiveShortcuts, setShortcut]);
 
   // Global listener for shortcut feedback
   useEffect(() => {
@@ -137,52 +137,7 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ isOpen, on
     return () => document.removeEventListener('keydown', handleGlobalShortcut);
   }, [shortcuts]);
 
-  // Handle key press events for recording shortcuts
-  useEffect(() => {
-    if (editingShortcut && recordingKey) {
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (editingShortcut === recordingKey) {
-          handleKeyPress(event as any);
-        }
-      };
-      
-      document.addEventListener('keydown', handleKeyDown, true);
-      return () => document.removeEventListener('keydown', handleKeyDown, true);
-    }
-  }, [editingShortcut, recordingKey]);
-
-  const checkForConflicts = () => {
-    const newConflicts: Record<string, string[]> = {};
-    
-    shortcuts.forEach(shortcut => {
-      const duplicates = shortcuts.filter(s => 
-        s.id !== shortcut.id && s.currentKey === shortcut.currentKey
-      );
-      
-      if (duplicates.length > 0) {
-        newConflicts[shortcut.id] = duplicates.map(d => d.name);
-      }
-    });
-    
-    setConflicts(newConflicts);
-  };
-
-  useEffect(() => {
-    checkForConflicts();
-  }, [shortcuts]);
-
-  const handleEditShortcut = (shortcutId: string) => {
-    setEditingShortcut(shortcutId);
-    setRecordingKey(shortcutId);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingShortcut(null);
-    setRecordingKey(null);
-    setWaitingForMoreKeys(false);
-  };
-
-  const handleKeyPress = (event: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((event: React.KeyboardEvent) => {
     if (editingShortcut !== recordingKey) return;
     
     event.preventDefault();
@@ -227,48 +182,79 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ isOpen, on
     
     // Normalize the main key
     if (mainKey === ' ') mainKey = 'Space';
-    else if (mainKey === 'Enter') mainKey = 'Enter';
-    else if (mainKey === 'Escape') mainKey = 'Escape';
-    else if (mainKey === 'Tab') mainKey = 'Tab';
-    else if (mainKey === 'Backspace') mainKey = 'Backspace';
-    else if (mainKey === 'Delete') mainKey = 'Delete';
-    else if (mainKey.startsWith('Arrow')) mainKey = mainKey; // Keep ArrowUp, ArrowDown etc.
-    else if (mainKey.startsWith('F') && mainKey.length <= 3) mainKey = mainKey; // Keep F1, F12 etc.
-    else if (['Home', 'End', 'PageUp', 'PageDown', 'Insert'].includes(mainKey)) mainKey = mainKey;
+    // No need to reassign mainKey to itself for these cases
+    // else if (mainKey === 'Enter') mainKey = 'Enter';
+    // else if (mainKey === 'Escape') mainKey = 'Escape';
+    // else if (mainKey === 'Tab') mainKey = 'Tab';
+    // else if (mainKey === 'Backspace') mainKey = 'Backspace';
+    // else if (mainKey === 'Delete') mainKey = 'Delete';
+    // else if (mainKey.startsWith('Arrow')) mainKey = mainKey; // Keep ArrowUp, ArrowDown etc.
+    // else if (mainKey.startsWith('F') && mainKey.length <= 3) mainKey = mainKey; // Keep F1, F12 etc.
+    // else if (['Home', 'End', 'PageUp', 'PageDown', 'Insert'].includes(mainKey)) mainKey = mainKey;
     else if (mainKey.length === 1) mainKey = mainKey.toUpperCase(); // For 'a' to 'A'
     
-    const newKeyParts = [...modifiers, mainKey].filter(Boolean);
-    const newKey = newKeyParts.join('+');
-    
-    if (newKey === '') {
-      console.log('Skipping empty key combination (only modifier pressed)');
-      return;
-    }
-    
-    console.log(`🎹 Recording shortcut: ${newKey} (modifiers: ${modifiers.join(', ')}, mainKey: ${mainKey})`);
+    const finalKey = [...modifiers, mainKey].join('+');
+    console.log(`🎹 Recording shortcut: ${finalKey}`);
     
     // Check if this is a browser-reserved shortcut
-    const isBrowserReserved = BROWSER_RESERVED_SHORTCUTS.includes(newKey);
-    
-    if (isBrowserReserved) {
-      alert(`⚠️ Tato klávesová zkratka (${newKey}) je rezervována prohlížečem a nelze ji přepsat. Zkuste jinou kombinaci.`);
+    if (BROWSER_RESERVED_SHORTCUTS.includes(finalKey)) {
+      alert(`⚠️ Tato klávesová zkratka (${finalKey}) je rezervována prohlížečem a nelze ji přepsat. Zkuste jinou kombinaci.`);
       return;
     }
     
+    // Update the shortcut
     setShortcuts(prev => prev.map(s => 
-      s.id === editingShortcut ? { ...s, currentKey: newKey } : s
+      s.id === editingShortcut ? { ...s, currentKey: finalKey } : s
     ));
     
     setEditingShortcut(null);
     setRecordingKey(null);
-    setWaitingForMoreKeys(false); // Clear waiting state
-    
-    // Test the new shortcut
-    if (editingShortcut) {
-      setTestResults(prev => ({ ...prev, [editingShortcut]: true }));
+    setWaitingForMoreKeys(false);
+  }, [editingShortcut, recordingKey]);
+
+  // Handle key press events for recording shortcuts
+  useEffect(() => {
+    if (editingShortcut && recordingKey) {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (editingShortcut === recordingKey) {
+          handleKeyPress(event as any);
+        }
+      };
+      
+      document.addEventListener('keydown', handleKeyDown, true);
+      return () => document.removeEventListener('keydown', handleKeyDown, true);
     }
+  }, [editingShortcut, recordingKey, handleKeyPress]);
+
+  const checkForConflicts = useCallback(() => {
+    const newConflicts: Record<string, string[]> = {};
     
-    // Shortcuts are automatically saved by useEffect
+    shortcuts.forEach(shortcut => {
+      const duplicates = shortcuts.filter(s => 
+        s.id !== shortcut.id && s.currentKey === shortcut.currentKey
+      );
+      
+      if (duplicates.length > 0) {
+        newConflicts[shortcut.id] = duplicates.map(d => d.name);
+      }
+    });
+    
+    setConflicts(newConflicts);
+  }, [shortcuts]);
+
+  useEffect(() => {
+    checkForConflicts();
+  }, [checkForConflicts]);
+
+  const handleEditShortcut = (shortcutId: string) => {
+    setEditingShortcut(shortcutId);
+    setRecordingKey(shortcutId);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingShortcut(null);
+    setRecordingKey(null);
+    setWaitingForMoreKeys(false);
   };
 
   const handleReset = () => {

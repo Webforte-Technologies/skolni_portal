@@ -49,7 +49,6 @@ const TestingToolsPage: React.FC = () => {
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [runningTests, setRunningTests] = useState<string[]>([]);
-  const [selectedSuite, setSelectedSuite] = useState<string | null>(null);
 
   useEffect(() => {
     // Simulate API call for testing tools data
@@ -462,7 +461,7 @@ const TestingToolsPage: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedSuite(suite.id)}
+                    onClick={() => {/* setSelectedSuite(suite.id) */}}
                   >
                     <Settings className="w-4 h-4 mr-1" />
                     Nastavení

@@ -33,7 +33,7 @@ export interface TrendAnalysisWidgetProps {
 const TrendAnalysisWidget: React.FC<TrendAnalysisWidgetProps> = ({
   title,
   endpoint,
-  refreshInterval = 30000,
+      refreshInterval = 180000, // Reduced from 30s to 180s to prevent API spam
   maxTrends = 5,
   showFilters = true,
   showActions = true,
@@ -86,16 +86,7 @@ const TrendAnalysisWidget: React.FC<TrendAnalysisWidgetProps> = ({
     }
   };
 
-  const getTrendColor = (trend: 'up' | 'down' | 'stable') => {
-    switch (trend) {
-      case 'up':
-        return 'text-green-600';
-      case 'down':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
+
 
   const formatMetricValue = (value: number, type: string): string => {
     if (type === 'revenue') {

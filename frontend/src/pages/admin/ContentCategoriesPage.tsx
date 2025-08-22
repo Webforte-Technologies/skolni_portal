@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { FolderOpen, Plus, Edit, Trash2, Search, Filter, BookOpen, Users, Calendar, Eye, RefreshCw } from 'lucide-react';
+import { FolderOpen, Plus, Edit, Trash2, Search, Filter, BookOpen, Users, Eye, RefreshCw } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';

@@ -12,7 +12,7 @@ import { streamingService } from '../../services/streamingService';
 import { 
   BookOpen, FileText, Target, Sparkles, Presentation, Users,
   Zap, Eye, ArrowRight, Clock, CheckCircle, Lightbulb,
-  Brain, Search, Star, Info, AlertCircle, Settings
+  Brain, Search, Star, Info, Settings
 } from 'lucide-react';
 import { MaterialType } from '../../types/MaterialTypes';
 
@@ -112,7 +112,9 @@ const SimplifiedGeneratorPage: React.FC = () => {
       try {
         const prefs = JSON.parse(saved);
         setRequest(prev => ({ ...prev, ...prefs }));
-      } catch {}
+      } catch (error) {
+        console.warn('Failed to parse saved preferences:', error);
+      }
     }
   }, []);
 
@@ -1025,39 +1027,7 @@ const SimplifiedGeneratorPage: React.FC = () => {
     setGenerationProgress(0);
   };
 
-  const getFieldLabel = (name: string) => {
-    const labels: Record<string, string> = {
-      title: 'Název',
-      subject: 'Předmět',
-      gradeLevel: 'Ročník',
-      grade_level: 'Ročník',
-      difficulty: 'Obtížnost',
-      learningObjectives: 'Výukové cíle',
-      instructions: 'Instrukce',
-      estimatedTime: 'Odhadovaný čas',
-      duration: 'Délka',
-      materials: 'Potřebné materiály',
-      activities: 'Aktivity',
-      assessment: 'Hodnocení',
-      steps: 'Kroky',
-      evaluation: 'Kritéria hodnocení',
-      slideCount: 'Počet slidů',
-      keyPoints: 'Klíčové body',
-      visualElements: 'Vizuální prvky',
-      groupSize: 'Velikost skupiny',
-      questionCount: 'Počet otázek',
-      questions: 'Otázky',
-      problems: 'Úlohy',
-      timeLimit: 'Časový limit',
-      questionTypes: 'Typy otázek',
-      tags: 'Štítky',
-      customInstructions: 'Vlastní instrukce',
-      specialRequirements: 'Speciální požadavky',
-      qualityLevel: 'Úroveň kvality'
-    };
-    
-    return labels[name] || name.charAt(0).toUpperCase() + name.slice(1).replace(/([A-Z])/g, ' $1');
-  };
+
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">

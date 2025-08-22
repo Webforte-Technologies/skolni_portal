@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
   BarChart3, Users, CreditCard, Settings, FileText, Shield, 
   Code, Home, ChevronDown, ChevronRight, Building2, UserCheck,
@@ -113,7 +113,6 @@ const adminSections: AdminSection[] = [
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, currentPath }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['user-management']));
-  const navigate = useNavigate();
 
   const toggleSection = (sectionId: string) => {
     const newExpanded = new Set(expandedSections);

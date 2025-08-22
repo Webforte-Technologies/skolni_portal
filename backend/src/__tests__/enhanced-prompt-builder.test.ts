@@ -1,5 +1,5 @@
-import { EnhancedPromptBuilder, PromptBuildParams, MaterialSubtype, QualityLevel } from '../services/EnhancedPromptBuilder';
-import { AssignmentAnalysis, MaterialType } from '../services/AssignmentAnalyzer';
+import { EnhancedPromptBuilder, PromptBuildParams, MaterialSubtype } from '../services/EnhancedPromptBuilder';
+import { AssignmentAnalysis } from '../services/AssignmentAnalyzer';
 
 describe('EnhancedPromptBuilder', () => {
   let builder: EnhancedPromptBuilder;

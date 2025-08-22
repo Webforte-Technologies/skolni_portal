@@ -3,25 +3,29 @@
  * Specialized configuration for testing responsive components
  */
 
-const baseConfig = require('./jest.config.js');
+import baseConfig from './jest.config.js';
 
-module.exports = {
+export default {
   ...baseConfig,
   displayName: 'Responsive Tests',
   testMatch: [
-    '<rootDir>/src/**/*.responsive.test.{js,jsx,ts,tsx}',
-    '<rootDir>/src/utils/testing/**/*.test.{js,jsx,ts,tsx}'
+    '<rootDir>/src/**/*.test.{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}'
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/tests/', // Exclude the tests directory which contains Playwright tests
+    '\\.spec\\.ts$' // Exclude .spec.ts files which are typically Playwright tests
   ],
   setupFilesAfterEnv: [
-    ...baseConfig.setupFilesAfterEnv,
-    '<rootDir>/src/utils/testing/setup/responsiveTestSetup.ts'
+    ...baseConfig.setupFilesAfterEnv
   ],
   testEnvironment: 'jsdom',
   testEnvironmentOptions: {
     url: 'http://localhost:3000'
   },
-  moduleNameMapping: {
-    ...baseConfig.moduleNameMapping,
+  moduleNameMapper: {
+    ...baseConfig.moduleNameMapper,
     '^@/utils/testing$': '<rootDir>/src/utils/testing/index.ts'
   },
   collectCoverageFrom: [

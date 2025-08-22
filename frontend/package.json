@@ -6,19 +6,24 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:simple": "tsc && vite build --config vite.config.simple.ts",
     "test": "playwright test",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "preview:build": "npm run build && vite preview",
     "type-check": "tsc --noEmit",
-    "test:e2e": "playwright test",
-    "test:update-snapshots": "playwright test --update-snapshots",
+    "test:e2e": "dotenv -e env.test -- playwright test",
+    "test:e2e:parallel": "dotenv -e env.test -- playwright test --config playwright.parallel.config.ts",
+    "test:e2e:auth": "dotenv -e env.test -- playwright test tests/auth-core.spec.ts",
+    "test:e2e:dashboard": "dotenv -e env.test -- playwright test tests/dashboard-core.spec.ts",
+    "test:e2e:ai-generator": "dotenv -e env.test -- playwright test tests/ai-generator-realistic.spec.ts",
+    "test:update-snapshots": "dotenv -e env.test -- playwright test --update-snapshots",
     "test:responsive": "jest --config jest.responsive.config.js",
     "test:responsive:watch": "jest --config jest.responsive.config.js --watch",
     "test:responsive:coverage": "jest --config jest.responsive.config.js --coverage",
-    "test:visual": "playwright test --config playwright.responsive.config.ts",
-    "test:visual:update": "playwright test --config playwright.responsive.config.ts --update-snapshots",
-    "test:visual:ui": "playwright test --config playwright.responsive.config.ts --ui"
+    "test:visual": "dotenv -e env.test -- playwright test --config playwright.responsive.config.ts",
+    "test:visual:update": "dotenv -e env.test -- playwright test --config playwright.responsive.config.ts --update-snapshots",
+    "test:visual:ui": "dotenv -e env.test -- playwright test --config playwright.responsive.config.ts --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
@@ -56,8 +61,9 @@
     "@types/react-dom": "^18.2.15",
     "@typescript-eslint/eslint-plugin": "^6.10.0",
     "@typescript-eslint/parser": "^6.10.0",
-    "@vitejs/plugin-react": "^4.1.1",
+    "@vitejs/plugin-react": "^5.0.1",
     "autoprefixer": "^10.4.16",
+    "dotenv-cli": "^7.4.4",
     "eslint": "^8.53.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^4.6.0",
@@ -69,10 +75,10 @@
     "tailwindcss": "^3.3.5",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
-    "vite": "^4.5.0"
+    "vite": "^7.1.3"
   },
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=20.19.0",
     "npm": ">=8.0.0"
   }
 }

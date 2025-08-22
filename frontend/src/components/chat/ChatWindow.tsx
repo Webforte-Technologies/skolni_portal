@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useRef, useCallback, useState, useMemo } from 'react';
 import { ChatMessage } from '../../types';
 import Message from './Message';
