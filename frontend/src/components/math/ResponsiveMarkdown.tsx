@@ -159,7 +159,7 @@ const processMathPlaceholders = (
   }
   
   // Process inline math placeholders in remaining text
-  let remainingText = text.slice(lastIndex);
+  const remainingText = text.slice(lastIndex);
   const inlineMathRegex = /__INLINE_MATH_(\d+)__/g;
   let inlineLastIndex = 0;
   

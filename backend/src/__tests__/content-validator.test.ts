@@ -1,4 +1,4 @@
-import { ContentValidator, ValidationResult, QualityScore } from '../services/ContentValidator';
+import { ContentValidator } from '../services/ContentValidator';
 
 describe('ContentValidator', () => {
   let validator: ContentValidator;

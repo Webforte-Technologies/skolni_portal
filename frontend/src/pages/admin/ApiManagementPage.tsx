@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  Key, 
+  Plus, 
+  Eye, 
+  EyeOff, 
+  Copy, 
+  Edit, 
+  Trash2, 
+  RefreshCw, 
+  Code, 
+  Download, 
+  Upload, 
+  Settings,
+  Globe,
+  Activity,
+  Users
+} from 'lucide-react';
 import Card from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import { 
-  Code, 
-  Key, 
-  Globe, 
-  Activity, 
-  Users, 
-  
-  Plus,
-  Edit,
-  Trash2,
-  Copy,
-  Eye,
-  EyeOff,
-  RefreshCw,
-  Download,
-  Upload,
-  Settings
-} from 'lucide-react';
+import Badge from '../../components/ui/Badge';
+import Modal from '../../components/ui/Modal';
 
 interface ApiKey {
   id: string;
@@ -559,6 +559,128 @@ const ApiManagementPage: React.FC = () => {
           </div>
         </div>
       </Card>
+
+      {/* Add API Key Modal */}
+      <Modal 
+        isOpen={showAddKey} 
+        onClose={() => setShowAddKey(false)} 
+        title="Nový API klíč"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Název klíče
+            </label>
+            <Input
+              type="text"
+              placeholder="Např. Frontend App"
+              className="w-full"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Oprávnění
+            </label>
+            <div className="space-y-2">
+              {['read:materials', 'write:materials', 'read:users', 'write:users'].map((permission) => (
+                <label key={permission} className="flex items-center space-x-2">
+                  <input type="checkbox" className="rounded border-gray-300" />
+                  <span className="text-sm text-gray-700">{permission}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Rate Limit (požadavků/min)
+            </label>
+            <Input
+              type="number"
+              placeholder="1000"
+              className="w-full"
+            />
+          </div>
+          
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button variant="outline" onClick={() => setShowAddKey(false)}>
+              Zrušit
+            </Button>
+            <Button onClick={() => {
+              // TODO: Implement API key creation
+              setShowAddKey(false);
+            }}>
+              Vytvořit klíč
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit API Key Modal */}
+      <Modal 
+        isOpen={!!editingKey} 
+        onClose={() => setEditingKey(null)} 
+        title="Upravit API klíč"
+        size="lg"
+      >
+        {editingKey && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Název klíče
+              </label>
+              <Input
+                type="text"
+                defaultValue={editingKey.name}
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Oprávnění
+              </label>
+              <div className="space-y-2">
+                {['read:materials', 'write:materials', 'read:users', 'write:users'].map((permission) => (
+                  <label key={permission} className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-gray-300"
+                      defaultChecked={editingKey.permissions.includes(permission)}
+                    />
+                    <span className="text-sm text-gray-700">{permission}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rate Limit (požadavků/min)
+              </label>
+              <Input
+                type="number"
+                defaultValue={editingKey.rateLimit}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-3 pt-4">
+              <Button variant="outline" onClick={() => setEditingKey(null)}>
+                Zrušit
+              </Button>
+              <Button onClick={() => {
+                // TODO: Implement API key update
+                setEditingKey(null);
+              }}>
+                Uložit změny
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

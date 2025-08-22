@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Filter, Plus, Trash2,  Mail,  CreditCard, CheckCircle, XCircle,  Download } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -20,18 +20,20 @@ interface User {
   school_name?: string;
 }
 
-interface UsersListResponse {
-  data: User[];
-  total: number;
-  limit: number;
-  offset: number;
-}
+
 
 interface UserFilters {
   status: string;
   role: string;
   school: string;
   dateRange: string;
+}
+
+interface UsersResponse {
+  data: User[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 const UserManagementPage: React.FC = () => {
@@ -53,14 +55,10 @@ const UserManagementPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  useEffect(() => {
-    fetchUsers();
-  }, [currentPage, filters]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get<{ success: boolean; data: UsersListResponse }>('/admin/users', {
+      const response = await api.get<UsersResponse>('/admin/users', {
         params: {
           page: currentPage,
           limit: pageSize,
@@ -70,7 +68,7 @@ const UserManagementPage: React.FC = () => {
       });
       // The backend returns: { success: true, data: { data: rows, total, limit, offset } }
       const usersData = response.data.data;
-      if (usersData?.data) {
+      if (usersData?.data && Array.isArray(usersData.data)) {
         setUsers(usersData.data);
         setTotalUsers(usersData.total);
       } else {
@@ -82,7 +80,11 @@ const UserManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, filters, pageSize, searchQuery, showToast]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [currentPage, filters, fetchUsers]);
 
   const handleSearch = () => {
     setCurrentPage(0);
@@ -106,7 +108,7 @@ const UserManagementPage: React.FC = () => {
           await api.post('/admin/users/bulk/deactivate', { userIds: selectedUsers });
           showToast({ type: 'success', message: 'Uživatelé byli deaktivováni' });
           break;
-        case 'addCredits':
+        case 'addCredits': {
           const credits = prompt('Zadejte počet kreditů k přidání:');
           if (credits) {
             await api.post('/admin/users/bulk/credits', { 
@@ -116,6 +118,7 @@ const UserManagementPage: React.FC = () => {
             showToast({ type: 'success', message: 'Kredity byly přidány' });
           }
           break;
+        }
         case 'delete':
           if (confirm('Opravdu chcete smazat vybrané uživatele?')) {
             await api.delete('/admin/users/bulk', { data: { userIds: selectedUsers } });

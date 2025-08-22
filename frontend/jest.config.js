@@ -2,16 +2,18 @@
  * Base Jest configuration
  */
 
-module.exports = {
+export default {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      useESM: true,
+    }],
   },
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.(ts|tsx)',
@@ -26,5 +28,8 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$))'
-  ]
+  ],
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  moduleDirectories: ['node_modules', 'src'],
+  resolver: undefined,
 };

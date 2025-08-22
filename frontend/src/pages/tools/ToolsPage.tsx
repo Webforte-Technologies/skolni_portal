@@ -3,7 +3,7 @@ import Header from '../../components/layout/Header';
 import MathToolsToolbar from '../../components/chat/MathToolsToolbar';
 import DifficultyProgression from '../../components/chat/DifficultyProgression';
 import PracticeMode from '../../components/chat/PracticeMode';
-import { MathTopic, MathDifficulty, PracticeSession } from '../../types';
+import { MathTopic, MathDifficulty } from '../../types';
 
 const ToolsPage: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<MathTopic>('basic_math');
@@ -24,7 +24,7 @@ const ToolsPage: React.FC = () => {
     setShowPractice(false);
   };
 
-  const handlePracticeComplete = (_: PracticeSession) => {
+  const handlePracticeComplete = () => {
     // Future: persist progress
     setShowPractice(false);
   };

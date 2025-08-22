@@ -5,7 +5,7 @@ import { webSocketService } from '../services/WebSocketService';
 
 // Mock authentication middleware for testing
 jest.mock('../middleware/auth', () => ({
-  authenticateToken: (req: any, res: any, next: any) => {
+  authenticateToken: (req: any, _res: any, next: any) => {
     req.user = { id: 'test-user-id', role: 'platform_admin' };
     next();
   },
@@ -20,12 +20,12 @@ jest.mock('../middleware/auth', () => ({
 
 // Mock audit middleware
 jest.mock('../middleware/audit', () => ({
-  auditLoggerForAdmin: (req: any, res: any, next: any) => next()
+  auditLoggerForAdmin: (_req: any, _res: any, next: any) => next()
 }));
 
 // Mock enhanced metrics middleware
 jest.mock('../middleware/enhanced-metrics', () => ({
-  enhancedMetricsMiddleware: (req: any, res: any, next: any) => next(),
+  enhancedMetricsMiddleware: (_req: any, _res: any, next: any) => next(),
   getEnhancedMetrics: () => ({ system: {}, performance: {} })
 }));
 

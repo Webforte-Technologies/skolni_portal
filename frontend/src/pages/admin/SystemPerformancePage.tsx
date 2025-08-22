@@ -182,9 +182,9 @@ const SystemPerformancePage: React.FC = () => {
 
     fetchPerformanceData();
 
-    // Auto-refresh every 30 seconds if enabled
+    // Auto-refresh every 2 minutes if enabled instead of 30 seconds to reduce API spam
     if (autoRefresh) {
-      const interval = setInterval(fetchPerformanceData, 30000);
+      const interval = setInterval(fetchPerformanceData, 120000);
       return () => clearInterval(interval);
     }
   }, [timeRange, autoRefresh]);

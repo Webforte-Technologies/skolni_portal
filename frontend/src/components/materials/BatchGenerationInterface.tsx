@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Plus, Trash2, Play, Pause, CheckCircle, Clock, 
-  AlertCircle, Download, Share2, Settings, Eye
+  AlertCircle, Download, Settings, Eye
 } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -97,11 +97,7 @@ const BatchGenerationInterface: React.FC<BatchGenerationInterfaceProps> = ({
     setMaterials(prev => prev.filter(m => m.id !== id));
   };
 
-  const updateMaterial = (id: string, updates: Partial<BatchMaterial>) => {
-    setMaterials(prev => prev.map(m => 
-      m.id === id ? { ...m, ...updates } : m
-    ));
-  };
+
 
   const startBatchGeneration = () => {
     if (materials.length === 0) return;

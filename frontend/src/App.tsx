@@ -61,6 +61,7 @@ const TestingToolsPage = React.lazy(() => import('./pages/admin/TestingToolsPage
 const DocumentationPage = React.lazy(() => import('./pages/admin/DocumentationPage'));
 const UserProfilePage = React.lazy(() => import('./pages/dashboard/UserProfilePage'));
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
+const TestPage = React.lazy(() => import('./pages/TestPage'));
 import ErrorBoundary from './components/layout/ErrorBoundary';
 
 // Create a client
@@ -84,6 +85,11 @@ function App() {
     });
   }, []);
 
+  // Add error boundary for development
+  if (import.meta.env.DEV) {
+    console.log('App component rendering...');
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
@@ -105,7 +111,14 @@ function App() {
                       {/* Subtle background (reduced effects to minimize bundle and purge unused CSS) */}
                       <div className="pointer-events-none fixed inset-0 -z-10" />
                       <ErrorBoundary>
-                        <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                        <Suspense fallback={
+                          <div className="min-h-screen flex items-center justify-center bg-surface-bg">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                              <p className="text-surface-text">Načítání aplikace...</p>
+                            </div>
+                          </div>
+                        }>
                           <Routes>
                 {/* Public routes */}
                 <Route path="/" element={
@@ -113,6 +126,7 @@ function App() {
                     <LandingPage />
                   </PublicRoute>
                 } />
+                <Route path="/test" element={<TestPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegistrationPage />} />
                 <Route path="/register-school" element={<SchoolRegistrationPage />} />
@@ -430,6 +444,7 @@ function App() {
                 {/* Development/Test routes */}
                 {import.meta.env.DEV && (
                   <>
+                    <Route path="/test" element={<TestPage />} />
                     <Route path="/test/responsive-math" element={
                       <PrivateRoute>
                         <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>

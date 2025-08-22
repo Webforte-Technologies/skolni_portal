@@ -11,6 +11,7 @@
     "test:smoke": "jest -c jest.config.js --runInBand --detectOpenHandles",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
+    "type-check": "tsc --noEmit",
     "db:init": "ts-node src/database/init.ts",
     "db:reset": "ts-node src/database/reset.ts",
     "db:add-tables": "ts-node src/database/add-missing-tables.ts",

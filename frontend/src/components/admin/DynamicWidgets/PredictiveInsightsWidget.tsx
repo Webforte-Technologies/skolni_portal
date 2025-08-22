@@ -46,7 +46,7 @@ export interface PredictiveInsightsWidgetProps {
 const PredictiveInsightsWidget: React.FC<PredictiveInsightsWidgetProps> = ({
   title,
   endpoint,
-  refreshInterval = 60000, // Longer interval for predictions
+      refreshInterval = 300000, // Increased from 60s to 300s to prevent API spam
   showFilters = true,
   showActions = true,
   className = '',

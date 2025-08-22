@@ -3065,7 +3065,7 @@ function constructBasicActivityStructure(rawResponse: string): string {
   
   // Extract structured instructions
   const structuredInstructionsMatch = rawResponse.match(/"structuredInstructions":\s*\{([^}]+)\}/s);
-  let structuredInstructions = {
+  const structuredInstructions = {
     preparation: ['Příprava materiálů', 'Rozdělení do skupin'],
     execution: ['Vysvětlení pravidel', 'Provedení aktivity'],
     conclusion: ['Prezentace výsledků', 'Reflexe a hodnocení']

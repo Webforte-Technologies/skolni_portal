@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { ViewportState, ResponsiveConfig, ResponsiveComponentState } from '../types';
 import { 
   getViewportState, 
@@ -93,7 +93,7 @@ export const ResponsiveProvider: React.FC<ResponsiveProviderProps> = ({
   useEffect(() => {
     if (!viewport.touchDevice) return;
 
-    let initialViewportHeight = window.innerHeight;
+    const initialViewportHeight = window.innerHeight;
     
     const handleViewportChange = () => {
       const currentHeight = window.innerHeight;
@@ -135,35 +135,35 @@ export const ResponsiveProvider: React.FC<ResponsiveProviderProps> = ({
     }
   }, [viewport.breakpoint, state.menuOpen]);
 
-  const updateConfig = (newConfig: Partial<ResponsiveConfig>) => {
+  const updateConfig = useCallback((newConfig: Partial<ResponsiveConfig>) => {
     setConfig(prevConfig => ({
       ...prevConfig,
       ...newConfig,
     }));
-  };
+  }, []);
 
-  const setMenuOpen = (open: boolean) => {
+  const setMenuOpen = useCallback((open: boolean) => {
     setState(prevState => ({
       ...prevState,
       menuOpen: open,
     }));
-  };
+  }, []);
 
-  const setKeyboardVisible = (visible: boolean) => {
+  const setKeyboardVisible = useCallback((visible: boolean) => {
     setState(prevState => ({
       ...prevState,
       keyboardVisible: visible,
     }));
-  };
+  }, []);
 
-  const value: ResponsiveContextType = {
+  const value: ResponsiveContextType = useMemo(() => ({
     viewport,
     config,
     state,
     updateConfig,
     setMenuOpen,
     setKeyboardVisible,
-  };
+  }), [viewport, config, state, updateConfig, setMenuOpen, setKeyboardVisible]);
 
   return (
     <ResponsiveContext.Provider value={value}>

@@ -281,7 +281,7 @@ const SecuritySettingsPage: React.FC = () => {
                       </div>
                       
                       <div className="flex items-center space-x-3 ml-4">
-                        {editingValues.hasOwnProperty(setting.id) ? (
+                        {Object.prototype.hasOwnProperty.call(editingValues, setting.id) ? (
                           <div className="flex items-center space-x-2">
                             <Input
                               type={setting.type === 'boolean' ? 'text' : setting.type}

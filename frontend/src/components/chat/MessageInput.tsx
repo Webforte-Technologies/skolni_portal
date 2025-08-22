@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useState, useCallback, useRef, useImperativeHandle } from 'react';
 import { Send, Loader2, CornerDownLeft, Wand2 } from 'lucide-react';
 import Button from '../ui/Button';
@@ -41,7 +42,9 @@ const MessageInput = React.memo(React.forwardRef<MessageInputHandle, MessageInpu
         const cursor = start + text.length;
         try {
           el.setSelectionRange(cursor, cursor);
-        } catch {}
+        } catch {
+          // Ignore errors when setting selection range
+        }
       }, 0);
     }
   }), []);

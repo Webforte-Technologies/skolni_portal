@@ -20,7 +20,6 @@ const InputField = forwardRef<HTMLInputElement, ResponsiveInputFieldProps>(({
   onChange,
   className,
   mobileLayout = 'stacked',
-  touchOptimized = true,
   preventZoom = true,
   ...props
 }, ref) => {

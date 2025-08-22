@@ -215,25 +215,23 @@ export class AnalyticsService {
    */
   static async getUserMetrics(timeRange?: TimeRange): Promise<UserMetrics> {
     try {
-      const whereClause = timeRange 
+      const _whereClause = timeRange 
         ? 'WHERE created_at BETWEEN $1 AND $2' 
         : '';
       const params = timeRange ? [timeRange.start, timeRange.end] : [];
 
       // Get total users
-      const totalResult = await pool.query(
-        `SELECT COUNT(*) as count FROM users WHERE is_active = true ${whereClause}`,
-        params
-      );
+      const totalQuery = timeRange 
+        ? `SELECT COUNT(*) as count FROM users WHERE is_active = true AND created_at BETWEEN $1 AND $2`
+        : `SELECT COUNT(*) as count FROM users WHERE is_active = true`;
+      const totalResult = await pool.query(totalQuery, params);
       const total = parseInt(totalResult.rows[0].count);
 
       // Get users by role
-      const roleResult = await pool.query(`
-        SELECT role, COUNT(*) as count 
-        FROM users 
-        WHERE is_active = true ${whereClause}
-        GROUP BY role
-      `, params);
+      const roleQuery = timeRange 
+        ? `SELECT role, COUNT(*) as count FROM users WHERE is_active = true AND created_at BETWEEN $1 AND $2 GROUP BY role`
+        : `SELECT role, COUNT(*) as count FROM users WHERE is_active = true GROUP BY role`;
+      const roleResult = await pool.query(roleQuery, params);
       
       const byRole: Record<string, number> = {};
       roleResult.rows.forEach(row => {
@@ -241,13 +239,10 @@ export class AnalyticsService {
       });
 
       // Get users by school
-      const schoolResult = await pool.query(`
-        SELECT s.name, COUNT(u.id) as count 
-        FROM schools s 
-        JOIN users u ON s.id = u.school_id 
-        WHERE u.is_active = true ${whereClause}
-        GROUP BY s.id, s.name
-      `, params);
+      const schoolQuery = timeRange 
+        ? `SELECT s.name, COUNT(u.id) as count FROM schools s JOIN users u ON s.id = u.school_id WHERE u.is_active = true AND u.created_at BETWEEN $1 AND $2 GROUP BY s.id, s.name`
+        : `SELECT s.name, COUNT(u.id) as count FROM schools s JOIN users u ON s.id = u.school_id WHERE u.is_active = true GROUP BY s.id, s.name`;
+      const schoolResult = await pool.query(schoolQuery, params);
       
       const bySchool: Record<string, number> = {};
       schoolResult.rows.forEach(row => {
@@ -304,19 +299,23 @@ export class AnalyticsService {
    */
   static async getCreditMetrics(timeRange?: TimeRange): Promise<CreditMetrics> {
     try {
-      const whereClause = timeRange 
+      const _whereClause = timeRange 
         ? 'WHERE created_at BETWEEN $1 AND $2' 
         : '';
       const params = timeRange ? [timeRange.start, timeRange.end] : [];
 
       // Get total credits
-      const totalResult = await pool.query(`
-        SELECT 
-          SUM(CASE WHEN transaction_type = 'purchase' THEN amount ELSE 0 END) as purchased,
-          SUM(CASE WHEN transaction_type = 'usage' THEN amount ELSE 0 END) as used
-        FROM credit_transactions
-        ${whereClause}
-      `, params);
+      const totalQuery = timeRange 
+        ? `SELECT 
+            SUM(CASE WHEN transaction_type = 'purchase' THEN amount ELSE 0 END) as purchased,
+            SUM(CASE WHEN transaction_type = 'usage' THEN amount ELSE 0 END) as used
+          FROM credit_transactions
+          WHERE created_at BETWEEN $1 AND $2`
+        : `SELECT 
+            SUM(CASE WHEN transaction_type = 'purchase' THEN amount ELSE 0 END) as purchased,
+            SUM(CASE WHEN transaction_type = 'usage' THEN amount ELSE 0 END) as used
+          FROM credit_transactions`;
+      const totalResult = await pool.query(totalQuery, params);
       
       const totalPurchased = parseInt(totalResult.rows[0].purchased) || 0;
       const totalUsed = parseInt(totalResult.rows[0].used) || 0;
@@ -375,16 +374,26 @@ export class AnalyticsService {
    */
   static async getContentMetrics(timeRange?: TimeRange): Promise<ContentMetrics> {
     try {
-      const whereClause = timeRange 
+      const _whereClause = timeRange 
         ? 'WHERE created_at BETWEEN $1 AND $2' 
         : '';
       const params = timeRange ? [timeRange.start, timeRange.end] : [];
 
       // Get basic counts
+      const sessionsQuery = timeRange 
+        ? `SELECT COUNT(*) as count FROM chat_sessions WHERE created_at BETWEEN $1 AND $2`
+        : `SELECT COUNT(*) as count FROM chat_sessions`;
+      const messagesQuery = timeRange 
+        ? `SELECT COUNT(*) as count FROM chat_messages WHERE created_at BETWEEN $1 AND $2`
+        : `SELECT COUNT(*) as count FROM chat_messages`;
+      const filesQuery = timeRange 
+        ? `SELECT COUNT(*) as count FROM generated_files WHERE created_at BETWEEN $1 AND $2`
+        : `SELECT COUNT(*) as count FROM generated_files`;
+      
       const [sessionsResult, messagesResult, filesResult] = await Promise.all([
-        pool.query(`SELECT COUNT(*) as count FROM chat_sessions ${whereClause}`, params),
-        pool.query(`SELECT COUNT(*) as count FROM chat_messages ${whereClause}`, params),
-        pool.query(`SELECT COUNT(*) as count FROM generated_files ${whereClause}`, params)
+        pool.query(sessionsQuery, params),
+        pool.query(messagesQuery, params),
+        pool.query(filesQuery, params)
       ]);
 
       const totalSessions = parseInt(sessionsResult.rows[0].count);
@@ -498,7 +507,7 @@ export class AnalyticsService {
    */
   static async getRevenueMetrics(timeRange?: TimeRange): Promise<RevenueMetrics> {
     try {
-      const whereClause = timeRange 
+      const _whereClause = timeRange 
         ? 'WHERE created_at BETWEEN $1 AND $2' 
         : '';
       const params = timeRange ? [timeRange.start, timeRange.end] : [];
@@ -522,13 +531,18 @@ export class AnalyticsService {
         : 0;
 
       // Get revenue by plan
-      const planResult = await pool.query(`
-        SELECT s.plan_type, SUM(ct.amount) as revenue
-        FROM credit_transactions ct
-        JOIN subscriptions s ON ct.related_subscription_id = s.id
-        WHERE ct.transaction_type = 'purchase' ${whereClause}
-        GROUP BY s.plan_type
-      `, params);
+      const planQuery = timeRange 
+        ? `SELECT s.plan_type, SUM(ct.amount) as revenue
+           FROM credit_transactions ct
+           JOIN subscriptions s ON ct.related_subscription_id = s.id
+           WHERE ct.transaction_type = 'purchase' AND ct.created_at BETWEEN $1 AND $2
+           GROUP BY s.plan_type`
+        : `SELECT s.plan_type, SUM(ct.amount) as revenue
+           FROM credit_transactions ct
+           JOIN subscriptions s ON ct.related_subscription_id = s.id
+           WHERE ct.transaction_type = 'purchase'
+           GROUP BY s.plan_type`;
+      const planResult = await pool.query(planQuery, params);
       
       const byPlan: Record<string, number> = {};
       planResult.rows.forEach(row => {
@@ -536,14 +550,20 @@ export class AnalyticsService {
       });
 
       // Get revenue by school
-      const schoolResult = await pool.query(`
-        SELECT s.name, SUM(ct.amount) as revenue
-        FROM credit_transactions ct
-        JOIN users u ON ct.user_id = u.id
-        JOIN schools s ON u.school_id = s.id
-        WHERE ct.transaction_type = 'purchase' ${whereClause}
-        GROUP BY s.id, s.name
-      `, params);
+      const schoolQuery = timeRange 
+        ? `SELECT s.name, SUM(ct.amount) as revenue
+           FROM credit_transactions ct
+           JOIN users u ON ct.user_id = u.id
+           JOIN schools s ON u.school_id = s.id
+           WHERE ct.transaction_type = 'purchase' AND ct.created_at BETWEEN $1 AND $2
+           GROUP BY s.id, s.name`
+        : `SELECT s.name, SUM(ct.amount) as revenue
+           FROM credit_transactions ct
+           JOIN users u ON ct.user_id = u.id
+           JOIN schools s ON u.school_id = s.id
+           WHERE ct.transaction_type = 'purchase'
+           GROUP BY s.id, s.name`;
+      const schoolResult = await pool.query(schoolQuery, params);
       
       const bySchool: Record<string, number> = {};
       schoolResult.rows.forEach(row => {

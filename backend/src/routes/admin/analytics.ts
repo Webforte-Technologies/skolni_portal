@@ -9,6 +9,43 @@ import pool from '../../database/connection';
 
 const router = express.Router();
 
+// Helper function to convert timeRange parameter to proper format
+function parseTimeRange(timeRangeParam: any) {
+  if (!timeRangeParam) return undefined;
+  
+  try {
+    const parsed = typeof timeRangeParam === 'string' ? JSON.parse(timeRangeParam) : timeRangeParam;
+    
+    if (parsed.days) {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - parsed.days);
+      return { start, end };
+    }
+    
+    if (parsed.months) {
+      const end = new Date();
+      const start = new Date();
+      start.setMonth(start.getMonth() - parsed.months);
+      return { start, end };
+    }
+    
+    if (parsed.start && parsed.end) {
+      return {
+        start: new Date(parsed.start),
+        end: new Date(parsed.end)
+      };
+    }
+    
+    // If no valid format found, return undefined instead of crashing
+    console.warn('Invalid timeRange format:', timeRangeParam);
+    return undefined;
+  } catch (error) {
+    console.error('Failed to parse timeRange:', error, 'Raw value:', timeRangeParam);
+    return undefined;
+  }
+}
+
 // Guard entire router
 router.use(authenticateToken, requireRole(['platform_admin']));
 router.use(auditLoggerForAdmin);
@@ -38,7 +75,15 @@ router.get('/dashboard', async (_req: RequestWithUser, res: express.Response) =>
  */
 router.get('/users/real-time', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const timeRange = req.query['timeRange'] ? JSON.parse(req.query['timeRange'] as string) : undefined;
+    // Only log in development mode to reduce console spam
+    if (process.env['NODE_ENV'] === 'development') {
+      console.log('Users real-time analytics request:', { 
+        timeRange: req.query['timeRange'],
+        userAgent: req.get('User-Agent'),
+        timestamp: new Date().toISOString()
+      });
+    }
+    const timeRange = parseTimeRange(req.query['timeRange']);
     const metrics = await AnalyticsService.getUserMetrics(timeRange);
     return ok(res, metrics);
   } catch (error) {
@@ -53,7 +98,15 @@ router.get('/users/real-time', async (req: RequestWithUser, res: express.Respons
  */
 router.get('/credits/real-time', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const timeRange = req.query['timeRange'] ? JSON.parse(req.query['timeRange'] as string) : undefined;
+    // Only log in development mode to reduce console spam
+    if (process.env['NODE_ENV'] === 'development') {
+      console.log('Credits real-time analytics request:', { 
+        timeRange: req.query['timeRange'],
+        userAgent: req.get('User-Agent'),
+        timestamp: new Date().toISOString()
+      });
+    }
+    const timeRange = parseTimeRange(req.query['timeRange']);
     const metrics = await AnalyticsService.getCreditMetrics(timeRange);
     return ok(res, metrics);
   } catch (error) {
@@ -68,7 +121,7 @@ router.get('/credits/real-time', async (req: RequestWithUser, res: express.Respo
  */
 router.get('/content/real-time', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const timeRange = req.query['timeRange'] ? JSON.parse(req.query['timeRange'] as string) : undefined;
+    const timeRange = parseTimeRange(req.query['timeRange']);
     const metrics = await AnalyticsService.getContentMetrics(timeRange);
     return ok(res, metrics);
   } catch (error) {
@@ -97,7 +150,7 @@ router.get('/system/performance', async (_req: RequestWithUser, res: express.Res
  */
 router.get('/revenue/real-time', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const timeRange = req.query['timeRange'] ? JSON.parse(req.query['timeRange'] as string) : undefined;
+    const timeRange = parseTimeRange(req.query['timeRange']);
     const metrics = await AnalyticsService.getRevenueMetrics(timeRange);
     return ok(res, metrics);
   } catch (error) {

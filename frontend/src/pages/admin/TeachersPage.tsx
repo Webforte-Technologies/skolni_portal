@@ -30,8 +30,6 @@ const TeachersPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [schoolFilter, setSchoolFilter] = useState<string>('all');
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
 
   useEffect(() => {
     // Simulate API call for teachers data
@@ -270,7 +268,7 @@ const TeachersPage: React.FC = () => {
           </div>
           <div className="flex items-center space-x-3 mt-4 sm:mt-0">
             <Button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {/* setShowAddModal(true) */}}
               className="flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
@@ -504,7 +502,7 @@ const TeachersPage: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setEditingTeacher(teacher)}
+                          onClick={() => {/* setEditingTeacher(teacher) */}}
                           className="text-blue-600 hover:text-blue-700"
                         >
                           <Edit className="w-4 h-4" />

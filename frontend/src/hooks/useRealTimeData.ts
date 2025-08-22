@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../services/apiClient';
 
+/**
+ * Global request deduplication to prevent multiple simultaneous requests to the same endpoint.
+ * This fixes the issue where multiple widgets were making requests to the same endpoint
+ * simultaneously, causing API spam and performance issues.
+ */
+const globalRequestMap = new Map<string, Promise<any>>();
+
 export interface UseRealTimeDataOptions<T> {
   endpoint: string;
   refreshInterval?: number;
@@ -29,9 +36,20 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
     autoRefresh = true,
     onDataUpdate,
     onError,
-    transformData,
-    dependencies = []
+    transformData
   } = options;
+
+  // Add a static flag to prevent multiple instances of the same endpoint
+  const hookInstanceId = useRef(`${endpoint}-${Math.random()}`);
+
+  // Only log in development mode to reduce console spam
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[useRealTimeData] Hook initialized for ${endpoint}`, { 
+      refreshInterval, 
+      autoRefresh,
+      timestamp: new Date().toISOString()
+    });
+  }
 
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +63,7 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
   const retryCountRef = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isAutoRefreshingRef = useRef(autoRefresh);
+  const isFetchingRef = useRef(false); // Prevent multiple simultaneous requests
   
   // Store callbacks in refs to prevent unnecessary re-renders
   const onDataUpdateRef = useRef(onDataUpdate);
@@ -63,11 +82,76 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
   }, [onDataUpdate, onError, transformData, autoRefresh]);
 
   const fetchData = useCallback(async (isRetry = false) => {
+    // Prevent multiple simultaneous requests to the same endpoint
+    if (isFetchingRef.current) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[useRealTimeData] Request already in progress for ${endpoint}, skipping`);
+      }
+      return;
+    }
+    
+    // Construct the full endpoint URL with dependencies
+    let fullEndpoint = endpoint;
+    if (options.dependencies && options.dependencies.length > 0) {
+      // For now, handle timeRange dependency specifically
+      const timeRangeDep = options.dependencies.find(dep => typeof dep === 'string' && ['1h', '6h', '24h', '7d', '30d'].includes(dep));
+      if (timeRangeDep) {
+        const days = timeRangeDep === '1h' ? 0.04 : timeRangeDep === '6h' ? 0.25 : timeRangeDep === '24h' ? 1 : timeRangeDep === '7d' ? 7 : 30;
+        const separator = endpoint.includes('?') ? '&' : '?';
+        fullEndpoint = `${endpoint}${separator}timeRange=${encodeURIComponent(JSON.stringify({ days }))}`;
+        
+        // Validate the constructed URL
+        if (!fullEndpoint.startsWith('/api/')) {
+          console.error(`[useRealTimeData] Invalid endpoint constructed: ${fullEndpoint}`);
+          setError(new Error(`Invalid endpoint: ${fullEndpoint}`));
+          return;
+        }
+      }
+    }
+
+    // Check if there's already a request in progress for this endpoint globally
+    if (globalRequestMap.has(fullEndpoint)) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[useRealTimeData] Global request already in progress for ${fullEndpoint}, waiting for result`);
+      }
+      try {
+        const result = await globalRequestMap.get(fullEndpoint);
+        // Process the result as if we made the request
+        const transformedData = transformDataRef.current ? transformDataRef.current(result) : result;
+        setData(transformedData);
+        setLastUpdated(new Date());
+        setError(null);
+        setRetryCount(0);
+        if (onDataUpdateRef.current) {
+          onDataUpdateRef.current(transformedData);
+        }
+        return;
+      } catch (error) {
+        // If the global request failed, we'll make our own
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[useRealTimeData] Global request failed for ${fullEndpoint}, making new request`);
+        }
+      }
+    }
+    
+    isFetchingRef.current = true;
+    
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
 
     abortControllerRef.current = new AbortController();
+    
+    // Add debugging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[useRealTimeData] Fetching data from ${fullEndpoint}`, { 
+        originalEndpoint: endpoint,
+        fullEndpoint,
+        isRetry, 
+        retryCount: retryCountRef.current,
+        timestamp: new Date().toISOString()
+      });
+    }
     
     try {
       setLoading(prev => {
@@ -85,9 +169,18 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
         return prev;
       });
 
-      const response = await api.get(endpoint, {
+      // Create a promise for this request and store it globally
+      const requestPromise = api.get(fullEndpoint, {
         signal: abortControllerRef.current.signal
       });
+      
+      // Store the promise globally to prevent duplicate requests
+      globalRequestMap.set(fullEndpoint, requestPromise);
+      
+      const response = await requestPromise;
+      
+      // Remove the promise from global map after completion
+      globalRequestMap.delete(fullEndpoint);
 
       const rawData = response.data?.data || response.data;
       const transformedData: T = transformDataRef.current ? transformDataRef.current(rawData) : (rawData as T);
@@ -123,6 +216,9 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
       }
 
     } catch (err: any) {
+      // Remove the promise from global map on error
+      globalRequestMap.delete(fullEndpoint);
+      
       if (err.name === 'AbortError') {
         return; // Request was cancelled
       }
@@ -147,14 +243,18 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
       });
       
       // Auto-retry on network errors (max 3 retries)
-      if (!isRetry && retryCountRef.current < 3 && (error.message.includes('network') || error.message.includes('timeout'))) {
+      // Don't retry on 404 errors as they indicate malformed URLs
+      if (!isRetry && retryCountRef.current < 3 && 
+          (error.message.includes('network') || error.message.includes('timeout')) &&
+          !error.message.includes('404') && !error.message.includes('Not Found')) {
         // Clear any existing timeout
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
         }
         
         timeoutRef.current = setTimeout(() => {
-          fetchData(true);
+          // Use fetchData for retry
+          fetchData();
         }, 5000 * retryCountRef.current);
       }
 
@@ -162,6 +262,9 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
         onErrorRef.current(error);
       }
     } finally {
+      // Ensure the promise is removed from global map
+      globalRequestMap.delete(fullEndpoint);
+      
       setLoading(prev => {
         // Only update if the loading state actually changed
         if (prev) {
@@ -169,12 +272,11 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
         }
         return prev;
       });
+      
+      // Reset the fetching flag
+      isFetchingRef.current = false;
     }
-  }, [endpoint, ...dependencies]); // Remove callback dependencies
-
-  const refresh = useCallback(async () => {
-    await fetchData();
-  }, [fetchData]);
+  }, [endpoint, options.dependencies]);
 
   const setAutoRefresh = useCallback((enabled: boolean) => {
     if (isAutoRefreshingRef.current !== enabled) {
@@ -183,20 +285,55 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
     }
   }, []);
 
-  // Set up auto-refresh interval
+    // Set up auto-refresh interval
   useEffect(() => {
     if (isAutoRefreshingRef.current && refreshInterval > 0) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[useRealTimeData] Setting up interval for ${endpoint} (${hookInstanceId.current})`, { 
+          refreshInterval, 
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      // Clear any existing interval first
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      
+      // Add a small initial delay to prevent all widgets from making requests simultaneously
+      const initialDelay = Math.random() * 5000; // Reduced from 10s to 5s
+      
+      const initialTimeout = setTimeout(() => {
+        if (isAutoRefreshingRef.current && !intervalRef.current) {
+          fetchData(); // Initial fetch after delay
+        }
+      }, initialDelay);
+      
       intervalRef.current = setInterval(() => {
-        fetchData();
+        // Use the current fetchData function from ref to avoid dependency issues
+        if (isAutoRefreshingRef.current) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[useRealTimeData] Interval triggered for ${endpoint} (${hookInstanceId.current})`);
+          }
+          fetchData();
+        }
       }, refreshInterval);
 
       return () => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`[useRealTimeData] Cleaning up interval for ${endpoint}`);
+        }
+        if (initialTimeout) {
+          clearTimeout(initialTimeout);
+        }
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
+          intervalRef.current = null;
         }
       };
     }
-  }, [refreshInterval, fetchData]);
+  }, [refreshInterval, endpoint, fetchData]); // Added missing dependencies
 
   // Initial data fetch
   useEffect(() => {
@@ -205,6 +342,10 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
 
   // Cleanup on unmount
   useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[useRealTimeData] Hook cleanup for ${endpoint}`);
+    }
+    
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -215,14 +356,15 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
+      isFetchingRef.current = false;
     };
-  }, []);
+  }, [endpoint]); // Added missing dependency
 
   return {
     data,
     loading,
     error,
-    refresh,
+    refresh: fetchData,
     setAutoRefresh,
     isAutoRefreshing,
     lastUpdated,

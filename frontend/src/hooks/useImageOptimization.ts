@@ -163,7 +163,8 @@ export function useImageOptimization(
 
   // Optimize image for upload
   const optimizeForUpload = useCallback(async (file: File): Promise<Blob> => {
-    const { compressImage } = await import('../utils/imageOptimization');
+    // Import compressImage separately to avoid circular dependencies and dynamic imports
+    const { compressImage } = await import('../utils/imageCompression');
     
     const compressionOptions: ImageOptimizationOptions = {
       quality: quality / 100, // Convert to 0-1 range for compression

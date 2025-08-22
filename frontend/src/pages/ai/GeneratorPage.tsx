@@ -38,7 +38,9 @@ const AIGeneratorPage: React.FC = () => {
         const obj = JSON.parse(saved);
         if (obj.quizTimeLimit) setQuizTimeLimit(obj.quizTimeLimit);
         if (obj.gradeLevel) setGradeLevel(obj.gradeLevel);
-      } catch {}
+      } catch {
+        // Ignore localStorage parsing errors - fall back to defaults
+      }
     }
   }, []);
   React.useEffect(() => {
