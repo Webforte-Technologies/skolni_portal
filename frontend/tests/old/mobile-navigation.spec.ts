@@ -2,16 +2,56 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Mobile Navigation', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to login page and login
-    await page.goto('/login');
+    // Mock authentication API responses
+    await page.route('**/auth/profile', async (route) => {
+      const user = {
+        id: 'u1', 
+        email: 'teacher@example.com', 
+        first_name: 'Test', 
+        last_name: 'Učitel',
+        credits_balance: 100, 
+        is_active: true, 
+        created_at: '', 
+        updated_at: '', 
+        role: 'teacher_school'
+      };
+      await route.fulfill({ 
+        status: 200, 
+        contentType: 'application/json', 
+        body: JSON.stringify({ success: true, data: user }) 
+      });
+    });
+
+    // Mock other necessary API endpoints
+    await page.route('**/auth/refresh', async (route) => {
+      await route.fulfill({ 
+        status: 200, 
+        contentType: 'application/json', 
+        body: JSON.stringify({ success: true, data: { token: 'e2e-token' } }) 
+      });
+    });
+
+    // Seed auth in localStorage (mock login)
+    await page.addInitScript(() => {
+      localStorage.setItem('authToken', 'e2e-token');
+      localStorage.setItem('user', JSON.stringify({
+        id: 'u1', 
+        email: 'teacher@example.com', 
+        first_name: 'Test', 
+        last_name: 'Učitel',
+        credits_balance: 100, 
+        is_active: true, 
+        created_at: '', 
+        updated_at: '', 
+        role: 'teacher_school'
+      }));
+    });
+
+    // Navigate directly to dashboard (bypassing login)
+    await page.goto('/dashboard');
     
-    // Fill in login form
-    await page.fill('input[name="email"]', 'test@example.com');
-    await page.fill('input[name="password"]', 'password123');
-    await page.click('button[type="submit"]');
-    
-    // Wait for navigation to dashboard
-    await page.waitForURL('/dashboard');
+    // Wait for dashboard to load
+    await page.waitForSelector('[data-testid="mobile-menu-button"], [data-testid="notifications-bell"]', { timeout: 10000 });
   });
 
   test('shows mobile navigation on small screens', async ({ page }) => {
@@ -22,7 +62,8 @@ test.describe('Mobile Navigation', () => {
     const mobileMenuButton = page.getByTestId('mobile-menu-button');
     await expect(mobileMenuButton).toBeVisible();
     
-    // Check that desktop navigation is hidden
+    // Check that desktop navigation elements are hidden on mobile
+    // The notifications bell should not be visible on mobile viewports
     const desktopNav = page.locator('[data-testid="notifications-bell"]');
     await expect(desktopNav).not.toBeVisible();
   });
@@ -125,7 +166,8 @@ test.describe('Mobile Navigation', () => {
     const mobileMenuButton = page.getByTestId('mobile-menu-button');
     await expect(mobileMenuButton).not.toBeVisible();
     
-    // Check that desktop navigation is visible
+    // Check that desktop navigation elements are visible
+    // Look for any desktop navigation element that should be visible
     const desktopNav = page.locator('[data-testid="notifications-bell"]');
     await expect(desktopNav).toBeVisible();
   });

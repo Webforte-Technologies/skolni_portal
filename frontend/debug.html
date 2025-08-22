@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Page - EduAI-Asistent</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #4A90E2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #357abd;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Page - EduAI-Asistent</h1>
+        
+        <div class="status info">
+            <strong>Účel:</strong> Tato stránka pomáhá diagnostikovat problémy s frontend aplikací
+        </div>
+
+        <h2>📊 Stav systému</h2>
+        
+        <div id="systemStatus">
+            <div class="status success">
+                ✅ HTML stránka se načítá správně
+            </div>
+            <div class="status success">
+                ✅ CSS styly fungují
+            </div>
+            <div class="status success">
+                ✅ JavaScript je aktivní
+            </div>
+        </div>
+
+        <h2>🧪 Testy</h2>
+        
+        <button onclick="testAPI()">Test API připojení</button>
+        <button onclick="testLocalStorage()">Test LocalStorage</button>
+        <button onclick="testConsole()">Test Console</button>
+        <button onclick="clearLog()">Vyčistit log</button>
+
+        <h2>📝 Log</h2>
+        <div id="log" class="log"></div>
+
+        <h2>🔗 Užitečné odkazy</h2>
+        <p>
+            <a href="/test" target="_blank">Test Page (React)</a> | 
+            <a href="/" target="_blank">Hlavní stránka</a> | 
+            <a href="/login" target="_blank">Přihlášení</a>
+        </p>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function testAPI() {
+            log('🔌 Testuji API připojení...');
+            
+            try {
+                const response = await fetch('/api/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ API zdraví: ${data.status}`, 'success');
+                } else {
+                    log(`❌ API chyba: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ API připojení selhalo: ${error.message}`, 'error');
+            }
+
+            try {
+                const response = await fetch('/');
+                if (response.ok) {
+                    log('✅ Root endpoint funguje', 'success');
+                } else {
+                    log(`❌ Root endpoint chyba: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Root endpoint selhal: ${error.message}`, 'error');
+            }
+        }
+
+        function testLocalStorage() {
+            log('💾 Testuji LocalStorage...');
+            
+            try {
+                localStorage.setItem('test', 'test-value');
+                const value = localStorage.getItem('test');
+                if (value === 'test-value') {
+                    log('✅ LocalStorage funguje', 'success');
+                } else {
+                    log('❌ LocalStorage nefunguje správně', 'error');
+                }
+                localStorage.removeItem('test');
+            } catch (error) {
+                log(`❌ LocalStorage chyba: ${error.message}`, 'error');
+            }
+        }
+
+        function testConsole() {
+            log('📝 Testuji console...');
+            console.log('Test console.log');
+            console.warn('Test console.warn');
+            console.error('Test console.error');
+            log('✅ Console testy odeslány - zkontrolujte konzoli prohlížeče', 'success');
+        }
+
+        // Automatické testy při načtení
+        window.addEventListener('load', () => {
+            log('🚀 Stránka načtena, spouštím automatické testy...');
+            
+            // Test LocalStorage
+            testLocalStorage();
+            
+            // Test API po krátké prodlevě
+            setTimeout(() => {
+                testAPI();
+            }, 1000);
+        });
+
+        // Log chyb
+        window.addEventListener('error', (event) => {
+            log(`❌ JavaScript chyba: ${event.message}`, 'error');
+        });
+
+        // Log unhandled promise rejections
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`❌ Nezpracovaná Promise chyba: ${event.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>

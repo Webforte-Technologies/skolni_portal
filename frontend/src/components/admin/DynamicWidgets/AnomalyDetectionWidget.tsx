@@ -37,7 +37,7 @@ export interface AnomalyDetectionWidgetProps {
 const AnomalyDetectionWidget: React.FC<AnomalyDetectionWidgetProps> = ({
   title,
   endpoint,
-  refreshInterval = 30000,
+      refreshInterval = 120000, // Reduced from 30s to 120s to prevent API spam
   maxAnomalies = 10,
   showFilters = true,
   showActions = true,

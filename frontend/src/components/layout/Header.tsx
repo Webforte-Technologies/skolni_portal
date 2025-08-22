@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
 import ConfirmModal from '../ui/ConfirmModal';
@@ -51,23 +51,43 @@ const Header: React.FC = () => {
     }
   };
 
-  if (!user) return null;
-
-  const handleLogoutClick = () => {
+  const handleLogoutClick = useCallback(() => {
     setShowLogoutConfirm(true);
-  };
+  }, []);
 
-  const handleLogoutConfirm = () => {
+  const handleLogoutConfirm = useCallback(() => {
     logout();
-  };
+  }, [logout]);
 
-  const handleMobileMenuToggle = () => {
+  const handleMobileMenuToggle = useCallback(() => {
     setMenuOpen(!state.menuOpen);
-  };
+  }, [state.menuOpen, setMenuOpen]);
 
-  const handleMobileMenuClose = () => {
+  const handleMobileMenuClose = useCallback(() => {
     setMenuOpen(false);
-  };
+  }, [setMenuOpen]);
+
+  const handleShowPreferences = useCallback(() => {
+    setShowPreferences(true);
+  }, []);
+
+  const handleShowHelp = useCallback(() => {
+    setShowHelp(true);
+  }, []);
+
+  const handleShowShortcuts = useCallback(() => {
+    setShowShortcuts(true);
+  }, []);
+
+  const handleShowNotifications = useCallback(() => {
+    setShowNotifications(true);
+  }, []);
+
+  const handleToggleNotifications = useCallback(() => {
+    setShowNotifications(v => !v);
+  }, []);
+
+  if (!user) return null;
 
   return (
     <>
@@ -83,10 +103,10 @@ const Header: React.FC = () => {
                     isOpen={state.menuOpen}
                     onToggle={handleMobileMenuToggle}
                     onClose={handleMobileMenuClose}
-                    onShowPreferences={() => setShowPreferences(true)}
-                    onShowHelp={() => setShowHelp(true)}
-                    onShowShortcuts={() => setShowShortcuts(true)}
-                    onShowNotifications={() => setShowNotifications(true)}
+                    onShowPreferences={handleShowPreferences}
+                    onShowHelp={handleShowHelp}
+                    onShowShortcuts={handleShowShortcuts}
+                    onShowNotifications={handleShowNotifications}
                     onLogout={handleLogoutClick}
                   />
                 </div>
@@ -109,7 +129,7 @@ const Header: React.FC = () => {
               {viewport.breakpoint === 'desktop' && (
                 <div className="flex items-center gap-1 lg:gap-2">
                   <button
-                    onClick={() => setShowNotifications(v => !v)}
+                    onClick={handleToggleNotifications}
                     className="relative rounded-md p-2.5 lg:p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
                     aria-label="Notifikace"
                     title="Notifikace"
@@ -119,7 +139,7 @@ const Header: React.FC = () => {
                     <Bell className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => setShowShortcuts(true)}
+                    onClick={handleShowShortcuts}
                     className="relative rounded-md p-2.5 lg:p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
                     aria-label="Klávesové zkratky"
                     title={`Klávesové zkratky (Ctrl+/)${activeShortcuts.length > 0 ? ` - ${activeShortcuts.length} vlastní` : ''}`}
@@ -132,7 +152,7 @@ const Header: React.FC = () => {
                     }`}></div>
                   </button>
                   <button
-                    onClick={() => setShowHelp(true)}
+                    onClick={handleShowHelp}
                     className="rounded-md p-2.5 lg:p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
                     aria-label="Nápověda"
                     title="Nápověda (F1)"
@@ -141,7 +161,7 @@ const Header: React.FC = () => {
                     <HelpCircle className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => setShowPreferences(true)}
+                    onClick={handleShowPreferences}
                     className="rounded-md p-2.5 lg:p-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
                     aria-label="Nastavení"
                     title="Nastavení"

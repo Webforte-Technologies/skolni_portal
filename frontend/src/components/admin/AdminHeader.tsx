@@ -95,7 +95,8 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
     };
 
     loadNotifications();
-    const interval = setInterval(loadNotifications, 30000); // Refresh every 30s
+    // Refresh every 2 minutes instead of 30 seconds to reduce API spam
+    const interval = setInterval(loadNotifications, 120000);
     return () => clearInterval(interval);
   }, []);
 

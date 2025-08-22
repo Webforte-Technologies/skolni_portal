@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useRef, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useRef, useEffect, useCallback, useMemo } from 'react';
 import ToastContainer, { Toast } from '../components/ui/ToastContainer';
 import { useResponsive } from '../hooks/useViewport';
 
@@ -20,7 +20,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Responsive duration settings
-  const getResponsiveDuration = (baseDuration?: number) => {
+  const getResponsiveDuration = useCallback((baseDuration?: number) => {
     const defaultDuration = baseDuration || 5000;
     
     if (isMobile) {
@@ -32,7 +32,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     }
     
     return defaultDuration;
-  };
+  }, [isMobile, isTablet]);
 
   // Maximum number of toasts to show simultaneously
   const getMaxToasts = useCallback(() => {
@@ -41,7 +41,18 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     return 4; // More toasts on desktop
   }, [isMobile, isTablet]);
 
-  const showToast = (toast: Omit<Toast, 'id'>) => {
+  const removeToast = useCallback((id: string) => {
+    // Clear timeout if it exists
+    const timeoutId = timeoutRefs.current.get(id);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutRefs.current.delete(id);
+    }
+
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
+  const showToast = useCallback((toast: Omit<Toast, 'id'>) => {
     const id = crypto.randomUUID();
     const duration = getResponsiveDuration(toast.duration);
     const newToast: Toast = { ...toast, id };
@@ -72,26 +83,15 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     }, duration);
     
     timeoutRefs.current.set(id, timeoutId);
-  };
+  }, [getMaxToasts, removeToast, getResponsiveDuration]);
 
-  const removeToast = (id: string) => {
-    // Clear timeout if it exists
-    const timeoutId = timeoutRefs.current.get(id);
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      timeoutRefs.current.delete(id);
-    }
-
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
-
-  const clearAllToasts = () => {
+  const clearAllToasts = useCallback(() => {
     // Clear all timeouts
     timeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId));
     timeoutRefs.current.clear();
     
     setToasts([]);
-  };
+  }, []);
 
   // Clean up timeouts on unmount
   useEffect(() => {
@@ -122,8 +122,10 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     });
   }, [getMaxToasts]);
 
+  const value = useMemo(() => ({ showToast, removeToast, clearAllToasts }), [showToast, removeToast, clearAllToasts]);
+
   return (
-    <ToastContext.Provider value={{ showToast, removeToast, clearAllToasts }}>
+    <ToastContext.Provider value={value}>
       {children}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </ToastContext.Provider>

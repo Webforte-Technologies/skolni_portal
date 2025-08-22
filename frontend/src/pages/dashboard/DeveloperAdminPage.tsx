@@ -130,7 +130,8 @@ const DeveloperAdminPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const i = setInterval(() => { fetchHealth(); fetchMetrics(); }, 15000);
+    // Refresh every 2 minutes instead of 15 seconds to reduce API spam
+    const i = setInterval(() => { fetchHealth(); fetchMetrics(); }, 120000);
     return () => clearInterval(i);
   }, []);
 

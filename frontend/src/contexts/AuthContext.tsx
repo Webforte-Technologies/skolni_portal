@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { UserWithSchool } from '../types';
 import { authService } from '../services/authService';
 
@@ -27,10 +27,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     let isRefreshing = false;
     const initializeAuth = async () => {
       try {
+        if (import.meta.env.DEV) {
+          console.log('AuthContext: Initializing authentication...');
+        }
         const token = authService.getToken();
         const cachedUser = authService.getCurrentUser();
-        if (cachedUser) setUser(cachedUser);
+        if (cachedUser) {
+          if (import.meta.env.DEV) {
+            console.log('AuthContext: Found cached user:', cachedUser.email);
+          }
+          setUser(cachedUser);
+        }
         if (token) {
+          if (import.meta.env.DEV) {
+            console.log('AuthContext: Found token, fetching fresh profile...');
+          }
           // Fetch fresh profile
           const fresh = await authService.getProfile();
           if (isMounted) setUser(fresh);
@@ -69,35 +80,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     const authResponse = await authService.login({ email, password });
     setUser(authResponse.user);
-  };
+  }, []);
 
-  const register = async (userData: any) => {
+  const register = useCallback(async (userData: any) => {
     const authResponse = await authService.register(userData);
     setUser(authResponse.user);
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     authService.logout();
-  };
+  }, []);
 
-  const updateUser = (userData: Partial<UserWithSchool>) => {
+  const updateUser = useCallback((userData: Partial<UserWithSchool>) => {
     if (user) {
       setUser({ ...user, ...userData });
     }
-  };
+  }, [user]);
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     isLoading,
     login,
     register,
     logout,
     updateUser,
-  };
+  }), [user, isLoading, login, register, logout, updateUser]);
 
   return (
     <AuthContext.Provider value={value}>

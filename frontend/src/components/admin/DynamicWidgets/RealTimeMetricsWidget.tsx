@@ -38,7 +38,7 @@ const RealTimeMetricsWidget: React.FC<RealTimeMetricsWidgetProps> = ({
   title,
   metrics,
   endpoint,
-  refreshInterval = 30000,
+  refreshInterval = 300000, // 5 minutes instead of 30 seconds to reduce API spam
   showTrend = true,
   showLastUpdated = true,
   className = '',

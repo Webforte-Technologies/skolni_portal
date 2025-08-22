@@ -70,8 +70,8 @@ const SystemHealthPage: React.FC = () => {
   useEffect(() => {
     fetchSystemHealth();
     
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchSystemHealth, 30000);
+    // Auto-refresh every 2 minutes instead of 30 seconds to reduce API spam
+    const interval = setInterval(fetchSystemHealth, 120000);
     return () => clearInterval(interval);
   }, [fetchSystemHealth]);
 

@@ -33,7 +33,7 @@ export interface TrendAnalysisWidgetProps {
 const TrendAnalysisWidget: React.FC<TrendAnalysisWidgetProps> = ({
   title,
   endpoint,
-  refreshInterval = 30000,
+      refreshInterval = 180000, // Reduced from 30s to 180s to prevent API spam
   maxTrends = 5,
   showFilters = true,
   showActions = true,

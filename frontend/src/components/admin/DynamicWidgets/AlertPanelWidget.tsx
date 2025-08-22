@@ -38,7 +38,7 @@ export interface AlertPanelWidgetProps {
 const AlertPanelWidget: React.FC<AlertPanelWidgetProps> = ({
   title,
   endpoint,
-  refreshInterval = 15000, // More frequent updates for alerts
+      refreshInterval = 120000, // Reduced from 15s to 120s to prevent API spam
   maxAlerts = 10,
   showFilters = true,
   showActions = true,

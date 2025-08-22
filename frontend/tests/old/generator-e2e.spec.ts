@@ -74,7 +74,7 @@ test.describe('AI Generator Happy Paths', () => {
     });
 
     // Navigate to generator page
-    await page.goto('/generator');
+    await page.goto('/ai-generator');
     await page.waitForLoadState('networkidle');
 
     // Select quiz type
