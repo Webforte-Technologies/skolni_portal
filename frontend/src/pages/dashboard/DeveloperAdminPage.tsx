@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
@@ -78,13 +78,13 @@ const DeveloperAdminPage: React.FC = () => {
   };
 
   const modPageSize = 10;
-  const fetchModerationQueue = async () => {
+  const fetchModerationQueue = useCallback(async () => {
     const res = await api.get<any>(`/admin/moderation/queue?status=${modStatus}&limit=${modPageSize}&offset=${modPage * modPageSize}`);
     setModQueue(res.data.data.data || []);
     setModTotal(res.data.data.total || 0);
-  };
+  }, [modStatus, modPage, modPageSize]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setIsLoadingUsers(true);
     try {
       const queryParams = new URLSearchParams({
@@ -103,7 +103,7 @@ const DeveloperAdminPage: React.FC = () => {
     } finally {
       setIsLoadingUsers(false);
     }
-  };
+  }, [pageSize, userPage, userQuery, userFilters, setIsLoadingUsers, setUsers, setUsersTotal]);
 
   // Load notifications
   useEffect(() => {
@@ -134,8 +134,8 @@ const DeveloperAdminPage: React.FC = () => {
     return () => clearInterval(i);
   }, []);
 
-  useEffect(() => { fetchUsers(); }, [userPage, userFilters]);
-  useEffect(() => { fetchModerationQueue(); }, [modPage, modStatus]);
+  useEffect(() => { fetchUsers(); }, [userPage, userFilters, fetchUsers]);
+  useEffect(() => { fetchModerationQueue(); }, [modPage, modStatus, fetchModerationQueue]);
 
   const toggleFlag = async (key: string, value: boolean) => {
     await api.put(`/admin/feature-flags/${key}`, { value });

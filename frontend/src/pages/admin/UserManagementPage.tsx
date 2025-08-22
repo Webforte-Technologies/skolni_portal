@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Filter, Plus, Trash2,  Mail,  CreditCard, CheckCircle, XCircle,  Download } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -55,11 +55,7 @@ const UserManagementPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  useEffect(() => {
-    fetchUsers();
-  }, [currentPage, filters]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get<UsersResponse>('/admin/users', {
@@ -84,7 +80,11 @@ const UserManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, filters, pageSize, searchQuery, showToast]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [currentPage, filters, fetchUsers]);
 
   const handleSearch = () => {
     setCurrentPage(0);

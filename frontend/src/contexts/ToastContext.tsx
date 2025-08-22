@@ -95,9 +95,10 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
 
   // Clean up timeouts on unmount
   useEffect(() => {
+    const currentTimeouts = timeoutRefs.current;
     return () => {
-      timeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId));
-      timeoutRefs.current.clear();
+      currentTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+      currentTimeouts.clear();
     };
   }, []);
 
@@ -119,7 +120,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
       }
       return prev;
     });
-  }, [isMobile, isTablet]);
+  }, [getMaxToasts]);
 
   return (
     <ToastContext.Provider value={{ showToast, removeToast, clearAllToasts }}>

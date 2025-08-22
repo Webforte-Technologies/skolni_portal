@@ -3,7 +3,8 @@ import pool from '../database/connection';
 
 // Mock the database connection
 jest.mock('../database/connection', () => ({
-  pool: {
+  __esModule: true,
+  default: {
     query: jest.fn()
   }
 }));

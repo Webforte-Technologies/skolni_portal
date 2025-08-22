@@ -201,16 +201,16 @@ describe('AI Generator Type Validations', () => {
       };
       expect(() => validateQuiz(invalidMC)).toThrow('answer must be one of the options');
 
-      // Invalid true/false - answer not boolean
+      // Invalid true/false - answer not boolean or valid string
       const invalidTF = {
         ...validQuiz,
         questions: [{
           type: 'true_false',
           question: 'Test?',
-          answer: 'true' // Should be boolean
+          answer: 'invalid_string' // Should be boolean or valid true/false string
         }]
       };
-      expect(() => validateQuiz(invalidTF)).toThrow('must be boolean for true/false');
+      expect(() => validateQuiz(invalidTF)).toThrow('must be boolean, English');
 
       // Invalid short answer - answer not string
       const invalidSA = {

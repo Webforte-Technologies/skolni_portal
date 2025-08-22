@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import Header from '../../components/layout/Header';
@@ -53,7 +53,7 @@ const SchoolAdminPage: React.FC = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const loadTeachers = async () => {
+  const loadTeachers = useCallback(async () => {
     if (!user?.school_id) return;
     setIsLoading(true);
     try {
@@ -70,18 +70,18 @@ const SchoolAdminPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.school_id, searchTerm, teacherStatus]);
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     try {
       const res = await api.get<any>('/notifications?limit=20');
       setNotifications(res.data.data || []);
     } catch (error) {
       console.error('Failed to load notifications:', error);
     }
-  };
+  }, []);
 
-  const loadSchool = async () => {
+  const loadSchool = useCallback(async () => {
     if (!user?.school_id) return;
     const res = await api.get<any>(`/schools/${user.school_id}`);
     if (res.data.success) {
@@ -95,9 +95,9 @@ const SchoolAdminPage: React.FC = () => {
         contact_phone: res.data.data.contact_phone || ''
       });
     }
-  };
+  }, [user?.school_id]);
 
-  const loadCreditUsage = async () => {
+  const loadCreditUsage = useCallback(async () => {
     if (!user?.school_id) return;
     try {
       const res = await api.get(`/schools/${user.school_id}/credit-stats`);
@@ -131,9 +131,9 @@ const SchoolAdminPage: React.FC = () => {
       ];
       setCreditUsage(mockCreditUsage);
     }
-  };
+  }, [user?.school_id]);
 
-  const loadSubscriptionInfo = async () => {
+  const loadSubscriptionInfo = useCallback(async () => {
     if (!user?.school_id) return;
     try {
       const res = await api.get(`/schools/${user.school_id}/credit-stats`);
@@ -169,9 +169,9 @@ const SchoolAdminPage: React.FC = () => {
         monthly_usage: 105
       });
     }
-  };
+  }, [user?.school_id]);
 
-  const loadCreditAllocation = async () => {
+  const loadCreditAllocation = useCallback(async () => {
     if (!user?.school_id) return;
     try {
       const res = await api.get(`/schools/${user.school_id}/credit-allocation`);
@@ -181,7 +181,7 @@ const SchoolAdminPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to load credit allocation:', error);
     }
-  };
+  }, [user?.school_id]);
 
   const allocateCredits = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,15 +225,15 @@ const SchoolAdminPage: React.FC = () => {
   };
 
   useEffect(() => { 
-    loadTeachers(); 
-    loadSchool(); 
+        loadTeachers();
+    loadSchool();
     loadCreditUsage();
     loadSubscriptionInfo();
     loadCreditAllocation();
     loadNotifications();
     const t = setInterval(loadNotifications, 60000);
     return () => clearInterval(t);
-  }, []);
+  }, [loadTeachers, loadSchool, loadCreditUsage, loadSubscriptionInfo, loadCreditAllocation, loadNotifications]);
 
   // Server-side filtering; mirror server response to filteredTeachers
   useEffect(() => { setFilteredTeachers(teachers); }, [teachers]);

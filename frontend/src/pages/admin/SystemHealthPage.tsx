@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Server, Activity, Database,  HardDrive, 
    AlertTriangle, CheckCircle, Clock, 
@@ -47,7 +47,7 @@ const SystemHealthPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const fetchSystemHealth = async () => {
+  const fetchSystemHealth = useCallback(async () => {
     setLoading(true);
     try {
       const [metricsRes, servicesRes, alertsRes] = await Promise.all([
@@ -65,7 +65,7 @@ const SystemHealthPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchSystemHealth();

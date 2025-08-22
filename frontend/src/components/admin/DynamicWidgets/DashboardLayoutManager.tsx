@@ -72,10 +72,6 @@ const DashboardLayoutManager: React.FC<DashboardLayoutManagerProps> = ({
     { id: 'dashboard-focus', name: 'Dashboard Focus', description: 'Zaměření na hlavní metriky' }
   ];
 
-  useEffect(() => {
-    loadLayouts();
-  }, []);
-
   const loadLayouts = useCallback(async () => {
     try {
       setLoading(true);
@@ -96,6 +92,10 @@ const DashboardLayoutManager: React.FC<DashboardLayoutManagerProps> = ({
       setLoading(false);
     }
   }, [currentLayout, showToast]);
+
+  useEffect(() => {
+    loadLayouts();
+  }, [loadLayouts]);
 
   const handleCreateLayout = async () => {
     if (!newLayoutName.trim()) {

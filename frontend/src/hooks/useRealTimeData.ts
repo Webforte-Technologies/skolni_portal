@@ -29,8 +29,7 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
     autoRefresh = true,
     onDataUpdate,
     onError,
-    transformData,
-    dependencies = []
+    transformData
   } = options;
 
   const [data, setData] = useState<T | null>(null);
@@ -170,11 +169,9 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
         return prev;
       });
     }
-  }, [endpoint, dependencies]); // Remove callback dependencies
+  }, [endpoint]);
 
-  const refresh = useCallback(async () => {
-    await fetchData();
-  }, [fetchData]);
+  const refresh = useCallback(fetchData, [fetchData]);
 
   const setAutoRefresh = useCallback((enabled: boolean) => {
     if (isAutoRefreshingRef.current !== enabled) {

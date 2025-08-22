@@ -6,7 +6,7 @@ import { webSocketService } from '../services/WebSocketService';
 // Mock authentication middleware for testing
 jest.mock('../middleware/auth', () => ({
   authenticateToken: (req: any, _res: any, next: any) => {
-    req.user = { id: 'test-user-id', role: 'teacher' };
+    req.user = { id: 'test-user-id', role: 'platform_admin' };
     next();
   },
   requireRole: (roles: string[]) => (req: any, res: any, next: any) => {

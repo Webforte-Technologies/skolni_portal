@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Shield, Plus, Edit, Trash2, Users, Settings, 
   CheckCircle, XCircle, Eye, Lock, X
@@ -38,7 +38,7 @@ const RolesPermissionsPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get<any>('/admin/roles');
@@ -48,21 +48,21 @@ const RolesPermissionsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  const fetchPermissions = async () => {
+  const fetchPermissions = useCallback(async () => {
     try {
       const res = await api.get<any>('/admin/permissions');
       setPermissions(res.data.data || []);
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při načítání oprávnění' });
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchRoles();
     fetchPermissions();
-  }, []);
+  }, [fetchRoles, fetchPermissions]);
 
   const getRoleColor = (roleName: string) => {
     const colorMap: Record<string, string> = {

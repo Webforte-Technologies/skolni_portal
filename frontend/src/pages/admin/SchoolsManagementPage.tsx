@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Building2, Search, Plus, Edit, Eye, Users, CreditCard, 
    MapPin, Phone, Mail
@@ -37,7 +37,7 @@ const SchoolsManagementPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const fetchSchools = async () => {
+  const fetchSchools = useCallback(async () => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({
@@ -54,7 +54,7 @@ const SchoolsManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchQuery, pageSize, showToast]);
 
   useEffect(() => {
     fetchSchools();

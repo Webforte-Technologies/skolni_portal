@@ -70,15 +70,6 @@ const LandingPage: React.FC = () => {
     return () => mq.removeEventListener?.('change', update);
   }, []);
 
-  // Auto-rotate testimonials (skip when reduced motion)
-  useEffect(() => {
-    if (reduceMotion) return;
-    const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [reduceMotion]);
-  
   // Theme toggle
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -174,6 +165,15 @@ const LandingPage: React.FC = () => {
       delay: 0.3
     }
   ];
+
+  // Auto-rotate testimonials (skip when reduced motion)
+  useEffect(() => {
+    if (reduceMotion) return;
+    const interval = setInterval(() => {
+      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [reduceMotion, testimonials.length]);
 
   const pricingPlans = [
     {
