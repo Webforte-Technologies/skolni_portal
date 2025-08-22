@@ -7,3 +7,4 @@ export { default as CreditsManagementPage } from './CreditsManagementPage';
 export { default as SystemHealthPage } from './SystemHealthPage';
 export { default as ContentManagementPage } from './ContentManagementPage';
 export { default as DeveloperToolsPage } from './DeveloperToolsPage';
+export { default as AdvancedAnalyticsPage } from './AdvancedAnalyticsPage';

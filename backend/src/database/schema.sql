@@ -132,4 +132,48 @@ CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_chat_sessions_updated_at BEFORE UPDATE ON chat_sessions
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Analytics tables for dynamic admin statistics
+CREATE TABLE analytics_cache (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  metric_key VARCHAR(255) NOT NULL,
+  metric_value JSONB NOT NULL,
+  computed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(metric_key)
+);
+
+CREATE TABLE analytics_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  event_type VARCHAR(100) NOT NULL,
+  event_data JSONB NOT NULL,
+  occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  user_id UUID REFERENCES users(id),
+  session_id UUID,
+  metadata JSONB
+);
+
+CREATE TABLE system_alerts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  alert_type VARCHAR(100) NOT NULL,
+  severity VARCHAR(20) NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')),
+  message TEXT NOT NULL,
+  metric_value NUMERIC,
+  threshold_value NUMERIC,
+  triggered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  acknowledged_at TIMESTAMPTZ,
+  acknowledged_by UUID REFERENCES users(id),
+  resolved_at TIMESTAMPTZ,
+  metadata JSONB
+);
+
+-- Analytics table indexes
+CREATE INDEX idx_analytics_cache_expires ON analytics_cache(expires_at);
+CREATE INDEX idx_analytics_cache_key ON analytics_cache(metric_key);
+CREATE INDEX idx_analytics_events_type ON analytics_events(event_type);
+CREATE INDEX idx_analytics_events_occurred ON analytics_events(occurred_at DESC);
+CREATE INDEX idx_system_alerts_severity ON system_alerts(severity);
+CREATE INDEX idx_system_alerts_triggered ON system_alerts(triggered_at DESC);
+CREATE INDEX idx_analytics_events_user_id ON analytics_events(user_id);
+CREATE INDEX idx_system_alerts_acknowledged_by ON system_alerts(acknowledged_by); 

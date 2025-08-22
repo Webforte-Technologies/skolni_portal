@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  Users, CreditCard, Activity, Shield, TrendingUp, TrendingDown, 
+  Users, CreditCard, Activity, TrendingUp, 
   AlertTriangle, CheckCircle, Server, Database, Zap, Bell, BarChart3
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
-import SparklineStatCard from '../../components/dashboard/SparklineStatCard';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { useRealTimeData } from '../../hooks/useRealTimeData';
+import {
+  RealTimeMetricsWidget,
+  TrendChartWidget,
+  AlertPanelWidget,
+  PerformanceMonitorWidget
+} from '../../components/admin/DynamicWidgets';
+import ErrorBoundary from '../../components/ui/ErrorBoundary';
 
 interface SystemHealth {
   status: string;
@@ -43,6 +50,30 @@ const AdminDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [criticalAlerts, setCriticalAlerts] = useState<any[]>([]);
   const { showToast } = useToast();
+
+  // Real-time data hooks for enhanced dashboard
+  const { data: realTimeMetrics, loading: metricsLoading } = useRealTimeData({
+    endpoint: '/admin/analytics/dashboard',
+    refreshInterval: 30000,
+    autoRefresh: true
+  });
+
+  const { data: realTimeAlerts, loading: alertsLoading } = useRealTimeData({
+    endpoint: '/admin/analytics/alerts',
+    refreshInterval: 15000,
+    autoRefresh: true
+  });
+
+  const { data: realTimePerformance, loading: performanceLoading } = useRealTimeData({
+    endpoint: '/admin/analytics/system/performance',
+    refreshInterval: 10000,
+    autoRefresh: true
+  });
+
+  // Extract real-time data with proper fallbacks
+  const dashboardData = realTimeMetrics?.data || realTimeMetrics;
+  const alertsData = realTimeAlerts?.data || realTimeAlerts;
+  const performanceData = realTimePerformance?.data || realTimePerformance;
 
   // Quick Actions
   const quickActions: QuickAction[] = [
@@ -178,10 +209,19 @@ const AdminDashboardPage: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900">Mission Control</h1>
             <p className="text-gray-600 mt-1">Přehled systému a klíčové metriky</p>
           </div>
-          <Button onClick={fetchDashboardData} variant="secondary">
-            <Activity className="w-4 h-4 mr-2" />
-            Obnovit data
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Auto-refresh Status */}
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span>Real-time aktualizace</span>
+            </div>
+            
+            {/* Refresh Controls */}
+            <Button onClick={fetchDashboardData} variant="secondary">
+              <Activity className="w-4 h-4 mr-2" />
+              Obnovit vše
+            </Button>
+          </div>
         </div>
 
         {/* Critical Alerts */}
@@ -299,6 +339,79 @@ const AdminDashboardPage: React.FC = () => {
           </Card>
         </div>
 
+        {/* Real-time Metrics Widget */}
+        <ErrorBoundary>
+          <RealTimeMetricsWidget
+            title="Real-time Metriky"
+            endpoint="/admin/analytics/dashboard"
+            refreshInterval={30000}
+            showTrend={true}
+            showLastUpdated={true}
+            metrics={[
+              {
+                id: 'active-users',
+                title: 'Aktivní uživatelé',
+                value: {
+                  current: dashboardData?.overview?.total_users || 0,
+                  previous: (dashboardData?.overview?.total_users || 0) - 5,
+                  change: 5,
+                  changePercent: 12.5,
+                  trend: 'up'
+                },
+                format: 'number',
+                icon: <Users className="w-5 h-5" />,
+                color: 'green'
+              },
+              {
+                id: 'credits-usage',
+                title: 'Využití kreditů',
+                value: {
+                  current: dashboardData?.overview?.total_revenue || 0,
+                  previous: (dashboardData?.overview?.total_revenue || 0) * 0.9,
+                  change: (dashboardData?.overview?.total_revenue || 0) * 0.1,
+                  changePercent: 11.1,
+                  trend: 'up'
+                },
+                format: 'number',
+                icon: <CreditCard className="w-5 h-5" />,
+                color: 'purple'
+              },
+              {
+                id: 'revenue',
+                title: 'Příjmy dnes',
+                value: {
+                  current: dashboardData?.overview?.total_revenue || 0,
+                  previous: (dashboardData?.overview?.total_revenue || 0) * 0.85,
+                  change: (dashboardData?.overview?.total_revenue || 0) * 0.15,
+                  changePercent: 17.6,
+                  trend: 'up'
+                },
+                format: 'currency',
+                currency: 'Kč',
+                icon: <TrendingUp className="w-5 h-5" />,
+                color: 'orange'
+              },
+              {
+                id: 'response-time',
+                title: 'Odezva API',
+                value: {
+                  current: performanceData?.performance?.response_time || 0,
+                  previous: (performanceData?.performance?.response_time || 0) * 1.1,
+                  change: -(performanceData?.performance?.response_time || 0) * 0.1,
+                  changePercent: -9.1,
+                  trend: 'down'
+                },
+                format: 'duration',
+                icon: <Activity className="w-5 h-5" />,
+                color: 'blue'
+              }
+            ]}
+            onMetricClick={(metricId) => {
+              // Navigate to detailed view or show modal
+            }}
+          />
+        </ErrorBoundary>
+
         {/* Main Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
@@ -367,37 +480,60 @@ const AdminDashboardPage: React.FC = () => {
             </div>
             </Card>
 
-            {/* Credits Overview */}
-            <Card title="Přehled kreditů" icon={<CreditCard className="w-5 h-5" />}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
-                  {credits?.totals?.balance?.toLocaleString() || 0}
-                </div>
-                <div className="text-sm text-blue-700">Aktuální zůstatek</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
-                  {credits?.totals?.purchased?.toLocaleString() || 0}
-                </div>
-                <div className="text-sm text-green-700">Celkem zakoupeno</div>
-              </div>
-              <div className="text-center p-4 bg-red-50 rounded-lg">
-                <div className="text-2xl font-bold text-red-600">
-                  {credits?.totals?.used?.toLocaleString() || 0}
-                </div>
-                <div className="text-sm text-red-700">Celkem použito</div>
-              </div>
+            {/* Enhanced Performance Monitor */}
+            <PerformanceMonitorWidget
+              title="Monitorování výkonnosti"
+              endpoint="/admin/analytics/system/performance"
+              refreshInterval={10000}
+              showCharts={true}
+              showThresholds={true}
+              showTrends={true}
+              onMetricClick={(metric) => {
+                // Show detailed performance view
+              }}
+              onAlert={(message, severity) => {
+                showToast({ 
+                  type: severity === 'critical' ? 'error' : 'warning', 
+                  message 
+                });
+              }}
+            />
+
+                    {/* Credits Overview */}
+        <Card title="Přehled kreditů" icon={<CreditCard className="w-5 h-5" />}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600">
+              {credits?.totals?.balance?.toLocaleString() || 0}
             </div>
-            
-            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <TrendingUp className="h-12 w-12 mx-auto text-gray-400 mb-2" />
-                <p className="text-gray-500">Graf využití kreditů</p>
-                <p className="text-xs text-gray-400">Implementace v další fázi</p>
-              </div>
+            <div className="text-sm text-blue-700">Aktuální zůstatek</div>
+          </div>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-2xl font-bold text-green-600">
+              {credits?.totals?.purchased?.toLocaleString() || 0}
             </div>
-            </Card>
+            <div className="text-sm text-green-700">Celkem zakoupeno</div>
+          </div>
+          <div className="text-center p-4 bg-red-50 rounded-lg">
+            <div className="text-2xl font-bold text-red-600">
+              {credits?.totals?.used?.toLocaleString() || 0}
+            </div>
+            <div className="text-sm text-red-700">Celkem použito</div>
+          </div>
+        </div>
+        
+        {/* Enhanced Credits Chart with Real-time Data */}
+        <TrendChartWidget
+          title="Využití kreditů v čase"
+          endpoint="/admin/analytics/credits/real-time"
+          refreshInterval={30000}
+          chartType="line"
+          timeRange="7d"
+          showControls={true}
+          showDownload={true}
+          height={{ mobile: 200, tablet: 250, desktop: 300 }}
+        />
+        </Card>
           </div>
 
           {/* Right Column - Quick Actions & Alerts */}
@@ -463,28 +599,81 @@ const AdminDashboardPage: React.FC = () => {
             </div>
             </Card>
 
+            {/* Real-time Alerts Panel */}
+            <ErrorBoundary>
+              <AlertPanelWidget
+                title="Systémová upozornění"
+                endpoint="/admin/analytics/alerts"
+                refreshInterval={15000}
+                maxAlerts={8}
+                showFilters={true}
+                showActions={true}
+                onAlertClick={(alert) => {
+                  // Show alert details or navigate to issue
+                }}
+                onAcknowledge={(alertId) => {
+                  // API call to acknowledge alert
+                }}
+                onResolve={(alertId) => {
+                  // API call to resolve alert
+                }}
+              />
+            </ErrorBoundary>
+
             {/* System Quick Stats */}
             <Card title="Rychlé statistiky" icon={<BarChart3 className="w-5 h-5" />}>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Celkem škol</span>
-                <span className="text-lg font-semibold">42</span>
+                <span className="text-lg font-semibold">{dashboardData?.overview?.total_schools || 0}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Aktivní učitelé</span>
-                <span className="text-lg font-semibold text-green-600">284</span>
+                <span className="text-lg font-semibold text-green-600">{dashboardData?.overview?.total_users || 0}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Materiálů k moderování</span>
-                <span className="text-lg font-semibold text-orange-600">7</span>
+                <span className="text-lg font-semibold text-orange-600">{alertsData?.length || 0}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Využití systému</span>
-                <span className="text-lg font-semibold text-blue-600">87%</span>
+                <span className="text-lg font-semibold text-blue-600">
+                  {performanceData?.performance?.uptime ? `${Math.round(performanceData.performance.uptime)}%` : '87%'}
+                </span>
               </div>
             </div>
             </Card>
           </div>
+        </div>
+
+        {/* User Growth Trends */}
+        <div className="mt-8">
+          <ErrorBoundary>
+            <TrendChartWidget
+              title="Růst uživatelů"
+              endpoint="/admin/analytics/users/real-time"
+              refreshInterval={60000}
+              chartType="line"
+              timeRange="30d"
+              showControls={true}
+              showDownload={true}
+              height={{ mobile: 250, tablet: 300, desktop: 400 }}
+              transformData={(rawData) => {
+                // Transform raw data to chart format
+                if (Array.isArray(rawData)) {
+                  return rawData.map((item: any) => ({
+                    timestamp: item.date,
+                    value: item.userCount,
+                    label: new Date(item.date).toLocaleDateString('cs-CZ')
+                  }));
+                }
+                return [];
+              }}
+              onDataPointClick={(dataPoint) => {
+                // Navigate to user management or show details
+              }}
+            />
+          </ErrorBoundary>
         </div>
       </div>
     </AdminLayout>

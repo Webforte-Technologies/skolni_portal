@@ -39,6 +39,7 @@ const DeveloperToolsPage = React.lazy(() => import('./pages/admin/DeveloperTools
 
 // New admin pages
 const AnalyticsPage = React.lazy(() => import('./pages/admin/AnalyticsPage'));
+const AdvancedAnalyticsPage = React.lazy(() => import('./pages/admin/AdvancedAnalyticsPage'));
 const NotificationsPage = React.lazy(() => import('./pages/admin/NotificationsPage'));
 const TeachersPage = React.lazy(() => import('./pages/admin/TeachersPage'));
 const SubscriptionsPage = React.lazy(() => import('./pages/admin/SubscriptionsPage'));
@@ -50,6 +51,7 @@ const SystemMonitoringPage = React.lazy(() => import('./pages/admin/SystemMonito
 const ContentModerationPage = React.lazy(() => import('./pages/admin/ContentModerationPage'));
 const ContentCategoriesPage = React.lazy(() => import('./pages/admin/ContentCategoriesPage'));
 const ContentAnalyticsPage = React.lazy(() => import('./pages/admin/ContentAnalyticsPage'));
+const DynamicWidgetsDemoPage = React.lazy(() => import('./pages/admin/DynamicWidgetsDemoPage'));
 const SecuritySettingsPage = React.lazy(() => import('./pages/admin/SecuritySettingsPage'));
 const SecurityAuditPage = React.lazy(() => import('./pages/admin/SecurityAuditPage'));
 const SecurityBannedPage = React.lazy(() => import('./pages/admin/SecurityBannedPage'));
@@ -206,6 +208,20 @@ function App() {
                   <PrivateRoute>
                     <RequireRole roles={['platform_admin']}>
                       <AnalyticsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/advanced-analytics" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <AdvancedAnalyticsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/dynamic-widgets-demo" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <DynamicWidgetsDemoPage />
                     </RequireRole>
                   </PrivateRoute>
                 } />

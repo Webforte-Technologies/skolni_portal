@@ -21,8 +21,11 @@ import foldersRoutes from './routes/folders';
 import sharedMaterialsRoutes from './routes/shared-materials';
 import uploadRoutes from './routes/upload';
 import adminRoutes from './routes/admin';
+import analyticsRoutes from './routes/admin/analytics';
 import notificationsRoutes from './routes/notifications';
 import { metricsMiddleware } from './middleware/metrics';
+import { realTimeService } from './services/RealTimeService';
+import { webSocketService } from './services/WebSocketService';
 import fs from 'fs';
 import path from 'path';
 
@@ -192,6 +195,7 @@ app.use('/api/folders', foldersRoutes);
 app.use('/api/shared-materials', sharedMaterialsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 
 // Health check endpoint
@@ -234,6 +238,8 @@ app.get('/', (_req, res) => {
     endpoints: {
       auth: '/api/auth',
       ai: '/api/ai',
+      admin: '/api/admin',
+      analytics: '/api/admin/analytics',
       health: '/api/health'
     }
   });
@@ -260,17 +266,26 @@ app.use('*', (_req, res) => {
 // Start server only when not running in tests
 if (process.env['NODE_ENV'] !== 'test') {
   // CORRECTED: Start server listening on 0.0.0.0 to be reachable in Docker
-  app
+  const server = app
     .listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 EduAI-Asistent Backend server running on port ${PORT}`);
       console.log(`📊 Health check available at http://localhost:${PORT}/api/health`);
       console.log(`🔐 Auth endpoints available at http://localhost:${PORT}/api/auth`);
       console.log(`🤖 AI endpoints available at http://localhost:${PORT}/api/ai`);
+      console.log(`📈 Analytics endpoints available at http://localhost:${PORT}/api/admin/analytics`);
       console.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
       console.log(`🔒 CORS enabled for origins: ${allowedOrigins.join(', ')}`);
       console.log(
         `🗄️ Database config: ${process.env['DB_HOST']}:${process.env['DB_PORT']}/${process.env['DB_NAME']}`
       );
+      
+      // Initialize real-time service
+      realTimeService.initialize();
+      console.log(`🔄 Real-time analytics service initialized`);
+      
+      // Initialize WebSocket service
+      webSocketService.initialize(server);
+      console.log(`🔌 WebSocket service initialized`);
     })
     .on('error', (error) => {
       console.error('❌ Server failed to start:', error);

@@ -4,7 +4,7 @@ import {
   BarChart3, Users, CreditCard, Settings, FileText, Shield, 
   Code, Home, ChevronDown, ChevronRight, Building2, UserCheck,
   DollarSign, TrendingUp, Server, Activity, FileCheck, Lock,
-  Flag, Database, TestTube, BookOpen
+  Flag, Database, TestTube, BookOpen, Zap
 } from 'lucide-react';
 
 interface AdminSection {
@@ -31,7 +31,11 @@ const adminSections: AdminSection[] = [
     id: 'analytics',
     title: 'Analytics',
     icon: <TrendingUp className="w-5 h-5" />,
-    path: '/admin/analytics'
+    children: [
+      { id: 'analytics-main', title: 'Analytics Dashboard', icon: <BarChart3 className="w-4 h-4" />, path: '/admin/analytics' },
+      { id: 'advanced-analytics', title: 'Advanced Analytics', icon: <Zap className="w-4 h-4" />, path: '/admin/advanced-analytics' },
+      { id: 'dynamic-widgets', title: 'Dynamic Widgets Demo', icon: <Activity className="w-4 h-4" />, path: '/admin/dynamic-widgets-demo' }
+    ]
   },
   {
     id: 'notifications',

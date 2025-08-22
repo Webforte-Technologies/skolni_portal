@@ -22,6 +22,7 @@
     "db:migrate:phase11:fix": "ts-node src/database/run-migration.ts src/database/migrations/phase11_fix_check.sql",
     "db:migrate:phase11:normalize": "ts-node src/database/run-migration.ts src/database/migrations/phase11_normalize_roles.sql",
     "db:migrate:notifications": "ts-node src/database/run-migration.ts src/database/migrations/phase21_notifications.sql",
+    "db:migrate:analytics": "ts-node src/database/run-migration.ts src/database/migrations/phase12_analytics_tables.sql",
     "db:seed:notifications": "ts-node src/database/add-notifications-demo.ts",
     "test:health": "cross-env NODE_ENV=test jest src/__tests__/health.test.ts --runInBand"
   },
@@ -36,6 +37,8 @@
   "license": "MIT",
   "dependencies": {
     "@types/multer": "^2.0.0",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.10",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
@@ -49,7 +52,9 @@
     "multer": "^2.0.2",
     "openai": "^5.12.0",
     "pg": "^8.11.3",
-    "tesseract.js": "^6.0.1"
+    "tesseract.js": "^6.0.1",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.5",
