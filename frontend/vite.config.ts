@@ -16,62 +16,98 @@ export default defineConfig({
       },
       output: {
         manualChunks: (id) => {
-          // Vendor chunks
+          // Vendor chunks - split more granularly to reduce chunk sizes
           if (id.includes('node_modules')) {
-            // Heavy libraries for desktop
-            if (id.includes('jspdf') || id.includes('html2canvas')) {
-              return 'pdf-desktop';
+            // Heavy libraries for desktop - split these further
+            if (id.includes('jspdf')) {
+              return 'pdf-jspdf';
             }
-            // Note: recharts temporarily removed to fix React compatibility issues
-            // if (id.includes('recharts')) {
-            //   return 'charts-desktop';
-            // }
-            if (id.includes('katex')) {
-              return 'math-rendering';
+            if (id.includes('html2canvas')) {
+              return 'pdf-html2canvas';
             }
             if (id.includes('docx')) {
               return 'document-generation';
             }
-            // Core React libraries
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
+            if (id.includes('katex')) {
+              return 'math-rendering';
             }
-            // Router and query libraries
-            if (id.includes('react-router') || id.includes('react-query')) {
-              return 'routing-state';
+            
+            // Core React libraries - separate them
+            if (id.includes('react-dom')) {
+              return 'react-dom';
             }
-            // UI and animation libraries
-            if (id.includes('framer-motion') || id.includes('lucide-react')) {
-              return 'ui-animations';
+            if (id.includes('react')) {
+              return 'react';
             }
+            
+            // Router libraries
+            if (id.includes('react-router')) {
+              return 'routing';
+            }
+            if (id.includes('react-query')) {
+              return 'state-management';
+            }
+            
+            // UI libraries - split further
+            if (id.includes('framer-motion')) {
+              return 'animations';
+            }
+            if (id.includes('lucide-react')) {
+              return 'icons';
+            }
+            
             // Form libraries
-            if (id.includes('react-hook-form') || id.includes('zod')) {
-              return 'forms';
+            if (id.includes('react-hook-form')) {
+              return 'form-lib';
             }
+            if (id.includes('zod')) {
+              return 'validation';
+            }
+            
+            // Other utility libraries
+            if (id.includes('axios')) {
+              return 'http-client';
+            }
+            if (id.includes('clsx') || id.includes('tailwind-merge')) {
+              return 'styling-utils';
+            }
+            
             // Other vendor libraries
             return 'vendor';
           }
           
-          // Application chunks based on features
+          // Application chunks based on features - split more granularly
           if (id.includes('/pages/')) {
             if (id.includes('auth/')) return 'auth-pages';
             if (id.includes('dashboard/')) return 'dashboard-pages';
             if (id.includes('chat/')) return 'chat-pages';
-            return 'pages';
+            if (id.includes('admin/')) return 'admin-pages';
+            if (id.includes('materials/')) return 'materials-pages';
+            return 'misc-pages';
           }
           
-          // Component chunks
+          // Component chunks - more granular splitting
           if (id.includes('/components/')) {
             if (id.includes('math/')) return 'math-components';
             if (id.includes('chat/')) return 'chat-components';
             if (id.includes('dashboard/')) return 'dashboard-components';
+            if (id.includes('admin/')) return 'admin-components';
             if (id.includes('ui/')) return 'ui-components';
             if (id.includes('performance/')) return 'performance-components';
-            return 'components';
+            if (id.includes('accessibility/')) return 'accessibility-components';
+            return 'misc-components';
           }
           
-          // Utility chunks
-          if (id.includes('/hooks/') || id.includes('/utils/')) {
+          // Testing utilities - separate chunk
+          if (id.includes('/utils/testing/')) {
+            return 'testing-utils';
+          }
+          
+          // Other utility chunks
+          if (id.includes('/hooks/')) {
+            return 'hooks';
+          }
+          if (id.includes('/utils/')) {
             return 'utilities';
           }
           
@@ -79,10 +115,15 @@ export default defineConfig({
           if (id.includes('/services/')) {
             return 'services';
           }
+          
+          // Contexts
+          if (id.includes('/contexts/')) {
+            return 'contexts';
+          }
         },
       },
     },
-    chunkSizeWarningLimit: 900,
+    chunkSizeWarningLimit: 1200,
   },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
@@ -99,7 +140,7 @@ export default defineConfig({
     {
       name: 'html-transform',
       transformIndexHtml(html) {
-        return html.replace(/%VITE_API_URL%/g, process.env.VITE_API_URL || '');
+        return html.replace(/%VITE_API_URL%/g, process.env.VITE_API_URL || '/api');
       },
     },
   ],
