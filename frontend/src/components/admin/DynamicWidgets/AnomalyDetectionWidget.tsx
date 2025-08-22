@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, AlertCircle, AlertOctagon, Info, Filter, Download, Eye, EyeOff, Zap, TrendingUp, TrendingDown } from 'lucide-react';
+import { AlertTriangle, AlertCircle, AlertOctagon, Info, Filter, Download, Eye, EyeOff, Zap } from 'lucide-react';
 import Card from '../../ui/Card';
 import { useRealTimeData } from '../../../hooks/useRealTimeData';
 import { cn } from '../../../utils/cn';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle, Info, XCircle, Bell, RefreshCw, Filter, Eye, EyeOff } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Info, XCircle, Bell, RefreshCw, Filter, Eye } from 'lucide-react';
 import Card from '../../ui/Card';
 import { useRealTimeData } from '../../../hooks/useRealTimeData';
 import { cn } from '../../../utils/cn';

@@ -93,7 +93,7 @@ export const ResponsiveProvider: React.FC<ResponsiveProviderProps> = ({
   useEffect(() => {
     if (!viewport.touchDevice) return;
 
-    let initialViewportHeight = window.innerHeight;
+    const initialViewportHeight = window.innerHeight;
     
     const handleViewportChange = () => {
       const currentHeight = window.innerHeight;

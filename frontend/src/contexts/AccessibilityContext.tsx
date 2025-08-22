@@ -242,7 +242,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
     };
   }, [isMobile]);
 
-  const applyAccessibilityStyles = () => {
+  const applyAccessibilityStyles = useCallback(() => {
     const root = document.documentElement;
     
     // Apply high contrast
@@ -295,7 +295,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
     } else {
       root.classList.remove('tablet-device');
     }
-  };
+  }, [settings, state.highContrastMode, state.prefersReducedMotion, state.keyboardNavigationActive, isMobile, isTablet]);
 
   const value: AccessibilityContextType = {
     settings,

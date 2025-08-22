@@ -3,7 +3,7 @@
  * Provides standardized viewport sizes and testing helpers
  */
 
-import type { ViewportState, ResponsiveConfig } from '../../types';
+import type { ViewportState } from '../../types';
 
 // Standard viewport sizes based on common devices and breakpoints
 export const VIEWPORT_SIZES = {

@@ -76,7 +76,9 @@ const SchoolAdminPage: React.FC = () => {
     try {
       const res = await api.get<any>('/notifications?limit=20');
       setNotifications(res.data.data || []);
-    } catch {}
+    } catch (error) {
+      console.error('Failed to load notifications:', error);
+    }
   };
 
   const loadSchool = async () => {

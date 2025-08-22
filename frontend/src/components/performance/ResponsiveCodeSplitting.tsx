@@ -82,7 +82,7 @@ export const withResponsiveCodeSplitting = <P extends object>(
   },
   fallback?: React.ComponentType
 ) => {
-  return React.forwardRef<any, P & React.RefAttributes<any>>((props, ref) => {
+  const ResponsiveComponent = React.forwardRef<any, P & React.RefAttributes<any>>((props, ref) => {
     const { isMobile, isTablet, isDesktop } = useResponsive();
 
     const Component = React.useMemo(() => {
@@ -101,6 +101,9 @@ export const withResponsiveCodeSplitting = <P extends object>(
       </Suspense>
     );
   });
+
+  ResponsiveComponent.displayName = 'ResponsiveComponent';
+  return ResponsiveComponent;
 };
 
 // Utility for conditional loading based on device capabilities

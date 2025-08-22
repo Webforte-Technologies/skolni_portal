@@ -42,18 +42,18 @@ export class ContentValidator {
     // ]);
 
     this.mathematicalPatterns = [
-      /\d+\s*[\+\-\*\/]\s*\d+/g, // Basic operations
+      /\d+\s*[+\-*/]\s*\d+/g, // Basic operations
       /\d+\s*=\s*\d+/g, // Equations
-      /[a-z]\s*[\+\-\*\/]\s*[a-z]/g, // Algebraic expressions
+      /[a-z]\s*[+\-*/]\s*[a-z]/g, // Algebraic expressions
       /\d*[a-z](\^|\*\*)\d+/g, // Powers
       /√\d+/g, // Square roots
-      /\(\d+[\+\-\*\/]\d+\)/g // Parentheses
+      /\(\d+[+\-*/]\d+\)/g // Parentheses
     ];
   }
 
   validateContent(content: any, type: MaterialType): ValidationResult {
     const issues: ValidationIssue[] = [];
-    let score: QualityScore = {
+    const score: QualityScore = {
       overall: 0,
       accuracy: 0,
       ageAppropriateness: 0,
@@ -551,7 +551,7 @@ export class ContentValidator {
       const numericExpression = expression.replace(/[a-z]/g, '1');
       
       // Simple evaluation for basic arithmetic
-      if (/^[\d\+\-\*\/\(\)\s]+$/.test(numericExpression)) {
+      if (/^[\d+\-*/()\s]+$/.test(numericExpression)) {
         // Use Function constructor for safe evaluation of simple math
         const result = new Function('return ' + numericExpression)();
         return typeof result === 'number' && !isNaN(result);

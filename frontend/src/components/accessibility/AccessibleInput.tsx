@@ -167,3 +167,7 @@ export const AccessibleInput = forwardRef<HTMLInputElement, AccessibleInputProps
     );
   }
 );
+
+AccessibleInput.displayName = 'AccessibleInput';
+
+export default AccessibleInput;

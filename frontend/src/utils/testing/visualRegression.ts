@@ -4,7 +4,7 @@
  */
 
 import type { Page, Locator, expect as PlaywrightExpect } from '@playwright/test';
-import { VIEWPORT_SIZES, TEST_DEVICES, type TestDevice } from './viewportUtils';
+import { TEST_DEVICES, type TestDevice } from './viewportUtils';
 import { simulateDevice } from './deviceSimulation';
 
 export interface VisualTestOptions {

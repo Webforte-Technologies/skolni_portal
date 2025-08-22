@@ -36,7 +36,7 @@ const SystemMonitoringPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [activeTab, setActiveTab] = useState('metrics');
-  const [systemMetrics, setSystemMetrics] = useState<SystemMetric[]>([
+  const [systemMetrics] = useState<SystemMetric[]>([
     {
       name: 'CPU Usage',
       value: 45,
@@ -71,7 +71,7 @@ const SystemMonitoringPage: React.FC = () => {
     }
   ]);
 
-  const [serviceStatuses, setServiceStatuses] = useState<ServiceStatus[]>([
+  const [serviceStatuses] = useState<ServiceStatus[]>([
     {
       name: 'Web Server',
       status: 'online',

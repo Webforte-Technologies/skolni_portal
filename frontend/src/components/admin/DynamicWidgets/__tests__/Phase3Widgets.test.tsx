@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import TrendAnalysisWidget from '../TrendAnalysisWidget';
 import PredictiveInsightsWidget from '../PredictiveInsightsWidget';
@@ -26,7 +26,7 @@ jest.mock('../../../services/apiClient', () => ({
   }
 }));
 
-const mockUseRealTimeData = require('../../../hooks/useRealTimeData').useRealTimeData;
+const mockUseRealTimeData = jest.requireMock('../../../hooks/useRealTimeData').useRealTimeData;
 
 const renderWithRouter = (component: React.ReactElement) => {
   return render(

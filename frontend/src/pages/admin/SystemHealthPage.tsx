@@ -73,7 +73,7 @@ const SystemHealthPage: React.FC = () => {
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchSystemHealth, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchSystemHealth]);
 
   const getStatusColor = (status: string) => {
     const colorMap: Record<string, string> = {

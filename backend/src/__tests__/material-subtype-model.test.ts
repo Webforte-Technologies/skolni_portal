@@ -1,5 +1,5 @@
 import { MaterialSubtypeModel, MaterialSubtypeData, TemplateField, PromptModification } from '../models/MaterialSubtype';
-import { pool } from '../database/connection';
+import pool from '../database/connection';
 
 // Mock the database connection
 jest.mock('../database/connection', () => ({
@@ -10,11 +10,11 @@ jest.mock('../database/connection', () => ({
 
 describe('MaterialSubtypeModel', () => {
   let model: MaterialSubtypeModel;
-  let mockPool: jest.Mocked<typeof pool>;
+  let mockPool: any;
 
   beforeEach(() => {
     model = new MaterialSubtypeModel();
-    mockPool = pool as jest.Mocked<typeof pool>;
+    mockPool = pool;
     jest.clearAllMocks();
   });
 
@@ -41,8 +41,10 @@ describe('MaterialSubtypeModel', () => {
 
       expect(mockPool.query).toHaveBeenCalledWith(expect.stringContaining('SELECT'));
       expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('Cvičné úlohy');
-      expect(result[0].parentType).toBe('worksheet');
+      if (result[0]) {
+        expect(result[0].name).toBe('Cvičné úlohy');
+        expect(result[0].parentType).toBe('worksheet');
+      }
     });
 
     it('should return empty array when no subtypes exist', async () => {
@@ -80,7 +82,9 @@ describe('MaterialSubtypeModel', () => {
         ['worksheet']
       );
       expect(result).toHaveLength(1);
-      expect(result[0].parentType).toBe('worksheet');
+      if (result[0]) {
+        expect(result[0].parentType).toBe('worksheet');
+      }
     });
   });
 
@@ -372,8 +376,10 @@ describe('MaterialSubtypeModel', () => {
 
       expect(result.worksheet).toHaveLength(2);
       expect(result.quiz).toHaveLength(1);
-      expect(result.worksheet[0].name).toBe('Worksheet Subtype 1');
-      expect(result.quiz[0].name).toBe('Quiz Subtype 1');
+      if (result.worksheet[0] && result.quiz[0]) {
+        expect(result.worksheet[0].name).toBe('Worksheet Subtype 1');
+        expect(result.quiz[0].name).toBe('Quiz Subtype 1');
+      }
     });
   });
 
@@ -425,7 +431,9 @@ describe('MaterialSubtypeModel', () => {
         ['%practice%']
       );
       expect(result).toHaveLength(1);
-      expect(result[0].name).toBe('Practice Problems');
+      if (result[0]) {
+        expect(result[0].name).toBe('Practice Problems');
+      }
     });
 
     it('should search subtypes with parent type filter', async () => {
@@ -567,8 +575,10 @@ describe('MaterialSubtypeModel', () => {
       expect(defaults.activity).toBeDefined();
 
       expect(defaults.worksheet.length).toBeGreaterThan(0);
-      expect(defaults.worksheet[0].name).toBeDefined();
-      expect(defaults.worksheet[0].description).toBeDefined();
+      if (defaults.worksheet[0]) {
+        expect(defaults.worksheet[0].name).toBeDefined();
+        expect(defaults.worksheet[0].description).toBeDefined();
+      }
     });
   });
 });

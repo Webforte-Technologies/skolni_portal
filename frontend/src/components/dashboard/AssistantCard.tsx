@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AIFeature } from '../../types';

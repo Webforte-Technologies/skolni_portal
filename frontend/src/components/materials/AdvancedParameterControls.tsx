@@ -402,7 +402,7 @@ const AdvancedParameterControls: React.FC<AdvancedParameterControlsProps> = ({
               className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-neutral-800 dark:text-neutral-100 resize-none"
             />
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Například: "Zahrň více praktických příkladů" nebo "Použij jednodušší jazyk"
+              Například: &quot;Zahrň více praktických příkladů&quot; nebo &quot;Použij jednodušší jazyk&quot;
             </p>
           </div>
 

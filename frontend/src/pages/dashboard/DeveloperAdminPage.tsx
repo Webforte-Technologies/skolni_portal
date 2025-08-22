@@ -111,7 +111,9 @@ const DeveloperAdminPage: React.FC = () => {
       try {
         const res = await api.get<any>('/notifications?limit=20');
         setNotifications(res.data.data || []);
-      } catch {}
+      } catch (error) {
+        console.warn('Failed to load notifications:', error);
+      }
     };
     load();
     const t = setInterval(load, 60000);
@@ -152,7 +154,9 @@ const DeveloperAdminPage: React.FC = () => {
       // Assuming hard delete; undo not available
       // TODO: If soft delete exists, implement restore here
       for (const userId of affectedIds) {
-        await api.delete(`/admin/users/${userId}`).catch(() => {});
+        await api.delete(`/admin/users/${userId}`).catch((error) => {
+          console.warn(`Failed to delete user ${userId}:`, error);
+        });
       }
       showToast({ type: 'warning', message: `Deleted ${affectedIds.length} users. Undo is not available.` });
       setSelectedUsers(new Set());
@@ -177,10 +181,14 @@ const DeveloperAdminPage: React.FC = () => {
         actionLabel: 'Undo',
         onAction: async () => {
           if (bulkMode === 'bulkEndpoint') {
-            await api.post('/admin/users/bulk', { action: 'deductCredits', user_ids: affectedIds, amount }).catch(() => {});
+            await api.post('/admin/users/bulk', { action: 'deductCredits', user_ids: affectedIds, amount }).catch((error) => {
+              console.warn('Failed to bulk deduct credits:', error);
+            });
           } else {
             for (const userId of affectedIds) {
-              await api.post(`/admin/users/${userId}/credits`, { type: 'deduct', amount }).catch(() => {});
+              await api.post(`/admin/users/${userId}/credits`, { type: 'deduct', amount }).catch((error) => {
+                console.warn(`Failed to deduct credits from user ${userId}:`, error);
+              });
             }
           }
           fetchUsers();
@@ -201,10 +209,14 @@ const DeveloperAdminPage: React.FC = () => {
         actionLabel: 'Undo',
         onAction: async () => {
           if (bulkMode === 'bulkEndpoint') {
-            await api.post('/admin/users/bulk', { action: !newState ? 'activate' : 'deactivate', user_ids: affectedIds }).catch(() => {});
+            await api.post('/admin/users/bulk', { action: !newState ? 'activate' : 'deactivate', user_ids: affectedIds }).catch((error) => {
+              console.warn('Failed to bulk update user status:', error);
+            });
           } else {
             for (const userId of affectedIds) {
-              await api.put(`/admin/users/${userId}`, { is_active: !newState }).catch(() => {});
+              await api.put(`/admin/users/${userId}`, { is_active: !newState }).catch((error) => {
+                console.warn(`Failed to update user ${userId} status:`, error);
+              });
             }
           }
           fetchUsers();

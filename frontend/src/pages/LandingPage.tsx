@@ -780,9 +780,9 @@ const LandingPage: React.FC = () => {
                 <span className="text-neutral-800 dark:text-gray-300 font-medium">Matematický Asistent</span>
               </div>
               <p className="text-neutral-700 dark:text-gray-200 leading-relaxed">
-                "Ahoj! Jsem tu, abych ti pomohl s matematikou. Můžeš mi poslat jakýkoliv matematický problém - 
+                &quot;Ahoj! Jsem tu, abych ti pomohl s matematikou. Můžeš mi poslat jakýkoliv matematický problém - 
                 ať už jde o rovnici, geometrii, nebo cokoliv jiného. Vysvětlím ti to krok za krokem a můžu ti 
-                i vytvořit podobné příklady na procvičení. Co bys chtěl řešit?"
+                i vytvořit podobné příklady na procvičení. Co bys chtěl řešit?&quot;
               </p>
             </div>
             <div className="text-center">
@@ -876,7 +876,7 @@ const LandingPage: React.FC = () => {
                   {/* Quote Icon */}
                   {!isMobile && (
                     <div className={`absolute ${isMobile ? 'top-4 right-4 text-4xl' : 'top-8 right-8 text-6xl'} text-blue-200 dark:text-blue-800 opacity-30`}>
-                      "
+                      &quot;
                     </div>
                   )}
 
@@ -904,7 +904,7 @@ const LandingPage: React.FC = () => {
                           ? 'text-lg md:text-xl' 
                           : 'text-xl md:text-2xl'
                     } text-gray-700 dark:text-gray-300 ${isMobile ? 'mb-6' : 'mb-8'} leading-relaxed italic`}>
-                      "{testimonials[activeTestimonial].content}"
+                      &quot;{testimonials[activeTestimonial].content}&quot;
                     </blockquote>
 
                     {/* Author Info */}

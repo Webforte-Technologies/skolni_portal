@@ -14,7 +14,7 @@ import {
 } from '../src/utils/testing';
 
 test.describe('Responsive Testing Utilities', () => {
-  test('viewport utilities work correctly', async ({ page }) => {
+  test('viewport utilities work correctly', async () => {
     // Test viewport state creation
     const mobileState = createTestViewportState(VIEWPORT_SIZES.MOBILE_MEDIUM);
     expect(mobileState.breakpoint).toBe('mobile');

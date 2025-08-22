@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useRef, useEffect, useCallback } from 'react';
 import ToastContainer, { Toast } from '../components/ui/ToastContainer';
 import { useResponsive } from '../hooks/useViewport';
 
@@ -35,11 +35,11 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   };
 
   // Maximum number of toasts to show simultaneously
-  const getMaxToasts = () => {
+  const getMaxToasts = useCallback(() => {
     if (isMobile) return 2; // Fewer toasts on mobile
     if (isTablet) return 3; // Medium number on tablet
     return 4; // More toasts on desktop
-  };
+  }, [isMobile, isTablet]);
 
   const showToast = (toast: Omit<Toast, 'id'>) => {
     const id = crypto.randomUUID();

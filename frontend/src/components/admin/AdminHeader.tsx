@@ -8,7 +8,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { api } from '../../services/apiClient';
 import Button from '../ui/Button';
-import InputField from '../ui/InputField';
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
@@ -23,13 +22,7 @@ interface Notification {
   read: boolean;
 }
 
-interface QuickAction {
-  id: string;
-  title: string;
-  description: string;
-  action: () => void;
-  icon: React.ReactNode;
-}
+
 
 interface UserData {
   id: string;
@@ -50,7 +43,7 @@ interface MaterialData {
   file_type: string;
 }
 
-const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar, sidebarCollapsed }) => {
+const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -63,30 +56,30 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar, sidebarColla
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Quick actions
-  const quickActions: QuickAction[] = [
-    {
-      id: 'add-user',
-      title: 'Přidat uživatele',
-      description: 'Rychle vytvořit nový uživatelský účet',
-      action: () => navigate('/admin/users/new'),
-      icon: <User className="w-4 h-4" />
-    },
-    {
-      id: 'system-backup',
-      title: 'Záloha systému',
-      description: 'Spustit zálohu databáze',
-      action: async () => {
-        try {
-          await api.post('/admin/system/backup');
-          showToast({ type: 'success', message: 'Záloha byla spuštěna' });
-        } catch (error) {
-          showToast({ type: 'error', message: 'Chyba při spouštění zálohy' });
-        }
-      },
-      icon: <Settings className="w-4 h-4" />
-    }
-  ];
+  // Quick actions - commented out for now as they're not being used
+  // const quickActions: QuickAction[] = [
+  //   {
+  //     id: 'add-user',
+  //     title: 'Přidat uživatele',
+  //     description: 'Rychle vytvořit nový uživatelský účet',
+  //     action: () => navigate('/admin/users/new'),
+  //     icon: <User className="w-4 h-4" />
+  //   },
+  //   {
+  //     id: 'system-backup',
+  //     title: 'Záloha systému',
+  //     description: 'Spustit zálohu databáze',
+  //     action: async () => {
+  //       try {
+  //       await api.post('/admin/system/backup');
+  //       showToast({ type: 'success', message: 'Záloha byla spuštěna' });
+  //     } catch (error) {
+  //       showToast({ type: 'error', message: 'Chyba při spouštění zálohy' });
+  //     }
+  //   },
+  //     icon: <Settings className="w-4 h-4" />
+  //   }
+  // ];
 
   // Load notifications
   useEffect(() => {
@@ -247,7 +240,7 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar, sidebarColla
                 </div>
               ) : searchQuery.trim() ? (
                 <div className="p-4 text-center text-gray-500 text-sm">
-                  Žádné výsledky pro "{searchQuery}"
+                  Žádné výsledky pro &quot;{searchQuery}&quot;
                 </div>
               ) : null}
             </div>

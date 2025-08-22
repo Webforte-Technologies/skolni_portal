@@ -320,7 +320,7 @@ export class ContentStructurer {
     difficulty += Math.min(2, text.length / 50);
     
     // Mathematical complexity
-    if (/\d+\s*[\+\-\*\/]\s*\d+/.test(text)) difficulty += 1;
+          if (/\d+\s*[+\-*/]\s*\d+/.test(text)) difficulty += 1;
     if (/[a-z]/.test(text)) difficulty += 1; // Variables
     if (/\^|\*\*/.test(text)) difficulty += 2; // Powers
     

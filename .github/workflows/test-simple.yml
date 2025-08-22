@@ -1,0 +1,119 @@
+name: Simple Test Workflow
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22.18.0'
+
+jobs:
+  test-backend:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Check backend structure
+        working-directory: ./backend
+        run: |
+          echo "📁 Backend directory contents:"
+          ls -la
+          echo "📦 Package.json scripts:"
+          npm run
+
+      - name: Run backend type checking
+        working-directory: ./backend
+        run: npx tsc --noEmit
+
+      - name: Run backend linting
+        working-directory: ./backend
+        run: npm run lint
+
+      - name: Build backend
+        working-directory: ./backend
+        run: npm run build
+
+      - name: List build output
+        working-directory: ./backend
+        run: |
+          echo "📁 Build output:"
+          ls -la dist/
+          echo "📁 Source files:"
+          ls -la src/
+
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Check frontend structure
+        working-directory: ./frontend
+        run: |
+          echo "📁 Frontend directory contents:"
+          ls -la
+          echo "📦 Package.json scripts:"
+          npm run
+
+      - name: Run frontend type checking
+        working-directory: ./frontend
+        run: npm run type-check
+
+      - name: Run frontend linting
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: List build output
+        working-directory: ./frontend
+        run: |
+          echo "📁 Build output:"
+          ls -la dist/

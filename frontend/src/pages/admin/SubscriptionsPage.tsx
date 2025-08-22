@@ -35,8 +35,6 @@ const SubscriptionsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [planFilter, setPlanFilter] = useState<string>('all');
   const [selectedSubscriptions, setSelectedSubscriptions] = useState<string[]>([]);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingSubscription, setEditingSubscription] = useState<Subscription | null>(null);
 
   useEffect(() => {
     // Simulate API call for subscriptions data
@@ -333,7 +331,7 @@ const SubscriptionsPage: React.FC = () => {
           </div>
           <div className="flex items-center space-x-3 mt-4 sm:mt-0">
             <Button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {}}
               className="flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
@@ -566,7 +564,7 @@ const SubscriptionsPage: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setEditingSubscription(subscription)}
+                          onClick={() => {}}
                           className="text-blue-600 hover:text-blue-700"
                         >
                           <Edit className="w-4 h-4" />

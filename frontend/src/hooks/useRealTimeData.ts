@@ -170,7 +170,7 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
         return prev;
       });
     }
-  }, [endpoint, ...dependencies]); // Remove callback dependencies
+  }, [endpoint, dependencies]); // Remove callback dependencies
 
   const refresh = useCallback(async () => {
     await fetchData();

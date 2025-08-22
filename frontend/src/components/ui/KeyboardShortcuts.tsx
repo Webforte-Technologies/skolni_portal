@@ -227,14 +227,15 @@ export const KeyboardShortcuts: React.FC<KeyboardShortcutsProps> = ({ isOpen, on
     
     // Normalize the main key
     if (mainKey === ' ') mainKey = 'Space';
-    else if (mainKey === 'Enter') mainKey = 'Enter';
-    else if (mainKey === 'Escape') mainKey = 'Escape';
-    else if (mainKey === 'Tab') mainKey = 'Tab';
-    else if (mainKey === 'Backspace') mainKey = 'Backspace';
-    else if (mainKey === 'Delete') mainKey = 'Delete';
-    else if (mainKey.startsWith('Arrow')) mainKey = mainKey; // Keep ArrowUp, ArrowDown etc.
-    else if (mainKey.startsWith('F') && mainKey.length <= 3) mainKey = mainKey; // Keep F1, F12 etc.
-    else if (['Home', 'End', 'PageUp', 'PageDown', 'Insert'].includes(mainKey)) mainKey = mainKey;
+    // No need to reassign mainKey to itself for these cases
+    // else if (mainKey === 'Enter') mainKey = 'Enter';
+    // else if (mainKey === 'Escape') mainKey = 'Escape';
+    // else if (mainKey === 'Tab') mainKey = 'Tab';
+    // else if (mainKey === 'Backspace') mainKey = 'Backspace';
+    // else if (mainKey === 'Delete') mainKey = 'Delete';
+    // else if (mainKey.startsWith('Arrow')) mainKey = mainKey; // Keep ArrowUp, ArrowDown etc.
+    // else if (mainKey.startsWith('F') && mainKey.length <= 3) mainKey = mainKey; // Keep F1, F12 etc.
+    // else if (['Home', 'End', 'PageUp', 'PageDown', 'Insert'].includes(mainKey)) mainKey = mainKey;
     else if (mainKey.length === 1) mainKey = mainKey.toUpperCase(); // For 'a' to 'A'
     
     const newKeyParts = [...modifiers, mainKey].filter(Boolean);

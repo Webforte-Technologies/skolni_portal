@@ -697,7 +697,7 @@ const SystemConfigPage: React.FC = () => {
                 <li>• Citlivé hodnoty (API klíče, hesla) jsou automaticky maskovány</li>
                 <li>• Vždy používejte silná hesla pro databáze a API klíče</li>
                 <li>• Pravidelně rotujte JWT tajné klíče</li>
-                <li>• V produkci nastavte ENVIRONMENT na "production"</li>
+                <li>• V produkci nastavte ENVIRONMENT na &quot;production&quot;</li>
                 <li>• Omezte přístup k citlivým nastavením pouze na potřebné uživatele</li>
               </ul>
             </div>

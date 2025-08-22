@@ -86,16 +86,7 @@ const TrendAnalysisWidget: React.FC<TrendAnalysisWidgetProps> = ({
     }
   };
 
-  const getTrendColor = (trend: 'up' | 'down' | 'stable') => {
-    switch (trend) {
-      case 'up':
-        return 'text-green-600';
-      case 'down':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
+
 
   const formatMetricValue = (value: number, type: string): string => {
     if (type === 'revenue') {

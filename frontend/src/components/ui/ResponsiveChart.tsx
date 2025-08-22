@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useResponsive } from '../../contexts/ResponsiveContext';
 
 export interface ChartDataPoint {
@@ -114,7 +114,7 @@ export const ResponsiveChart: React.FC<ResponsiveChartProps> = ({
   }, [currentHeight]);
 
   // Simple chart rendering function
-  const renderChart = () => {
+  const renderChart = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || !data.length) return;
 
@@ -177,7 +177,7 @@ export const ResponsiveChart: React.FC<ResponsiveChartProps> = ({
         height: legendHeight,
       });
     }
-  };
+  }, [data, chartDimensions, type, showLegend, showValues, isMobile, isTablet, title, colors]);
 
   const renderBarChart = (ctx: CanvasRenderingContext2D, chartData: any[], area: any) => {
     const maxValue = Math.max(...chartData.map(d => d.value));

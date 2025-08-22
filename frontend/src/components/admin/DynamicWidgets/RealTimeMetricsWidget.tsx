@@ -44,7 +44,7 @@ const RealTimeMetricsWidget: React.FC<RealTimeMetricsWidgetProps> = ({
   className = '',
   onMetricClick
 }) => {
-  const { data, loading, error, refresh, isAutoRefreshing, lastUpdated } = useRealTimeData({
+  const { loading, error, refresh, isAutoRefreshing, lastUpdated } = useRealTimeData({
     endpoint,
     refreshInterval,
     autoRefresh: true
@@ -56,10 +56,11 @@ const RealTimeMetricsWidget: React.FC<RealTimeMetricsWidgetProps> = ({
         return `${value.toLocaleString()} ${currency || 'Kč'}`;
       case 'percentage':
         return `${value.toFixed(1)}%`;
-      case 'duration':
+      case 'duration': {
         const hours = Math.floor(value / 3600);
         const minutes = Math.floor((value % 3600) / 60);
         return `${hours}h ${minutes}m`;
+      }
       default:
         return value.toLocaleString();
     }

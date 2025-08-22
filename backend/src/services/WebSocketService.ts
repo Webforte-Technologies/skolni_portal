@@ -21,7 +21,7 @@ export interface WebSocketMessage {
   messageId?: string;
 }
 
-export interface WebSocketService {
+export interface IWebSocketService {
   initialize(server: Server): void;
   handleConnection(ws: WebSocket, userId: string): void;
   broadcastToUser(userId: string, data: any): void;
@@ -137,7 +137,7 @@ class WebSocketConnectionManager {
   }
 }
 
-export class WebSocketService implements WebSocketService {
+export class WebSocketService implements IWebSocketService {
   private wss: WebSocketServer | null = null;
   private connectionManager: WebSocketConnectionManager;
   private isInitialized = false;
@@ -339,7 +339,7 @@ export class WebSocketService implements WebSocketService {
         }
         break;
 
-      case 'ping':
+      case 'ping': {
         const pongMessage: WebSocketMessage = {
           type: 'pong',
           data: { timestamp: new Date().toISOString() },
@@ -348,6 +348,7 @@ export class WebSocketService implements WebSocketService {
         
         connection.ws.send(JSON.stringify(pongMessage));
         break;
+      }
 
       default:
         // Unknown message type - ignore

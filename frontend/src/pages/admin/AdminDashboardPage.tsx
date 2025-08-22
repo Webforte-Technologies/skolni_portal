@@ -54,6 +54,8 @@ const AdminDashboardPage: React.FC = () => {
   // Memoize callback functions to prevent infinite re-renders
   const handleMetricClick = useCallback((metric: any) => {
     // Show detailed performance view
+    console.log('Metric clicked:', metric);
+    // TODO: Implement detailed performance view
   }, []);
 
   const handleAlert = useCallback((message: string, severity: 'warning' | 'critical') => {
@@ -65,22 +67,24 @@ const AdminDashboardPage: React.FC = () => {
 
   const handleRealTimeMetricClick = useCallback((metricId: string) => {
     // Navigate to detailed view or show modal
+    console.log('Real-time metric clicked:', metricId);
+    // TODO: Implement navigation to detailed view
   }, []);
 
   // Real-time data hooks for enhanced dashboard
-  const { data: realTimeMetrics, loading: metricsLoading } = useRealTimeData({
+  const { data: realTimeMetrics } = useRealTimeData({
     endpoint: '/admin/analytics/dashboard',
     refreshInterval: 30000,
     autoRefresh: true
   });
 
-  const { data: realTimeAlerts, loading: alertsLoading } = useRealTimeData({
+  const { data: realTimeAlerts } = useRealTimeData({
     endpoint: '/admin/analytics/alerts',
     refreshInterval: 15000,
     autoRefresh: true
   });
 
-  const { data: realTimePerformance, loading: performanceLoading } = useRealTimeData({
+  const { data: realTimePerformance } = useRealTimeData({
     endpoint: '/admin/analytics/system/performance',
     refreshInterval: 10000,
     autoRefresh: true
@@ -142,7 +146,7 @@ const AdminDashboardPage: React.FC = () => {
     }
   ];
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const [healthRes, metricsRes, creditsRes] = await Promise.all([
@@ -181,7 +185,7 @@ const AdminDashboardPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -189,7 +193,7 @@ const AdminDashboardPage: React.FC = () => {
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchDashboardData, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchDashboardData]);
 
   const systemStatusColor = health?.status === 'OK' ? 'text-green-600' : 'text-red-600';
   const systemStatusIcon = health?.status === 'OK' ? 
@@ -617,12 +621,18 @@ const AdminDashboardPage: React.FC = () => {
                 showActions={true}
                 onAlertClick={(alert) => {
                   // Show alert details or navigate to issue
+                  console.log('Alert clicked:', alert);
+                  // TODO: Implement alert details view
                 }}
                 onAcknowledge={(alertId) => {
                   // API call to acknowledge alert
+                  console.log('Acknowledging alert:', alertId);
+                  // TODO: Implement API call to acknowledge alert
                 }}
                 onResolve={(alertId) => {
                   // API call to resolve alert
+                  console.log('Resolving alert:', alertId);
+                  // TODO: Implement API call to resolve alert
                 }}
               />
             </ErrorBoundary>
@@ -678,6 +688,8 @@ const AdminDashboardPage: React.FC = () => {
               }}
               onDataPointClick={(dataPoint) => {
                 // Navigate to user management or show details
+                console.log('Data point clicked:', dataPoint);
+                // TODO: Implement navigation to user management
               }}
             />
           </ErrorBoundary>

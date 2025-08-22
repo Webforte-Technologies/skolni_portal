@@ -42,7 +42,7 @@ const InteractiveCard: React.FC<InteractiveCardProps> = ({
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Handle press start (mouse down / touch start)
-  const handlePressStart = useCallback((_event: React.MouseEvent | React.TouchEvent) => {
+  const handlePressStart = useCallback(() => {
     if (disabled || loading) return;
     
     setIsPressed(true);

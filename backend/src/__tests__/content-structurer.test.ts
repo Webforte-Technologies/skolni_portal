@@ -1,4 +1,4 @@
-import { ContentStructurer, StructuredContent, ScaffoldingElement } from '../services/ContentStructurer';
+import { ContentStructurer } from '../services/ContentStructurer';
 import { MaterialSubtype } from '../services/EnhancedPromptBuilder';
 
 describe('ContentStructurer', () => {
@@ -165,7 +165,11 @@ describe('ContentStructurer', () => {
 
       // Check that scaffolding is sorted by position
       for (let i = 1; i < scaffolding.length; i++) {
-        expect(scaffolding[i].position).toBeGreaterThanOrEqual(scaffolding[i - 1].position);
+        const current = scaffolding[i];
+        const previous = scaffolding[i - 1];
+        if (current && previous) {
+          expect(current.position).toBeGreaterThanOrEqual(previous.position);
+        }
       }
     });
   });
@@ -183,8 +187,11 @@ describe('ContentStructurer', () => {
       const progression = structurer.organizeDifficultyProgression(content, 'worksheet');
 
       expect(progression.length).toBeGreaterThan(0);
-      expect(progression[0].level).toBe(1);
-      expect(progression[0].description).toContain('Základní');
+      // Check progression levels
+      if (progression && progression.length > 0) {
+        expect(progression[0]?.level).toBe(1);
+        expect(progression[0]?.description).toContain('Základní');
+      }
     });
 
     it('should organize lesson plan progression', () => {
@@ -199,9 +206,12 @@ describe('ContentStructurer', () => {
       const progression = structurer.organizeDifficultyProgression(content, 'lesson-plan');
 
       expect(progression.length).toBe(3);
-      expect(progression[0].description).toContain('Úvod');
-      expect(progression[1].description).toContain('Výklad');
-      expect(progression[2].description).toContain('Aplikace');
+      // Check progression structure
+      if (progression && progression.length >= 3) {
+        expect(progression[0]?.description).toContain('Úvod');
+        expect(progression[1]?.description).toContain('Výklad');
+        expect(progression[2]?.description).toContain('Aplikace');
+      }
     });
 
     it('should create basic progression for unknown types', () => {
@@ -210,8 +220,11 @@ describe('ContentStructurer', () => {
       const progression = structurer.organizeDifficultyProgression(content, 'activity');
 
       expect(progression.length).toBe(2);
-      expect(progression[0].description).toContain('Základní');
-      expect(progression[1].description).toContain('Pokročilá');
+      // Check progression levels
+      if (progression && progression.length >= 2) {
+        expect(progression[0]?.description).toContain('Základní');
+        expect(progression[1]?.description).toContain('Pokročilá');
+      }
     });
   });
 
@@ -330,11 +343,15 @@ describe('ContentStructurer', () => {
 
       const sorted = structurer['sortQuestionsByDifficulty'](questions);
 
-      const difficulties = sorted.map(q => structurer['assessQuestionDifficulty'](q));
+      const difficulties = sorted.map(q => structurer['assessQuestionDifficulty'](q)).filter((d): d is number => d !== undefined);
       
       // Check that difficulties are in ascending order
       for (let i = 1; i < difficulties.length; i++) {
-        expect(difficulties[i]).toBeGreaterThanOrEqual(difficulties[i - 1]);
+        const current = difficulties[i];
+        const previous = difficulties[i - 1];
+        if (current !== undefined && previous !== undefined) {
+          expect(current).toBeGreaterThanOrEqual(previous);
+        }
       }
     });
 

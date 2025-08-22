@@ -58,27 +58,9 @@ const SchoolsManagementPage: React.FC = () => {
 
   useEffect(() => {
     fetchSchools();
-  }, [currentPage, searchQuery]);
+  }, [currentPage, searchQuery, fetchSchools]);
 
   const totalPages = Math.ceil(totalSchools / pageSize);
-
-  const getSubscriptionPlanColor = (plan: string) => {
-    const colorMap: Record<string, string> = {
-      'basic': 'bg-gray-100 text-gray-800',
-      'premium': 'bg-blue-100 text-blue-800',
-      'enterprise': 'bg-purple-100 text-purple-800'
-    };
-    return colorMap[plan] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getSubscriptionPlanName = (plan: string) => {
-    const nameMap: Record<string, string> = {
-      'basic': 'Základní',
-      'premium': 'Premium',
-      'enterprise': 'Enterprise'
-    };
-    return nameMap[plan] || plan;
-  };
 
   return (
     <AdminLayout>

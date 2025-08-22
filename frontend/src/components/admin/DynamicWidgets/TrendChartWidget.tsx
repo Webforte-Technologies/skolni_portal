@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, Calendar, RefreshCw, Download, Filter } from 'lucide-react';
+import { TrendingUp, Calendar, RefreshCw, Download } from 'lucide-react';
 import Card from '../../ui/Card';
 import { ResponsiveChart, ChartDataPoint } from '../../ui/ResponsiveChart';
 import { useRealTimeData } from '../../../hooks/useRealTimeData';

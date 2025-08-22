@@ -1,9 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FileText, BookOpen, Target, Sparkles, Users, Presentation, 
-  Tag, Download, Edit3, Save, RotateCcw, Eye, Star, 
-  CheckCircle, AlertTriangle, Info, Clock, User
+  Tag, Download, Edit3, Save, RotateCcw, Star, 
+  CheckCircle, AlertTriangle, Info, Clock
 } from 'lucide-react';
 import Button from '../ui/Button';
 import { exportElementToPDFOptions, exportStructuredToDocxOptions } from '../../utils/exportUtils';
@@ -26,8 +25,6 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
   onClose, 
   onContentUpdate 
 }) => {
-  const { user } = useAuth();
-  const [teacherName, setTeacherName] = useState(user?.first_name + ' ' + user?.last_name || '');
   
   // Inline editing state
   const [editingSection, setEditingSection] = useState<string | null>(null);
@@ -40,11 +37,13 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
   const [validationIssues, setValidationIssues] = useState<string[]>([]);
   const [showQualityDetails, setShowQualityDetails] = useState(false);
 
-  // Refs for content editing
-  const contentRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
 
   // Parse the content JSON if it's a string
   const content = typeof material.content === 'string' ? JSON.parse(material.content) : material.content;
+  
+  // Get teacher name from material or use fallback
+  const teacherName = material.teacher_name || material.created_by || material.user_name || 'Učitel';
   
   // Filter out technical metadata fields that shouldn't be displayed to users
   const shouldDisplayField = (fieldName: string) => {
@@ -167,7 +166,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
     setHasUnsavedChanges(true);
   };
 
-  const saveEdit = () => {
+  const saveEdit = useCallback(() => {
     if (editingSection && editContent !== content[editingSection]) {
       // Add to edit history
       const historyEntry: EditHistory = {
@@ -192,7 +191,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
     setEditingSection(null);
     setEditContent('');
     setHasUnsavedChanges(false);
-  };
+  }, [editingSection, editContent, content, onContentUpdate]);
 
   const cancelEdit = () => {
     setEditingSection(null);
@@ -203,7 +202,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
   const updateQualityScore = (updatedContent: any) => {
     // Simple quality scoring algorithm
     let score = 85;
-    let issues: string[] = [];
+    const issues: string[] = [];
     
     // Check content length
     Object.values(updatedContent).forEach((value: any) => {
@@ -245,7 +244,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
       
       return () => clearTimeout(timer);
     }
-  }, [hasUnsavedChanges, editingSection]);
+  }, [hasUnsavedChanges, editingSection, saveEdit]);
 
   const renderField = (fieldName: string, value: any) => {
     if (!value) return null;
@@ -604,7 +603,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
     );
   };
 
-  const handlePrint = () => window.print();
+
 
   const handleExportPDF = async (hideAnswers?: boolean) => {
     const root = document.querySelector('#material-root') as HTMLElement | null;

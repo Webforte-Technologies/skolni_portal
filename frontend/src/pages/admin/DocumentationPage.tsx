@@ -15,7 +15,8 @@ import {
   User,
   Code,
   Settings,
-  RefreshCw
+  RefreshCw,
+  X
 } from 'lucide-react';
 
 interface DocumentationItem {
@@ -509,6 +510,200 @@ const DocumentationPage: React.FC = () => {
           </div>
         </Card>
       </div>
+
+      {/* Document Detail Modal */}
+      {selectedDocument && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="border-b border-neutral-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">{selectedDocument.title}</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedDocument(null)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-2">Informace</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Kategorie:</span>
+                      <span className="font-medium">{getCategoryLabel(selectedDocument.category)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Status:</span>
+                      <Badge variant={selectedDocument.status === 'published' ? 'default' : 'outline'}>
+                        {selectedDocument.status === 'published' ? 'Publikováno' : 'Koncept'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Autor:</span>
+                      <span className="font-medium">{selectedDocument.author}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Verze:</span>
+                      <span className="font-medium">{selectedDocument.version}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Zobrazení:</span>
+                      <span className="font-medium">{selectedDocument.views.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900 mb-2">Tagy</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedDocument.tags.map((tag, index) => (
+                      <Badge key={index} variant="outline">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  <h3 className="font-medium text-gray-900 mb-2 mt-4">Datumy</h3>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Vytvořeno:</span>
+                      <span>{selectedDocument.createdAt.toLocaleDateString('cs-CZ')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Aktualizováno:</span>
+                      <span>{selectedDocument.updatedAt.toLocaleDateString('cs-CZ')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900 mb-2">Obsah</h3>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-gray-700">{selectedDocument.content}</p>
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-neutral-200 px-6 py-4 flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // Handle edit functionality
+                  setSelectedDocument(null);
+                }}
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Upravit
+              </Button>
+              <Button
+                onClick={() => {
+                  // Handle download functionality
+                  setSelectedDocument(null);
+                }}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Stáhnout
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Document Form Modal */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="border-b border-neutral-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Nový dokument</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAddForm(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <form className="p-6 space-y-4" onSubmit={(e) => {
+              e.preventDefault();
+              // Handle form submission
+              setShowAddForm(false);
+            }}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Název dokumentu
+                </label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Zadejte název dokumentu"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Kategorie
+                </label>
+                <select
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Vyberte kategorii</option>
+                  <option value="user-guide">Uživatelská příručka</option>
+                  <option value="api-docs">API dokumentace</option>
+                  <option value="admin-guide">Admin příručka</option>
+                  <option value="developer-guide">Vývojářská příručka</option>
+                  <option value="troubleshooting">Řešení problémů</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Obsah
+                </label>
+                <textarea
+                  required
+                  rows={6}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Zadejte obsah dokumentu"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tagy (oddělené čárkami)
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="tag1, tag2, tag3"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
+                <select
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="draft">Koncept</option>
+                  <option value="published">Publikováno</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  Zrušit
+                </Button>
+                <Button type="submit">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Vytvořit dokument
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
