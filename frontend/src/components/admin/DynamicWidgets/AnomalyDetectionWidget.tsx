@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AlertTriangle, AlertCircle, AlertOctagon, Info, Filter, Download, Eye, EyeOff, Zap } from 'lucide-react';
 import Card from '../../ui/Card';
 import { useRealTimeData } from '../../../hooks/useRealTimeData';
@@ -56,7 +56,7 @@ const AnomalyDetectionWidget: React.FC<AnomalyDetectionWidgetProps> = ({
   });
 
   // Filter anomalies based on severity
-  const filteredAnomalies = React.useMemo(() => {
+  const filteredAnomalies = useMemo(() => {
     if (!data?.anomalies) return [];
     
     let anomalies = data.anomalies;
