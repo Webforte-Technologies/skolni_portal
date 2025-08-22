@@ -1,6 +1,6 @@
-import { chromium, FullConfig } from '@playwright/test';
+import { chromium } from '@playwright/test';
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup() {
   // Setup any global test environment
   const browser = await chromium.launch();
   const page = await browser.newPage();
