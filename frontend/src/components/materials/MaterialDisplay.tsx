@@ -1,9 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FileText, BookOpen, Target, Sparkles, Users, Presentation, 
-  Tag, Download, Edit3, Save, RotateCcw, Eye, Star, 
-  CheckCircle, AlertTriangle, Info, Clock, User
+  Tag, Download, Edit3, Save, RotateCcw, Star, 
+  CheckCircle, AlertTriangle, Info, Clock
 } from 'lucide-react';
 import Button from '../ui/Button';
 import { exportElementToPDFOptions, exportStructuredToDocxOptions } from '../../utils/exportUtils';
@@ -26,8 +25,6 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
   onClose, 
   onContentUpdate 
 }) => {
-  const { user } = useAuth();
-  const [teacherName, setTeacherName] = useState(user?.first_name + ' ' + user?.last_name || '');
   
   // Inline editing state
   const [editingSection, setEditingSection] = useState<string | null>(null);
@@ -40,11 +37,13 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
   const [validationIssues, setValidationIssues] = useState<string[]>([]);
   const [showQualityDetails, setShowQualityDetails] = useState(false);
 
-  // Refs for content editing
-  const contentRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
 
   // Parse the content JSON if it's a string
   const content = typeof material.content === 'string' ? JSON.parse(material.content) : material.content;
+  
+  // Get teacher name from material or use fallback
+  const teacherName = material.teacher_name || material.created_by || material.user_name || 'Učitel';
   
   // Filter out technical metadata fields that shouldn't be displayed to users
   const shouldDisplayField = (fieldName: string) => {
@@ -161,13 +160,35 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
   };
 
   // Inline editing functions
-  const startEditing = (section: string, content: string) => {
+  const startEditing = (section: string, content: any) => {
     setEditingSection(section);
-    setEditContent(content);
+    
+    // Special handling for different content types
+    let editContent = '';
+    
+    if (section === 'questions' && Array.isArray(content)) {
+      // Convert worksheet questions to a readable format
+      editContent = content.map((question: any, index: number) => {
+        const questionText = question.problem || question.question || 'Otázka bez textu';
+        const answerText = question.answer || 'Bez odpovědi';
+        return `${index + 1}. ${questionText}\n   Odpověď: ${answerText}`;
+      }).join('\n\n');
+    } else if (Array.isArray(content)) {
+      // Handle other arrays
+      editContent = content.join('\n');
+    } else if (typeof content === 'object') {
+      // Handle objects
+      editContent = JSON.stringify(content, null, 2);
+    } else {
+      // Handle strings and other types
+      editContent = String(content);
+    }
+    
+    setEditContent(editContent);
     setHasUnsavedChanges(true);
   };
 
-  const saveEdit = () => {
+  const saveEdit = useCallback(() => {
     if (editingSection && editContent !== content[editingSection]) {
       // Add to edit history
       const historyEntry: EditHistory = {
@@ -179,8 +200,51 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
       
       setEditHistory(prev => [historyEntry, ...prev]);
       
+      // Convert edited content back to appropriate format
+      let updatedValue: any = editContent;
+      
+      if (editingSection === 'questions' && Array.isArray(content[editingSection])) {
+        // Parse the edited questions text back to structured format
+        try {
+          const lines = editContent.split('\n').filter(line => line.trim());
+          const updatedQuestions = [];
+          let currentQuestion: any = {};
+          
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (/^\d+\./.test(trimmedLine)) {
+              // New question
+              if (currentQuestion.problem) {
+                updatedQuestions.push(currentQuestion);
+              }
+              currentQuestion = {
+                problem: trimmedLine.replace(/^\d+\.\s*/, ''),
+                answer: '',
+                type: 'calculation' // Default type
+              };
+            } else if (trimmedLine.startsWith('Odpověď:')) {
+              currentQuestion.answer = trimmedLine.replace('Odpověď:', '').trim();
+            } else if (currentQuestion.problem && !currentQuestion.answer) {
+              // Additional problem text
+              currentQuestion.problem += ' ' + trimmedLine;
+            }
+          }
+          
+          // Add the last question
+          if (currentQuestion.problem) {
+            updatedQuestions.push(currentQuestion);
+          }
+          
+          updatedValue = updatedQuestions;
+        } catch (error) {
+          console.error('Failed to parse questions:', error);
+          // Fallback to original content
+          updatedValue = content[editingSection];
+        }
+      }
+      
       // Update content
-      const updatedContent = { ...content, [editingSection]: editContent };
+      const updatedContent = { ...content, [editingSection]: updatedValue };
       if (onContentUpdate) {
         onContentUpdate(updatedContent);
       }
@@ -192,7 +256,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
     setEditingSection(null);
     setEditContent('');
     setHasUnsavedChanges(false);
-  };
+  }, [editingSection, editContent, content, onContentUpdate]);
 
   const cancelEdit = () => {
     setEditingSection(null);
@@ -203,7 +267,7 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
   const updateQualityScore = (updatedContent: any) => {
     // Simple quality scoring algorithm
     let score = 85;
-    let issues: string[] = [];
+    const issues: string[] = [];
     
     // Check content length
     Object.values(updatedContent).forEach((value: any) => {
@@ -245,10 +309,15 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
       
       return () => clearTimeout(timer);
     }
-  }, [hasUnsavedChanges, editingSection]);
+  }, [hasUnsavedChanges, editingSection, saveEdit]);
 
   const renderField = (fieldName: string, value: any) => {
     if (!value) return null;
+
+    // Special handling for worksheet questions
+    if (fieldName === 'questions' && Array.isArray(value) && value.length > 0 && (value[0].problem || value[0].question)) {
+      return renderWorksheetQuestions(value);
+    }
 
     // Special handling for quiz questions
     if (fieldName === 'questions' && Array.isArray(value) && value.length > 0 && value[0].type) {
@@ -604,7 +673,39 @@ const MaterialDisplay: React.FC<MaterialDisplayProps> = ({
     );
   };
 
-  const handlePrint = () => window.print();
+  const renderWorksheetQuestions = (questions: any[]) => {
+    return (
+      <div className="space-y-4">
+        {questions.map((question, index) => (
+          <div key={index} className="border border-neutral-200 rounded-lg p-4 bg-white">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
+                {index + 1}
+              </div>
+              <div className="flex-1">
+                <div className="mb-3">
+                  <span className="inline-block px-2 py-1 text-xs font-medium bg-neutral-100 text-neutral-700 rounded mr-2">
+                    {question.type || 'úloha'}
+                  </span>
+                  <p className="text-neutral-900 font-medium">{question.problem || question.question}</p>
+                </div>
+                
+                {question.answer && (
+                  <div className="bg-green-50 rounded p-3 border border-green-200">
+                    <span className="text-sm text-green-700 font-medium">Odpověď:</span>
+                    <div className="text-neutral-900 mt-1">
+                      {question.answer}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
 
   const handleExportPDF = async (hideAnswers?: boolean) => {
     const root = document.querySelector('#material-root') as HTMLElement | null;

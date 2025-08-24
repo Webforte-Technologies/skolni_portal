@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FileText,  Search, Eye, Edit, 
   CheckCircle, XCircle, Clock, 
@@ -51,7 +51,7 @@ const ContentManagementPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const fetchMaterials = async () => {
+  const fetchMaterials = useCallback(async () => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({
@@ -72,24 +72,24 @@ const ContentManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, selectedStatus, searchQuery, pageSize, showToast]);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       const res = await api.get<any>('/admin/content/analytics');
       setAnalytics(res.data.data);
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při načítání analytiky' });
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchMaterials();
-  }, [currentPage, selectedStatus, searchQuery]);
+  }, [currentPage, selectedStatus, searchQuery, fetchMaterials]);
 
   useEffect(() => {
     fetchAnalytics();
-  }, []);
+  }, [fetchAnalytics]);
 
   const totalPages = Math.ceil(totalMaterials / pageSize);
 

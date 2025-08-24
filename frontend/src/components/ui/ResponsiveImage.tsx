@@ -157,7 +157,7 @@ const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
       actualImg.onload = null;
       actualImg.onerror = null;
     };
-  }, [src, progressive, placeholder, isMobile, isTablet, mobileOptimized, isLoaded, onLoad, onError]);
+  }, [src, progressive, placeholder, isMobile, isTablet, mobileOptimized, isLoaded, onLoad, onError, quality]);
 
   // Handle image load
   const handleLoad = () => {

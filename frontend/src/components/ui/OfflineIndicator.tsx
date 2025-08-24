@@ -58,7 +58,7 @@ const OfflineIndicator: React.FC = () => {
       loadStats();
     };
 
-    const handleSyncError = (_error: any) => {
+    const handleSyncError = () => {
       setSyncStatus('error');
       showToast({
         type: 'error',

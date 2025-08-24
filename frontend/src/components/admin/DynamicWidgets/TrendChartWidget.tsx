@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp, Calendar, RefreshCw, Download, Filter } from 'lucide-react';
+import { TrendingUp, Calendar, RefreshCw, Download } from 'lucide-react';
 import Card from '../../ui/Card';
 import { ResponsiveChart, ChartDataPoint } from '../../ui/ResponsiveChart';
 import { useRealTimeData } from '../../../hooks/useRealTimeData';
@@ -33,7 +33,7 @@ export interface TrendChartWidgetProps {
 const TrendChartWidget: React.FC<TrendChartWidgetProps> = ({
   title,
   endpoint,
-  refreshInterval = 30000,
+      refreshInterval = 180000, // Reduced from 30s to 180s to prevent API spam
   chartType = 'line',
   timeRange = '24h',
   showControls = true,
@@ -47,9 +47,10 @@ const TrendChartWidget: React.FC<TrendChartWidgetProps> = ({
   const [selectedChartType, setSelectedChartType] = useState(chartType);
 
   const { data, loading, error, refresh, isAutoRefreshing, lastUpdated } = useRealTimeData({
-    endpoint: `${endpoint}?timeRange=${selectedTimeRange}`,
+    endpoint: endpoint,
     refreshInterval,
-    autoRefresh: true
+    autoRefresh: true,
+    dependencies: [selectedTimeRange] // Pass timeRange as dependency instead of modifying endpoint
   });
 
   // Transform data for chart

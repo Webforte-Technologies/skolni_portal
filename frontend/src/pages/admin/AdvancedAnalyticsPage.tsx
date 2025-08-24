@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  TrendingUp, Target, AlertTriangle, Settings, BarChart3, 
-  Download, Upload, Grid3X3, Zap, Eye, EyeOff 
+  TrendingUp, Target, AlertTriangle,
+  Download, Grid3X3
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useToast } from '../../contexts/ToastContext';
@@ -56,9 +56,15 @@ const AdvancedAnalyticsPage: React.FC = () => {
     { id: 'layouts', name: 'Správa rozložení', icon: <Grid3X3 className="w-4 h-4" /> }
   ];
 
-  const handleExport = (data: ExportData, format: 'csv' | 'json') => {
+  const handleExport = (data: ExportData, format: string) => {
+    // Validate format is supported
+    if (format !== 'csv' && format !== 'json') {
+      showToast({ type: 'error', message: 'Nepodporovaný formát exportu' });
+      return;
+    }
+    
     setExportData(data);
-    setExportFormat(format);
+    setExportFormat(format as 'csv' | 'json');
     setShowExportModal(true);
   };
 

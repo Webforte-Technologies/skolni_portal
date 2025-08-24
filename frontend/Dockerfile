@@ -1,7 +1,7 @@
 # Frontend Dockerfile for EduAI-Asistent (Coolify) - OPTIMIZED
 
 # Stage 1: Build the application
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Set build-time arguments

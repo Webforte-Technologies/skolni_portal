@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Server, Activity, Database,  HardDrive, 
    AlertTriangle, CheckCircle, Clock, 
@@ -47,7 +47,7 @@ const SystemHealthPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const fetchSystemHealth = async () => {
+  const fetchSystemHealth = useCallback(async () => {
     setLoading(true);
     try {
       const [metricsRes, servicesRes, alertsRes] = await Promise.all([
@@ -65,15 +65,15 @@ const SystemHealthPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchSystemHealth();
     
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchSystemHealth, 30000);
+    // Auto-refresh every 2 minutes instead of 30 seconds to reduce API spam
+    const interval = setInterval(fetchSystemHealth, 120000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchSystemHealth]);
 
   const getStatusColor = (status: string) => {
     const colorMap: Record<string, string> = {

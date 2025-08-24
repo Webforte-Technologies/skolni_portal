@@ -234,7 +234,6 @@ export class PDFExporter {
       } else {
         let heightLeft = imgHeight;
         let position = 10;
-        let page = 1;
         
         while (heightLeft > 0) {
           doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
@@ -243,7 +242,6 @@ export class PDFExporter {
           if (heightLeft > 0) {
             doc.addPage();
             position = heightLeft - imgHeight;
-            page++;
           }
         }
       }

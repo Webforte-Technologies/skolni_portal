@@ -8,9 +8,7 @@ import {
   testNavigationVisualResponsive,
   simulateDevice,
   simulateTouchInteraction,
-  testKeyboardNavigation,
   VIEWPORT_SIZES,
-  TEST_DEVICES,
 } from '../index';
 
 test.describe('Navigation Visual Tests', () => {

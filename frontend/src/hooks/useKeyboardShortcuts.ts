@@ -67,13 +67,14 @@ export const useKeyboardShortcuts = (
     // Handle special keys and normalize to uppercase for single letters
     if (key === ' ') key = 'Space';
     else if (key === 'Enter') key = 'Enter';
-    else if (key === 'Escape') key = 'Escape';
-    else if (key === 'Tab') key = 'Tab';
-    else if (key === 'Backspace') key = 'Backspace';
-    else if (key === 'Delete') key = 'Delete';
-    else if (key.startsWith('Arrow')) key = key; // Keep ArrowUp, ArrowDown etc.
-    else if (key.startsWith('F') && key.length <= 3) key = key; // Keep F1, F12 etc.
-    else if (['Home', 'End', 'PageUp', 'PageDown', 'Insert'].includes(key)) key = key;
+    // No need to reassign key to itself for these cases
+    // else if (key === 'Escape') key = 'Escape';
+    // else if (key === 'Tab') key = 'Tab';
+    // else if (key === 'Backspace') key = 'Backspace';
+    // else if (key === 'Delete') key = 'Delete';
+    // else if (key.startsWith('Arrow')) key = key; // Keep ArrowUp, ArrowDown etc.
+    // else if (key.startsWith('F') && key.length <= 3) key = key; // Keep F1, F12 etc.
+    // else if (['Home', 'End', 'PageUp', 'PageDown', 'Insert'].includes(key)) key = key;
     // If it's a modifier key itself (e.g., user just pressed 'Control' without another key)
     else if (['Control', 'Shift', 'Alt', 'Meta'].includes(key)) {
       // Don't add modifier key as a regular key if it's already in modifiers

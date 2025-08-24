@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Search, Filter, Eye, CheckCircle, XCircle, AlertTriangle, Clock, User, FileText, Flag, Ban, Check, X } from 'lucide-react';
+import { Shield, Search, Filter, Eye,  AlertTriangle, Clock, User, FileText, Flag, Ban, Check, X } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { Card, Button, Badge, Input } from '../../components/ui';
 
@@ -36,7 +36,7 @@ const ContentModerationPage: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [selectedItem, setSelectedItem] = useState<ModerationItem | null>(null);
-  const [showReviewModal, setShowReviewModal] = useState(false);
+
 
   useEffect(() => {
     // Simulate API call for moderation data

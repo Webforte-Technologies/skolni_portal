@@ -143,7 +143,7 @@ export class DeviceSpecificLoader {
 
   private getComponentsByPriority(priority: LoadPriority, deviceType: string): string[] {
     return Object.entries(COMPONENT_LOAD_CONFIG)
-      .filter(([_, config]) => 
+      .filter(([, config]) => 
         config.priority === priority && 
         config.deviceTypes.includes(deviceType as any)
       )

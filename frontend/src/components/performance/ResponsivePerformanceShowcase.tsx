@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useResponsive } from '../../hooks/useViewport';
-import { LazyComponentWrapper, withLazyLoading } from './LazyComponentWrapper';
+import LazyComponentWrapper, { withLazyLoading } from './LazyComponentWrapper';
 import { ResponsiveComponentLoader, ConditionalLoad, useDeviceFeatures } from './ResponsiveCodeSplitting';
 import { AdaptiveLoading, ProgressiveLoading, LazyImage, useAdaptiveLoading } from './AdaptiveLoadingStates';
 import { LoadingSkeleton } from './LoadingSkeleton';

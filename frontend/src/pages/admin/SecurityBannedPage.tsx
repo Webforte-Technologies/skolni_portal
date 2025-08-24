@@ -11,8 +11,7 @@ import {
   CheckCircle,
   Search,
   RefreshCw,
-  Plus,
-  Edit,
+
   Trash2
 } from 'lucide-react';
 
@@ -34,8 +33,6 @@ const SecurityBannedPage: React.FC = () => {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingEntity, setEditingEntity] = useState<BannedEntity | null>(null);
 
   useEffect(() => {
     // Simulate API call for banned entities data
@@ -181,10 +178,6 @@ const SecurityBannedPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button onClick={() => setShowAddForm(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Přidat blokování
-          </Button>
           <Ban className="w-8 h-8 text-red-600" />
         </div>
       </div>
@@ -364,15 +357,6 @@ const SecurityBannedPage: React.FC = () => {
                             Zablokovat
                           </>
                         )}
-                      </Button>
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingEntity(entity)}
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Upravit
                       </Button>
                       
                       <Button

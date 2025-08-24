@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   CreditCard, Plus, TrendingUp, TrendingDown, Users, 
   Building2, Download, Filter, 
@@ -44,16 +44,16 @@ const CreditsManagementPage: React.FC = () => {
 
   const { showToast } = useToast();
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       const res = await api.get<any>('/admin/credits/analytics');
       setAnalytics(res.data.data);
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při načítání analytiky' });
     }
-  };
+  }, [showToast]);
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get<any>(`/admin/credits/transactions?period=${selectedPeriod}`);
@@ -63,15 +63,15 @@ const CreditsManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedPeriod, showToast]);
 
   useEffect(() => {
     fetchAnalytics();
-  }, []);
+  }, [fetchAnalytics]);
 
   useEffect(() => {
     fetchTransactions();
-  }, [selectedPeriod]);
+  }, [selectedPeriod, fetchTransactions]);
 
   const getTransactionTypeColor = (type: string) => {
     const colorMap: Record<string, string> = {

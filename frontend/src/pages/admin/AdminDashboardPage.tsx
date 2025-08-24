@@ -8,7 +8,7 @@ import Button from '../../components/ui/Button';
 import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { useRealTimeData } from '../../hooks/useRealTimeData';
+
 import {
   RealTimeMetricsWidget,
   TrendChartWidget,
@@ -54,6 +54,7 @@ const AdminDashboardPage: React.FC = () => {
   // Memoize callback functions to prevent infinite re-renders
   const handleMetricClick = useCallback((metric: any) => {
     // Show detailed performance view
+    // TODO: Implement detailed performance view
   }, []);
 
   const handleAlert = useCallback((message: string, severity: 'warning' | 'critical') => {
@@ -65,31 +66,13 @@ const AdminDashboardPage: React.FC = () => {
 
   const handleRealTimeMetricClick = useCallback((metricId: string) => {
     // Navigate to detailed view or show modal
+    // TODO: Implement navigation to detailed view
   }, []);
 
-  // Real-time data hooks for enhanced dashboard
-  const { data: realTimeMetrics, loading: metricsLoading } = useRealTimeData({
-    endpoint: '/admin/analytics/dashboard',
-    refreshInterval: 30000,
-    autoRefresh: true
-  });
-
-  const { data: realTimeAlerts, loading: alertsLoading } = useRealTimeData({
-    endpoint: '/admin/analytics/alerts',
-    refreshInterval: 15000,
-    autoRefresh: true
-  });
-
-  const { data: realTimePerformance, loading: performanceLoading } = useRealTimeData({
-    endpoint: '/admin/analytics/system/performance',
-    refreshInterval: 10000,
-    autoRefresh: true
-  });
-
-  // Extract real-time data with proper fallbacks
-  const dashboardData = realTimeMetrics?.data || realTimeMetrics;
-  const alertsData = realTimeAlerts?.data || realTimeAlerts;
-  const performanceData = realTimePerformance?.data || realTimePerformance;
+  // Removed duplicate useRealTimeData calls to prevent API spam
+  // The widgets handle their own data fetching now
+  // TODO: Consider implementing a shared analytics context to reduce multiple API calls
+  // and implement smart caching for better performance
 
   // Quick Actions
   const quickActions: QuickAction[] = [
@@ -142,7 +125,7 @@ const AdminDashboardPage: React.FC = () => {
     }
   ];
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const [healthRes, metricsRes, creditsRes] = await Promise.all([
@@ -181,15 +164,15 @@ const AdminDashboardPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchDashboardData();
     
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchDashboardData, 30000);
+    // Auto-refresh every 5 minutes instead of 30 seconds to reduce API spam
+    const interval = setInterval(fetchDashboardData, 300000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchDashboardData]);
 
   const systemStatusColor = health?.status === 'OK' ? 'text-green-600' : 'text-red-600';
   const systemStatusIcon = health?.status === 'OK' ? 
@@ -360,7 +343,7 @@ const AdminDashboardPage: React.FC = () => {
           <RealTimeMetricsWidget
             title="Real-time Metriky"
             endpoint="/admin/analytics/dashboard"
-            refreshInterval={30000}
+            refreshInterval={300000} // 5 minutes to reduce API spam
             showTrend={true}
             showLastUpdated={true}
             metrics={[
@@ -368,11 +351,11 @@ const AdminDashboardPage: React.FC = () => {
                 id: 'active-users',
                 title: 'Aktivní uživatelé',
                 value: {
-                  current: dashboardData?.overview?.total_users || 0,
-                  previous: (dashboardData?.overview?.total_users || 0) - 5,
-                  change: 5,
-                  changePercent: 12.5,
-                  trend: 'up'
+                  current: 0,
+                  previous: 0,
+                  change: 0,
+                  changePercent: 0,
+                  trend: 'stable' as const
                 },
                 format: 'number',
                 icon: <Users className="w-5 h-5" />,
@@ -382,11 +365,11 @@ const AdminDashboardPage: React.FC = () => {
                 id: 'credits-usage',
                 title: 'Využití kreditů',
                 value: {
-                  current: dashboardData?.overview?.total_revenue || 0,
-                  previous: (dashboardData?.overview?.total_revenue || 0) * 0.9,
-                  change: (dashboardData?.overview?.total_revenue || 0) * 0.1,
-                  changePercent: 11.1,
-                  trend: 'up'
+                  current: 0,
+                  previous: 0,
+                  change: 0,
+                  changePercent: 0,
+                  trend: 'stable' as const
                 },
                 format: 'number',
                 icon: <CreditCard className="w-5 h-5" />,
@@ -396,11 +379,11 @@ const AdminDashboardPage: React.FC = () => {
                 id: 'revenue',
                 title: 'Příjmy dnes',
                 value: {
-                  current: dashboardData?.overview?.total_revenue || 0,
-                  previous: (dashboardData?.overview?.total_revenue || 0) * 0.85,
-                  change: (dashboardData?.overview?.total_revenue || 0) * 0.15,
-                  changePercent: 17.6,
-                  trend: 'up'
+                  current: 0,
+                  previous: 0,
+                  change: 0,
+                  changePercent: 0,
+                  trend: 'stable' as const
                 },
                 format: 'currency',
                 currency: 'Kč',
@@ -411,11 +394,11 @@ const AdminDashboardPage: React.FC = () => {
                 id: 'response-time',
                 title: 'Odezva API',
                 value: {
-                  current: performanceData?.performance?.response_time || 0,
-                  previous: (performanceData?.performance?.response_time || 0) * 1.1,
-                  change: -(performanceData?.performance?.response_time || 0) * 0.1,
-                  changePercent: -9.1,
-                  trend: 'down'
+                  current: 0,
+                  previous: 0,
+                  change: 0,
+                  changePercent: 0,
+                  trend: 'stable' as const
                 },
                 format: 'duration',
                 icon: <Activity className="w-5 h-5" />,
@@ -498,7 +481,7 @@ const AdminDashboardPage: React.FC = () => {
             <PerformanceMonitorWidget
               title="Monitorování výkonnosti"
               endpoint="/admin/analytics/system/performance"
-              refreshInterval={10000}
+              refreshInterval={300000} // 5 minutes to reduce API spam
               showCharts={true}
               showThresholds={true}
               showTrends={true}
@@ -533,7 +516,7 @@ const AdminDashboardPage: React.FC = () => {
         <TrendChartWidget
           title="Využití kreditů v čase"
           endpoint="/admin/analytics/credits/real-time"
-          refreshInterval={30000}
+          refreshInterval={300000} // 5 minutes to reduce API spam
           chartType="line"
           timeRange="7d"
           showControls={true}
@@ -611,18 +594,21 @@ const AdminDashboardPage: React.FC = () => {
               <AlertPanelWidget
                 title="Systémová upozornění"
                 endpoint="/admin/analytics/alerts"
-                refreshInterval={15000}
+                refreshInterval={120000}
                 maxAlerts={8}
                 showFilters={true}
                 showActions={true}
                 onAlertClick={(alert) => {
                   // Show alert details or navigate to issue
+                  // TODO: Implement alert details view
                 }}
                 onAcknowledge={(alertId) => {
                   // API call to acknowledge alert
+                  // TODO: Implement API call to acknowledge alert
                 }}
                 onResolve={(alertId) => {
                   // API call to resolve alert
+                  // TODO: Implement API call to resolve alert
                 }}
               />
             </ErrorBoundary>
@@ -632,20 +618,20 @@ const AdminDashboardPage: React.FC = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Celkem škol</span>
-                <span className="text-lg font-semibold">{dashboardData?.overview?.total_schools || 0}</span>
+                <span className="text-lg font-semibold">—</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Aktivní učitelé</span>
-                <span className="text-lg font-semibold text-green-600">{dashboardData?.overview?.total_users || 0}</span>
+                <span className="text-lg font-semibold text-green-600">—</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Materiálů k moderování</span>
-                <span className="text-lg font-semibold text-orange-600">{alertsData?.length || 0}</span>
+                <span className="text-lg font-semibold text-orange-600">{criticalAlerts?.length || 0}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Využití systému</span>
                 <span className="text-lg font-semibold text-blue-600">
-                  {performanceData?.performance?.uptime ? `${Math.round(performanceData.performance.uptime)}%` : '87%'}
+                  {health?.process?.uptime_s ? `${Math.round((health.process.uptime_s / 86400) * 100) / 100}d` : 'N/A'}
                 </span>
               </div>
             </div>
@@ -659,7 +645,7 @@ const AdminDashboardPage: React.FC = () => {
             <TrendChartWidget
               title="Růst uživatelů"
               endpoint="/admin/analytics/users/real-time"
-              refreshInterval={60000}
+              refreshInterval={300000} // 5 minutes to reduce API spam
               chartType="line"
               timeRange="30d"
               showControls={true}
@@ -678,6 +664,7 @@ const AdminDashboardPage: React.FC = () => {
               }}
               onDataPointClick={(dataPoint) => {
                 // Navigate to user management or show details
+                // TODO: Implement navigation to user management
               }}
             />
           </ErrorBoundary>

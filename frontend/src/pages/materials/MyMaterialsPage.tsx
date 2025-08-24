@@ -62,9 +62,11 @@ const MyMaterialsPage: React.FC = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const searchParams = new URLSearchParams(window.location.search);
-  const newParam = searchParams.get('new') || '';
-  const newIds = newParam ? newParam.split(',') : [];
+  const newIds = useMemo(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const newParam = searchParams.get('new') || '';
+    return newParam ? newParam.split(',') : [];
+  }, []);
   const [hasAutoOpened, setHasAutoOpened] = useState(false);
   
   // State

@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useResponsive } from '../../hooks/useViewport';
+import { useTypingEffect } from '../../hooks/useTypingEffect';
 import { generateUUID } from '../../utils/uuid';
 import { MathTopic, MathDifficulty, PracticeSession } from '../../types';
 import { api } from '../../services/apiClient';
@@ -20,7 +21,8 @@ import ChatTemplates from '../../components/chat/ChatTemplates';
 import VoiceInput from '../../components/chat/VoiceInput';
 import Button from '../../components/ui/Button';
 import Tooltip from '../../components/ui/Tooltip';
-import { AlertCircle, Menu, X, Download, BookOpen } from 'lucide-react';
+import { AlertCircle, Menu, X, Download, BookOpen, Settings } from 'lucide-react';
+import TypingEffectSettingsComponent from '../../components/chat/TypingEffectSettings';
 // Defer heavy PDF libs via dynamic import to reduce bundle size
 type ConversationExportData = import('../../utils/pdfExport').ConversationExportData;
 import DifficultyProgression from '../../components/chat/DifficultyProgression';
@@ -35,6 +37,7 @@ const ChatPage: React.FC = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const { isMobile } = useResponsive();
+  const { settings: typingEffectSettings, updateSettings: updateTypingEffectSettings, resetSettings: resetTypingEffectSettings } = useTypingEffect();
   
   if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
     console.log('ChatPage: Auth context loaded, user:', user);
@@ -56,6 +59,7 @@ const ChatPage: React.FC = () => {
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
   const [isImageUploadOpen, setIsImageUploadOpen] = useState(false);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [isTypingEffectSettingsOpen, setIsTypingEffectSettingsOpen] = useState(false);
   
   // Phase 13.1: Math Assistant State
   const [selectedMathTopic] = useState<MathTopic>('basic_math');
@@ -153,16 +157,21 @@ const ChatPage: React.FC = () => {
       console.log('ChatPage: Saved messages:', savedMessages);
     }
     
-    if (savedSessionId && savedMessages) {
-      setSessionId(savedSessionId);
-      try {
-        const parsedMessages = JSON.parse(savedMessages);
-        setMessages(parsedMessages);
-        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('ChatPage: Messages loaded from localStorage:', parsedMessages);
-      } catch (error) {
-        console.error('Error parsing saved messages:', error);
-      }
-    } else {
+         if (savedSessionId && savedMessages) {
+       setSessionId(savedSessionId);
+       try {
+         const parsedMessages = JSON.parse(savedMessages);
+         // Ensure messages have the correct format
+         const formattedMessages = parsedMessages.map((msg: any) => ({
+           ...msg,
+           isUser: msg.isUser !== undefined ? msg.isUser : (msg.role === 'user')
+         }));
+         setMessages(formattedMessages);
+         if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') console.log('ChatPage: Messages loaded from localStorage:', formattedMessages);
+       } catch (error) {
+         console.error('Error parsing saved messages:', error);
+       }
+     } else {
       // Generate a new session ID for this chat session
       const newSessionId = generateUUID();
       setSessionId(newSessionId);
@@ -175,6 +184,9 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     if (messages.length > 0) {
       localStorage.setItem('chatMessages', JSON.stringify(messages));
+      if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+        console.log('ChatPage: Saved messages to localStorage:', messages.length, 'messages');
+      }
     }
   }, [messages]);
 
@@ -330,16 +342,26 @@ const ChatPage: React.FC = () => {
         setSidebarRefreshKey((k) => k + 1);
       }
 
-      // Stream AI response
+      // Stream AI response with typing effect support
+      let fullResponse = '';
       await streamingService.sendMessageStream(
         content,
         sessionId,
         conversationId,
         {
           onChunk: (chunk) => {
-            setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, content: (m.content || '') + chunk } : m));
+            fullResponse += chunk;
+            // If typing effect is disabled, show content immediately
+            if (!typingEffectSettings.enabled) {
+              setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, content: fullResponse } : m));
+            }
           },
           onEnd: async ({ credits_balance }) => {
+            // If typing effect is enabled, set the full content and let TypingEffect component handle the animation
+            if (typingEffectSettings.enabled) {
+              setMessages(prev => prev.map(m => m.id === aiMessageId ? { ...m, content: fullResponse } : m));
+            }
+            
             if (user) {
               updateUser({ ...user, credits_balance });
             }
@@ -418,10 +440,13 @@ const ChatPage: React.FC = () => {
       setMessages([]);
       setError('');
       setGeneratedWorksheet(null);
-      setSessionId(conv.id);
-      localStorage.setItem('chatSessionId', conv.id);
-      localStorage.removeItem('chatMessages');
-      setSidebarRefreshKey((k) => k + 1);
+             setSessionId(conv.id);
+       localStorage.setItem('chatSessionId', conv.id);
+       localStorage.removeItem('chatMessages');
+       if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+         console.log('ChatPage: New conversation created, cleared localStorage');
+       }
+       setSidebarRefreshKey((k) => k + 1);
       
       showToast({ type: 'success', message: 'Nová konverzace vytvořena!' });
     } catch (error) {
@@ -443,12 +468,16 @@ const ChatPage: React.FC = () => {
         const chatMessages: any[] = (conv as any).messages.map((msg: any) => ({
           id: msg.id,
           content: msg.content,
-          role: msg.role,
+          isUser: msg.role === 'user',
           timestamp: msg.created_at,
           session_id: conversationId
         }));
         
         setMessages(chatMessages);
+        if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+          console.log('ChatPage: Conversation loaded:', conv);
+          console.log('ChatPage: Converted messages:', chatMessages);
+        }
         setError('');
         setGeneratedWorksheet(null);
       }
@@ -532,11 +561,15 @@ const ChatPage: React.FC = () => {
     setIsImageUploadOpen(true);
   };
 
-  const handleImageProcessed = (text: string, _imageUrl: string) => {
+  const handleImageProcessed = (text: string, imageUrl: string) => {
     // Insert the OCR text into the message input
     if (composerRef.current) {
       composerRef.current.insertText(`Obrázek matematického problému:\n${text}\n\nProsím pomozte mi s tímto příkladem.`);
     }
+    
+    // Store the image URL for potential future use (e.g., displaying in chat history)
+    // Currently not used but kept for interface compatibility
+    console.log('Image processed:', { text, imageUrl });
     
     // You could also automatically send the message or add it as a special message type
     showToast({ type: 'success', message: 'Obrázek byl zpracován a text vložen do chatu' });
@@ -734,6 +767,18 @@ const ChatPage: React.FC = () => {
                 {!isMobile && 'Export'}
               </Button>
               
+              {/* Typing Effect Settings Button */}
+              <Button
+                onClick={() => setIsTypingEffectSettingsOpen(true)}
+                variant="outline"
+                size={isMobile ? 'icon' : 'sm'}
+                className={`flex items-center ${isMobile ? 'min-h-[44px] min-w-[44px]' : 'gap-2'}`}
+                title="Nastavení efektu psaní"
+              >
+                <Settings className="h-4 w-4" />
+                {!isMobile && 'Efekt psaní'}
+              </Button>
+              
               {/* Math Tools Button - removed from chat per teacher use-case */}
               
               {/* Credit Balance */}
@@ -791,6 +836,7 @@ const ChatPage: React.FC = () => {
                   onDeleteMessage={handleDeleteMessage}
                   onRegenerate={handleRegenerateMessage}
                   isTyping={isLoading}
+                  typingEffectSettings={typingEffectSettings}
                 />
                 
                 {/* Tools Section */}
@@ -886,6 +932,29 @@ const ChatPage: React.FC = () => {
         onGoMaterials={() => navigate('/materials')}
         onFocusComposer={() => composerRef.current?.focus()}
       />
+
+      {/* Typing Effect Settings Modal */}
+      {isTypingEffectSettingsOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+                             <TypingEffectSettingsComponent
+                 settings={typingEffectSettings}
+                 onUpdateSettings={updateTypingEffectSettings}
+                 onResetSettings={resetTypingEffectSettings}
+               />
+              <div className="mt-4 flex justify-end">
+                <Button
+                  onClick={() => setIsTypingEffectSettingsOpen(false)}
+                  variant="primary"
+                >
+                  Zavřít
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
   } catch (error) {

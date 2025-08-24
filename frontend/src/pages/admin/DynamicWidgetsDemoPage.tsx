@@ -70,65 +70,67 @@ const DynamicWidgetsDemoPage: React.FC = () => {
     }
   ];
 
-  const samplePerformanceData = {
-    cpu: {
-      name: 'CPU Utilization',
-      value: 67,
-      unit: '%',
-      threshold: { warning: 80, critical: 95 },
-      trend: 'up' as const,
-      status: 'healthy',
-      history: []
-    },
-    memory: {
-      name: 'Memory Usage',
-      value: 78,
-      unit: '%',
-      threshold: { warning: 85, critical: 95 },
-      trend: 'stable' as const,
-      status: 'healthy',
-      history: []
-    },
-    disk: {
-      name: 'Disk Space',
-      value: 45,
-      unit: '%',
-      threshold: { warning: 80, critical: 90 },
-      trend: 'down' as const,
-      status: 'healthy',
-      history: []
-    },
-    network: {
-      name: 'Network I/O',
-      value: 23,
-      unit: 'MB/s',
-      threshold: { warning: 50, critical: 80 },
-      trend: 'stable' as const,
-      status: 'healthy',
-      history: []
-    },
-    responseTime: {
-      name: 'API Response Time',
-      value: 245,
-      unit: 'ms',
-      threshold: { warning: 1000, critical: 2000 },
-      trend: 'down' as const,
-      status: 'healthy',
-      history: []
-    },
-    errorRate: {
-      name: 'Error Rate',
-      value: 0.8,
-      unit: '%',
-      threshold: { warning: 2, critical: 5 },
-      trend: 'down' as const,
-      status: 'healthy',
-      history: []
-    },
-    uptime: 86400 * 7 + 3600 * 12, // 7 days 12 hours
-    lastCheck: new Date().toISOString(),
-    overallStatus: 'healthy'
-  };
+  // Sample performance data for demonstration purposes
+  // This could be used in future implementations of performance monitoring widgets
+  // const samplePerformanceData = {
+  //   cpu: {
+  //     name: 'CPU Utilization',
+  //     value: 67,
+  //     unit: '%',
+  //     threshold: { warning: 80, critical: 95 },
+  //     trend: 'up' as const,
+  //     status: 'healthy',
+  //     history: []
+  //   },
+  //   memory: {
+  //     name: 'Memory Usage',
+  //     value: 78,
+  //     unit: '%',
+  //     threshold: { warning: 85, critical: 95 },
+  //     trend: 'stable' as const,
+  //     status: 'healthy',
+  //     history: []
+  //   },
+  //   disk: {
+  //     name: 'Disk Space',
+  //     value: 45,
+  //     unit: '%',
+  //     threshold: { warning: 80, critical: 90 },
+  //     trend: 'down' as const,
+  //     status: 'healthy',
+  //     history: []
+  //   },
+  //   network: {
+  //     name: 'Network I/O',
+  //     value: 23,
+  //     unit: 'MB/s',
+  //     threshold: { warning: 50, critical: 80 },
+  //     trend: 'stable' as const,
+  //     status: 'healthy',
+  //     history: []
+  //   },
+  //   responseTime: {
+  //     name: 'API Response Time',
+  //     value: 245,
+  //     unit: 'ms',
+  //     threshold: { warning: 1000, critical: 2000 },
+  //     trend: 'down' as const,
+  //     status: 'healthy',
+  //     history: []
+  //   },
+  //   errorRate: {
+  //     name: 'Error Rate',
+  //     value: 0.8,
+  //     unit: '%',
+  //     threshold: { warning: 2, critical: 5 },
+  //     trend: 'down' as const,
+  //     status: 'healthy',
+  //     history: []
+  //   },
+  //   uptime: 86400 * 7 + 3600 * 12, // 7 days 12 hours
+  //   lastCheck: new Date().toISOString(),
+  //   overallStatus: 'healthy'
+  // };
 
   const handleMetricClick = (metricId: string) => {
     console.log('Metric clicked:', metricId);
@@ -214,7 +216,7 @@ const DynamicWidgetsDemoPage: React.FC = () => {
             showControls={true}
             showDownload={true}
             height={{ mobile: 250, tablet: 300, desktop: 350 }}
-            transformData={(rawData) => {
+            transformData={() => {
               // Generate sample data for demo
               const now = new Date();
               return Array.from({ length: 30 }, (_, i) => ({
@@ -236,12 +238,12 @@ const DynamicWidgetsDemoPage: React.FC = () => {
             showControls={true}
             showDownload={true}
             height={{ mobile: 250, tablet: 300, desktop: 350 }}
-            transformData={(rawData) => {
+            transformData={() => {
               // Generate sample data for demo
               const now = new Date();
               return Array.from({ length: 7 }, (_, i) => ({
                 timestamp: new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000).toISOString(),
-                value: 1000 + Math.floor(Math.random() * 2000) + i * 500,
+                value: 1000 + Math.floor(Math.random() * 1000) + i * 500,
                 label: new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000).toLocaleDateString('cs-CZ', { weekday: 'short' })
               }));
             }}

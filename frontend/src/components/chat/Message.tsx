@@ -1,9 +1,11 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ChatMessage, MathTopic, MathDifficulty } from '../../types';
 import { cn } from '../../utils/cn';
 import { User, Bot, Copy, Check, BookOpen, ExternalLink, Target, TrendingUp, Star } from 'lucide-react';
 import Button from '../ui/Button';
 import ResponsiveMarkdown from '../math/ResponsiveMarkdown';
+import TypingEffect from './TypingEffect';
+import { forwardRef } from 'react';
 
 interface MessageProps {
   message: ChatMessage;
@@ -15,6 +17,13 @@ interface MessageProps {
   showRightAvatar?: boolean;
   isMobile?: boolean;
   isTablet?: boolean;
+  typingEffectSettings?: {
+    enabled: boolean;
+    speed: number;
+    showCursor: boolean;
+    cursorBlinkSpeed: number;
+  };
+  isTyping?: boolean;
 }
 
 const getDifficultyIcon = (difficulty: MathDifficulty) => {
@@ -81,190 +90,207 @@ const getTopicName = (topic: MathTopic) => {
 
 
 
-const Message: React.FC<MessageProps> = React.memo(({ message, onCopyMessage, copiedMessageId, onDeleteMessage, onRegenerate, showLeftAvatar = true, showRightAvatar = true, isMobile = false, isTablet = false }) => {
-  const isUser = message.isUser;
-  const isCopied = copiedMessageId === message.id;
-  const [isExpanded, setIsExpanded] = useState(true);
-
-  // Consider content "long" when above threshold to enable collapse - shorter threshold on mobile
-  const isLong = useMemo(() => (message.content?.length || 0) > (isMobile ? 400 : 800), [message.content, isMobile]);
-
-  const handleCopy = useCallback(() => {
-    if (onCopyMessage) {
-      onCopyMessage(message.id, message.content);
+const Message = forwardRef<HTMLDivElement, MessageProps>(
+  ({ message, onCopyMessage, copiedMessageId, onDeleteMessage, onRegenerate, showLeftAvatar = true, showRightAvatar = true, isMobile = false, isTablet = false, typingEffectSettings, isTyping = false }) => {
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+      console.log('Message: Rendering message:', message.id, message.isUser, message.content?.substring(0, 50));
     }
-  }, [onCopyMessage, message.id, message.content]);
+    const isUser = message.isUser;
+    const isCopied = copiedMessageId === message.id;
+    const [isExpanded, setIsExpanded] = useState(true);
 
-  return (
-    <div className={cn(
-      'flex items-start mb-4 animate-slide-up',
-      isMobile ? 'space-x-2' : 'space-x-3',
-      isUser ? 'justify-end' : 'justify-start'
-    )}>
-      {!isUser && showLeftAvatar && (
-        <div className="flex-shrink-0">
-          <div className={cn(
-            'bg-primary-600 rounded-full flex items-center justify-center shadow-soft',
-            isMobile ? 'w-8 h-8' : 'w-10 h-10'
-          )}>
-            <Bot className={cn('text-white', isMobile ? 'h-4 w-4' : 'h-6 w-6')} />
-          </div>
-        </div>
-      )}
-      
+    // Consider content "long" when above threshold to enable collapse - shorter threshold on mobile
+    const isLong = useMemo(() => (message.content?.length || 0) > (isMobile ? 400 : 800), [message.content, isMobile]);
+
+    const handleCopy = useCallback(() => {
+      if (onCopyMessage) {
+        onCopyMessage(message.id, message.content);
+      }
+    }, [onCopyMessage, message.id, message.content]);
+
+    return (
       <div className={cn(
-        'relative group shadow-lg transition-all duration-200 hover:shadow-xl rounded-2xl',
-        // Responsive max-width and padding
-        isMobile 
-          ? 'max-w-[85%] px-3 py-2' 
-          : isTablet 
-            ? 'max-w-md px-3 py-3' 
-            : 'max-w-xs md:max-w-md lg:max-w-2xl px-4 py-3',
-        // Colors and effects
-        isUser 
-          ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-primary-500/25 hover:shadow-primary-500/35 hover:-translate-y-0.5' 
-          : 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/30 border border-primary-200 dark:border-primary-700/50 text-primary-900 dark:text-primary-100 shadow-primary-500/10 hover:shadow-primary-500/20 hover:-translate-y-0.5'
+        'flex items-start mb-4 animate-slide-up',
+        isMobile ? 'space-x-2' : 'space-x-3',
+        isUser ? 'justify-end' : 'justify-start'
       )}>
-        {/* Math Topic and Difficulty Tags */}
-        {!isUser && (message.mathTopic || message.difficulty) && (
-          <div className={cn('flex flex-wrap gap-2', isMobile ? 'mb-2' : 'mb-3')}>
-            {message.mathTopic && (
-              <span className={cn(
-                'inline-flex items-center gap-1 rounded-full font-medium border',
-                isMobile ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs',
-                getTopicColor(message.mathTopic)
-              )}>
-                {getTopicName(message.mathTopic)}
-              </span>
-            )}
-            {message.difficulty && (
-              <span className={cn(
-                'inline-flex items-center gap-1 rounded-full font-medium border',
-                isMobile ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs',
-                getDifficultyColor(message.difficulty)
-              )}>
-                {getDifficultyIcon(message.difficulty)}
-                {message.difficulty === 'basic' && 'Základní'}
-                {message.difficulty === 'intermediate' && 'Střední'}
-                {message.difficulty === 'advanced' && 'Pokročilé'}
-              </span>
-            )}
-            {message.practiceMode && (
-              <span className={cn(
-                'inline-flex items-center gap-1 rounded-full font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-700',
-                isMobile ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'
-              )}>
-                <Target className={cn(isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3')} />
-                Cvičení
-              </span>
-            )}
+        {!isUser && showLeftAvatar && (
+          <div className="flex-shrink-0">
+            <div className={cn(
+              'bg-primary-600 rounded-full flex items-center justify-center shadow-soft',
+              isMobile ? 'w-8 h-8' : 'w-10 h-10'
+            )}>
+              <Bot className={cn('text-white', isMobile ? 'h-4 w-4' : 'h-6 w-6')} />
+            </div>
           </div>
         )}
-
+        
         <div className={cn(
-          'relative leading-relaxed markdown-body',
-          isMobile ? 'text-xs' : 'text-sm',
-          !isUser && isLong && !isExpanded 
-            ? isMobile 
-              ? 'max-h-32 overflow-hidden pr-2' 
-              : 'max-h-56 overflow-hidden pr-2' 
-            : 'max-h-none'
+          'relative group shadow-lg transition-all duration-200 hover:shadow-xl rounded-2xl',
+          // Responsive max-width and padding
+          isMobile 
+            ? 'max-w-[85%] px-3 py-2' 
+            : isTablet 
+              ? 'max-w-md px-3 py-3' 
+              : 'max-w-xs md:max-w-md lg:max-w-2xl px-4 py-3',
+          // Colors and effects
+          isUser 
+            ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-primary-500/25 hover:shadow-primary-500/35 hover:-translate-y-0.5' 
+            : 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/30 border border-primary-200 dark:border-primary-700/50 text-primary-900 dark:text-primary-100 shadow-primary-500/10 hover:shadow-primary-500/20 hover:-translate-y-0.5'
         )}>
-          <ResponsiveMarkdown>
-            {message.content}
-          </ResponsiveMarkdown>
-          {/* Gradient fade when collapsed */}
-          {!isUser && isLong && !isExpanded && (
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-primary-50 dark:from-primary-900/20 to-transparent" />
+          {/* Math Topic and Difficulty Tags */}
+          {!isUser && (message.mathTopic || message.difficulty) && (
+            <div className={cn('flex flex-wrap gap-2', isMobile ? 'mb-2' : 'mb-3')}>
+              {message.mathTopic && (
+                <span className={cn(
+                  'inline-flex items-center gap-1 rounded-full font-medium border',
+                  isMobile ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs',
+                  getTopicColor(message.mathTopic)
+                )}>
+                  {getTopicName(message.mathTopic)}
+                </span>
+              )}
+              {message.difficulty && (
+                <span className={cn(
+                  'inline-flex items-center gap-1 rounded-full font-medium border',
+                  isMobile ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs',
+                  getDifficultyColor(message.difficulty)
+                )}>
+                  {getDifficultyIcon(message.difficulty)}
+                  {message.difficulty === 'basic' && 'Základní'}
+                  {message.difficulty === 'intermediate' && 'Střední'}
+                  {message.difficulty === 'advanced' && 'Pokročilé'}
+                </span>
+              )}
+              {message.practiceMode && (
+                <span className={cn(
+                  'inline-flex items-center gap-1 rounded-full font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-700',
+                  isMobile ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'
+                )}>
+                  <Target className={cn(isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3')} />
+                  Cvičení
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className={cn(
+            'relative leading-relaxed markdown-body',
+            isMobile ? 'text-xs' : 'text-sm',
+            !isUser && isLong && !isExpanded 
+              ? isMobile 
+                ? 'max-h-32 overflow-hidden pr-2' 
+                : 'max-h-56 overflow-hidden pr-2' 
+              : 'max-h-none'
+          )}>
+            {!isUser && typingEffectSettings?.enabled && isTyping ? (
+              <TypingEffect
+                content={message.content || ''}
+                speed={typingEffectSettings.speed}
+                showCursor={typingEffectSettings.showCursor}
+                cursorBlinkSpeed={typingEffectSettings.cursorBlinkSpeed}
+                autoStart={true}
+              />
+            ) : (
+              <ResponsiveMarkdown>
+                {message.content}
+              </ResponsiveMarkdown>
+            )}
+            {/* Gradient fade when collapsed */}
+            {!isUser && isLong && !isExpanded && (
+              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-primary-50 dark:from-primary-900/20 to-transparent" />
+            )}
+          </div>
+
+          {/* Message Actions */}
+          {!isUser && (
+            <div className={cn(
+              'absolute top-2 right-2 transition-opacity duration-200 flex items-center gap-1',
+              isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            )}>
+              {onCopyMessage && (
+                <Button
+                  onClick={handleCopy}
+                  variant="secondary"
+                  size="icon"
+                  className={cn(
+                    'p-0',
+                    isMobile ? 'w-8 h-8 min-h-[44px] min-w-[44px]' : 'w-6 h-6'
+                  )}
+                  title="Kopírovat zprávu"
+                >
+                  {isCopied ? (
+                    <Check className={cn(isMobile ? 'h-4 w-4' : 'h-3 w-3')} />
+                  ) : (
+                    <Copy className={cn(isMobile ? 'h-4 w-4' : 'h-3 w-3')} />
+                  )}
+                </Button>
+              )}
+              {onDeleteMessage && (
+                <Button
+                  onClick={() => onDeleteMessage(message.id)}
+                  variant="danger"
+                  size="icon"
+                  className={cn(
+                    'p-0',
+                    isMobile ? 'w-8 h-8 min-h-[44px] min-w-[44px]' : 'w-6 h-6'
+                  )}
+                  title="Smazat zprávu"
+                >
+                  <ExternalLink className={cn(isMobile ? 'h-4 w-4' : 'h-3 w-3')} />
+                </Button>
+              )}
+              {onRegenerate && (
+                <Button
+                  onClick={() => onRegenerate(message.id)}
+                  variant="secondary"
+                  size="icon"
+                  className={cn(
+                    'p-0',
+                    isMobile ? 'w-8 h-8 min-h-[44px] min-w-[44px]' : 'w-6 h-6'
+                  )}
+                  title="Přegenerovat odpověď"
+                >
+                  <BookOpen className={cn(isMobile ? 'h-4 w-4' : 'h-3 w-3')} />
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Expand/Collapse Button for Long Messages */}
+          {!isUser && isLong && (
+            <div className="absolute bottom-2 right-2">
+              <Button
+                onClick={() => setIsExpanded(!isExpanded)}
+                variant="secondary"
+                size="sm"
+                className={cn(
+                  isMobile 
+                    ? 'text-[10px] px-2 py-1 min-h-[44px]' 
+                    : 'text-xs px-2 py-1'
+                )}
+              >
+                {isExpanded ? 'Sbalit' : 'Zobrazit více'}
+              </Button>
+            </div>
           )}
         </div>
 
-        {/* Message Actions */}
-        {!isUser && (
-          <div className={cn(
-            'absolute top-2 right-2 transition-opacity duration-200 flex items-center gap-1',
-            isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          )}>
-            {onCopyMessage && (
-              <Button
-                onClick={handleCopy}
-                variant="secondary"
-                size="icon"
-                className={cn(
-                  'p-0',
-                  isMobile ? 'w-8 h-8 min-h-[44px] min-w-[44px]' : 'w-6 h-6'
-                )}
-                title="Kopírovat zprávu"
-              >
-                {isCopied ? (
-                  <Check className={cn(isMobile ? 'h-4 w-4' : 'h-3 w-3')} />
-                ) : (
-                  <Copy className={cn(isMobile ? 'h-4 w-4' : 'h-3 w-3')} />
-                )}
-              </Button>
-            )}
-            {onDeleteMessage && (
-              <Button
-                onClick={() => onDeleteMessage(message.id)}
-                variant="danger"
-                size="icon"
-                className={cn(
-                  'p-0',
-                  isMobile ? 'w-8 h-8 min-h-[44px] min-w-[44px]' : 'w-6 h-6'
-                )}
-                title="Smazat zprávu"
-              >
-                <ExternalLink className={cn(isMobile ? 'h-4 w-4' : 'h-3 w-3')} />
-              </Button>
-            )}
-            {onRegenerate && (
-              <Button
-                onClick={() => onRegenerate(message.id)}
-                variant="secondary"
-                size="icon"
-                className={cn(
-                  'p-0',
-                  isMobile ? 'w-8 h-8 min-h-[44px] min-w-[44px]' : 'w-6 h-6'
-                )}
-                title="Přegenerovat odpověď"
-              >
-                <BookOpen className={cn(isMobile ? 'h-4 w-4' : 'h-3 w-3')} />
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Expand/Collapse Button for Long Messages */}
-        {!isUser && isLong && (
-          <div className="absolute bottom-2 right-2">
-            <Button
-              onClick={() => setIsExpanded(!isExpanded)}
-              variant="secondary"
-              size="sm"
-              className={cn(
-                isMobile 
-                  ? 'text-[10px] px-2 py-1 min-h-[44px]' 
-                  : 'text-xs px-2 py-1'
-              )}
-            >
-              {isExpanded ? 'Sbalit' : 'Zobrazit více'}
-            </Button>
+        {isUser && showRightAvatar && (
+          <div className="flex-shrink-0">
+            <div className={cn(
+              'bg-gradient-to-r from-neutral-600 to-neutral-700 rounded-full flex items-center justify-center shadow-soft',
+              isMobile ? 'w-8 h-8' : 'w-10 h-10'
+            )}>
+              <User className={cn('text-white', isMobile ? 'h-4 w-4' : 'h-6 w-6')} />
+            </div>
           </div>
         )}
       </div>
+    );
+  }
+);
 
-      {isUser && showRightAvatar && (
-        <div className="flex-shrink-0">
-          <div className={cn(
-            'bg-gradient-to-r from-neutral-600 to-neutral-700 rounded-full flex items-center justify-center shadow-soft',
-            isMobile ? 'w-8 h-8' : 'w-10 h-10'
-          )}>
-            <User className={cn('text-white', isMobile ? 'h-4 w-4' : 'h-6 w-6')} />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-});
+Message.displayName = 'Message';
 
 export default Message; 

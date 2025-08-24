@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Building2, Search, Plus, Edit, Eye, Users, CreditCard, 
-   MapPin, Phone, Mail
+   MapPin, Phone, Mail, Trash2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
@@ -33,11 +35,22 @@ const SchoolsManagementPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [totalSchools, setTotalSchools] = useState(0);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    schoolId: string | null;
+    schoolName: string;
+  }>({
+    isOpen: false,
+    schoolId: null,
+    schoolName: ''
+  });
+  const [deleting, setDeleting] = useState(false);
   const pageSize = 20;
 
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
-  const fetchSchools = async () => {
+  const fetchSchools = useCallback(async () => {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({
@@ -54,30 +67,41 @@ const SchoolsManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchQuery, pageSize, showToast]);
 
   useEffect(() => {
     fetchSchools();
-  }, [currentPage, searchQuery]);
+  }, [currentPage, searchQuery, fetchSchools]);
 
   const totalPages = Math.ceil(totalSchools / pageSize);
 
-  const getSubscriptionPlanColor = (plan: string) => {
-    const colorMap: Record<string, string> = {
-      'basic': 'bg-gray-100 text-gray-800',
-      'premium': 'bg-blue-100 text-blue-800',
-      'enterprise': 'bg-purple-100 text-purple-800'
-    };
-    return colorMap[plan] || 'bg-gray-100 text-gray-800';
+  const handleDeleteSchool = (schoolId: string, schoolName: string) => {
+    setDeleteDialog({
+      isOpen: true,
+      schoolId,
+      schoolName
+    });
   };
 
-  const getSubscriptionPlanName = (plan: string) => {
-    const nameMap: Record<string, string> = {
-      'basic': 'Základní',
-      'premium': 'Premium',
-      'enterprise': 'Enterprise'
-    };
-    return nameMap[plan] || plan;
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.schoolId) return;
+
+    try {
+      setDeleting(true);
+      await api.delete(`/admin/schools/${deleteDialog.schoolId}`);
+      showToast({ type: 'success', message: 'Škola byla úspěšně smazána' });
+      setDeleteDialog({ isOpen: false, schoolId: null, schoolName: '' });
+      fetchSchools();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Chyba při mazání školy';
+      showToast({ type: 'error', message: errorMessage });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ isOpen: false, schoolId: null, schoolName: '' });
   };
 
   return (
@@ -89,7 +113,7 @@ const SchoolsManagementPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">Správa škol</h1>
           <p className="text-gray-600 mt-1">Spravujte školy a jejich předplatná</p>
         </div>
-        <Button variant="primary">
+        <Button variant="primary" onClick={() => navigate('/admin/schools/create')}>
           <Plus className="w-4 h-4 mr-2" />
           Nová škola
         </Button>
@@ -134,11 +158,29 @@ const SchoolsManagementPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button size="sm" variant="secondary">
+                <Button 
+                  size="sm" 
+                  variant="secondary"
+                  onClick={() => navigate(`/admin/schools/${school.id}`)}
+                  title="Zobrazit detaily"
+                >
                   <Eye className="w-4 h-4" />
                 </Button>
-                <Button size="sm" variant="secondary">
+                <Button 
+                  size="sm" 
+                  variant="secondary"
+                  onClick={() => navigate(`/admin/schools/${school.id}/edit`)}
+                  title="Upravit školu"
+                >
                   <Edit className="w-4 h-4" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="secondary"
+                  onClick={() => handleDeleteSchool(school.id, school.name)}
+                  title="Smazat školu"
+                >
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -251,6 +293,18 @@ const SchoolsManagementPage: React.FC = () => {
           </Button>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Smazat školu"
+        message="Opravdu chcete smazat tuto školu? Tato akce je nevratná."
+        entityName={deleteDialog.schoolName}
+        impactMessage="Škola bude deaktivována a všichni její uživatelé budou muset být přesunuti nebo deaktivováni."
+        loading={deleting}
+      />
       </div>
     </AdminLayout>
   );

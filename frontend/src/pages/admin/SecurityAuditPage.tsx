@@ -174,24 +174,6 @@ const SecurityAuditPage: React.FC = () => {
     }
   };
 
-  const getEventTypeLabel = (eventType: string) => {
-    switch (eventType) {
-      case 'login':
-        return 'Přihlášení';
-      case 'logout':
-        return 'Odhlášení';
-      case 'failed_login':
-        return 'Neúspěšné přihlášení';
-      case 'permission_change':
-        return 'Změna oprávnění';
-      case 'data_access':
-        return 'Přístup k datům';
-      case 'system_change':
-        return 'Systémová změna';
-      default:
-        return eventType;
-    }
-  };
 
   const getStatusLabel = (status: string) => {
     switch (status) {

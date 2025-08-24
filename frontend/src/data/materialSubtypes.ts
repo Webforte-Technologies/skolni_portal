@@ -1,31 +1,31 @@
 import { MaterialSubtype, WorksheetSubtype, QuizSubtype, LessonPlanSubtype, ProjectSubtype, PresentationSubtype, ActivitySubtype } from '../types/MaterialTypes';
 
-// Worksheet Subtypes
+// Worksheet Subtypes - optimalizované pro český školní systém
 export const WORKSHEET_SUBTYPES: WorksheetSubtype[] = [
   {
-    id: 'practice-problems',
-    name: 'Cvičné úlohy',
-    description: 'Strukturované cvičení pro procvičování nových dovedností',
+    id: 'procvicovani',
+    name: 'Procvičování',
+    description: 'Cvičení pro upevnění nově probrané látky',
     parentType: 'worksheet',
     specialFields: [
       { 
-        name: 'problemTypes', 
+        name: 'typUloh', 
         type: 'multiselect', 
         label: 'Typy úloh',
         required: false,
-        options: ['výpočty', 'slovní úlohy', 'aplikace', 'analýza', 'syntéza'] 
+        options: ['výpočty', 'slovní úlohy', 'doplňování', 'přiřazování', 'křížovky'] 
       },
       { 
-        name: 'scaffoldingLevel', 
+        name: 'urovenPodpory', 
         type: 'select', 
         label: 'Úroveň podpory',
         required: false,
-        options: ['minimální', 'střední', 'vysoká'] 
+        options: ['s nápovědami', 'částečná podpora', 'samostatná práce'] 
       },
       {
-        name: 'includeHints',
+        name: 'zahrnoutReseni',
         type: 'boolean',
-        label: 'Zahrnout nápovědy',
+        label: 'Zahrnout řešení',
         required: false
       }
     ],
@@ -35,106 +35,153 @@ export const WORKSHEET_SUBTYPES: WorksheetSubtype[] = [
       'Zahrň různé typy problémů pro komplexní pochopení'
     ],
     examples: [
-      'Cvičení sčítání pro 2. třídu',
-      'Procvičování rovnic pro 8. třídu',
+      'Procvičování sčítání pro 2. třídu',
+      'Cvičení rovnic pro 8. třídu',
       'Geometrické úlohy pro střední školu'
     ]
   },
   {
-    id: 'homework-assignment',
+    id: 'domaci-ukol',
     name: 'Domácí úkol',
-    description: 'Samostatná práce pro upevnění učiva',
+    description: 'Samostatná práce pro upevnění učiva doma',
     parentType: 'worksheet',
     specialFields: [
-      { 
-        name: 'timeEstimate', 
-        type: 'select', 
-        label: 'Odhadovaný čas',
+      {
+        name: 'obtiznost',
+        type: 'select',
+        label: 'Obtížnost',
         required: false,
-        options: ['15 min', '30 min', '45 min', '60 min'] 
-      },
-      { 
-        name: 'parentGuidance', 
-        type: 'boolean', 
-        label: 'Zahrnout pokyny pro rodiče',
-        required: false
+        options: ['snadné', 'střední', 'těžké']
       },
       {
-        name: 'selfCheck',
+        name: 'casovaNarocnost',
+        type: 'select',
+        label: 'Časová náročnost',
+        required: false,
+        options: ['5-10 min', '10-20 min', '20-30 min', '30+ min']
+      },
+      {
+        name: 'rodicovskaPodpora',
         type: 'boolean',
-        label: 'Přidat možnost sebekontroly',
+        label: 'Možnost rodičovské podpory',
         required: false
       }
     ],
     promptModifications: [
-      'Vytvoř úlohy vhodné pro samostatnou práci doma',
-      'Zahrň jasné instrukce a očekávané výsledky',
-      'Přidej tipy pro rodiče, jak pomoci'
+      'Vytvoř úkoly vhodné pro samostatnou práci doma',
+      'Zahrň jasné instrukce pro rodiče',
+      'Poskytni kontrolní řešení'
     ],
     examples: [
-      'Domácí úkol z matematiky na víkend',
-      'Procvičování slovní zásoby',
-      'Příprava na test z dějepisu'
+      'Domácí úkol z matematiky pro 4. třídu',
+      'Procvičování českého jazyka doma',
+      'Přírodovědné úkoly pro 6. třídu'
     ]
   },
   {
-    id: 'assessment-worksheet',
-    name: 'Hodnotící list',
-    description: 'Pracovní list pro hodnocení znalostí',
+    id: 'kontrolni-prace',
+    name: 'Kontrolní práce',
+    description: 'Hodnotící worksheet pro ověření znalostí',
     parentType: 'worksheet',
     specialFields: [
       {
-        name: 'pointSystem',
+        name: 'typHodnoceni',
+        type: 'select',
+        label: 'Typ hodnocení',
+        required: false,
+        options: ['formativní', 'sumativní', 'diagnostické']
+      },
+      {
+        name: 'bodoveHodnoceni',
         type: 'boolean',
-        label: 'Zahrnout bodové hodnocení',
+        label: 'Bodové hodnocení',
         required: false
       },
       {
-        name: 'rubric',
+        name: 'kriterialniHodnoceni',
         type: 'boolean',
-        label: 'Přidat hodnotící kritéria',
+        label: 'Kriteriální hodnocení',
         required: false
       }
     ],
     promptModifications: [
-      'Vytvoř úlohy vhodné pro hodnocení znalostí',
-      'Zahrň jasná hodnotící kritéria',
-      'Zajisti spravedlivé rozložení obtížnosti'
+      'Vytvoř úlohy pro objektivní hodnocení znalostí',
+      'Zahrň jasná kritéria hodnocení',
+      'Poskytni bodové ohodnocení'
     ],
     examples: [
-      'Test z gramatiky',
-      'Hodnocení matematických dovedností',
+      'Kontrolní práce z matematiky - 5. třída',
+      'Test z českého jazyka - 7. třída',
       'Ověření znalostí z přírodovědy'
+    ]
+  },
+  {
+    id: 'opakovani',
+    name: 'Opakování',
+    description: 'Shrnutí a opakování probraného učiva',
+    parentType: 'worksheet',
+    specialFields: [
+      {
+        name: 'obdobiOpakovani',
+        type: 'select',
+        label: 'Období k opakování',
+        required: false,
+        options: ['poslední hodina', 'poslední týden', 'poslední měsíc', 'celé pololetí']
+      },
+      {
+        name: 'stylOpakovani',
+        type: 'select',
+        label: 'Styl opakování',
+        required: false,
+        options: ['přehledné shrnutí', 'smíšené úlohy', 'postupné obtížnosti']
+      }
+    ],
+    promptModifications: [
+      'Zaměř se na systematické opakování klíčových konceptů',
+      'Kombinuj různé typy úloh',
+      'Zajisti pokrytí všech důležitých témat'
+    ],
+    examples: [
+      'Opakování matematiky před testem',
+      'Shrnutí českého jazyka za měsíc',
+      'Přehled přírodovědy za pololetí'
     ]
   }
 ];
 
-// Quiz Subtypes
+// Quiz Subtypes - optimalizované pro český školní systém
 export const QUIZ_SUBTYPES: QuizSubtype[] = [
   {
-    id: 'formative-assessment',
+    id: 'formativni-hodnoceni',
     name: 'Formativní hodnocení',
-    description: 'Kvíz pro průběžné ověření porozumění',
+    description: 'Průběžné ověření porozumění během výuky',
     parentType: 'quiz',
     specialFields: [
       {
-        name: 'feedbackLevel',
+        name: 'mixOtazek',
+        type: 'multiselect',
+        label: 'Typy otázek',
+        required: false,
+        options: ['výběr z možností', 'pravda/nepravda', 'krátká odpověď', 'doplňování']
+      },
+      {
+        name: 'okamziteVysledky',
+        type: 'boolean',
+        label: 'Okamžité výsledky',
+        required: false
+      },
+      {
+        name: 'zpětnaVazba',
         type: 'select',
         label: 'Úroveň zpětné vazby',
         required: false,
         options: ['základní', 'podrobná', 's vysvětlením']
-      },
-      {
-        name: 'allowRetakes',
-        type: 'boolean',
-        label: 'Povolit opakování',
-        required: false
       }
     ],
     promptModifications: [
-      'Zaměř se na ověření porozumění klíčových konceptů',
-      'Poskytni konstruktivní zpětnou vazbu',
-      'Vytvoř otázky podporující učení'
+      'Vytvoř kvíz pro průběžné ověření porozumění',
+      'Zaměř se na rychlou zpětnou vazbu',
+      'Otázky by měly být jasné a umožnit rychlé vyhodnocení'
     ],
     examples: [
       'Rychlý kvíz na začátku hodiny',
@@ -143,388 +190,462 @@ export const QUIZ_SUBTYPES: QuizSubtype[] = [
     ]
   },
   {
-    id: 'summative-test',
+    id: 'sumativni-test',
     name: 'Sumativní test',
-    description: 'Komplexní test pro finální hodnocení',
+    description: 'Komplexní hodnocení na konci učební jednotky',
     parentType: 'quiz',
     specialFields: [
       {
-        name: 'coverageScope',
+        name: 'casovyLimit',
         type: 'select',
-        label: 'Rozsah pokrytí',
+        label: 'Časový limit',
         required: false,
-        options: ['jedna lekce', 'kapitola', 'celé období', 'ročník']
+        options: ['15 min', '30 min', '45 min', '60 min', 'bez limitu']
       },
       {
-        name: 'difficultyDistribution',
-        type: 'select',
-        label: 'Rozložení obtížnosti',
+        name: 'typOtazek',
+        type: 'multiselect',
+        label: 'Typy otázek',
         required: false,
-        options: ['rovnoměrné', 'pyramida (lehké→těžké)', 'diamant (střední převaha)']
+        options: ['výběr z možností', 'pravda/nepravda', 'krátká odpověď', 'esej', 'přiřazování']
+      },
+      {
+        name: 'bodoveHodnoceni',
+        type: 'boolean',
+        label: 'Bodové hodnocení',
+        required: false
       }
     ],
     promptModifications: [
-      'Vytvoř komplexní test pokrývající všechny klíčové oblasti',
-      'Zajisti vyvážené rozložení obtížnosti',
-      'Zahrň různé typy otázek pro spravedlivé hodnocení'
+      'Vytvoř komplexní test pokrývající celou učební jednotku',
+      'Zahrň různé úrovně obtížnosti',
+      'Poskytni jasná kritéria hodnocení'
     ],
     examples: [
-      'Pololetní test z matematiky',
+      'Test z matematiky za čtvrtletí',
       'Závěrečný kvíz z kapitoly',
       'Maturitní zkouška z češtiny'
     ]
   },
   {
-    id: 'diagnostic-assessment',
-    name: 'Diagnostické hodnocení',
-    description: 'Kvíz pro zjištění úrovně znalostí',
+    id: 'diagnosticky-test',
+    name: 'Diagnostický test',
+    description: 'Zjištění úrovně znalostí a dovedností',
     parentType: 'quiz',
     specialFields: [
       {
-        name: 'skillMapping',
-        type: 'boolean',
-        label: 'Mapování dovedností',
-        required: false
+        name: 'diagnostickaOblast',
+        type: 'multiselect',
+        label: 'Diagnostické oblasti',
+        required: false,
+        options: ['znalosti', 'dovednosti', 'porozumění', 'aplikace', 'analýza']
       },
       {
-        name: 'adaptiveQuestions',
-        type: 'boolean',
-        label: 'Adaptivní otázky',
-        required: false
+        name: 'urovenObtiznosti',
+        type: 'select',
+        label: 'Úroveň obtížnosti',
+        required: false,
+        options: ['základní', 'střední', 'pokročilé', 'smíšené']
       }
     ],
     promptModifications: [
-      'Vytvoř otázky pro zjištění současné úrovně znalostí',
-      'Zaměř se na identifikaci mezer ve znalostech',
-      'Poskytni doporučení pro další učení'
+      'Vytvoř test pro zjištění úrovně znalostí',
+      'Zahrň otázky různé obtížnosti',
+      'Poskytni diagnostické informace'
     ],
     examples: [
-      'Vstupní test na začátku roku',
-      'Diagnostika před novým tématem',
-      'Zjištění úrovně cizího jazyka'
+      'Diagnostika matematických dovedností',
+      'Zjištění úrovně čtenářské gramotnosti',
+      'Hodnocení přírodovědných znalostí'
     ]
   }
 ];
 
-// Lesson Plan Subtypes
+// Lesson Plan Subtypes - optimalizované pro český školní systém
 export const LESSON_PLAN_SUBTYPES: LessonPlanSubtype[] = [
   {
-    id: 'introduction-lesson',
+    id: 'uvodni-hodina',
     name: 'Úvodní hodina',
     description: 'Představení nového tématu nebo konceptu',
     parentType: 'lesson-plan',
     specialFields: [
       {
-        name: 'priorKnowledge',
-        type: 'textarea',
-        label: 'Předchozí znalosti',
-        placeholder: 'Co by studenti měli už znát?',
+        name: 'motivacniPrvek',
+        type: 'select',
+        label: 'Motivační prvek',
+        required: false,
+        options: ['příběh', 'experiment', 'problém', 'video', 'diskuze']
+      },
+      {
+        name: 'aktivizacePredchozichZnalosti',
+        type: 'boolean',
+        label: 'Aktivizace předchozích znalostí',
         required: false
       },
       {
-        name: 'hookActivity',
-        type: 'textarea',
-        label: 'Úvodní aktivita',
-        placeholder: 'Jak zaujmout pozornost studentů?',
+        name: 'stanoveniCilu',
+        type: 'boolean',
+        label: 'Stanovení cíle hodiny',
         required: false
       }
     ],
     promptModifications: [
-      'Zaměř se na motivaci a zaujmutí studentů',
-      'Navažuj na předchozí znalosti',
-      'Vytvoř jasný přehled toho, co se studenti naučí'
+      'Zaměř se na motivaci a zájem žáků',
+      'Aktivuj předchozí znalosti',
+      'Jasně stanov cíle hodiny'
     ],
     examples: [
-      'Úvod do zlomků',
-      'První hodina o fotosyntéze',
-      'Představení nové historické epochy'
+      'Úvod do zlomků v 5. třídě',
+      'Představení fotosyntézy',
+      'Úvod do dějepisu - pravěk'
     ]
   },
   {
-    id: 'practice-lesson',
+    id: 'procvicovaci-hodina',
     name: 'Procvičovací hodina',
-    description: 'Upevnění a procvičení naučeného',
+    description: 'Upevnění a procvičení nových dovedností',
     parentType: 'lesson-plan',
     specialFields: [
       {
-        name: 'practiceTypes',
-        type: 'multiselect',
-        label: 'Typy procvičování',
+        name: 'typProcvicovani',
+        type: 'select',
+        label: 'Typ procvičování',
         required: false,
-        options: ['individuální práce', 'párová práce', 'skupinová práce', 'celotřídní diskuse']
+        options: ['individuální', 'skupinové', 'frontální', 'smíšené']
       },
       {
-        name: 'differentiationLevel',
+        name: 'urovenObtiznosti',
         type: 'select',
-        label: 'Úroveň diferenciace',
+        label: 'Úroveň obtížnosti',
         required: false,
-        options: ['žádná', 'základní', 'pokročilá']
+        options: ['základní', 'střední', 'pokročilé', 'postupné']
+      },
+      {
+        name: 'zpětnaVazba',
+        type: 'boolean',
+        label: 'Okamžitá zpětná vazba',
+        required: false
       }
     ],
     promptModifications: [
-      'Vytvoř různorodé aktivity pro procvičení',
-      'Zahrň možnosti pro různé úrovně studentů',
-      'Poskytni dostatek příležitostí k aplikaci znalostí'
+      'Zaměř se na praktické procvičování',
+      'Poskytuj okamžitou zpětnou vazbu',
+      'Postupně zvyšuj obtížnost'
     ],
     examples: [
-      'Procvičování rovnic',
-      'Aplikace gramatických pravidel',
-      'Řešení slovních úloh'
+      'Procvičování sčítání zlomků',
+      'Cvičení z českého jazyka',
+      'Praktické úlohy z přírodovědy'
     ]
   },
   {
-    id: 'review-lesson',
+    id: 'opakovaci-hodina',
     name: 'Opakovací hodina',
-    description: 'Shrnutí a opakování před testem',
+    description: 'Shrnutí a opakování probraného učiva',
     parentType: 'lesson-plan',
     specialFields: [
       {
-        name: 'reviewScope',
+        name: 'obdobiOpakovani',
         type: 'select',
-        label: 'Rozsah opakování',
+        label: 'Období k opakování',
         required: false,
-        options: ['poslední hodina', 'týden', 'kapitola', 'celé období']
+        options: ['poslední hodina', 'poslední týden', 'poslední měsíc', 'celé téma']
       },
       {
-        name: 'reviewMethods',
-        type: 'multiselect',
-        label: 'Metody opakování',
+        name: 'formaOpakovani',
+        type: 'select',
+        label: 'Forma opakování',
         required: false,
-        options: ['kvíz', 'diskuse', 'myšlenková mapa', 'prezentace', 'hry']
+        options: ['přehled', 'kvíz', 'hra', 'diskuse', 'smíšené']
       }
     ],
     promptModifications: [
-      'Zaměř se na klíčové koncepty a dovednosti',
-      'Vytvoř interaktivní aktivity pro opakování',
-      'Identifikuj a vyřeš časté chyby studentů'
+      'Systematicky opakuj klíčové koncepty',
+      'Použij různé formy opakování',
+      'Zajisti pochopení všech žáků'
     ],
     examples: [
-      'Opakování před testem z dějepisu',
-      'Shrnutí kapitoly o ekosystémech',
-      'Příprava na maturitu z matematiky'
+      'Opakování matematiky před testem',
+      'Shrnutí českého jazyka za měsíc',
+      'Přehled přírodovědy za téma'
+    ]
+  },
+  {
+    id: 'hodnocici-hodina',
+    name: 'Hodnotící hodina',
+    description: 'Hodnocení a reflexe učebních výsledků',
+    parentType: 'lesson-plan',
+    specialFields: [
+      {
+        name: 'typHodnoceni',
+        type: 'select',
+        label: 'Typ hodnocení',
+        required: false,
+        options: ['sebehodnocení', 'vrstevnické', 'učitelovo', 'smíšené']
+      },
+      {
+        name: 'formaHodnoceni',
+        type: 'select',
+        label: 'Forma hodnocení',
+        required: false,
+        options: ['ústní', 'písemné', 'projektové', 'portfoliové']
+      }
+    ],
+    promptModifications: [
+      'Zaměř se na konstruktivní hodnocení',
+      'Zahrň sebehodnocení žáků',
+      'Poskytuj konkrétní doporučení'
+    ],
+    examples: [
+      'Hodnocení projektu z matematiky',
+      'Reflexe čtenářských dovedností',
+      'Zhodnocení přírodovědného experimentu'
     ]
   }
 ];
 
-// Project Subtypes
+// Project Subtypes - optimalizované pro český školní systém
 export const PROJECT_SUBTYPES: ProjectSubtype[] = [
   {
-    id: 'research-project',
+    id: 'vyzkumny-projekt',
     name: 'Výzkumný projekt',
-    description: 'Projekt zaměřený na výzkum a analýzu',
+    description: 'Samostatný výzkum na zvolené téma',
     parentType: 'project',
     specialFields: [
       {
-        name: 'researchMethods',
-        type: 'multiselect',
-        label: 'Výzkumné metody',
+        name: 'typVyzkumu',
+        type: 'select',
+        label: 'Typ výzkumu',
         required: false,
-        options: ['literatura', 'dotazník', 'rozhovor', 'pozorování', 'experiment']
+        options: ['literární rešerše', 'experiment', 'průzkum', 'analýza dat']
       },
       {
-        name: 'sourcesRequired',
-        type: 'number',
-        label: 'Minimální počet zdrojů',
+        name: 'delkaProjektu',
+        type: 'select',
+        label: 'Délka projektu',
         required: false,
-        validation: { min: 1, max: 50 }
+        options: ['1 týden', '2 týdny', '1 měsíc', 'pololetí']
+      },
+      {
+        name: 'formaVystupu',
+        type: 'select',
+        label: 'Forma výstupu',
+        required: false,
+        options: ['prezentace', 'plakát', 'model', 'video', 'esej']
       }
     ],
     promptModifications: [
-      'Zaměř se na vědecký přístup k výzkumu',
-      'Zahrň metodologii a analýzu dat',
-      'Poskytni pokyny pro citování zdrojů'
+      'Vytvoř strukturovaný výzkumný projekt',
+      'Zahrň jasné kroky a metodiku',
+      'Stanov konkrétní výstup'
     ],
     examples: [
-      'Výzkum místní historie',
-      'Analýza kvality vody v okolí',
-      'Průzkum názorů na ekologii'
+      'Výzkum historie města',
+      'Experiment s rostlinami',
+      'Analýza spotřebitelského chování'
     ]
   },
   {
-    id: 'creative-project',
+    id: 'kreativni-projekt',
     name: 'Kreativní projekt',
-    description: 'Projekt podporující kreativitu a originalitu',
+    description: 'Tvůrčí práce s důrazem na originalitu',
     parentType: 'project',
     specialFields: [
       {
-        name: 'mediumTypes',
-        type: 'multiselect',
-        label: 'Typy médií',
+        name: 'kreativniOblast',
+        type: 'select',
+        label: 'Kreativní oblast',
         required: false,
-        options: ['text', 'obrázky', 'video', 'audio', 'interaktivní', 'fyzický model']
+        options: ['výtvarná', 'literární', 'hudební', 'technická', 'multimediální']
       },
       {
-        name: 'originalityLevel',
+        name: 'individuálníSkupinový',
         type: 'select',
-        label: 'Požadavek na originalitu',
+        label: 'Forma práce',
         required: false,
-        options: ['adaptace', 'modifikace', 'originální tvorba']
+        options: ['individuální', 'skupinový', 'celotřídní']
       }
     ],
     promptModifications: [
-      'Podporuj kreativní myšlení a originalitu',
-      'Poskytni prostor pro osobní vyjádření',
-      'Zahrň různé možnosti prezentace'
+      'Podporuj kreativitu a originalitu',
+      'Zahrň různé formy vyjádření',
+      'Poskytuj prostor pro experimentování'
     ],
     examples: [
-      'Vytvoření komiksu o historické události',
-      'Složení písně o přírodě',
-      'Návrh plakátu pro kampaň'
+      'Výtvarný projekt - portrét',
+      'Literární projekt - povídka',
+      'Technický projekt - model'
     ]
   },
   {
-    id: 'group-project',
-    name: 'Skupinový projekt',
-    description: 'Projekt pro týmovou spolupráci',
+    id: 'sluzebni-projekt',
+    name: 'Služební projekt',
+    description: 'Projekt prospěšný pro komunitu nebo školu',
     parentType: 'project',
     specialFields: [
       {
-        name: 'groupSize',
+        name: 'cilovaSkupina',
         type: 'select',
-        label: 'Velikost skupiny',
+        label: 'Cílová skupina',
         required: false,
-        options: ['2-3 studenti', '4-5 studentů', '6-8 studentů', 'celá třída']
+        options: ['mladší žáci', 'senioři', 'komunita', 'škola', 'rodina']
       },
       {
-        name: 'roleAssignment',
-        type: 'boolean',
-        label: 'Definovat role ve skupině',
-        required: false
+        name: 'typSluzby',
+        type: 'select',
+        label: 'Typ služby',
+        required: false,
+        options: ['vzdělávací', 'pomocná', 'informační', 'kulturní']
       }
     ],
     promptModifications: [
-      'Zaměř se na spolupráci a komunikaci',
-      'Definuj jasné role a odpovědnosti',
-      'Zahrň mechanismy pro řešení konfliktů'
+      'Zaměř se na prospěch pro komunitu',
+      'Zahrň praktické dovednosti',
+      'Posiluj sociální odpovědnost'
     ],
     examples: [
-      'Skupinová prezentace o zemi',
-      'Společné řešení environmentálního problému',
-      'Týmový projekt na vytvoření aplikace'
+      'Výuka počítačů pro seniory',
+      'Úklid okolí školy',
+      'Informační kampaň o třídění odpadu'
     ]
   }
 ];
 
-// Presentation Subtypes
+// Presentation Subtypes - optimalizované pro český školní systém
 export const PRESENTATION_SUBTYPES: PresentationSubtype[] = [
   {
-    id: 'lecture-slides',
-    name: 'Přednáškové slidy',
-    description: 'Slidy pro výuku učitelem',
+    id: 'vyukove-slidy',
+    name: 'Výukové slidy',
+    description: 'Prezentace pro výklad nového učiva',
     parentType: 'presentation',
     specialFields: [
       {
-        name: 'interactionLevel',
-        type: 'select',
-        label: 'Úroveň interakce',
+        name: 'pocetSlidu',
+        type: 'number',
+        label: 'Počet slidů',
         required: false,
-        options: ['pasivní sledování', 'občasné otázky', 'aktivní zapojení']
+        validation: { min: 5, max: 30 }
       },
       {
-        name: 'visualDensity',
+        name: 'typPrezentace',
         type: 'select',
-        label: 'Hustota obsahu',
+        label: 'Typ prezentace',
         required: false,
-        options: ['minimalistické', 'vyvážené', 'detailní']
-      }
-    ],
-    promptModifications: [
-      'Vytvoř jasné a přehledné slidy pro výuku',
-      'Zahrň klíčové body a vizuální podporu',
-      'Poskytni poznámky pro učitele'
-    ],
-    examples: [
-      'Přednáška o fotosyntéze',
-      'Výklad matematických funkcí',
-      'Představení literárního díla'
-    ]
-  },
-  {
-    id: 'student-presentation',
-    name: 'Studentská prezentace',
-    description: 'Šablona pro prezentace studentů',
-    parentType: 'presentation',
-    specialFields: [
-      {
-        name: 'guidanceLevel',
-        type: 'select',
-        label: 'Úroveň vedení',
-        required: false,
-        options: ['detailní pokyny', 'základní struktura', 'volná forma']
+        options: ['výkladová', 'interaktivní', 'přehledová', 'motivační']
       },
       {
-        name: 'presentationSkills',
-        type: 'boolean',
-        label: 'Zahrnout tipy pro prezentování',
-        required: false
-      }
-    ],
-    promptModifications: [
-      'Vytvoř šablonu vhodnou pro studenty',
-      'Zahrň pokyny pro efektivní prezentování',
-      'Poskytni jasnou strukturu a časový plán'
-    ],
-    examples: [
-      'Šablona pro referát o zemi',
-      'Prezentace výsledků projektu',
-      'Obhajoba seminární práce'
-    ]
-  },
-  {
-    id: 'interactive-presentation',
-    name: 'Interaktivní prezentace',
-    description: 'Prezentace s aktivním zapojením publika',
-    parentType: 'presentation',
-    specialFields: [
-      {
-        name: 'interactionTypes',
+        name: 'vizuálníPrvky',
         type: 'multiselect',
-        label: 'Typy interakce',
+        label: 'Vizuální prvky',
         required: false,
-        options: ['otázky', 'hlasování', 'diskuse', 'aktivity', 'kvízy']
-      },
-      {
-        name: 'technologyLevel',
-        type: 'select',
-        label: 'Úroveň technologií',
-        required: false,
-        options: ['bez technologií', 'základní nástroje', 'pokročilé nástroje']
+        options: ['obrázky', 'grafy', 'diagramy', 'videa', 'animace']
       }
     ],
     promptModifications: [
-      'Zahrň interaktivní prvky pro zapojení publika',
-      'Vytvoř příležitosti pro diskusi a otázky',
-      'Navrhni aktivity podporující učení'
+      'Vytvoř jasnou a přehlednou prezentaci',
+      'Zahrň vizuální podporu',
+      'Strukturovaně prezentuj informace'
     ],
     examples: [
-      'Interaktivní hodina o klimatu',
-      'Zapojující prezentace o historii',
-      'Aktivní výuka cizího jazyka'
+      'Prezentace o fotosyntéze',
+      'Výklad matematických konceptů',
+      'Přehled historických událostí'
+    ]
+  },
+  {
+    id: 'studentska-prezentace',
+    name: 'Studentská prezentace',
+    description: 'Šablona pro prezentace žáků',
+    parentType: 'presentation',
+    specialFields: [
+      {
+        name: 'urovenZaku',
+        type: 'select',
+        label: 'Úroveň žáků',
+        required: false,
+        options: ['1. stupeň ZŠ', '2. stupeň ZŠ', 'SŠ']
+      },
+      {
+        name: 'formaPrezentace',
+        type: 'select',
+        label: 'Forma prezentace',
+        required: false,
+        options: ['ústní', 'poster', 'digitální', 'multimediální']
+      }
+    ],
+    promptModifications: [
+      'Přizpůsob úrovni žáků',
+      'Zahrň jasné instrukce',
+      'Podporuj aktivní zapojení'
+    ],
+    examples: [
+      'Prezentace projektu žáka 6. třídy',
+      'Poster o zvířatech pro 3. třídu',
+      'Digitální prezentace pro středoškoláky'
+    ]
+  },
+  {
+    id: 'prezentace-projektu',
+    name: 'Prezentace projektu',
+    description: 'Prezentace výsledků projektové práce',
+    parentType: 'presentation',
+    specialFields: [
+      {
+        name: 'typProjektu',
+        type: 'select',
+        label: 'Typ projektu',
+        required: false,
+        options: ['výzkumný', 'kreativní', 'služební', 'technický']
+      },
+      {
+        name: 'cilovaAudience',
+        type: 'select',
+        label: 'Cílová audience',
+        required: false,
+        options: ['třída', 'škola', 'rodiče', 'veřejnost']
+      }
+    ],
+    promptModifications: [
+      'Zaměř se na prezentaci výsledků',
+      'Zahrň metodiku a závěry',
+      'Připrav na otázky a diskusi'
+    ],
+    examples: [
+      'Prezentace výzkumného projektu',
+      'Představení kreativního díla',
+      'Zpráva o služebním projektu'
     ]
   }
 ];
 
-// Activity Subtypes
+// Activity Subtypes - optimalizované pro český školní systém
 export const ACTIVITY_SUBTYPES: ActivitySubtype[] = [
   {
-    id: 'warmup-activity',
+    id: 'zahrici-aktivita',
     name: 'Zahřívací aktivita',
     description: 'Krátká aktivita na začátek hodiny',
     parentType: 'activity',
     specialFields: [
       {
-        name: 'energyLevel',
+        name: 'energetickaUroven',
         type: 'select',
-        label: 'Úroveň energie',
+        label: 'Energetická úroveň',
         required: false,
         options: ['klidná', 'mírně aktivní', 'velmi aktivní']
       },
       {
-        name: 'connectionToLesson',
+        name: 'spojeniSHodinou',
         type: 'select',
         label: 'Spojení s hodinou',
         required: false,
         options: ['přímé', 'nepřímé', 'obecné']
+      },
+      {
+        name: 'delkaAktivity',
+        type: 'select',
+        label: 'Délka aktivity',
+        required: false,
+        options: ['5 min', '10 min', '15 min']
       }
     ],
     promptModifications: [
@@ -539,24 +660,31 @@ export const ACTIVITY_SUBTYPES: ActivitySubtype[] = [
     ]
   },
   {
-    id: 'main-activity',
+    id: 'hlavni-aktivita',
     name: 'Hlavní aktivita',
     description: 'Ústřední aktivita hodiny',
     parentType: 'activity',
     specialFields: [
       {
-        name: 'learningStyle',
+        name: 'stylUceni',
         type: 'multiselect',
         label: 'Styly učení',
         required: false,
         options: ['vizuální', 'auditivní', 'kinestetický', 'čtení/psaní']
       },
       {
-        name: 'complexityLevel',
+        name: 'slozitost',
         type: 'select',
         label: 'Úroveň složitosti',
         required: false,
         options: ['jednoduchá', 'střední', 'složitá', 'velmi složitá']
+      },
+      {
+        name: 'formaPrace',
+        type: 'select',
+        label: 'Forma práce',
+        required: false,
+        options: ['individuální', 'skupinová', 'frontální', 'smíšená']
       }
     ],
     promptModifications: [
@@ -571,35 +699,67 @@ export const ACTIVITY_SUBTYPES: ActivitySubtype[] = [
     ]
   },
   {
-    id: 'closing-activity',
+    id: 'zavěrečná-aktivita',
     name: 'Závěrečná aktivita',
-    description: 'Aktivita pro ukončení hodiny',
+    description: 'Aktivita na konec hodiny pro upevnění učiva',
     parentType: 'activity',
     specialFields: [
       {
-        name: 'reflectionLevel',
+        name: 'typReflexe',
         type: 'select',
-        label: 'Úroveň reflexe',
+        label: 'Typ reflexe',
         required: false,
-        options: ['žádná', 'základní', 'hluboká']
+        options: ['ústní', 'písemná', 'výtvarná', 'pohybová']
       },
       {
-        name: 'summaryType',
+        name: 'formaShrnutí',
         type: 'select',
-        label: 'Typ shrnutí',
+        label: 'Forma shrnutí',
         required: false,
-        options: ['učitel shrne', 'studenti shrnou', 'společné shrnutí']
+        options: ['diskuse', 'kvíz', 'hra', 'prezentace']
       }
     ],
     promptModifications: [
-      'Vytvoř aktivitu pro shrnutí a reflexi',
       'Zaměř se na upevnění klíčových poznatků',
-      'Poskytni prostor pro otázky a zpětnou vazbu'
+      'Zahrň reflexi a sebehodnocení',
+      'Poskytuj zpětnou vazbu'
     ],
     examples: [
-      'Rychlé shrnutí v kruhu',
-      'Exit ticket s otázkami',
-      'Reflexe o naučeném'
+      'Shrnutí hodiny formou hry',
+      'Reflexe o naučeném',
+      'Závěrečný kvíz'
+    ]
+  },
+  {
+    id: 'přestávková-aktivita',
+    name: 'Přestávková aktivita',
+    description: 'Krátká aktivita během přestávky nebo pro uvolnění',
+    parentType: 'activity',
+    specialFields: [
+      {
+        name: 'typAktivity',
+        type: 'select',
+        label: 'Typ aktivity',
+        required: false,
+        options: ['pohybová', 'relaxační', 'hudební', 'výtvarná']
+      },
+      {
+        name: 'místoKonání',
+        type: 'select',
+        label: 'Místo konání',
+        required: false,
+        options: ['třída', 'chodba', 'tělocvična', 'venku']
+      }
+    ],
+    promptModifications: [
+      'Vytvoř aktivitu pro uvolnění a relaxaci',
+      'Zaměř se na pohyb a energii',
+      'Přizpůsob prostoru a času'
+    ],
+    examples: [
+      'Krátká pohybová hra',
+      'Relaxační cvičení',
+      'Hudební aktivita'
     ]
   }
 ];

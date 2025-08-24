@@ -7,12 +7,13 @@ import { useToast } from '../../contexts/ToastContext';
 import { AssignmentAnalysisService } from '../../services/assignmentAnalysisService';
 import { AssignmentAnalysis, MaterialTypeSuggestion } from '../../types/MaterialTypes';
 import { getSubtypesForMaterial } from '../../data/materialSubtypes';
+import MaterialGenerationHelp from '../../components/materials/MaterialGenerationHelp';
 
 import { streamingService } from '../../services/streamingService';
 import { 
   BookOpen, FileText, Target, Sparkles, Presentation, Users,
   Zap, Eye, ArrowRight, Clock, CheckCircle, Lightbulb,
-  Brain, Search, Star, Info, AlertCircle, Settings
+  Brain, Search, Star, Info, Settings
 } from 'lucide-react';
 import { MaterialType } from '../../types/MaterialTypes';
 
@@ -31,6 +32,7 @@ interface GenerationRequest {
   topic: string;
   activityType: 'lesson' | 'worksheet' | 'quiz' | 'project' | 'presentation' | 'activity';
   gradeLevel: string;
+  subject?: string;
   duration: string;
   // Quiz-specific fields
   questionCount?: number;
@@ -91,6 +93,9 @@ const SimplifiedGeneratorPage: React.FC = () => {
   // Subtype selection state
   const [selectedSubtypes, setSelectedSubtypes] = useState<Record<string, any>>({});
 
+  // Advanced help state
+  const [showAdvancedHelp, setShowAdvancedHelp] = useState(false);
+
   // Update duration when activity type changes
   useEffect(() => {
     const defaultDuration = getDurationOptions(request.activityType)[0];
@@ -112,7 +117,9 @@ const SimplifiedGeneratorPage: React.FC = () => {
       try {
         const prefs = JSON.parse(saved);
         setRequest(prev => ({ ...prev, ...prefs }));
-      } catch {}
+      } catch (error) {
+        console.warn('Failed to parse saved preferences:', error);
+      }
     }
   }, []);
 
@@ -840,14 +847,77 @@ const SimplifiedGeneratorPage: React.FC = () => {
     setCurrentStep('preview');
     
     try {
+      // Vytvoříme skutečný náhled na základě zadaných parametrů
+      const activityType = activityTypes.find(t => t.id === request.activityType);
+      const selectedSubtype = selectedSubtypes[request.activityType];
+      
+      // Generujeme cíle na základě tématu a typu
+      const goals = [
+        `Žáci pochopí základní principy ${request.topic}`,
+        `Žáci budou schopni aplikovat znalosti o ${request.topic}`,
+        `Žáci rozvinou dovednosti potřebné pro práci s ${request.topic}`
+      ];
+
+      // Generujeme kroky na základě typu aktivity
+      let steps: string[] = [];
+      switch (request.activityType) {
+        case 'lesson':
+          steps = [
+            'Úvod a motivace (5 min)',
+            'Výklad nové látky (20 min)',
+            'Procvičování a aktivity (15 min)',
+            'Shrnutí a závěr (5 min)'
+          ];
+          break;
+        case 'worksheet':
+          steps = [
+            'Seznámení s úkoly (3 min)',
+            'Samostatná práce žáků (25 min)',
+            'Kontrola a oprava (12 min)',
+            'Reflexe a shrnutí (5 min)'
+          ];
+          break;
+        case 'quiz':
+          steps = [
+            'Instrukce k testu (3 min)',
+            'Vypracování testu (15 min)',
+            'Kontrola odpovědí (7 min)',
+            'Vysvětlení správných řešení (5 min)'
+          ];
+          break;
+        case 'activity':
+          steps = [
+            'Představení aktivity (5 min)',
+            'Vykonání aktivity (20 min)',
+            'Prezentace výsledků (10 min)',
+            'Reflexe a diskuse (10 min)'
+          ];
+          break;
+        default:
+          steps = [
+            'Příprava a úvod (10 min)',
+            'Hlavní část (25 min)',
+            'Závěr a reflexe (10 min)'
+          ];
+      }
+
+      // Generujeme materiály na základě typu
+      const materials = [
+        'Tabule nebo projektor',
+        'Pracovní listy nebo sešity',
+        'Psací potřeby',
+        request.activityType === 'activity' ? 'Pomůcky pro aktivitu' : '',
+        request.activityType === 'quiz' ? 'Testovací formuláře' : ''
+      ].filter(Boolean);
+
       const preview: ActivityPreview = {
         id: Date.now().toString(),
         title: `${request.topic} - ${request.gradeLevel}`,
-        description: `${activityTypes.find(t => t.id === request.activityType)?.description} zaměřená na téma "${request.topic}" pro ${request.gradeLevel}.`,
-        goals: ['Cíl 1', 'Cíl 2', 'Cíl 3'],
+        description: `${activityType?.description || 'Aktivita'} zaměřená na téma "${request.topic}" pro ${request.gradeLevel}.${selectedSubtype ? ` Typ: ${selectedSubtype.name}` : ''}`,
+        goals,
         duration: request.duration,
-        materials: ['Tabule/projektor', 'Pracovní materiály', 'Psací potřeby'],
-        steps: ['Krok 1', 'Krok 2', 'Krok 3'],
+        materials,
+        steps,
         approved: false
       };
 
@@ -1025,39 +1095,7 @@ const SimplifiedGeneratorPage: React.FC = () => {
     setGenerationProgress(0);
   };
 
-  const getFieldLabel = (name: string) => {
-    const labels: Record<string, string> = {
-      title: 'Název',
-      subject: 'Předmět',
-      gradeLevel: 'Ročník',
-      grade_level: 'Ročník',
-      difficulty: 'Obtížnost',
-      learningObjectives: 'Výukové cíle',
-      instructions: 'Instrukce',
-      estimatedTime: 'Odhadovaný čas',
-      duration: 'Délka',
-      materials: 'Potřebné materiály',
-      activities: 'Aktivity',
-      assessment: 'Hodnocení',
-      steps: 'Kroky',
-      evaluation: 'Kritéria hodnocení',
-      slideCount: 'Počet slidů',
-      keyPoints: 'Klíčové body',
-      visualElements: 'Vizuální prvky',
-      groupSize: 'Velikost skupiny',
-      questionCount: 'Počet otázek',
-      questions: 'Otázky',
-      problems: 'Úlohy',
-      timeLimit: 'Časový limit',
-      questionTypes: 'Typy otázek',
-      tags: 'Štítky',
-      customInstructions: 'Vlastní instrukce',
-      specialRequirements: 'Speciální požadavky',
-      qualityLevel: 'Úroveň kvality'
-    };
-    
-    return labels[name] || name.charAt(0).toUpperCase() + name.slice(1).replace(/([A-Z])/g, ' $1');
-  };
+
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900">
@@ -1340,19 +1378,35 @@ const SimplifiedGeneratorPage: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                      Délka
+                      Předmět
                     </label>
                     <select
-                      value={request.duration}
-                      onChange={(e) => handleInputChange('duration', e.target.value)}
+                      value={request.subject || ''}
+                      onChange={(e) => handleInputChange('subject', e.target.value)}
                       className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
                     >
-                      {getDurationOptions(request.activityType).map(duration => (
-                        <option key={duration} value={duration}>{duration}</option>
-                      ))}
+                      <option value="">Vyberte předmět</option>
+                      <option value="Matematika">Matematika</option>
+                      <option value="Český jazyk">Český jazyk</option>
+                      <option value="Anglický jazyk">Anglický jazyk</option>
+                      <option value="Přírodověda">Přírodověda</option>
+                      <option value="Vlastivěda">Vlastivěda</option>
+                      <option value="Dějepis">Dějepis</option>
+                      <option value="Zeměpis">Zeměpis</option>
+                      <option value="Fyzika">Fyzika</option>
+                      <option value="Chemie">Chemie</option>
+                      <option value="Biologie">Biologie</option>
+                      <option value="Výtvarná výchova">Výtvarná výchova</option>
+                      <option value="Hudební výchova">Hudební výchova</option>
+                      <option value="Tělesná výchova">Tělesná výchova</option>
+                      <option value="Informatika">Informatika</option>
+                      <option value="Občanská výchova">Občanská výchova</option>
                     </select>
                   </div>
                 </div>
+
+                {/* Help Section */}
+                <MaterialGenerationHelp />
 
                 {/* Dynamic Fields based on Activity Type */}
                 {renderDynamicFields()}
@@ -1362,7 +1416,32 @@ const SimplifiedGeneratorPage: React.FC = () => {
                   <div className="flex items-center gap-2 mb-4">
                     <Settings className="w-4 h-4 text-gray-500" />
                     <h3 className="font-medium text-gray-900 dark:text-gray-100">Pokročilé nastavení</h3>
+                    <div className="ml-auto">
+                      <button
+                        type="button"
+                        onClick={() => setShowAdvancedHelp(!showAdvancedHelp)}
+                        className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        <Info className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
+                  
+                  {showAdvancedHelp && (
+                    <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Jak funguje pokročilé nastavení?</h4>
+                      <div className="text-sm text-blue-800 dark:text-blue-200 space-y-2">
+                        <p><strong>Úroveň kvality:</strong></p>
+                        <ul className="list-disc list-inside ml-2">
+                          <li><strong>Základní:</strong> Rychlé generování, základní kvalita (vhodné pro rychlé náčrty)</li>
+                          <li><strong>Standardní:</strong> Vyvážená kvalita a rychlost (doporučeno pro většinu materiálů)</li>
+                          <li><strong>Vysoká:</strong> Nejlepší kvalita, pomalejší generování (pro důležité materiály)</li>
+                        </ul>
+                        <p><strong>Vlastní instrukce:</strong> Přidejte specifické požadavky pro AI (např. "Zahrň více praktických příkladů", "Použij jednoduchý jazyk pro mladší žáky")</p>
+                        <p><strong>Speciální požadavky:</strong> Zaškrtněte prvky, které chcete v materiálu zahrnout</p>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

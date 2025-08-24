@@ -82,8 +82,8 @@ export const withResponsiveCodeSplitting = <P extends object>(
   },
   fallback?: React.ComponentType
 ) => {
-  return React.forwardRef<any, P & React.RefAttributes<any>>((props, ref) => {
-    const { isMobile, isTablet, isDesktop } = useResponsive();
+  const ResponsiveComponent = React.forwardRef<any, P & React.RefAttributes<any>>((props, ref) => {
+    const { isMobile, isTablet } = useResponsive();
 
     const Component = React.useMemo(() => {
       if (isMobile && components.mobile) {
@@ -93,7 +93,7 @@ export const withResponsiveCodeSplitting = <P extends object>(
         return components.tablet;
       }
       return components.desktop;
-    }, [isMobile, isTablet, isDesktop]);
+    }, [isMobile, isTablet]);
 
     return (
       <Suspense fallback={fallback ? React.createElement(fallback) : <LoadingSkeleton />}>
@@ -101,6 +101,9 @@ export const withResponsiveCodeSplitting = <P extends object>(
       </Suspense>
     );
   });
+
+  ResponsiveComponent.displayName = 'ResponsiveComponent';
+  return ResponsiveComponent;
 };
 
 // Utility for conditional loading based on device capabilities
@@ -168,13 +171,13 @@ export const DeviceFeatures = {
 
 // Hook for checking feature availability
 export const useDeviceFeatures = () => {
-  const { isMobile, isTablet, isDesktop } = useResponsive();
+  const { isMobile, isTablet } = useResponsive();
 
   const features = React.useMemo(() => {
     if (isMobile) return DeviceFeatures.mobile;
     if (isTablet) return DeviceFeatures.tablet;
     return DeviceFeatures.desktop;
-  }, [isMobile, isTablet, isDesktop]);
+  }, [isMobile, isTablet]);
 
   return features;
 };

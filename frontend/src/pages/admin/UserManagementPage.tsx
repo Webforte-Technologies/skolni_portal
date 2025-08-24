@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, Trash2,  Mail,  CreditCard, CheckCircle, XCircle,  Download } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Filter, Plus, Trash2, Mail, CreditCard, CheckCircle, XCircle, Download, Edit, Eye, Activity } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import AdvancedUserFilters from '../../components/admin/AdvancedUserFilters';
+import UserActivityLog from '../../components/admin/UserActivityLog';
 import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
@@ -20,18 +24,27 @@ interface User {
   school_name?: string;
 }
 
-interface UsersListResponse {
-  data: User[];
-  total: number;
-  limit: number;
-  offset: number;
-}
+
 
 interface UserFilters {
   status: string;
   role: string;
   school: string;
   dateRange: string;
+  date_range_start?: string;
+  date_range_end?: string;
+  credit_range_min?: number;
+  credit_range_max?: number;
+  last_login_start?: string;
+  last_login_end?: string;
+  activity_threshold?: number;
+}
+
+interface UsersResponse {
+  data: User[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 const UserManagementPage: React.FC = () => {
@@ -49,28 +62,63 @@ const UserManagementPage: React.FC = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
   const [bulkAction, setBulkAction] = useState<string>('');
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    userId: string | null;
+    userName: string;
+  }>({
+    isOpen: false,
+    userId: null,
+    userName: ''
+  });
+  const [deleting, setDeleting] = useState(false);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [showRecentActivity, setShowRecentActivity] = useState(false);
   const pageSize = 20;
 
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchUsers();
-  }, [currentPage, filters]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get<{ success: boolean; data: UsersListResponse }>('/admin/users', {
-        params: {
-          page: currentPage,
-          limit: pageSize,
-          search: searchQuery,
-          ...filters
-        }
-      });
+      
+      // Prepare params for API call
+      const params: any = {
+        page: currentPage,
+        limit: pageSize,
+        search: searchQuery,
+        role: filters.role !== 'all' ? filters.role : undefined,
+        school_id: filters.school !== 'all' ? filters.school : undefined,
+        is_active: filters.status === 'active' ? 'true' : filters.status === 'inactive' ? 'false' : undefined,
+        status: filters.status !== 'all' ? filters.status : undefined
+      };
+
+      // Add advanced filters if they exist
+      if (filters.date_range_start && filters.date_range_end) {
+        params.date_range_start = filters.date_range_start;
+        params.date_range_end = filters.date_range_end;
+      }
+
+      if (filters.credit_range_min !== undefined && filters.credit_range_max !== undefined) {
+        params.credit_range_min = filters.credit_range_min;
+        params.credit_range_max = filters.credit_range_max;
+      }
+
+      if (filters.last_login_start && filters.last_login_end) {
+        params.last_login_start = filters.last_login_start;
+        params.last_login_end = filters.last_login_end;
+      }
+
+      if (filters.activity_threshold !== undefined) {
+        params.activity_threshold = filters.activity_threshold;
+      }
+
+      const response = await api.get<UsersResponse>('/admin/users', { params });
+      
       // The backend returns: { success: true, data: { data: rows, total, limit, offset } }
       const usersData = response.data.data;
-      if (usersData?.data) {
+      if (usersData?.data && Array.isArray(usersData.data)) {
         setUsers(usersData.data);
         setTotalUsers(usersData.total);
       } else {
@@ -82,11 +130,55 @@ const UserManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  }, [currentPage, filters, pageSize, searchQuery, showToast]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [currentPage, filters, fetchUsers]);
+
+  const fetchRecentActivity = async () => {
+    try {
+      const response = await api.get('/admin/users/activity-logs', {
+        params: { limit: 10, date_range: '24h' }
+      });
+      if (response.data.success) {
+        setRecentActivity(response.data.data);
+      }
+    } catch (error) {
+      // Silently fail for recent activity
+    }
   };
+
+  useEffect(() => {
+    fetchRecentActivity();
+    const interval = setInterval(fetchRecentActivity, 30000); // Update every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = () => {
     setCurrentPage(0);
     fetchUsers();
+  };
+
+  const handleAdvancedSearch = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/admin/users/search/advanced', {
+        params: {
+          q: searchQuery,
+          ...filters
+        }
+      });
+      
+      if (response.data.success) {
+        setUsers(response.data.data.users);
+        setTotalUsers(response.data.data.total);
+      }
+    } catch (error) {
+      showToast({ type: 'error', message: 'Chyba při pokročilém vyhledávání' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBulkAction = async () => {
@@ -106,7 +198,7 @@ const UserManagementPage: React.FC = () => {
           await api.post('/admin/users/bulk/deactivate', { userIds: selectedUsers });
           showToast({ type: 'success', message: 'Uživatelé byli deaktivováni' });
           break;
-        case 'addCredits':
+        case 'addCredits': {
           const credits = prompt('Zadejte počet kreditů k přidání:');
           if (credits) {
             await api.post('/admin/users/bulk/credits', { 
@@ -116,6 +208,7 @@ const UserManagementPage: React.FC = () => {
             showToast({ type: 'success', message: 'Kredity byly přidány' });
           }
           break;
+        }
         case 'delete':
           if (confirm('Opravdu chcete smazat vybrané uživatele?')) {
             await api.delete('/admin/users/bulk', { data: { userIds: selectedUsers } });
@@ -134,29 +227,56 @@ const UserManagementPage: React.FC = () => {
     try {
       switch (action) {
         case 'activate':
-          await api.post(`/admin/users/${userId}/activate`);
+          await api.put(`/admin/users/${userId}`, { is_active: true });
           showToast({ type: 'success', message: 'Uživatel byl aktivován' });
           break;
         case 'deactivate':
-          await api.post(`/admin/users/${userId}/deactivate`);
+          await api.put(`/admin/users/${userId}`, { is_active: false });
           showToast({ type: 'success', message: 'Uživatel byl deaktivován' });
           break;
-        case 'suspend':
-          await api.post(`/admin/users/${userId}/suspend`);
-          showToast({ type: 'success', message: 'Uživatel byl pozastaven' });
-          break;
+        case 'edit':
+          navigate(`/admin/users/${userId}/edit`);
+          return;
+        case 'view':
+          navigate(`/admin/users/${userId}/profile`);
+          return;
         case 'delete':
-          if (confirm('Opravdu chcete smazat tohoto uživatele?')) {
-            await api.delete(`/admin/users/${userId}`);
-            showToast({ type: 'success', message: 'Uživatel byl smazán' });
+          const user = users.find(u => u.id === userId);
+          if (user) {
+            setDeleteDialog({
+              isOpen: true,
+              userId,
+              userName: `${user.first_name} ${user.last_name}`
+            });
           }
-          break;
+          return;
       }
       
       fetchUsers();
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při provádění akce' });
     }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.userId) return;
+
+    try {
+      setDeleting(true);
+      await api.delete(`/admin/users/${deleteDialog.userId}`);
+      showToast({ type: 'success', message: 'Uživatel byl úspěšně smazán' });
+      setDeleteDialog({ isOpen: false, userId: null, userName: '' });
+      fetchUsers();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Chyba při mazání uživatele';
+      showToast({ type: 'error', message: errorMessage });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ isOpen: false, userId: null, userName: '' });
   };
 
   const exportUsers = async () => {
@@ -192,11 +312,23 @@ const UserManagementPage: React.FC = () => {
           <p className="text-gray-600">Spravujte uživatele, role a oprávnění</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/admin/users/analytics')}>
+            <Activity className="w-4 h-4 mr-2" />
+            Analýza
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/admin/users/activity')}>
+            <Activity className="w-4 h-4 mr-2" />
+            Aktivita
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/admin/users/import-export')}>
+            <Download className="w-4 h-4 mr-2" />
+            Import/Export
+          </Button>
           <Button variant="outline" onClick={exportUsers}>
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button>
+          <Button onClick={() => navigate('/admin/users/create')}>
             <Plus className="w-4 h-4 mr-2" />
             Nový uživatel
           </Button>
@@ -217,63 +349,55 @@ const UserManagementPage: React.FC = () => {
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
-            <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
-              <Filter className="w-4 h-4 mr-2" />
-              Filtry
-            </Button>
-            <Button onClick={handleSearch}>
-              <Search className="w-4 h-4 mr-2" />
-              Hledat
-            </Button>
+                      <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
+            <Filter className="w-4 h-4 mr-2" />
+            Filtry
+          </Button>
+          <Button variant="outline" onClick={() => setShowRecentActivity(!showRecentActivity)}>
+            <Activity className="w-4 h-4 mr-2" />
+            Nedávná aktivita
+          </Button>
+          <Button onClick={handleSearch}>
+            <Search className="w-4 h-4 mr-2" />
+            Hledat
+          </Button>
+          <Button variant="outline" onClick={handleAdvancedSearch}>
+            <Search className="w-4 h-4 mr-2" />
+            Pokročilé
+          </Button>
           </div>
 
           {showFilters && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t">
-              <select
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Všechny stavy</option>
-                <option value="active">Aktivní</option>
-                <option value="inactive">Neaktivní</option>
-                <option value="suspended">Pozastaveni</option>
-              </select>
-
-              <select
-                value={filters.role}
-                onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Všechny role</option>
-                <option value="teacher">Učitel</option>
-                <option value="school_admin">Správce školy</option>
-                <option value="platform_admin">Platforma admin</option>
-              </select>
-
-              <select
-                value={filters.school}
-                onChange={(e) => setFilters({ ...filters, school: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Všechny školy</option>
-                <option value="none">Bez školy</option>
-              </select>
-
-              <select
-                value={filters.dateRange}
-                onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="7d">Posledních 7 dní</option>
-                <option value="30d">Posledních 30 dní</option>
-                <option value="90d">Posledních 90 dní</option>
-                <option value="1y">Poslední rok</option>
-              </select>
+            <div className="pt-4 border-t">
+              <AdvancedUserFilters
+                filters={filters}
+                onFilterChange={(newFilters) => setFilters({ ...filters, ...newFilters })}
+                onApplyFilters={() => setShowFilters(false)}
+                onResetFilters={() => {
+                  setFilters({
+                    status: 'all',
+                    role: 'all',
+                    school: 'all',
+                    dateRange: '30d'
+                  });
+                }}
+              />
             </div>
           )}
         </div>
       </Card>
+
+      {/* Recent Activity */}
+      {showRecentActivity && (
+        <Card title="Nedávná aktivita uživatelů" icon={<Activity className="w-5 h-5" />}>
+          <UserActivityLog 
+            logs={recentActivity}
+            loading={false}
+            onFilterChange={() => {}}
+            onExport={() => {}}
+          />
+        </Card>
+      )}
 
       {/* Bulk Actions */}
       {selectedUsers.length > 0 && (
@@ -431,8 +555,25 @@ const UserManagementPage: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => handleUserAction(user.id, 'view')}
+                          title="Zobrazit"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleUserAction(user.id, 'edit')}
+                          title="Upravit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleUserAction(user.id, 'activate')}
                           disabled={user.is_active}
+                          title="Aktivovat"
                         >
                           <CheckCircle className="w-4 h-4" />
                         </Button>
@@ -441,6 +582,7 @@ const UserManagementPage: React.FC = () => {
                           size="sm"
                           onClick={() => handleUserAction(user.id, 'deactivate')}
                           disabled={!user.is_active}
+                          title="Deaktivovat"
                         >
                           <XCircle className="w-4 h-4" />
                         </Button>
@@ -448,6 +590,7 @@ const UserManagementPage: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleUserAction(user.id, 'delete')}
+                          title="Smazat"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -487,6 +630,18 @@ const UserManagementPage: React.FC = () => {
           </div>
         )}
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Smazat uživatele"
+        message="Opravdu chcete smazat tohoto uživatele? Tato akce je nevratná."
+        entityName={deleteDialog.userName}
+        impactMessage="Uživatel bude deaktivován a nebude moci se přihlásit do systému."
+        loading={deleting}
+      />
       </div>
     </AdminLayout>
   );

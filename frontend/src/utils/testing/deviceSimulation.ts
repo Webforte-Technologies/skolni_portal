@@ -250,33 +250,6 @@ export const simulateNetworkConditions = async (
   page: Page,
   condition: 'fast-3g' | 'slow-3g' | 'offline' | 'fast'
 ) => {
-  const conditions = {
-    'fast-3g': {
-      offline: false,
-      downloadThroughput: 1.5 * 1024 * 1024 / 8, // 1.5 Mbps
-      uploadThroughput: 750 * 1024 / 8, // 750 Kbps
-      latency: 150,
-    },
-    'slow-3g': {
-      offline: false,
-      downloadThroughput: 500 * 1024 / 8, // 500 Kbps
-      uploadThroughput: 500 * 1024 / 8, // 500 Kbps
-      latency: 400,
-    },
-    'offline': {
-      offline: true,
-      downloadThroughput: 0,
-      uploadThroughput: 0,
-      latency: 0,
-    },
-    'fast': {
-      offline: false,
-      downloadThroughput: 100 * 1024 * 1024 / 8, // 100 Mbps
-      uploadThroughput: 100 * 1024 * 1024 / 8, // 100 Mbps
-      latency: 10,
-    },
-  };
-
   await page.route('**/*', route => {
     if (condition === 'offline') {
       route.abort();

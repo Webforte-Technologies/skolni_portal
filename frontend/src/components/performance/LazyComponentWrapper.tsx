@@ -9,18 +9,22 @@ interface LazyComponentWrapperProps {
   className?: string;
   priority?: 'high' | 'medium' | 'low';
   mobileOnly?: boolean;
+  threshold?: number;
+  rootMargin?: string;
 }
 
-export const LazyComponentWrapper: React.FC<LazyComponentWrapperProps> = ({
+const LazyComponentWrapper: React.FC<LazyComponentWrapperProps> = ({
   children,
   fallback: FallbackComponent = LoadingSkeleton,
+  threshold = 0.1,
+  rootMargin = '50px',
   className = '',
   priority = 'medium',
-  mobileOnly = false,
+  mobileOnly = false
 }) => {
   const { elementRef, shouldLoad } = useResponsiveLazyLoading({
-    threshold: 0.1,
-    rootMargin: '100px',
+    threshold,
+    rootMargin,
     triggerOnce: true,
   });
   const { isMobile } = useResponsive();
@@ -44,6 +48,10 @@ export const LazyComponentWrapper: React.FC<LazyComponentWrapperProps> = ({
     </div>
   );
 };
+
+LazyComponentWrapper.displayName = 'LazyComponentWrapper';
+
+export default LazyComponentWrapper;
 
 interface DynamicLazyComponentProps {
   componentLoader: () => Promise<{ default: React.ComponentType<any> }>;
@@ -149,9 +157,12 @@ export const createLazyComponent = <P extends object>(
 ) => {
   const LazyComponent = lazy(componentLoader);
 
-  return React.forwardRef<any, P>((props, ref) => (
+  const ForwardedComponent = React.forwardRef<any, P>((props, ref) => (
     <Suspense fallback={fallback ? React.createElement(fallback) : <LoadingSkeleton />}>
       <LazyComponent {...props} ref={ref} />
     </Suspense>
   ));
+
+  ForwardedComponent.displayName = 'LazyComponent';
+  return ForwardedComponent;
 };

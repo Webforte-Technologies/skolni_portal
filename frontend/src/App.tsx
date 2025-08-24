@@ -30,7 +30,11 @@ const SchoolAdminPage = React.lazy(() => import('./pages/dashboard/SchoolAdminPa
 // Admin pages
 const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminDashboardPage'));
 const UserManagementPage = React.lazy(() => import('./pages/admin/UserManagementPage'));
+const UserCreatePage = React.lazy(() => import('./pages/admin/UserCreatePage'));
+const UserEditPage = React.lazy(() => import('./pages/admin/UserEditPage'));
 const SchoolsManagementPage = React.lazy(() => import('./pages/admin/SchoolsManagementPage'));
+const SchoolCreatePage = React.lazy(() => import('./pages/admin/SchoolCreatePage'));
+const SchoolEditPage = React.lazy(() => import('./pages/admin/SchoolEditPage'));
 const RolesPermissionsPage = React.lazy(() => import('./pages/admin/RolesPermissionsPage'));
 const CreditsManagementPage = React.lazy(() => import('./pages/admin/CreditsManagementPage'));
 const SystemHealthPage = React.lazy(() => import('./pages/admin/SystemHealthPage'));
@@ -60,7 +64,12 @@ const ApiManagementPage = React.lazy(() => import('./pages/admin/ApiManagementPa
 const TestingToolsPage = React.lazy(() => import('./pages/admin/TestingToolsPage'));
 const DocumentationPage = React.lazy(() => import('./pages/admin/DocumentationPage'));
 const UserProfilePage = React.lazy(() => import('./pages/dashboard/UserProfilePage'));
+const AdminUserProfilePage = React.lazy(() => import('./pages/admin/UserProfilePage'));
+const UserAnalyticsPage = React.lazy(() => import('./pages/admin/UserAnalyticsPage'));
+const UserActivityPage = React.lazy(() => import('./pages/admin/UserActivityPage'));
+const UserImportExportPage = React.lazy(() => import('./pages/admin/UserImportExportPage'));
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage'));
+const TestPage = React.lazy(() => import('./pages/TestPage'));
 import ErrorBoundary from './components/layout/ErrorBoundary';
 
 // Create a client
@@ -84,6 +93,11 @@ function App() {
     });
   }, []);
 
+  // Add error boundary for development
+  if (import.meta.env.DEV) {
+    console.log('App component rendering...');
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
@@ -105,7 +119,14 @@ function App() {
                       {/* Subtle background (reduced effects to minimize bundle and purge unused CSS) */}
                       <div className="pointer-events-none fixed inset-0 -z-10" />
                       <ErrorBoundary>
-                        <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>
+                        <Suspense fallback={
+                          <div className="min-h-screen flex items-center justify-center bg-surface-bg">
+                            <div className="text-center">
+                              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                              <p className="text-surface-text">Načítání aplikace...</p>
+                            </div>
+                          </div>
+                        }>
                           <Routes>
                 {/* Public routes */}
                 <Route path="/" element={
@@ -113,6 +134,7 @@ function App() {
                     <LandingPage />
                   </PublicRoute>
                 } />
+                <Route path="/test" element={<TestPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegistrationPage />} />
                 <Route path="/register-school" element={<SchoolRegistrationPage />} />
@@ -241,10 +263,66 @@ function App() {
                     </RequireRole>
                   </PrivateRoute>
                 } />
+                <Route path="/admin/users/create" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <UserCreatePage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/users/:userId/edit" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <UserEditPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/users/:userId/profile" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <AdminUserProfilePage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/users/analytics" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <UserAnalyticsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/users/activity" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <UserActivityPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/users/import-export" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <UserImportExportPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
                 <Route path="/admin/schools" element={
                   <PrivateRoute>
                     <RequireRole roles={['platform_admin']}>
                       <SchoolsManagementPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/schools/create" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SchoolCreatePage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/schools/:schoolId/edit" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SchoolEditPage />
                     </RequireRole>
                   </PrivateRoute>
                 } />
@@ -430,6 +508,7 @@ function App() {
                 {/* Development/Test routes */}
                 {import.meta.env.DEV && (
                   <>
+                    <Route path="/test" element={<TestPage />} />
                     <Route path="/test/responsive-math" element={
                       <PrivateRoute>
                         <Suspense fallback={<div className="p-8 text-neutral-600">Načítání…</div>}>

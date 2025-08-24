@@ -33,7 +33,9 @@ const NotificationsDropdown: React.FC<{ onClose: () => void }>= ({ onClose }) =>
     try {
       await apiClient.put(`/notifications/${id}/read`);
       setItems(prev => prev.map(i => i.id === id ? { ...i, read_at: new Date().toISOString() } : i));
-    } catch {}
+    } catch {
+      // Ignore errors when marking notification as read
+    }
   };
 
   useEffect(() => {

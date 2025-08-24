@@ -1,0 +1,119 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: eduai_asistent
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: devpassword123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - eduai-network
+
+  # Backend Development Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - FRONTEND_URL=http://localhost:5173
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=eduai_asistent
+      - DB_USER=postgres
+      - DB_PASSWORD=devpassword123
+      - DATABASE_URL=postgresql://postgres:devpassword123@db:5432/eduai_asistent
+      - JWT_SECRET=dev-super-secret-jwt-key-for-development-only
+      - JWT_EXPIRES_IN=7d
+      - JWT_REFRESH_SECRET=dev-super-secret-refresh-key-for-development-only
+      - JWT_REFRESH_EXPIRES_IN=30d
+      - DEFAULT_CREDITS=1000
+      - CREDIT_COST_PER_REQUEST=1
+      - BCRYPT_ROUNDS=10
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX_REQUESTS=1000
+      - ENABLE_COMPRESSION=true
+      - ENABLE_LOGGER=true
+      - LOG_FORMAT=dev
+      - LOG_LEVEL=debug
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-your-openai-api-key-here}
+      - OPENAI_MODEL=gpt-4
+      - OPENAI_MAX_TOKENS=2000
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/package.json:/app/package.json
+      - ./backend/package-lock.json:/app/package-lock.json
+      - ./backend/tsconfig.json:/app/tsconfig.json
+      - ./backend/nodemon.json:/app/nodemon.json
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - eduai-network
+    stdin_open: true
+    tty: true
+
+  # Frontend Development Server
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      - VITE_API_URL=http://localhost:3001/api
+      - VITE_API_TIMEOUT=30000
+      - VITE_APP_NAME=EduAI-Asistent (Dev)
+      - VITE_APP_VERSION=1.0.0-dev
+      - VITE_ENABLE_ANALYTICS=false
+      - VITE_ENABLE_DEBUG_MODE=true
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/package-lock.json:/app/package-lock.json
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/tsconfig.node.json:/app/tsconfig.node.json
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js
+      - ./frontend/postcss.config.js:/app/postcss.config.js
+      - ./frontend/index.html:/app/index.html
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - eduai-network
+    stdin_open: true
+    tty: true
+
+  # Redis (for future caching and sessions)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - eduai-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  eduai-network:
+    driver: bridge

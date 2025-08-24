@@ -6,11 +6,52 @@ import { realTimeService } from '../../services/RealTimeService';
 import { webSocketService } from '../../services/WebSocketService';
 import { enhancedMetricsMiddleware, getEnhancedMetrics } from '../../middleware/enhanced-metrics';
 import pool from '../../database/connection';
+import { MCPAnalyticsService } from '../../services/MCPAnalyticsService';
+import { validateQuery } from '../../middleware/zodValidation';
+import { AnalyticsTimeRangeSchema } from '../../schemas/analytics';
 
 const router = express.Router();
+const mcpAnalyticsService = new MCPAnalyticsService(pool);
 
-// Guard entire router
-router.use(authenticateToken, requireRole(['platform_admin']));
+// Helper function to convert timeRange parameter to proper format
+function parseTimeRange(timeRangeParam: any) {
+  if (!timeRangeParam) return undefined;
+  
+  try {
+    const parsed = typeof timeRangeParam === 'string' ? JSON.parse(timeRangeParam) : timeRangeParam;
+    
+    if (parsed.days) {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - parsed.days);
+      return { start, end };
+    }
+    
+    if (parsed.months) {
+      const end = new Date();
+      const start = new Date();
+      start.setMonth(start.getMonth() - parsed.months);
+      return { start, end };
+    }
+    
+    if (parsed.start && parsed.end) {
+      return {
+        start: new Date(parsed.start),
+        end: new Date(parsed.end)
+      };
+    }
+    
+    // If no valid format found, return undefined instead of crashing
+    console.warn('Invalid timeRange format:', timeRangeParam);
+    return undefined;
+  } catch (error) {
+    console.error('Failed to parse timeRange:', error, 'Raw value:', timeRangeParam);
+    return undefined;
+  }
+}
+
+// Guard entire router - Allow both platform_admin and admin roles
+router.use(authenticateToken, requireRole(['platform_admin', 'admin']));
 router.use(auditLoggerForAdmin);
 router.use(enhancedMetricsMiddleware);
 
@@ -38,7 +79,15 @@ router.get('/dashboard', async (_req: RequestWithUser, res: express.Response) =>
  */
 router.get('/users/real-time', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const timeRange = req.query['timeRange'] ? JSON.parse(req.query['timeRange'] as string) : undefined;
+    // Only log in development mode to reduce console spam
+    if (process.env['NODE_ENV'] === 'development') {
+      console.log('Users real-time analytics request:', { 
+        timeRange: req.query['timeRange'],
+        userAgent: req.get('User-Agent'),
+        timestamp: new Date().toISOString()
+      });
+    }
+    const timeRange = parseTimeRange(req.query['timeRange']);
     const metrics = await AnalyticsService.getUserMetrics(timeRange);
     return ok(res, metrics);
   } catch (error) {
@@ -53,7 +102,15 @@ router.get('/users/real-time', async (req: RequestWithUser, res: express.Respons
  */
 router.get('/credits/real-time', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const timeRange = req.query['timeRange'] ? JSON.parse(req.query['timeRange'] as string) : undefined;
+    // Only log in development mode to reduce console spam
+    if (process.env['NODE_ENV'] === 'development') {
+      console.log('Credits real-time analytics request:', { 
+        timeRange: req.query['timeRange'],
+        userAgent: req.get('User-Agent'),
+        timestamp: new Date().toISOString()
+      });
+    }
+    const timeRange = parseTimeRange(req.query['timeRange']);
     const metrics = await AnalyticsService.getCreditMetrics(timeRange);
     return ok(res, metrics);
   } catch (error) {
@@ -68,7 +125,7 @@ router.get('/credits/real-time', async (req: RequestWithUser, res: express.Respo
  */
 router.get('/content/real-time', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const timeRange = req.query['timeRange'] ? JSON.parse(req.query['timeRange'] as string) : undefined;
+    const timeRange = parseTimeRange(req.query['timeRange']);
     const metrics = await AnalyticsService.getContentMetrics(timeRange);
     return ok(res, metrics);
   } catch (error) {
@@ -97,7 +154,7 @@ router.get('/system/performance', async (_req: RequestWithUser, res: express.Res
  */
 router.get('/revenue/real-time', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const timeRange = req.query['timeRange'] ? JSON.parse(req.query['timeRange'] as string) : undefined;
+    const timeRange = parseTimeRange(req.query['timeRange']);
     const metrics = await AnalyticsService.getRevenueMetrics(timeRange);
     return ok(res, metrics);
   } catch (error) {
@@ -648,5 +705,245 @@ function convertToCSV(data: any): string {
     return [headers.join(','), values.join(',')].join('\n');
   }
 }
+
+/**
+ * MCP ANALYTICS ENDPOINTS
+ * Analytics endpoints for Model Context Protocol (MCP) server data
+ */
+
+/**
+ * POST /admin/analytics/mcp/setup-sample-data
+ * Add sample data for testing MCP analytics (development only)
+ */
+router.post('/mcp/setup-sample-data', async (_req: RequestWithUser, res: express.Response) => {
+  try {
+    // Only allow in development
+    if (process.env['NODE_ENV'] !== 'development') {
+      return bad(res, 403, 'Sample data setup only available in development');
+    }
+
+    console.log('Setting up sample MCP data...');
+    
+    // Insert sample AI provider
+    const providerResult = await pool.query(`
+      INSERT INTO ai_providers (name, type, api_key, models, rate_limits, priority, enabled) 
+      VALUES (
+        'OpenAI',
+        'openai',
+        'sk-test-key',
+        '["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4"]',
+        '{"requests_per_minute": 60, "tokens_per_minute": 150000}',
+        1,
+        true
+      ) ON CONFLICT (name) DO NOTHING RETURNING id
+    `);
+    
+    const providerId = providerResult.rows[0]?.id;
+    if (!providerId) {
+      // Get existing provider
+      const existingProvider = await pool.query('SELECT id FROM ai_providers WHERE name = $1', ['OpenAI']);
+      if (existingProvider.rows.length === 0) {
+        return bad(res, 500, 'Failed to create or find AI provider');
+      }
+    }
+    
+    // Get first user for sample data
+    const userResult = await pool.query('SELECT id FROM users LIMIT 1');
+    if (userResult.rows.length === 0) {
+      return bad(res, 500, 'No users found in database');
+    }
+    const userId = userResult.rows[0].id;
+    
+    // Insert sample AI requests for the last 30 days
+    for (let i = 0; i < 30; i++) {
+      await pool.query(`
+        INSERT INTO ai_requests (
+          user_id, request_type, provider_id, model_used, priority, parameters,
+          tokens_used, processing_time_ms, cost, success, cached, created_at
+        ) VALUES 
+        ($1, 'chat', $2, 'gpt-4o-mini', 'normal', '{"message": "Sample chat"}', 150, 1200, 0.003, true, false, NOW() - INTERVAL '1 day' * $3),
+        ($1, 'generation', $2, 'gpt-4-turbo', 'normal', '{"type": "worksheet"}', 300, 2500, 0.006, true, true, NOW() - INTERVAL '1 day' * $3),
+        ($1, 'analysis', $2, 'gpt-4o', 'high', '{"type": "content_analysis"}', 500, 3500, 0.012, true, false, NOW() - INTERVAL '1 day' * $3),
+        ($1, 'chat', $2, 'gpt-4o-mini', 'normal', '{"message": "Quick question"}', 80, 800, 0.001, true, true, NOW() - INTERVAL '1 day' * $3),
+        ($1, 'chat', $2, 'gpt-4o-mini', 'normal', '{"message": "Error test"}', 100, 5000, 0.002, false, false, NOW() - INTERVAL '1 day' * $3)
+      `, [userId, providerId || 1, i]);
+    }
+    
+    console.log('Sample MCP data setup completed');
+    return ok(res, { message: 'Sample MCP data setup completed successfully' });
+  } catch (error) {
+    console.error('Error setting up sample MCP data:', error);
+    return bad(res, 500, 'Failed to setup sample MCP data');
+  }
+});
+
+/**
+ * GET /admin/analytics/mcp/overview
+ * Get MCP analytics overview with comprehensive metrics
+ */
+router.get('/mcp/overview', 
+  async (req: RequestWithUser, res: express.Response) => {
+    try {
+      console.log('MCP Analytics request from user:', req.user?.email, 'with role:', req.user?.role);
+      console.log('Query parameters:', req.query);
+      
+      const { days } = req.query;
+      const daysNumber = typeof days === 'string' ? parseInt(days, 10) : 30;
+      
+      console.log('Fetching MCP analytics for days:', daysNumber);
+      const analytics = await mcpAnalyticsService.getAnalytics(daysNumber);
+      
+      console.log('MCP Analytics fetched successfully');
+      return ok(res, analytics);
+    } catch (error) {
+      console.error('Error fetching MCP analytics:', error);
+      if (error instanceof Error) {
+        return bad(res, 500, `Failed to fetch MCP analytics data: ${error.message}`);
+      }
+      return bad(res, 500, 'Failed to fetch MCP analytics data');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/mcp/models
+ * Get model performance statistics and metrics
+ */
+router.get('/mcp/models',
+  async (req: RequestWithUser, res: express.Response) => {
+    try {
+      const { days } = req.query;
+      const daysNumber = typeof days === 'string' ? parseInt(days, 10) : 30;
+      const analytics = await mcpAnalyticsService.getAnalytics(daysNumber);
+
+      // Return only model-related statistics
+      return ok(res, {
+        modelStats: analytics.modelStats,
+        requestTypeBreakdown: analytics.requestTypeBreakdown,
+        totalRequests: analytics.totalRequests,
+        successRate: analytics.successRate,
+        averageResponseTime: analytics.averageResponseTime,
+        totalTokensUsed: analytics.totalTokensUsed,
+        totalCost: analytics.totalCost
+      });
+    } catch (error) {
+      console.error('Error fetching MCP model analytics:', error);
+      return bad(res, 500, 'Failed to fetch MCP model analytics');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/mcp/providers
+ * Get AI provider health and performance data
+ */
+router.get('/mcp/providers',
+  async (_req: RequestWithUser, res: express.Response) => {
+    try {
+      // Get provider summary using the view created in migration
+      const result = await pool.query(`
+        SELECT * FROM provider_performance_summary
+        ORDER BY total_requests_last_30_days DESC
+      `);
+
+      return ok(res, result.rows);
+    } catch (error) {
+      console.error('Error fetching MCP provider data:', error);
+      return bad(res, 500, 'Failed to fetch MCP provider data');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/mcp/cache
+ * Get cache performance metrics
+ */
+router.get('/mcp/cache',
+  async (req: RequestWithUser, res: express.Response) => {
+    try {
+      const { days } = req.query;
+      const daysNumber = typeof days === 'string' ? parseInt(days, 10) : 30;
+      const analytics = await mcpAnalyticsService.getAnalytics(daysNumber);
+
+      return ok(res, {
+        cacheStats: analytics.cacheStats,
+        cacheHitRate: analytics.cacheHitRate
+      });
+    } catch (error) {
+      console.error('Error fetching MCP cache analytics:', error);
+      return bad(res, 500, 'Failed to fetch MCP cache analytics');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/mcp/errors
+ * Get recent errors and error analytics
+ */
+router.get('/mcp/errors',
+  async (_req: RequestWithUser, res: express.Response) => {
+    try {
+      const analytics = await mcpAnalyticsService.getAnalytics(7); // Last 7 days for errors
+
+      return ok(res, {
+        recentErrors: analytics.recentErrors,
+        errorRate: 100 - analytics.successRate,
+        totalRequests: analytics.totalRequests
+      });
+    } catch (error) {
+      console.error('Error fetching MCP error analytics:', error);
+      return bad(res, 500, 'Failed to fetch MCP error analytics');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/mcp/real-time
+ * Get real-time MCP metrics for the last hour
+ */
+router.get('/mcp/real-time',
+  async (_req: RequestWithUser, res: express.Response) => {
+    try {
+      // Get metrics for the last hour, grouped by 5-minute intervals
+      const result = await pool.query(`
+        SELECT 
+          DATE_TRUNC('minute', created_at) + 
+          INTERVAL '5 min' * FLOOR(EXTRACT('minute' FROM created_at) / 5) as time_bucket,
+          COUNT(*) as requests,
+          SUM(CASE WHEN success THEN 1 ELSE 0 END) as successful_requests,
+          AVG(processing_time_ms) as avg_response_time,
+          SUM(tokens_used) as tokens_used,
+          SUM(cost) as total_cost
+        FROM ai_requests
+        WHERE created_at >= NOW() - INTERVAL '1 hour'
+        GROUP BY time_bucket
+        ORDER BY time_bucket ASC
+      `);
+
+      // Get current active requests (in progress)
+      const activeResult = await pool.query(`
+        SELECT COUNT(*) as active_requests
+        FROM ai_requests
+        WHERE created_at >= NOW() - INTERVAL '5 minutes'
+          AND response_data IS NULL
+      `);
+
+      return ok(res, {
+        time_series: result.rows.map(row => ({
+          timestamp: row.time_bucket,
+          requests: parseInt(row.requests),
+          successful_requests: parseInt(row.successful_requests),
+          avg_response_time: parseFloat(row.avg_response_time) || 0,
+          tokens_used: parseInt(row.tokens_used) || 0,
+          total_cost: parseFloat(row.total_cost) || 0
+        })),
+        active_requests: parseInt(activeResult.rows[0].active_requests) || 0
+      });
+    } catch (error) {
+      console.error('Error fetching MCP real-time metrics:', error);
+      return bad(res, 500, 'Failed to fetch MCP real-time metrics');
+    }
+  }
+);
 
 export default router;

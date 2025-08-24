@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {  Save, Plus, Trash2, Eye, EyeOff, Download, Upload } from 'lucide-react';
 import Card from '../../ui/Card';
 import Button from '../../ui/Button';
 import { useToast } from '../../../contexts/ToastContext';
 import { api } from '../../../services/apiClient';
 import { cn } from '../../../utils/cn';
-import { ApiResponse } from '../../../types';
+
 
 export interface DashboardLayout {
   id: string;
@@ -72,11 +72,7 @@ const DashboardLayoutManager: React.FC<DashboardLayoutManagerProps> = ({
     { id: 'dashboard-focus', name: 'Dashboard Focus', description: 'Zaměření na hlavní metriky' }
   ];
 
-  useEffect(() => {
-    loadLayouts();
-  }, []);
-
-  const loadLayouts = async () => {
+  const loadLayouts = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get<DashboardLayoutsResponse>('/admin/analytics/dashboard-layouts');
@@ -95,7 +91,11 @@ const DashboardLayoutManager: React.FC<DashboardLayoutManagerProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentLayout, showToast]);
+
+  useEffect(() => {
+    loadLayouts();
+  }, [loadLayouts]);
 
   const handleCreateLayout = async () => {
     if (!newLayoutName.trim()) {

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {  TrendingUp, Users, CreditCard, FileText, Download } from 'lucide-react';
+import {  TrendingUp, Users, CreditCard, FileText, Download, Zap } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import MCPAnalyticsDashboard from '../../components/admin/MCPAnalyticsDashboard';
 
 interface AnalyticsData {
   userGrowth: { month: string; users: number }[];
@@ -17,6 +18,7 @@ const AnalyticsPage: React.FC = () => {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
+  const [activeTab, setActiveTab] = useState<'platform' | 'mcp'>('platform');
 
   useEffect(() => {
     // Simulate API call for analytics data
@@ -78,7 +80,7 @@ const AnalyticsPage: React.FC = () => {
 
   const exportData = (format: 'csv' | 'pdf') => {
     // Implementation for data export
-    console.log(`Exporting data in ${format} format`);
+          // TODO: Implement data export functionality
   };
 
   if (loading) {
@@ -100,35 +102,75 @@ const AnalyticsPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-900">Analytika platformy</h1>
             <p className="text-gray-600">Přehled klíčových metrik a trendů</p>
           </div>
-          <div className="flex items-center space-x-3 mt-4 sm:mt-0">
-            <select
-              value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value as any)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
+          <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+            {/* Tab Switcher */}
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setActiveTab('platform')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'platform'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Users className="w-4 h-4 inline mr-2" />
+                Platforma
+              </button>
+              <button
+                onClick={() => setActiveTab('mcp')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'mcp'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Zap className="w-4 h-4 inline mr-2" />
+                MCP AI
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content based on active tab */}
+        {activeTab === 'mcp' ? (
+          <MCPAnalyticsDashboard />
+        ) : (
+          <div className="space-y-6">
+            {/* Platform Analytics Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Analytika platformy</h2>
+                <p className="text-gray-600">Uživatelé, kredity a obsah</p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <select
+                  value={timeRange}
+                  onChange={(e) => setTimeRange(e.target.value as any)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
               <option value="7d">Posledních 7 dní</option>
               <option value="30d">Posledních 30 dní</option>
               <option value="90d">Posledních 90 dní</option>
               <option value="1y">Poslední rok</option>
-            </select>
-            <Button
-              variant="outline"
-              onClick={() => exportData('csv')}
-              className="flex items-center space-x-2"
-            >
-              <Download className="w-4 h-4" />
-              <span>Export CSV</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => exportData('pdf')}
-              className="flex items-center space-x-2"
-            >
-              <Download className="w-4 h-4" />
-              <span>Export PDF</span>
-            </Button>
-          </div>
-        </div>
+                </select>
+                <Button
+                  variant="outline"
+                  onClick={() => exportData('csv')}
+                  className="flex items-center space-x-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Export CSV</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => exportData('pdf')}
+                  className="flex items-center space-x-2"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Export PDF</span>
+                </Button>
+              </div>
+            </div>
 
         {/* System Performance Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -250,7 +292,9 @@ const AnalyticsPage: React.FC = () => {
               </div>
             ))}
           </div>
-        </Card>
+            </Card>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

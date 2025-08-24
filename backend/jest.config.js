@@ -2,7 +2,8 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/src/__tests__'],
+  roots: ['<rootDir>/src'],
+  testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', { 
@@ -10,7 +11,8 @@ module.exports = {
       isolatedModules: true,
     }],
   },
-  setupFiles: ['<rootDir>/src/__tests__/setup.ts', 'dotenv/config'],
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
+  setupFiles: ['dotenv/config'],
   testTimeout: 10000,
   forceExit: true,
   clearMocks: true,
