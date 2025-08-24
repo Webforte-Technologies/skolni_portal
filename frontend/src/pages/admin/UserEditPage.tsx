@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, User, Loader2 } from 'lucide-react';
 import Card from '../../components/ui/Card';
@@ -9,27 +9,29 @@ import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { User as UserType } from '../../types';
 
+// Define the API response type
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
 const UserEditPage: React.FC = () => {
   const [user, setUser] = useState<UserType | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(true);
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const { showToast } = useToast();
 
-  useEffect(() => {
-    if (userId) {
-      fetchUser();
-    }
-  }, [userId]);
-
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
-      setFetching(true);
+      setLoading(true);
       const response = await api.get(`/admin/users/${userId}`);
+      const apiResponse = response.data as ApiResponse<UserType>;
       
-      if (response.data.success) {
-        setUser(response.data.data);
+      if (apiResponse.success && apiResponse.data) {
+        setUser(apiResponse.data);
       } else {
         showToast({ 
           type: 'error', 
@@ -43,17 +45,25 @@ const UserEditPage: React.FC = () => {
       showToast({ type: 'error', message: errorMessage });
       navigate('/admin/users');
     } finally {
+      setLoading(false);
       setFetching(false);
     }
-  };
+  }, [userId, navigate, showToast]);
 
-  const handleSubmit = async (userData: any) => {
+  useEffect(() => {
+    if (userId) {
+      fetchUser();
+    }
+  }, [userId, fetchUser]);
+
+  const handleSubmit = async (userData: Partial<UserType>) => {
     try {
       setLoading(true);
       
       const response = await api.put(`/admin/users/${userId}`, userData);
+      const apiResponse = response.data as ApiResponse<UserType>;
       
-      if (response.data.success) {
+      if (apiResponse.success) {
         showToast({ 
           type: 'success', 
           message: 'Uživatel byl úspěšně aktualizován' 
@@ -62,7 +72,7 @@ const UserEditPage: React.FC = () => {
       } else {
         showToast({ 
           type: 'error', 
-          message: response.data.error || 'Chyba při aktualizaci uživatele' 
+          message: apiResponse.error || 'Chyba při aktualizaci uživatele' 
         });
       }
     } catch (error: any) {

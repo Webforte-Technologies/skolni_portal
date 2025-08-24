@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, TrendingUp, TrendingDown, Activity, Calendar, Download, Filter } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import UserAnalytics from '../../components/admin/UserAnalytics';
-import AdvancedUserFilters from '../../components/admin/AdvancedUserFilters';
+import AdvancedUserFilters, { AdvancedUserFilters as AdvancedUserFiltersType } from '../../components/admin/AdvancedUserFilters';
 import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
@@ -40,6 +40,33 @@ interface UserAnalyticsData {
     monthly_active_users: number;
     retention_rate: number;
   };
+  // Additional properties required by UserAnalytics component
+  total_schools: number;
+  total_credits_purchased: number;
+  most_active_school: string;
+  user_growth_rate: number;
+  role_distribution_detailed: {
+    platform_admin: number;
+    school_admin: number;
+    teacher_school: number;
+    teacher_individual: number;
+  };
+  activity_by_day: Array<{
+    date: string;
+    logins: number;
+    actions: number;
+    credits_used: number;
+  }>;
+  top_schools: Array<{
+    name: string;
+    user_count: number;
+    total_credits_used: number;
+  }>;
+  user_engagement: {
+    high: number;
+    medium: number;
+    low: number;
+  };
 }
 
 interface AnalyticsFilters {
@@ -63,17 +90,13 @@ const UserAnalyticsPage: React.FC = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [filters]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/users/analytics', {
+      const response = await api.get<UserAnalyticsData>('/admin/users/analytics', {
         params: filters
       });
-      if (response.data.success) {
+      if (response.data.success && response.data.data) {
         setAnalyticsData(response.data.data);
       }
     } catch (error) {
@@ -81,11 +104,11 @@ const UserAnalyticsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, showToast]);
 
-  const handleFilterChange = (newFilters: Partial<AnalyticsFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-  };
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   const exportAnalytics = async () => {
     try {
@@ -94,13 +117,16 @@ const UserAnalyticsPage: React.FC = () => {
         responseType: 'blob'
       });
       
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      // Handle blob response properly
+      const blob = new Blob([response.data as unknown as BlobPart]);
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `user-analytics-${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
       
       showToast({ type: 'success', message: 'Analytická data byla exportována' });
     } catch (error) {
@@ -144,6 +170,57 @@ const UserAnalyticsPage: React.FC = () => {
     );
   }
 
+  // Convert AnalyticsFilters to AdvancedUserFilters format
+  const advancedFilters: AdvancedUserFiltersType = {
+    search: '',
+    role: filters.role_filter === 'all' ? 'all' : filters.role_filter,
+    school_id: filters.school_filter === 'all' ? 'all' : filters.school_filter,
+    is_active: 'all',
+    date_from: '',
+    date_to: '',
+    credit_min: '',
+    credit_max: '',
+    last_login_from: '',
+    last_login_to: '',
+    status: 'all'
+  };
+
+  // Convert UserAnalyticsData to match UserAnalytics component interface
+  const userAnalyticsData = analyticsData ? {
+    total_users: analyticsData.total_users,
+    active_users: analyticsData.active_users,
+    new_users_this_month: analyticsData.new_users_this_month,
+    total_schools: analyticsData.total_schools,
+    total_credits_used: analyticsData.credit_usage_stats.total_credits_used,
+    total_credits_purchased: analyticsData.total_credits_purchased,
+    average_session_duration: analyticsData.average_session_duration,
+    most_active_school: analyticsData.most_active_school,
+    user_growth_rate: analyticsData.user_growth_rate,
+    retention_rate: analyticsData.user_engagement_metrics.retention_rate,
+    role_distribution: {
+      platform_admin: analyticsData.role_distribution.find(r => r.role === 'platform_admin')?.count || 0,
+      school_admin: analyticsData.role_distribution.find(r => r.role === 'school_admin')?.count || 0,
+      teacher_school: analyticsData.role_distribution.find(r => r.role === 'teacher_school')?.count || 0,
+      teacher_individual: analyticsData.role_distribution.find(r => r.role === 'teacher_individual')?.count || 0
+    },
+    activity_by_day: analyticsData.user_growth_data.map(item => ({
+      date: item.date,
+      logins: item.count,
+      actions: 0,
+      credits_used: 0
+    })),
+    top_schools: analyticsData.school_distribution.map(item => ({
+      name: item.school_name,
+      user_count: item.count,
+      total_credits_used: 0
+    })),
+    user_engagement: {
+      high: Math.round(analyticsData.user_engagement_metrics.retention_rate),
+      medium: Math.round((100 - analyticsData.user_engagement_metrics.retention_rate) / 2),
+      low: Math.round((100 - analyticsData.user_engagement_metrics.retention_rate) / 2)
+    }
+  } : undefined;
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -175,17 +252,15 @@ const UserAnalyticsPage: React.FC = () => {
         {showFilters && (
           <Card>
             <AdvancedUserFilters
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              onApplyFilters={() => setShowFilters(false)}
-              onResetFilters={() => {
-                setFilters({
-                  date_range: '30d',
-                  role_filter: 'all',
-                  school_filter: 'all',
-                  activity_threshold: 0
-                });
+              filters={advancedFilters}
+              onFiltersChange={(newFilters) => {
+                setFilters(prev => ({
+                  ...prev,
+                  role_filter: newFilters.role === 'all' ? 'all' : newFilters.role,
+                  school_filter: newFilters.school_id === 'all' ? 'all' : newFilters.school_id
+                }));
               }}
+              schools={[]}
             />
           </Card>
         )}
@@ -219,9 +294,9 @@ const UserAnalyticsPage: React.FC = () => {
 
             {/* Detailed Analytics */}
             <UserAnalytics 
-              data={analyticsData}
-              filters={filters}
-              onRefresh={fetchAnalytics}
+              data={userAnalyticsData}
+              timeRange="30d"
+              onTimeRangeChange={() => {}}
             />
           </>
         )}

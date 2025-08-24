@@ -1,5 +1,5 @@
 import { MCPServer } from './MCPServer';
-import { MCPRequest, MCPResponse } from '../types/mcp';
+import { MCPRequest } from '../types/mcp';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

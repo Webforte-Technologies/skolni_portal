@@ -49,7 +49,7 @@ export default function createChatRoutes(aiService: AIService): Router {
       }
       
       // Save user message
-      const userMessage = await MessageModel.create({
+      const _userMessage = await MessageModel.create({
         conversation_id: conversation.id,
         role: 'user',
         content: message
@@ -57,7 +57,7 @@ export default function createChatRoutes(aiService: AIService): Router {
       
       // Prepare messages for AI
       const conversationMessages = await MessageModel.findByConversationId(conversation.id);
-      const messages = [
+      const _messages = [
         { role: 'system' as const, content: SYSTEM_PROMPT },
         ...conversationMessages.map(msg => ({
           role: msg.role as 'user' | 'assistant',

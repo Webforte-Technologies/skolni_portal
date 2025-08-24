@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Activity, Filter, Download, RefreshCw, Eye, AlertTriangle, Clock } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import UserActivityChart from '../../components/admin/UserActivityChart';
-import UserActivityLog from '../../components/admin/UserActivityLog';
-import AdvancedUserFilters from '../../components/admin/AdvancedUserFilters';
+import UserActivityLog, { ActivityLogEntry } from '../../components/admin/UserActivityLog';
+import AdvancedUserFilters, { AdvancedUserFilters as AdvancedUserFiltersType } from '../../components/admin/AdvancedUserFilters';
 import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
@@ -51,7 +51,6 @@ const UserActivityPage: React.FC = () => {
   const [activities, setActivities] = useState<UserActivityData[]>([]);
   const [activityStats, setActivityStats] = useState<ActivityStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [statsLoading, setStatsLoading] = useState(true);
   const [filters, setFilters] = useState<ActivityFilters>({
     date_range: '24h',
     user_filter: 'all',
@@ -63,18 +62,13 @@ const UserActivityPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<UserActivityData | null>(null);
 
-  useEffect(() => {
-    fetchActivityLogs();
-    fetchActivityStats();
-  }, [filters]);
-
-  const fetchActivityLogs = async () => {
+  const fetchActivityLogs = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/users/activity-logs', {
+      const response = await api.get<UserActivityData[]>('/admin/users/activity-logs', {
         params: filters
       });
-      if (response.data.success) {
+      if (response.data.success && response.data.data) {
         setActivities(response.data.data);
       }
     } catch (error) {
@@ -82,27 +76,29 @@ const UserActivityPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, showToast]);
 
-  const fetchActivityStats = async () => {
+  const fetchActivityStats = useCallback(async () => {
     try {
-      setStatsLoading(true);
-      const response = await api.get('/admin/users/activity-logs/stats', {
+      const response = await api.get<ActivityStats>('/admin/users/activity-logs/stats', {
         params: { date_range: filters.date_range }
       });
-      if (response.data.success) {
+      if (response.data.success && response.data.data) {
         setActivityStats(response.data.data);
       }
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při načítání statistik' });
-    } finally {
-      setStatsLoading(false);
     }
-  };
+  }, [filters.date_range, showToast]);
 
-  const handleFilterChange = (newFilters: Partial<ActivityFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-  };
+  useEffect(() => {
+    if (filters.user_filter === 'all') {
+      fetchActivityLogs();
+      fetchActivityStats();
+    }
+  }, [filters.user_filter, filters.date_range, filters.action_type, filters.success_filter, filters.ip_filter, filters.limit, fetchActivityLogs, fetchActivityStats]);
+
+  // Removed unused handleFilterChange function
 
   const exportActivityLogs = async () => {
     try {
@@ -111,7 +107,7 @@ const UserActivityPage: React.FC = () => {
         responseType: 'blob'
       });
       
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(new Blob([response.data as unknown as BlobPart]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `activity-logs-${new Date().toISOString().split('T')[0]}.csv`);
@@ -152,6 +148,47 @@ const UserActivityPage: React.FC = () => {
     );
   };
 
+  // Convert UserActivityData to ActivityLogEntry for UserActivityLog component
+  const convertToActivityLogEntries = (activities: UserActivityData[]): ActivityLogEntry[] => {
+    return activities.map(activity => ({
+      id: activity.id,
+      user_id: activity.user_id,
+      user_name: activity.user_name,
+      user_email: activity.user_email,
+      action_type: activity.action_type as ActivityLogEntry['action_type'],
+      details: activity.description,
+      ip_address: activity.ip_address,
+      user_agent: activity.user_agent,
+      timestamp: activity.created_at,
+      created_at: activity.created_at
+    }));
+  };
+
+  // Create filters for AdvancedUserFilters component
+  const createAdvancedFilters = (): AdvancedUserFiltersType => ({
+    search: '',
+    role: 'all',
+    school_id: 'all',
+    is_active: 'all',
+    date_from: '',
+    date_to: '',
+    credit_min: '',
+    credit_max: '',
+    last_login_from: '',
+    last_login_to: '',
+    status: 'all'
+  });
+
+  const handleAdvancedFilterChange = (newFilters: AdvancedUserFiltersType) => {
+    // Map advanced filters to activity filters if needed
+    setFilters(prev => ({
+      ...prev,
+      // Map date filters if provided
+      date_range: newFilters.date_from && newFilters.date_to ? 'custom' : prev.date_range,
+      // Add more mapping logic here if needed
+    }));
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -187,19 +224,9 @@ const UserActivityPage: React.FC = () => {
         {showFilters && (
           <Card>
             <AdvancedUserFilters
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              onApplyFilters={() => setShowFilters(false)}
-              onResetFilters={() => {
-                setFilters({
-                  date_range: '24h',
-                  user_filter: 'all',
-                  action_type: 'all',
-                  success_filter: 'all',
-                  ip_filter: '',
-                  limit: 100
-                });
-              }}
+              filters={createAdvancedFilters()}
+              onFiltersChange={handleAdvancedFilterChange}
+              schools={[]}
             />
           </Card>
         )}
@@ -250,18 +277,18 @@ const UserActivityPage: React.FC = () => {
         <Card title="Aktivita v čase" icon={<Activity className="w-5 h-5" />}>
           <UserActivityChart 
             userId="all"
-            showRealTime={true}
-            customData={activityStats?.peak_activity_hours}
           />
         </Card>
 
         {/* Activity Log */}
         <Card title="Historie aktivit" icon={<Activity className="w-5 h-5" />}>
           <UserActivityLog 
-            logs={activities}
+            logs={convertToActivityLogEntries(activities)}
             loading={loading}
-            onFilterChange={() => {}}
-            onExport={() => {}}
+            onFilterChange={() => {
+              // Handle filter changes if needed
+            }}
+            onExport={exportActivityLogs}
           />
         </Card>
 

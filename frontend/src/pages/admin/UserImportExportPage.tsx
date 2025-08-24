@@ -1,35 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, Download, FileText, Users, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle, XCircle, Info } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import UserImportExport from '../../components/admin/UserImportExport';
+import UserImportExport, { ImportResult } from '../../components/admin/UserImportExport';
 import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
 
-interface ImportResult {
-  total_rows: number;
-  successful_imports: number;
-  failed_imports: number;
-  errors: Array<{
-    row: number;
-    field: string;
-    message: string;
-  }>;
-  warnings: Array<{
-    row: number;
-    field: string;
-    message: string;
-  }>;
-}
-
-interface ExportTemplate {
-  id: string;
-  name: string;
-  description: string;
-  fields: string[];
-  created_at: string;
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
 }
 
 const UserImportExportPage: React.FC = () => {
@@ -37,27 +19,10 @@ const UserImportExportPage: React.FC = () => {
   const { showToast } = useToast();
   
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
-  const [exportTemplates, setExportTemplates] = useState<ExportTemplate[]>([]);
   const [loading, setLoading] = useState(false);
-  const [exportLoading, setExportLoading] = useState(false);
   const [showImportResult, setShowImportResult] = useState(false);
 
-  useEffect(() => {
-    fetchExportTemplates();
-  }, []);
-
-  const fetchExportTemplates = async () => {
-    try {
-      const response = await api.get('/admin/users/export/templates');
-      if (response.data.success) {
-        setExportTemplates(response.data.data);
-      }
-    } catch (error) {
-      showToast({ type: 'error', message: 'Chyba při načítání export šablon' });
-    }
-  };
-
-  const handleImport = async (file: File, options: any) => {
+  const handleImport = async (file: File, options: any): Promise<ImportResult> => {
     try {
       setLoading(true);
       setShowImportResult(false);
@@ -66,23 +31,27 @@ const UserImportExportPage: React.FC = () => {
       formData.append('file', file);
       formData.append('options', JSON.stringify(options));
       
-      const response = await api.post('/admin/users/import', formData, {
+      const response = await api.post<ApiResponse<ImportResult>>('/admin/users/import', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       
-      if (response.data.success) {
-        setImportResult(response.data.data);
+      if (response.data.success && response.data.data) {
+        const result = response.data.data as unknown as ImportResult;
+        setImportResult(result);
         setShowImportResult(true);
         showToast({ 
           type: 'success', 
-          message: `Import dokončen: ${response.data.data.successful_imports} úspěšných, ${response.data.data.failed_imports} chyb` 
+          message: `Import dokončen: ${result.successful} úspěšných, ${result.failed} chyb` 
         });
+        return result;
       }
+      throw new Error('Import failed');
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Chyba při importu souboru';
       showToast({ type: 'error', message: errorMessage });
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -90,14 +59,12 @@ const UserImportExportPage: React.FC = () => {
 
   const handleExport = async (options: any) => {
     try {
-      setExportLoading(true);
-      
       const response = await api.get('/admin/users/export', {
         params: options,
         responseType: 'blob'
       });
       
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(new Blob([response.data as unknown as BlobPart]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `users-export-${new Date().toISOString().split('T')[0]}.csv`);
@@ -108,41 +75,10 @@ const UserImportExportPage: React.FC = () => {
       showToast({ type: 'success', message: 'Export byl úspěšně stažen' });
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při exportu uživatelů' });
-    } finally {
-      setExportLoading(false);
     }
   };
 
-  const downloadTemplate = async (templateId: string) => {
-    try {
-      const response = await api.get(`/admin/users/export/templates/${templateId}/download`, {
-        responseType: 'blob'
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `template-${templateId}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      
-      showToast({ type: 'success', message: 'Šablona byla stažena' });
-    } catch (error) {
-      showToast({ type: 'error', message: 'Chyba při stažení šablony' });
-    }
-  };
 
-  const getStatusIcon = (type: 'success' | 'error' | 'warning') => {
-    switch (type) {
-      case 'success':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'error':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'warning':
-        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
-    }
-  };
 
   return (
     <AdminLayout>
@@ -166,9 +102,6 @@ const UserImportExportPage: React.FC = () => {
           onImport={handleImport}
           onExport={handleExport}
           loading={loading}
-          exportLoading={exportLoading}
-          exportTemplates={exportTemplates}
-          onDownloadTemplate={downloadTemplate}
         />
 
         {/* Import Result Modal */}
@@ -188,7 +121,7 @@ const UserImportExportPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Celkem řádků</p>
-                      <p className="text-2xl font-bold text-gray-900">{importResult.total_rows}</p>
+                      <p className="text-2xl font-bold text-gray-900">{importResult.total}</p>
                     </div>
                     <FileText className="w-6 h-6 text-blue-500" />
                   </div>
@@ -197,7 +130,7 @@ const UserImportExportPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Úspěšné importy</p>
-                      <p className="text-2xl font-bold text-green-600">{importResult.successful_imports}</p>
+                      <p className="text-2xl font-bold text-green-600">{importResult.successful}</p>
                     </div>
                     <CheckCircle className="w-6 h-6 text-green-500" />
                   </div>
@@ -206,7 +139,7 @@ const UserImportExportPage: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">Chyby</p>
-                      <p className="text-2xl font-bold text-red-600">{importResult.failed_imports}</p>
+                      <p className="text-2xl font-bold text-red-600">{importResult.failed}</p>
                     </div>
                     <XCircle className="w-6 h-6 text-red-500" />
                   </div>
@@ -232,32 +165,13 @@ const UserImportExportPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Warnings */}
-              {importResult.warnings.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-md font-semibold text-yellow-700 mb-3 flex items-center">
-                    <AlertTriangle className="w-4 h-4 mr-2" />
-                    Varování ({importResult.warnings.length})
-                  </h4>
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-h-64 overflow-y-auto">
-                    {importResult.warnings.map((warning, index) => (
-                      <div key={index} className="mb-2 p-2 bg-yellow-100 rounded">
-                        <p className="text-sm text-yellow-800">
-                          <strong>Řádek {warning.row}:</strong> {warning.field} - {warning.message}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Success Rate */}
-              {importResult.total_rows > 0 && (
+              {importResult.total > 0 && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex items-center">
                     <Info className="w-4 h-4 text-green-600 mr-2" />
                     <p className="text-sm text-green-800">
-                      Úspěšnost importu: {Math.round((importResult.successful_imports / importResult.total_rows) * 100)}%
+                      Úspěšnost importu: {Math.round((importResult.successful / importResult.total) * 100)}%
                     </p>
                   </div>
                 </div>

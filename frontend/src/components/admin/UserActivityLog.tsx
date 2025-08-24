@@ -263,6 +263,7 @@ const UserActivityLog: React.FC<UserActivityLogProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <InputField
               label="Vyhledávání"
+              name="search"
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
               placeholder="Uživatel, akce, detaily..."
@@ -271,6 +272,7 @@ const UserActivityLog: React.FC<UserActivityLogProps> = ({
 
             <InputField
               label="ID uživatele"
+              name="user_id"
               value={filters.user_id}
               onChange={(e) => handleFilterChange('user_id', e.target.value)}
               placeholder="Zadejte ID uživatele"
@@ -296,6 +298,7 @@ const UserActivityLog: React.FC<UserActivityLogProps> = ({
 
             <InputField
               label="Datum od"
+              name="date_from"
               type="date"
               value={filters.date_from}
               onChange={(e) => handleFilterChange('date_from', e.target.value)}
@@ -304,6 +307,7 @@ const UserActivityLog: React.FC<UserActivityLogProps> = ({
 
             <InputField
               label="Datum do"
+              name="date_to"
               type="date"
               value={filters.date_to}
               onChange={(e) => handleFilterChange('date_to', e.target.value)}
@@ -312,6 +316,7 @@ const UserActivityLog: React.FC<UserActivityLogProps> = ({
 
             <InputField
               label="ID školy"
+              name="school_id"
               value={filters.school_id}
               onChange={(e) => handleFilterChange('school_id', e.target.value)}
               placeholder="Zadejte ID školy"

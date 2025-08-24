@@ -7,7 +7,6 @@ interface DeleteConfirmDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   title: string;
-  message: string;
   entityName?: string;
   impactMessage?: string;
   loading?: boolean;
@@ -18,7 +17,6 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
   onClose,
   onConfirm,
   title,
-  message,
   entityName,
   impactMessage,
   loading = false
@@ -46,14 +44,9 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
                   {title}
                 </h3>
                 <div className="mt-2">
-                  <p className="text-sm text-gray-500">
-                    {message}
+                  <p className="text-gray-600 mb-6">
+                    Opravdu chcete smazat &quot;{entityName}&quot;? Tato akce je nevratná.
                   </p>
-                  {entityName && (
-                    <p className="mt-2 text-sm font-medium text-gray-900">
-                      "{entityName}"
-                    </p>
-                  )}
                   {impactMessage && (
                     <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                       <p className="text-sm text-yellow-800">

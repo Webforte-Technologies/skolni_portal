@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { cn } from '../../utils/cn';
 import ResponsiveMarkdown from '../math/ResponsiveMarkdown';
 
@@ -22,25 +22,21 @@ const TypingEffect: React.FC<TypingEffectProps> = ({
   autoStart = true
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [showCursorBlink, setShowCursorBlink] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cursorIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Start typing effect
-  const startTyping = () => {
-    if (isTyping || currentIndex >= content.length) return;
-    
+  const startTyping = useCallback(() => {
     setIsTyping(true);
-    setCurrentIndex(0);
     setDisplayedContent('');
+    
+    let currentIndex = 0;
     
     const typeNextCharacter = () => {
       if (currentIndex < content.length) {
-        setDisplayedContent(prev => prev + content[currentIndex]);
-        setCurrentIndex(prev => prev + 1);
-        
+        setDisplayedContent(content.slice(0, currentIndex + 1));
+        currentIndex++;
         timeoutRef.current = setTimeout(typeNextCharacter, speed);
       } else {
         setIsTyping(false);
@@ -49,19 +45,9 @@ const TypingEffect: React.FC<TypingEffectProps> = ({
     };
     
     typeNextCharacter();
-  };
+  }, [content, speed, onComplete]);
 
-  // Stop typing effect
-  const stopTyping = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    setIsTyping(false);
-    setDisplayedContent(content);
-    setCurrentIndex(content.length);
-    onComplete?.();
-  };
+
 
   // Cursor blink effect
   useEffect(() => {
@@ -93,7 +79,7 @@ const TypingEffect: React.FC<TypingEffectProps> = ({
         timeoutRef.current = null;
       }
     };
-  }, [content, autoStart]);
+  }, [content, autoStart, startTyping, isTyping]);
 
   // Cleanup on unmount
   useEffect(() => {

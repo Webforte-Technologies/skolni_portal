@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { UserActivityModel } from '../models/UserActivity';
 import { RequestWithUser } from './auth';
 
@@ -31,9 +31,8 @@ export const logUserActivity = (options: ActivityLogOptions) => {
             status_code: res.statusCode,
             response_size: data ? data.length : 0
           },
-          ip_address: ipAddress,
-          user_agent: userAgent,
-          session_id: req.sessionID
+          ...(ipAddress && { ip_address: ipAddress }),
+          ...(userAgent && { user_agent: userAgent })
         }).catch(error => {
           console.error('Failed to log user activity:', error);
         });
@@ -83,9 +82,9 @@ export const logActivity = async (
     await UserActivityModel.logActivity({
       user_id: userId,
       activity_type: activityType,
-      activity_data: activityData,
-      ip_address: ipAddress,
-      user_agent: userAgent
+      activity_data: activityData || {},
+      ...(ipAddress && { ip_address: ipAddress }),
+      ...(userAgent && { user_agent: userAgent })
     });
   } catch (error) {
     console.error('Failed to log activity:', error);

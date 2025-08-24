@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Building2, Loader2 } from 'lucide-react';
 import Card from '../../components/ui/Card';
@@ -16,19 +16,13 @@ const SchoolEditPage: React.FC = () => {
   const { schoolId } = useParams<{ schoolId: string }>();
   const { showToast } = useToast();
 
-  useEffect(() => {
-    if (schoolId) {
-      fetchSchool();
-    }
-  }, [schoolId]);
-
-  const fetchSchool = async () => {
+  const fetchSchool = useCallback(async () => {
     try {
       setFetching(true);
       const response = await api.get(`/admin/schools/${schoolId}`);
       
       if (response.data.success) {
-        setSchool(response.data.data);
+        setSchool(response.data.data as School);
       } else {
         showToast({ 
           type: 'error', 
@@ -44,7 +38,13 @@ const SchoolEditPage: React.FC = () => {
     } finally {
       setFetching(false);
     }
-  };
+  }, [schoolId, navigate, showToast]);
+
+  useEffect(() => {
+    if (schoolId) {
+      fetchSchool();
+    }
+  }, [schoolId, fetchSchool]);
 
   const handleSubmit = async (schoolData: any) => {
     try {

@@ -2,20 +2,16 @@ import { Router, Response } from 'express';
 import { authenticateToken, RequestWithUser } from '../../../middleware/auth';
 import { validateBody } from '../../../middleware/zodValidation';
 import { ActivityGenerationSchema } from '../../../schemas/ai';
-import { ActivityData, validateActivity } from '../../../types/ai-generators';
-import { SYSTEM_PROMPT } from '../../../services/ai-generation/system-prompts';
+import { ActivityData } from '../../../types/ai-generators';
 import { 
   sendSSEMessage, 
-  setupSSEHeaders, 
-  sendSSEError,
-  escapeSSEContent 
+  sendSSEError
 } from '../../../services/ai-generation/sse-utils';
 import { 
   initializeGenerator,
   saveGeneratedFile,
   extractAndSaveMetadata,
-  handleGeneratorError,
-  sendGeneratorSuccess
+  handleGeneratorError
 } from '../../../services/ai-generation/common-patterns';
 import { parseActivityResponse } from '../../../services/ai-generation/response-parsers';
 import { AIService } from '../../../services/AIService';

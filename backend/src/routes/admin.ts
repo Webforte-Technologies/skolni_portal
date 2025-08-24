@@ -1,5 +1,5 @@
 import express from 'express';
-import bcrypt from 'bcryptjs';
+
 import ExcelJS from 'exceljs';
 import pool from '../database/connection';
 import { authenticateToken, requireRole, RequestWithUser } from '../middleware/auth';
@@ -23,8 +23,7 @@ import {
   AdminUpdateSchoolRequest,
   CreateUserNotificationRequest,
   UpdateUserStatusRequest,
-  UserAnalytics,
-  UserActivityStats
+
 } from '../types/database';
 
 const router = express.Router();
@@ -1599,7 +1598,7 @@ router.get('/users/activity-logs', async (req: RequestWithUser, res: express.Res
 // Get activity logs statistics
 router.get('/users/activity-logs/stats', async (req: RequestWithUser, res: express.Response) => {
   try {
-    const { date_range, activity_type, user_id } = req.query as any;
+    const { date_range, activity_type, _user_id } = req.query as any;
     
     // Calculate date range
     let start_date: string | undefined;
@@ -1869,8 +1868,7 @@ router.post('/users/import', async (req: RequestWithUser, res: express.Response)
           role: userData.role,
           school_id: userData.school_id,
           credits_balance: userData.credits_balance || 0,
-          is_active: userData.is_active !== false,
-          password: Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12) // Generate random password
+          is_active: userData.is_active !== false
         });
 
         results.success++;

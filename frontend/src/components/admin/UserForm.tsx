@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { User, School } from '../../types';
 import Button from '../ui/Button';
 import InputField from '../ui/InputField';
@@ -58,6 +58,15 @@ const UserForm: React.FC<UserFormProps> = ({
     }
   }, [user]);
 
+  const fetchSchools = useCallback(async () => {
+    try {
+      const response = await api.get('/admin/schools?limit=100');
+      setAvailableSchools((response.data.data as School[]) || []);
+    } catch (error) {
+      showToast({ type: 'error', message: 'Chyba při načítání škol' });
+    }
+  }, [showToast]);
+
   useEffect(() => {
     // Fetch schools if not provided
     if (schools.length === 0) {
@@ -65,16 +74,7 @@ const UserForm: React.FC<UserFormProps> = ({
     } else {
       setAvailableSchools(schools);
     }
-  }, [schools]);
-
-  const fetchSchools = async () => {
-    try {
-      const response = await api.get('/admin/schools?limit=100');
-      setAvailableSchools(response.data.data || []);
-    } catch (error) {
-      showToast({ type: 'error', message: 'Chyba při načítání škol' });
-    }
-  };
+  }, [schools, fetchSchools]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -139,15 +139,7 @@ const UserForm: React.FC<UserFormProps> = ({
     }
   };
 
-  const getRoleLabel = (role: string): string => {
-    switch (role) {
-      case 'platform_admin': return 'Platforma Admin';
-      case 'school_admin': return 'Správce školy';
-      case 'teacher_school': return 'Učitel školy';
-      case 'teacher_individual': return 'Individuální učitel';
-      default: return role;
-    }
-  };
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -244,7 +236,7 @@ const UserForm: React.FC<UserFormProps> = ({
           name="credits_balance"
           type="number"
           min="0"
-          value={formData.credits_balance}
+          value={formData.credits_balance.toString()}
           onChange={(e) => handleInputChange('credits_balance', parseInt(e.target.value) || 0)}
           error={errors.credits_balance}
           disabled={loading}

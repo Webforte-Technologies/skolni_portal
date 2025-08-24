@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
-import { apiClient } from '../services/apiClient';
+import apiClient from '../services/apiClient';
 
 const TestPage: React.FC = () => {
   const { user } = useAuth();
@@ -20,9 +20,15 @@ const TestPage: React.FC = () => {
       setTestResult(response.data);
       
       if (response.data.success) {
-        showToast('Worksheet generation test successful!', 'success');
+        showToast({
+          type: 'success',
+          message: 'Worksheet generation test successful!'
+        });
       } else {
-        showToast('Worksheet generation test failed: ' + response.data.error, 'error');
+        showToast({
+          type: 'error',
+          message: 'Worksheet generation test failed: ' + response.data.error
+        });
       }
     } catch (error: any) {
       console.error('Test failed:', error);
@@ -31,7 +37,10 @@ const TestPage: React.FC = () => {
         message: 'Test request failed',
         error: error.response?.data?.message || error.message
       });
-      showToast('Test request failed: ' + error.message, 'error');
+      showToast({
+        type: 'error',
+        message: 'Test request failed: ' + error.message
+      });
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +63,10 @@ const TestPage: React.FC = () => {
         message: 'Regular worksheet generation test completed',
         data: response.data
       });
-      showToast('Regular worksheet generation test completed!', 'success');
+      showToast({
+        type: 'success',
+        message: 'Regular worksheet generation test completed!'
+      });
     } catch (error: any) {
       console.error('Regular test failed:', error);
       setTestResult({
@@ -62,7 +74,10 @@ const TestPage: React.FC = () => {
         message: 'Regular worksheet generation test failed',
         error: error.response?.data?.message || error.message
       });
-      showToast('Regular test failed: ' + error.message, 'error');
+      showToast({
+        type: 'error',
+        message: 'Regular test failed: ' + error.message
+      });
     } finally {
       setIsLoading(false);
     }

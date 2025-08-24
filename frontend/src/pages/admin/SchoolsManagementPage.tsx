@@ -300,7 +300,6 @@ const SchoolsManagementPage: React.FC = () => {
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         title="Smazat školu"
-        message="Opravdu chcete smazat tuto školu? Tato akce je nevratná."
         entityName={deleteDialog.schoolName}
         impactMessage="Škola bude deaktivována a všichni její uživatelé budou muset být přesunuti nebo deaktivováni."
         loading={deleting}

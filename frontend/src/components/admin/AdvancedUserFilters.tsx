@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { User } from '../../types';
 import Button from '../ui/Button';
 import InputField from '../ui/InputField';
 import Card from '../ui/Card';
@@ -22,15 +21,13 @@ export interface AdvancedUserFilters {
 interface AdvancedUserFiltersProps {
   filters: AdvancedUserFilters;
   onFiltersChange: (filters: AdvancedUserFilters) => void;
-  onReset: () => void;
-  schools?: Array<{ id: string; name: string }>;
+  schools: Array<{ id: string; name: string }>;
   loading?: boolean;
 }
 
 const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
   filters,
   onFiltersChange,
-  onReset,
   schools = [],
   loading = false
 }) => {
@@ -167,6 +164,7 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <InputField
             label="Vyhledávání"
+            name="search"
             type="text"
             value={filters.search}
             onChange={(e) => handleFilterChange('search', e.target.value)}
@@ -242,6 +240,8 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <InputField
+                    label="Od"
+                    name="date_from"
                     type="date"
                     value={filters.date_from}
                     onChange={(e) => handleFilterChange('date_from', e.target.value)}
@@ -250,6 +250,8 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                     className="text-sm"
                   />
                   <InputField
+                    label="Do"
+                    name="date_to"
                     type="date"
                     value={filters.date_to}
                     onChange={(e) => handleFilterChange('date_to', e.target.value)}
@@ -267,6 +269,8 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <InputField
+                    label="Min"
+                    name="credit_min"
                     type="number"
                     value={filters.credit_min}
                     onChange={(e) => handleFilterChange('credit_min', e.target.value)}
@@ -275,6 +279,8 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                     className="text-sm"
                   />
                   <InputField
+                    label="Max"
+                    name="credit_max"
                     type="number"
                     value={filters.credit_max}
                     onChange={(e) => handleFilterChange('credit_max', e.target.value)}
@@ -292,6 +298,8 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <InputField
+                    label="Od"
+                    name="last_login_from"
                     type="date"
                     value={filters.last_login_from}
                     onChange={(e) => handleFilterChange('last_login_from', e.target.value)}
@@ -300,6 +308,8 @@ const AdvancedUserFilters: React.FC<AdvancedUserFiltersProps> = ({
                     className="text-sm"
                   />
                   <InputField
+                    label="Do"
+                    name="last_login_to"
                     type="date"
                     value={filters.last_login_to}
                     onChange={(e) => handleFilterChange('last_login_to', e.target.value)}

@@ -2,20 +2,16 @@ import { Router, Response } from 'express';
 import { authenticateToken, RequestWithUser } from '../../../middleware/auth';
 import { validateBody } from '../../../middleware/zodValidation';
 import { PresentationGenerationSchema } from '../../../schemas/ai';
-import { PresentationData, validatePresentation } from '../../../types/ai-generators';
-import { SYSTEM_PROMPT } from '../../../services/ai-generation/system-prompts';
+import { PresentationData } from '../../../types/ai-generators';
 import { 
   sendSSEMessage, 
-  setupSSEHeaders, 
-  sendSSEError,
-  escapeSSEContent 
+  sendSSEError
 } from '../../../services/ai-generation/sse-utils';
 import { 
   initializeGenerator,
   saveGeneratedFile,
   extractAndSaveMetadata,
-  handleGeneratorError,
-  sendGeneratorSuccess
+  handleGeneratorError
 } from '../../../services/ai-generation/common-patterns';
 import { parsePresentationResponse } from '../../../services/ai-generation/response-parsers';
 import { AIService } from '../../../services/AIService';
@@ -36,7 +32,7 @@ export default function createPresentationRoutes(aiService: AIService): Router {
         grade_level, 
         presentation_type, 
         slide_count, 
-        duration, 
+        _duration, 
         learning_objectives, 
         custom_instructions 
       } = req.body;

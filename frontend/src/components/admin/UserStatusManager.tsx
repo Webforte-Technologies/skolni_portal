@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import InputField from '../ui/InputField';
 import Badge from '../ui/Badge';
 
 export interface UserStatus {

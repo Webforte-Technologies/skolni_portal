@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import Badge from '../ui/Badge';
 
 export interface UserAnalyticsData {
   total_users: number;

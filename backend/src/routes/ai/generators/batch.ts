@@ -2,19 +2,15 @@ import { Router, Response } from 'express';
 import { authenticateToken, RequestWithUser } from '../../../middleware/auth';
 import { validateBody } from '../../../middleware/zodValidation';
 import { BatchGenerationRequestSchema } from '../../../schemas/ai';
-import { SYSTEM_PROMPT } from '../../../services/ai-generation/system-prompts';
 import { 
   sendSSEMessage, 
-  setupSSEHeaders, 
-  sendSSEError,
-  escapeSSEContent 
+  sendSSEError
 } from '../../../services/ai-generation/sse-utils';
 import { 
   initializeGenerator,
   saveGeneratedFile,
   extractAndSaveMetadata,
-  handleGeneratorError,
-  sendGeneratorSuccess
+  handleGeneratorError
 } from '../../../services/ai-generation/common-patterns';
 import { AIService } from '../../../services/AIService';
 import { logUserAction } from '../../../middleware/activity-logger';

@@ -108,7 +108,9 @@ const TypingEffectSettingsComponent: React.FC<TypingEffectSettingsComponentProps
       </div>
 
       <div className="text-xs text-muted-foreground pt-2 border-t">
-        <p>Efekt psaní simuluje, jak AI asistent "píše" odpověď znak po znaku.</p>
+        <p className="text-sm text-gray-600 mb-4">
+          Nastavte rychlost psaní a další parametry pro efekt psacího stroje. &quot;Rychlost&quot; určuje, jak rychle se text zobrazuje, &quot;Zpoždění&quot; přidává pauzu před začátkem psaní.
+        </p>
       </div>
     </div>
   );

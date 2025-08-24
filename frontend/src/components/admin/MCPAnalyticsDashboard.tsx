@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  TrendingUp, 
-  Users, 
-  CreditCard, 
+  BarChart3, 
   Activity, 
-  AlertTriangle, 
-  CheckCircle, 
+  Clock, 
+  CreditCard,
+  AlertTriangle,
+  CheckCircle,
   Zap,
-  Clock,
   Database,
-  BarChart3,
   Cpu
 } from 'lucide-react';
 import Card from '../ui/Card';
@@ -85,46 +83,44 @@ const MCPAnalyticsDashboard: React.FC = () => {
   const [analyticsData, setAnalyticsData] = useState<MCPAnalyticsData | null>(null);
   const [realTimeData, setRealTimeData] = useState<RealTimeData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [realTimeLoading, setRealTimeLoading] = useState(false);
   const [timeRange, setTimeRange] = useState<number>(30);
   const { showToast } = useToast();
 
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/admin/analytics/mcp/overview?days=${timeRange}`);
       
-      if (response.data.success) {
-        setAnalyticsData(response.data.data);
-      } else {
-        showToast('Chyba při načítání analytických dat', 'error');
+      const response = await fetch('/api/admin/analytics/mcp');
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics data');
       }
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Nepodařilo se načíst analytická data';
-      showToast(errorMessage, 'error');
+      
+      const data = await response.json();
+      setAnalyticsData(data);
+    } catch (err) {
+      console.error('Failed to fetch analytics data:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const fetchRealTimeData = async () => {
     try {
-      setRealTimeLoading(true);
       const response = await api.get('/admin/analytics/mcp/real-time');
       
-      if (response.data.success) {
-        setRealTimeData(response.data.data);
+      if (response.data.success && response.data.data) {
+        // Type assertion with runtime check
+        const realTimeData = response.data.data as RealTimeData;
+        setRealTimeData(realTimeData);
       }
     } catch (error) {
-      // Silent error handling for real-time data
-    } finally {
-      setRealTimeLoading(false);
+      console.error('Failed to fetch real-time data:', error);
     }
   };
 
   useEffect(() => {
     fetchAnalyticsData();
-  }, [timeRange]);
+  }, [fetchAnalyticsData]);
 
   useEffect(() => {
     // Fetch real-time data every 30 seconds
@@ -180,10 +176,10 @@ const MCPAnalyticsDashboard: React.FC = () => {
             onClick={async () => {
               try {
                 await api.post('/admin/analytics/mcp/setup-sample-data');
-                showToast('Ukázková data byla přidána', 'success');
+                showToast({ type: 'success', message: 'Ukázková data byla přidána' });
                 fetchAnalyticsData();
               } catch (error) {
-                showToast('Nepodařilo se přidat ukázková data', 'error');
+                showToast({ type: 'error', message: 'Nepodařilo se přidat ukázková data' });
               }
             }}
           >

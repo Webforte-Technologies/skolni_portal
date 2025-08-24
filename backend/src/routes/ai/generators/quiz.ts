@@ -1,42 +1,24 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { authenticateToken, RequestWithUser } from '../../../middleware/auth';
 import { validateBody } from '../../../middleware/zodValidation';
 import { QuizGenerationSchema } from '../../../schemas/ai';
 import { AIService } from '../../../services/AIService';
-import { v4 as uuidv4 } from 'uuid';
 import {
-  QuizData,
-  validateQuiz,
-  SSEMessage
+  QuizData
 } from '../../../types/ai-generators';
 import {
   initializeGenerator,
   saveGeneratedFile,
   extractAndSaveMetadata,
-  handleGeneratorError,
-  sendGeneratorSuccess
+  handleGeneratorError
 } from '../../../services/ai-generation/common-patterns';
 import {
-  checkUserCredits,
-  deductCredits,
-  getUpdatedUserBalance
-} from '../../../services/ai-generation/credit-handler';
-import {
-  setupSSEHeaders,
   sendSSEMessage,
-  sendSSEConnectionMessage,
-  sendSSEError,
-  sendSSEProgress,
-  sendSSEChunk,
-  sendSSEComplete
+  sendSSEError
 } from '../../../services/ai-generation/sse-utils';
 import {
   parseQuizResponse
 } from '../../../services/ai-generation/response-parsers';
-import {
-  constructGenericStructure
-} from '../../../services/ai-generation/structure-builders';
-import { GeneratedFileModel } from '../../../models/GeneratedFile';
 import { logUserAction } from '../../../middleware/activity-logger';
 
 /**
@@ -59,7 +41,7 @@ export default function createQuizRoutes(aiService: AIService): Router {
         subject, 
         grade_level, 
         assignment_description, 
-        subtype_id, 
+        _subtype_id, 
         question_count, 
         time_limit, 
         prompt_hint, 

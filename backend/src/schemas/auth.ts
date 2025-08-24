@@ -36,7 +36,7 @@ export const SchoolRegistrationSchema = z.object({
     .max(200, 'School address is too long')
     .optional(),
   school_phone: z.string()
-    .regex(/^[+]?[\d\s\-\(\)]+$/, 'Invalid phone number format')
+    .regex(/^[+]?[\d\s\-()]+$/, 'Invalid phone number format')
     .optional(),
   school_website: z.string()
     .url('Invalid website URL')

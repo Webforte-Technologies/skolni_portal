@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import crypto from 'crypto';
-import { MCPRequest, MCPResponse, CacheEntry } from '../types/mcp';
+import { MCPRequest, MCPResponse } from '../types/mcp';
 
 /**
  * AI response caching service

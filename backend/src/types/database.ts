@@ -233,7 +233,7 @@ export interface CreateChatMessageRequest {
 }
 
 // Admin-specific request types
-export interface AdminCreateUserRequest extends CreateUserRequest {
+export interface AdminCreateUserRequest extends Omit<CreateUserRequest, 'password'> {
   role: 'platform_admin' | 'school_admin' | 'teacher_school' | 'teacher_individual';
   school_id?: string;
   credits_balance?: number;

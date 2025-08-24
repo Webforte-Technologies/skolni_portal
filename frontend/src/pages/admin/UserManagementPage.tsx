@@ -24,8 +24,6 @@ interface User {
   school_name?: string;
 }
 
-
-
 interface UserFilters {
   status: string;
   role: string;
@@ -45,6 +43,38 @@ interface UsersResponse {
   total: number;
   limit: number;
   offset: number;
+}
+
+interface ActivityLog {
+  id: string;
+  user_id: string;
+  user_name?: string;
+  user_email?: string;
+  action?: string;
+  action_type: 'login' | 'logout' | 'page_view' | 'api_call' | 'file_generated' | 
+               'conversation_started' | 'credits_used' | 'profile_updated' | 
+               'password_changed' | 'email_verified' | 'subscription_changed';
+  details?: string;
+  ip_address?: string;
+  user_agent?: string;
+  timestamp?: string;
+  session_id?: string;
+  credits_used?: number;
+  school_id?: string;
+  school_name?: string;
+  activity_data?: Record<string, any>;
+  created_at?: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
+interface AdvancedSearchResponse {
+  users: User[];
+  total: number;
 }
 
 const UserManagementPage: React.FC = () => {
@@ -72,7 +102,7 @@ const UserManagementPage: React.FC = () => {
     userName: ''
   });
   const [deleting, setDeleting] = useState(false);
-  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<ActivityLog[]>([]);
   const [showRecentActivity, setShowRecentActivity] = useState(false);
   const pageSize = 20;
 
@@ -114,13 +144,18 @@ const UserManagementPage: React.FC = () => {
         params.activity_threshold = filters.activity_threshold;
       }
 
-      const response = await api.get<UsersResponse>('/admin/users', { params });
+      const response = await api.get<ApiResponse<UsersResponse>>('/admin/users', { params });
       
       // The backend returns: { success: true, data: { data: rows, total, limit, offset } }
-      const usersData = response.data.data;
-      if (usersData?.data && Array.isArray(usersData.data)) {
-        setUsers(usersData.data);
-        setTotalUsers(usersData.total);
+      if (response.data.success && response.data.data) {
+        const usersData = response.data.data as unknown as UsersResponse;
+        if (usersData.data && Array.isArray(usersData.data)) {
+          setUsers(usersData.data);
+          setTotalUsers(usersData.total || 0);
+        } else {
+          setUsers([]);
+          setTotalUsers(0);
+        }
       } else {
         setUsers([]);
         setTotalUsers(0);
@@ -138,10 +173,10 @@ const UserManagementPage: React.FC = () => {
 
   const fetchRecentActivity = async () => {
     try {
-      const response = await api.get('/admin/users/activity-logs', {
+      const response = await api.get<ApiResponse<ActivityLog[]>>('/admin/users/activity-logs', {
         params: { limit: 10, date_range: '24h' }
       });
-      if (response.data.success) {
+      if (response.data.success && Array.isArray(response.data.data)) {
         setRecentActivity(response.data.data);
       }
     } catch (error) {
@@ -163,16 +198,17 @@ const UserManagementPage: React.FC = () => {
   const handleAdvancedSearch = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/admin/users/search/advanced', {
+      const response = await api.get<ApiResponse<AdvancedSearchResponse>>('/admin/users/search/advanced', {
         params: {
           q: searchQuery,
           ...filters
         }
       });
       
-      if (response.data.success) {
-        setUsers(response.data.data.users);
-        setTotalUsers(response.data.data.total);
+      if (response.data.success && response.data.data) {
+        const searchData = response.data.data as unknown as AdvancedSearchResponse;
+        setUsers(searchData.users || []);
+        setTotalUsers(searchData.total || 0);
       }
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při pokročilém vyhledávání' });
@@ -241,13 +277,15 @@ const UserManagementPage: React.FC = () => {
           navigate(`/admin/users/${userId}/profile`);
           return;
         case 'delete':
-          const user = users.find(u => u.id === userId);
-          if (user) {
-            setDeleteDialog({
-              isOpen: true,
-              userId,
-              userName: `${user.first_name} ${user.last_name}`
-            });
+          {
+            const user = users.find(u => u.id === userId);
+            if (user) {
+              setDeleteDialog({
+                isOpen: true,
+                userId,
+                userName: `${user.first_name} ${user.last_name}`
+              });
+            }
           }
           return;
       }
@@ -301,6 +339,17 @@ const UserManagementPage: React.FC = () => {
   };
 
   const totalPages = Math.ceil(totalUsers / pageSize);
+
+  const resetFilters = () => {
+    setFilters({
+      status: 'all',
+      role: 'all',
+      school: 'all',
+      dateRange: '30d'
+    });
+    setSearchQuery('');
+    setCurrentPage(0);
+  };
 
   return (
     <AdminLayout>
@@ -370,18 +419,44 @@ const UserManagementPage: React.FC = () => {
           {showFilters && (
             <div className="pt-4 border-t">
               <AdvancedUserFilters
-                filters={filters}
-                onFilterChange={(newFilters) => setFilters({ ...filters, ...newFilters })}
-                onApplyFilters={() => setShowFilters(false)}
-                onResetFilters={() => {
+                filters={{
+                  search: searchQuery,
+                  role: filters.role,
+                  school_id: filters.school,
+                  is_active: filters.status === 'active' ? 'true' : filters.status === 'inactive' ? 'false' : 'all',
+                  date_from: filters.date_range_start || '',
+                  date_to: filters.date_range_end || '',
+                  credit_min: filters.credit_range_min?.toString() || '',
+                  credit_max: filters.credit_range_max?.toString() || '',
+                  last_login_from: filters.last_login_start || '',
+                  last_login_to: filters.last_login_end || '',
+                  status: filters.status
+                }}
+                onFiltersChange={(newFilters) => {
                   setFilters({
-                    status: 'all',
-                    role: 'all',
-                    school: 'all',
-                    dateRange: '30d'
+                    ...filters,
+                    role: newFilters.role,
+                    school: newFilters.school_id,
+                    status: newFilters.is_active === 'true' ? 'active' : newFilters.is_active === 'false' ? 'inactive' : 'all',
+                    date_range_start: newFilters.date_from || undefined,
+                    date_range_end: newFilters.date_to || undefined,
+                    credit_range_min: newFilters.credit_min ? parseInt(newFilters.credit_min) : undefined,
+                    credit_range_max: newFilters.credit_max ? parseInt(newFilters.credit_max) : undefined,
+                    last_login_start: newFilters.last_login_from || undefined,
+                    last_login_end: newFilters.last_login_to || undefined
                   });
                 }}
+                schools={[]}
+                loading={false}
               />
+              <div className="flex gap-2 mt-4">
+                <Button onClick={() => setShowFilters(false)}>
+                  Použít filtry
+                </Button>
+                <Button variant="outline" onClick={resetFilters}>
+                  Resetovat filtry
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -637,7 +712,6 @@ const UserManagementPage: React.FC = () => {
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         title="Smazat uživatele"
-        message="Opravdu chcete smazat tohoto uživatele? Tato akce je nevratná."
         entityName={deleteDialog.userName}
         impactMessage="Uživatel bude deaktivován a nebude moci se přihlásit do systému."
         loading={deleting}

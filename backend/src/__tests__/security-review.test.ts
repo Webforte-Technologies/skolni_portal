@@ -1,7 +1,6 @@
 import request from 'supertest';
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 import { UserModel } from '../models/User';
 import { UserActivityModel } from '../models/UserActivity';
 import { UserNotificationModel } from '../models/UserNotification';
@@ -28,33 +27,28 @@ describe('Security Review Tests - Phase 3', () => {
       name: 'Security Test School',
       address: 'Test Address',
       city: 'Test City',
-      phone: '+420123456789',
-      email: 'security@test.com',
-      is_active: true
+      contact_phone: '+420123456789',
+      contact_email: 'security@test.com'
     });
     testSchoolId = school.id;
 
     // Create admin user
-    const adminUser = await UserModel.create({
+    const adminUser = await UserModel.createAdmin({
       email: 'admin.security@test.com',
-      password: await bcrypt.hash('securepassword123', 10),
       first_name: 'Admin',
       last_name: 'Security',
       role: 'platform_admin',
-      is_active: true,
       credits_balance: 1000
     });
     adminUserId = adminUser.id;
 
     // Create teacher user
-    const teacherUser = await UserModel.create({
+    const teacherUser = await UserModel.createAdmin({
       email: 'teacher.security@test.com',
-      password: await bcrypt.hash('teacherpassword123', 10),
       first_name: 'Teacher',
       last_name: 'Security',
-      role: 'teacher',
+      role: 'teacher_school',
       school_id: testSchoolId,
-      is_active: true,
       credits_balance: 500
     });
     teacherUserId = teacherUser.id;
@@ -62,13 +56,13 @@ describe('Security Review Tests - Phase 3', () => {
     // Generate tokens
     adminToken = jwt.sign(
       { userId: adminUserId, role: 'platform_admin' },
-      process.env.JWT_SECRET || 'test-secret',
+      process.env['JWT_SECRET'] || 'test-secret',
       { expiresIn: '1h' }
     );
 
     teacherToken = jwt.sign(
-      { userId: teacherUserId, role: 'teacher' },
-      process.env.JWT_SECRET || 'test-secret',
+      { userId: teacherUserId, role: 'teacher_school' },
+      process.env['JWT_SECRET'] || 'test-secret',
       { expiresIn: '1h' }
     );
   });
@@ -104,7 +98,7 @@ describe('Security Review Tests - Phase 3', () => {
     test('should reject requests with expired token', async () => {
       const expiredToken = jwt.sign(
         { userId: adminUserId, role: 'platform_admin' },
-        process.env.JWT_SECRET || 'test-secret',
+        process.env['JWT_SECRET'] || 'test-secret',
         { expiresIn: '-1h' } // Expired 1 hour ago
       );
 
@@ -128,20 +122,18 @@ describe('Security Review Tests - Phase 3', () => {
 
     test('should only allow platform_admin role for user management', async () => {
       // Create school_admin user
-      const schoolAdmin = await UserModel.create({
+      const schoolAdmin = await UserModel.createAdmin({
         email: 'schooladmin.security@test.com',
-        password: await bcrypt.hash('schooladminpass', 10),
         first_name: 'School',
         last_name: 'Admin',
         role: 'school_admin',
         school_id: testSchoolId,
-        is_active: true,
         credits_balance: 100
       });
 
       const schoolAdminToken = jwt.sign(
         { userId: schoolAdmin.id, role: 'school_admin' },
-        process.env.JWT_SECRET || 'test-secret',
+        process.env['JWT_SECRET'] || 'test-secret',
         { expiresIn: '1h' }
       );
 
@@ -352,14 +344,12 @@ describe('Security Review Tests - Phase 3', () => {
   describe('Data Integrity and Consistency', () => {
     test('should maintain referential integrity on user deletion', async () => {
       // Create a temporary user
-      const tempUser = await UserModel.create({
+      const tempUser = await UserModel.createAdmin({
         email: 'temp.security@test.com',
-        password: await bcrypt.hash('temppass', 10),
         first_name: 'Temp',
         last_name: 'User',
-        role: 'teacher',
+        role: 'teacher_school',
         school_id: testSchoolId,
-        is_active: true,
         credits_balance: 100
       });
 
@@ -404,7 +394,7 @@ describe('Security Review Tests - Phase 3', () => {
     test('should validate user-school relationship consistency', async () => {
       const invalidData = {
         status: 'active',
-        role: 'teacher',
+        role: 'teacher_school',
         school_id: '00000000-0000-0000-0000-000000000000' // Non-existent school
       };
 

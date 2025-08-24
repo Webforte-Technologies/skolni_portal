@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Activity, CreditCard, Calendar, Mail, Phone, MapPin, Edit, Send, Download } from 'lucide-react';
+import { ArrowLeft, Edit, Activity, Calendar, Clock } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import UserProfileCard from '../../components/admin/UserProfileCard';
@@ -16,13 +16,14 @@ interface UserProfile {
   email: string;
   first_name: string;
   last_name: string;
-  role: string;
+  role: 'platform_admin' | 'school_admin' | 'teacher_school' | 'teacher_individual';
   is_active: boolean;
   status: string;
   school_id?: string;
   school_name?: string;
   credits_balance: number;
   created_at: string;
+  updated_at: string;
   last_login_at?: string;
   last_activity_at?: string;
   total_logins: number;
@@ -39,7 +40,9 @@ interface UserProfile {
 interface UserActivity {
   id: string;
   user_id: string;
-  action_type: string;
+  action_type: 'login' | 'logout' | 'page_view' | 'api_call' | 'file_generated' | 
+               'conversation_started' | 'credits_used' | 'profile_updated' | 
+               'password_changed' | 'email_verified' | 'subscription_changed';
   timestamp?: string;
   ip_address?: string;
   user_agent?: string;
@@ -62,34 +65,31 @@ const UserProfilePage: React.FC = () => {
   const [showNotificationForm, setShowNotificationForm] = useState(false);
   const [activityLoading, setActivityLoading] = useState(false);
 
-  useEffect(() => {
-    if (userId) {
-      fetchUserProfile();
-      fetchUserActivity();
-    }
-  }, [userId]);
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(`/admin/users/${userId}/profile`);
       if (response.data.success) {
-        setUserProfile(response.data.data);
+        // Type assertion for the response data
+        const userData = response.data.data as UserProfile;
+        setUserProfile(userData);
       }
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při načítání profilu uživatele' });
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, showToast]);
 
-  const fetchUserActivity = async () => {
+  const fetchUserActivity = useCallback(async () => {
     try {
       setActivityLoading(true);
       const response = await api.get(`/admin/users/${userId}/activity`);
       if (response.data.success) {
+        // Type assertion for the response data
+        const responseData = response.data.data as { activities: any[] };
         // Map backend data to frontend format
-        const mappedActivities = response.data.data.activities?.map((activity: any) => ({
+        const mappedActivities = responseData.activities?.map((activity: any) => ({
           id: activity.id,
           user_id: activity.user_id,
           action_type: activity.activity_type,
@@ -112,7 +112,14 @@ const UserProfilePage: React.FC = () => {
     } finally {
       setActivityLoading(false);
     }
-  };
+  }, [userId, showToast]);
+
+  useEffect(() => {
+    if (userId) {
+      fetchUserActivity();
+      fetchUserProfile();
+    }
+  }, [userId, fetchUserActivity, fetchUserProfile]);
 
   const handleSendNotification = async (notificationData: any) => {
     try {
@@ -149,7 +156,9 @@ const UserProfilePage: React.FC = () => {
         responseType: 'blob'
       });
       
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      // Type assertion for blob response - first to unknown, then to Blob
+      const blobData = response.data as unknown as Blob;
+      const url = window.URL.createObjectURL(new Blob([blobData]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `user-${userId}-data.csv`);
@@ -200,11 +209,11 @@ const UserProfilePage: React.FC = () => {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={exportUserData}>
-              <Download className="w-4 h-4 mr-2" />
+              <Clock className="w-4 h-4 mr-2" />
               Export dat
             </Button>
             <Button variant="outline" onClick={() => setShowNotificationForm(true)}>
-              <Send className="w-4 h-4 mr-2" />
+              <Activity className="w-4 h-4 mr-2" />
               Odeslat oznámení
             </Button>
             <Button onClick={() => navigate(`/admin/users/${userId}/edit`)}>
@@ -217,6 +226,8 @@ const UserProfilePage: React.FC = () => {
         {/* User Profile Card */}
         <UserProfileCard 
           user={userProfile}
+          onEdit={() => navigate(`/admin/users/${userId}/edit`)}
+          onSendNotification={() => setShowNotificationForm(true)}
           onStatusChange={handleStatusChange}
           onResetPassword={handleResetPassword}
         />
@@ -241,10 +252,12 @@ const UserProfilePage: React.FC = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <UserNotificationForm
-                userId={userId!}
-                userName={`${userProfile.first_name} ${userProfile.last_name}`}
-                onSubmit={handleSendNotification}
-                onCancel={() => setShowNotificationForm(false)}
+                selectedUsers={[{ 
+                  id: userId!, 
+                  name: `${userProfile.first_name} ${userProfile.last_name}`,
+                  email: userProfile.email 
+                }]}
+                onSend={handleSendNotification}
               />
             </div>
           </div>

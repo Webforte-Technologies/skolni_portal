@@ -4,6 +4,7 @@ import { validateAndDeductCredits, MaterialType } from './credit-handler';
 import { sendSSEMessage, setupSSEHeaders, sendSSEError } from './sse-utils';
 import { deriveTags } from './validators';
 import { extractMetadataFromResponse } from './response-parsers';
+import crypto from 'crypto';
 
 /**
  * Common generator initialization pattern
@@ -149,7 +150,7 @@ export function buildMCPRequest(
   caching: boolean = true
 ): any {
   return {
-    id: require('uuid').v4(),
+    id: crypto.randomUUID(),
     type: 'generation' as const,
     user_id: req.user!.id,
     priority,
@@ -180,7 +181,7 @@ export async function handleMCPResponse(
   validator: (data: any) => any,
   materialType: MaterialType,
   req: RequestWithUser,
-  creditsUsed: number
+  _creditsUsed: number
 ): Promise<any> {
   if (!response.success) {
     sendSSEError(res, response.error?.message || 'MCP generation failed');

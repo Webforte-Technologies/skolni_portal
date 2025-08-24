@@ -546,7 +546,7 @@ export class UserModel {
   }
 
   // Update user status
-  static async updateStatus(userId: string, status: string, reason?: string): Promise<User | null> {
+  static async updateStatus(userId: string, status: string, _reason?: string): Promise<User | null> {
     const query = `
       UPDATE users 
       SET status = $1, updated_at = CURRENT_TIMESTAMP
@@ -566,7 +566,7 @@ export class UserModel {
   }
 
   // Update last login information
-  static async updateLastLogin(userId: string, ipAddress?: string): Promise<void> {
+  static async updateLastLogin(userId: string, _ipAddress?: string): Promise<void> {
     const query = `
       UPDATE users 
       SET last_login_at = CURRENT_TIMESTAMP, 

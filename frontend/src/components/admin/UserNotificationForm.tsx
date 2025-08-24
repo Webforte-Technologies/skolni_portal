@@ -238,6 +238,7 @@ const UserNotificationForm: React.FC<UserNotificationFormProps> = ({
 
         <InputField
           label="Předmět"
+          name="subject"
           value={notification.subject}
           onChange={(e) => setNotification({
             ...notification,
@@ -305,6 +306,8 @@ const UserNotificationForm: React.FC<UserNotificationFormProps> = ({
                   Naplánovat na
                 </label>
                 <InputField
+                  label="Naplánovat na"
+                  name="scheduled_for"
                   type="datetime-local"
                   value={notification.scheduled_for || ''}
                   onChange={(e) => setNotification({

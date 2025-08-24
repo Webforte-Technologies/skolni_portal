@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
@@ -36,13 +36,7 @@ const UserActivityChart: React.FC<UserActivityChartProps> = ({
   const [activityStats, setActivityStats] = useState<UserActivityStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (userId) {
-      fetchActivityChartData();
-    }
-  }, [userId, timeRange]);
-
-  const fetchActivityChartData = async () => {
+  const fetchActivityChartData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(`/admin/users/${userId}/activity-chart`, {
@@ -50,8 +44,12 @@ const UserActivityChart: React.FC<UserActivityChartProps> = ({
       });
       
       if (response.data.success) {
-        setActivityData(response.data.data.activityData || []);
-        setActivityStats(response.data.data.activityStats || null);
+        const responseData = response.data.data as {
+          activityData: UserActivityData[];
+          activityStats: UserActivityStats;
+        };
+        setActivityData(responseData.activityData || []);
+        setActivityStats(responseData.activityStats || null);
       }
     } catch (error) {
       console.error('Failed to fetch activity chart data:', error);
@@ -60,7 +58,11 @@ const UserActivityChart: React.FC<UserActivityChartProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, timeRange]);
+
+  useEffect(() => {
+    fetchActivityChartData();
+  }, [fetchActivityChartData]);
 
   const handleTimeRangeChange = (range: '7d' | '30d' | '90d') => {
     setTimeRange(range);
@@ -128,7 +130,6 @@ const UserActivityChart: React.FC<UserActivityChartProps> = ({
     }
 
     const maxValue = Math.max(...activityData.map(d => d[selectedMetric as keyof UserActivityData] as number));
-    const minValue = Math.min(...activityData.map(d => d[selectedMetric as keyof UserActivityData] as number));
 
     return (
       <div className="space-y-2">

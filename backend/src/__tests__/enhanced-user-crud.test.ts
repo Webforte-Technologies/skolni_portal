@@ -22,13 +22,11 @@ describe('Enhanced User CRUD Operations - Phase 3 Testing', () => {
 
   beforeAll(async () => {
     // Create admin user for testing
-    const adminUser = await UserModel.create({
+    const adminUser = await UserModel.createAdmin({
       email: 'admin@test.com',
-      password: 'hashedpassword',
       first_name: 'Admin',
       last_name: 'User',
       role: 'platform_admin',
-      is_active: true,
       credits_balance: 1000
     });
 
@@ -37,21 +35,18 @@ describe('Enhanced User CRUD Operations - Phase 3 Testing', () => {
       name: 'Test School',
       address: 'Test Address',
       city: 'Test City',
-      phone: '+420123456789',
-      email: 'school@test.com',
-      is_active: true
+      contact_phone: '+420123456789',
+      contact_email: 'school@test.com'
     });
     testSchoolId = testSchool.id;
 
     // Create test user
-    const testUser = await UserModel.create({
+    const testUser = await UserModel.createAdmin({
       email: 'testuser@test.com',
-      password: 'hashedpassword',
       first_name: 'Test',
       last_name: 'User',
-      role: 'teacher',
+      role: 'teacher_school',
       school_id: testSchoolId,
-      is_active: true,
       credits_balance: 500
     });
     testUserId = testUser.id;
@@ -59,7 +54,7 @@ describe('Enhanced User CRUD Operations - Phase 3 Testing', () => {
     // Generate admin token
     adminToken = jwt.sign(
       { userId: adminUser.id, role: 'platform_admin' },
-      process.env.JWT_SECRET || 'test-secret',
+      process.env['JWT_SECRET'] || 'test-secret',
       { expiresIn: '1h' }
     );
   });
@@ -82,7 +77,7 @@ describe('Enhanced User CRUD Operations - Phase 3 Testing', () => {
     test('should log user activity', async () => {
       const activityData = {
         user_id: testUserId,
-        activity_type: 'login',
+        activity_type: 'login' as const,
         activity_data: { browser: 'Chrome', platform: 'Windows' },
         ip_address: '192.168.1.1',
         user_agent: 'Mozilla/5.0 Test Agent',
@@ -121,7 +116,7 @@ describe('Enhanced User CRUD Operations - Phase 3 Testing', () => {
 
       expect(result.activities).toHaveLength(2);
       expect(result.total).toBe(2);
-      expect(result.activities[0].activity_type).toMatch(/login|page_view/);
+      expect(result.activities?.[0]?.activity_type).toMatch(/login|page_view/);
     });
 
     test('should get user activity statistics', async () => {
@@ -137,7 +132,7 @@ describe('Enhanced User CRUD Operations - Phase 3 Testing', () => {
       
       expect(stats).toBeDefined();
       expect(stats.total_activities).toBeGreaterThan(0);
-      expect(stats.activity_breakdown).toBeDefined();
+      expect(stats.activities_by_type).toBeDefined();
     });
 
     test('GET /admin/users/:id/activity should return user activities', async () => {
@@ -170,7 +165,7 @@ describe('Enhanced User CRUD Operations - Phase 3 Testing', () => {
     test('should create user notification', async () => {
       const notificationData = {
         user_id: testUserId,
-        notification_type: 'admin_message',
+        notification_type: 'admin_message' as const,
         title: 'Test Notification',
         message: 'This is a test notification',
         severity: 'info' as const
@@ -194,14 +189,15 @@ describe('Enhanced User CRUD Operations - Phase 3 Testing', () => {
         severity: 'warning'
       });
 
-      const notifications = await UserNotificationModel.getUserNotifications(testUserId, {
+      const notifications = await UserNotificationModel.getUserNotifications({
+        user_id: testUserId,
         limit: 10,
         offset: 0
       });
 
       expect(notifications.notifications).toHaveLength(1);
       expect(notifications.total).toBe(1);
-      expect(notifications.notifications[0].title).toBe('System Alert');
+      expect(notifications.notifications?.[0]?.title).toBe('System Alert');
     });
 
     test('should mark notification as read', async () => {
@@ -317,8 +313,8 @@ describe('Enhanced User CRUD Operations - Phase 3 Testing', () => {
         theme: 'dark'
       });
 
-      expect(updated.theme).toBe('dark');
-      expect(updated.language).toBe('cs-CZ'); // Should remain unchanged
+      expect(updated?.theme).toBe('dark');
+      expect(updated?.language).toBe('cs-CZ'); // Should remain unchanged
     });
   });
 
@@ -441,8 +437,8 @@ describe('Enhanced User CRUD Operations - Phase 3 Testing', () => {
     test('should require admin role for all endpoints', async () => {
       // Create regular user token
       const regularToken = jwt.sign(
-        { userId: testUserId, role: 'teacher' },
-        process.env.JWT_SECRET || 'test-secret',
+        { userId: testUserId, role: 'teacher_school' },
+        process.env['JWT_SECRET'] || 'test-secret',
         { expiresIn: '1h' }
       );
 

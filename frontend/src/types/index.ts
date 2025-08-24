@@ -16,6 +16,7 @@ export interface School {
   id: string;
   name: string;
   address?: string;
+  city?: string;
   created_at: string;
 }
 
@@ -249,7 +250,7 @@ export interface ButtonProps {
 export interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   name: string;
-  type?: 'text' | 'email' | 'password' | 'number' | 'tel';
+  type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'datetime-local' | 'date' | 'time' | 'url' | 'search';
   placeholder?: string;
   required?: boolean;
   error?: string;

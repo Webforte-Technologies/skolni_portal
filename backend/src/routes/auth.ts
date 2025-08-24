@@ -10,8 +10,7 @@ import {
   RegistrationSchema, 
   LoginSchema, 
   SchoolRegistrationSchema,
-  PasswordResetRequestSchema,
-  PasswordResetSchema,
+
   ChangePasswordSchema,
   UpdateProfileSchema
 } from '../schemas/auth';

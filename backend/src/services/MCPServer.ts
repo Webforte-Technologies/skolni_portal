@@ -8,9 +8,7 @@ import {
   MCPRequest, 
   MCPResponse, 
   MCPServerConfig, 
-  AIProviderConfig, 
   StreamingResponse,
-  MCPEvent,
   ProviderHealthStatus,
   MCPAnalytics,
   FallbackResult
@@ -100,7 +98,7 @@ export class MCPServer extends EventEmitter {
       throw new Error('MCP Server not initialized');
     }
     
-    const startTime = Date.now();
+    const _startTime = Date.now();
     this.emit('request_started', { type: 'request_started', data: request });
     
     try {
@@ -251,7 +249,7 @@ export class MCPServer extends EventEmitter {
     endDate: Date;
     granularity?: 'hour' | 'day' | 'week';
   }): Promise<MCPAnalytics> {
-    const { startDate, endDate, granularity = 'day' } = options;
+    const { startDate, endDate } = options;
     
     try {
       // Request statistics

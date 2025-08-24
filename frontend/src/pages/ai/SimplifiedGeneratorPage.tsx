@@ -1437,7 +1437,7 @@ const SimplifiedGeneratorPage: React.FC = () => {
                           <li><strong>Standardní:</strong> Vyvážená kvalita a rychlost (doporučeno pro většinu materiálů)</li>
                           <li><strong>Vysoká:</strong> Nejlepší kvalita, pomalejší generování (pro důležité materiály)</li>
                         </ul>
-                        <p><strong>Vlastní instrukce:</strong> Přidejte specifické požadavky pro AI (např. "Zahrň více praktických příkladů", "Použij jednoduchý jazyk pro mladší žáky")</p>
+                        <p><strong>Vlastní instrukce:</strong> Přidejte specifické požadavky pro AI (např. &quot;Zahrň více praktických příkladů&quot;, &quot;Použij jednoduchý jazyk pro mladší žáky&quot;)</p>
                         <p><strong>Speciální požadavky:</strong> Zaškrtněte prvky, které chcete v materiálu zahrnout</p>
                       </div>
                     </div>

@@ -80,7 +80,8 @@ const AnalyticsPage: React.FC = () => {
 
   const exportData = (format: 'csv' | 'pdf') => {
     // Implementation for data export
-          // TODO: Implement data export functionality
+    // TODO: Implement analytics data export functionality
+    console.log(`Exporting analytics data in ${format} format`);
   };
 
   if (loading) {

@@ -167,18 +167,21 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
             <div className="space-y-3">
               <InputField
                 label="Jméno"
+                name="first_name"
                 value={editData.first_name}
                 onChange={(e) => setEditData({...editData, first_name: e.target.value})}
                 disabled={loading}
               />
               <InputField
                 label="Příjmení"
+                name="last_name"
                 value={editData.last_name}
                 onChange={(e) => setEditData({...editData, last_name: e.target.value})}
                 disabled={loading}
               />
               <InputField
                 label="Email"
+                name="email"
                 type="email"
                 value={editData.email}
                 onChange={(e) => setEditData({...editData, email: e.target.value})}
@@ -186,8 +189,9 @@ const UserProfileCard: React.FC<UserProfileCardProps> = ({
               />
               <InputField
                 label="Kredity"
+                name="credits_balance"
                 type="number"
-                value={editData.credits_balance}
+                value={editData.credits_balance.toString()}
                 onChange={(e) => setEditData({...editData, credits_balance: parseInt(e.target.value) || 0})}
                 disabled={loading}
               />

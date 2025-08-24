@@ -106,6 +106,7 @@ const RevenuePage: React.FC = () => {
   const exportData = (format: 'csv' | 'pdf') => {
     // Implementation for data export
     // TODO: Implement revenue data export functionality
+    console.log(`Exporting revenue data in ${format} format`);
   };
 
   if (loading) {

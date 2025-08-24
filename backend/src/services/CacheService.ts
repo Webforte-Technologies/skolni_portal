@@ -1,4 +1,4 @@
-const NodeCache = require('node-cache');
+import NodeCache from 'node-cache';
 
 /**
  * Cache Service for performance optimization

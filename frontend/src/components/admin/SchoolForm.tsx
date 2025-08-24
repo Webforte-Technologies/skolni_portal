@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { School } from '../../types';
 import Button from '../ui/Button';
 import InputField from '../ui/InputField';
-import { useToast } from '../../contexts/ToastContext';
 
 interface SchoolFormProps {
   school?: School;
@@ -40,19 +39,17 @@ const SchoolForm: React.FC<SchoolFormProps> = ({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { showToast } = useToast();
-
   useEffect(() => {
     if (school) {
       setFormData({
         name: school.name,
         address: school.address || '',
-        city: school.city || '',
-        postal_code: school.postal_code || '',
-        contact_email: school.contact_email || '',
-        contact_phone: school.contact_phone || '',
-        logo_url: school.logo_url || '',
-        is_active: school.is_active
+        city: '',
+        postal_code: '',
+        contact_email: '',
+        contact_phone: '',
+        logo_url: '',
+        is_active: true
       });
     }
   }, [school]);

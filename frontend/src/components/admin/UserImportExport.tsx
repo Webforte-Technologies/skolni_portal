@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import InputField from '../ui/InputField';
-import Badge from '../ui/Badge';
 
 export interface UserImportData {
   email: string;
@@ -322,6 +321,8 @@ marie.svobodova@example.com,Marie,Svobodová,teacher_individual,,50,true`;
                     Datum od
                   </label>
                   <InputField
+                    label="Datum od"
+                    name="date_from"
                     type="date"
                     value={exportOptions.date_from || ''}
                     onChange={(e) => setExportOptions({
@@ -337,6 +338,8 @@ marie.svobodova@example.com,Marie,Svobodová,teacher_individual,,50,true`;
                     Datum do
                   </label>
                   <InputField
+                    label="Datum do"
+                    name="date_to"
                     type="date"
                     value={exportOptions.date_to || ''}
                     onChange={(e) => setExportOptions({

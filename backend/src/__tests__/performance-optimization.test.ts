@@ -14,9 +14,8 @@ describe('Performance Optimization Tests - Phase 3', () => {
       name: 'Performance Test School',
       address: 'Test Address',
       city: 'Test City',
-      phone: '+420123456789',
-      email: 'perftest@school.com',
-      is_active: true
+      contact_phone: '+420123456789',
+      contact_email: 'perftest@school.com'
     });
     testSchoolId = school.id;
 
@@ -24,14 +23,12 @@ describe('Performance Optimization Tests - Phase 3', () => {
     const userPromises = [];
     for (let i = 0; i < 100; i++) {
       userPromises.push(
-        UserModel.create({
+        UserModel.createAdmin({
           email: `perftest${i}@test.com`,
-          password: 'hashedpassword',
           first_name: `TestUser${i}`,
           last_name: 'Performance',
-          role: 'teacher',
+          role: 'teacher_school',
           school_id: testSchoolId,
-          is_active: true,
           credits_balance: Math.floor(Math.random() * 1000)
         })
       );
@@ -120,7 +117,7 @@ describe('Performance Optimization Tests - Phase 3', () => {
       const startTime = Date.now();
 
       const result = await UserActivityModel.getUserActivities({
-        user_id: userId,
+        user_id: userId!,
         activity_type: 'login',
         limit: 50,
         offset: 0
@@ -295,7 +292,7 @@ describe('Performance Optimization Tests - Phase 3', () => {
       for (let i = 0; i < 20; i++) {
         concurrentOperations.push(
           UserActivityModel.logActivity({
-            user_id: testUsers[i % testUsers.length],
+            user_id: testUsers[i % testUsers.length]!,
             activity_type: 'api_call',
             activity_data: { endpoint: `/test-${i}` },
             ip_address: '192.168.1.1'
@@ -318,7 +315,7 @@ describe('Performance Optimization Tests - Phase 3', () => {
       for (let i = 0; i < 10; i++) {
         concurrentNotifications.push(
           UserNotificationModel.create({
-            user_id: testUsers[i],
+            user_id: testUsers[i]!,
             notification_type: 'system',
             title: `Concurrent Test ${i}`,
             message: `Concurrent notification ${i}`,
@@ -339,7 +336,7 @@ describe('Performance Optimization Tests - Phase 3', () => {
     test('should enforce reasonable limits on query results', async () => {
       // Test that queries don't return unlimited results
       const result = await UserActivityModel.getUserActivities({
-        user_id: testUsers[0],
+        user_id: testUsers[0]!,
         limit: 10000, // Very large limit
         offset: 0
       });

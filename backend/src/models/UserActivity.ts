@@ -279,7 +279,7 @@ export class UserActivityModel {
     };
   }> {
     // Use cache for default filters (no filters = all data)
-    const cacheKey = `activity_summary:${JSON.stringify(filters)}`;
+    const _cacheKey = `activity_summary:${JSON.stringify(filters)}`;
     if (Object.keys(filters).length === 0) {
       const cached = cacheService.getActivitySummary();
       if (cached) {

@@ -6,7 +6,7 @@ import { UserActivityLog } from '../types/database';
 interface ActivityLoggerOptions {
   excludePaths?: string[];
   excludeMethods?: string[];
-  activityType?: string;
+  _activityType?: string;
   includeResponseData?: boolean;
 }
 
@@ -33,7 +33,7 @@ export const activityLogger = (options: ActivityLoggerOptions = {}) => {
   const {
     excludePaths = ['/health', '/metrics', '/favicon.ico'],
     excludeMethods = ['OPTIONS'],
-    activityType = 'api_call',
+    _activityType = 'api_call',
     includeResponseData = false
   } = options;
 
@@ -156,7 +156,7 @@ export const activityLogger = (options: ActivityLoggerOptions = {}) => {
 /**
  * Determine the activity type based on the request
  */
-function determineActivityType(req: Request, res: Response): UserActivityLog['activity_type'] {
+function determineActivityType(req: Request, _res: Response): UserActivityLog['activity_type'] {
   // Authentication endpoints
   if (req.path.includes('/auth/login')) return 'login';
   if (req.path.includes('/auth/logout')) return 'logout';
@@ -285,7 +285,7 @@ export const logUserAction = async (
  * Middleware specifically for page views
  */
 export const pageViewLogger = activityLogger({
-  activityType: 'page_view',
+          _activityType: 'page_view',
   excludePaths: ['/health', '/metrics', '/favicon.ico', '/api/'],
   excludeMethods: ['POST', 'PUT', 'DELETE', 'PATCH']
 });
@@ -294,6 +294,6 @@ export const pageViewLogger = activityLogger({
  * Middleware specifically for API calls
  */
 export const apiCallLogger = activityLogger({
-  activityType: 'api_call',
+          _activityType: 'api_call',
   includeResponseData: false
 });

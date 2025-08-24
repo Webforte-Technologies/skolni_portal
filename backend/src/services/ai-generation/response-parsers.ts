@@ -9,7 +9,6 @@ import {
 import { 
   validateAIResponse,
   cleanAIResponse,
-  extractJsonFromResponse,
   hasValidJsonStructure
 } from './validators';
 import {

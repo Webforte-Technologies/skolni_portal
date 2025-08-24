@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import { authenticateToken, RequestWithUser } from '../../middleware/auth';
 import { validateBody } from '../../middleware/zodValidation';
 import { AssignmentAnalysisSchema, AnalysisResultSchema } from '../../schemas/ai';
-import { SYSTEM_PROMPT } from '../../services/ai-generation/system-prompts';
+
 import { sendSSEMessage, setupSSEHeaders } from '../../services/ai-generation/sse-utils';
 import { AIService } from '../../services/AIService';
 

@@ -7,8 +7,7 @@ import { webSocketService } from '../../services/WebSocketService';
 import { enhancedMetricsMiddleware, getEnhancedMetrics } from '../../middleware/enhanced-metrics';
 import pool from '../../database/connection';
 import { MCPAnalyticsService } from '../../services/MCPAnalyticsService';
-import { validateQuery } from '../../middleware/zodValidation';
-import { AnalyticsTimeRangeSchema } from '../../schemas/analytics';
+
 
 const router = express.Router();
 const mcpAnalyticsService = new MCPAnalyticsService(pool);

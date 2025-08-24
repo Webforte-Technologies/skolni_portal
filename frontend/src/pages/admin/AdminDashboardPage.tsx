@@ -52,7 +52,7 @@ const AdminDashboardPage: React.FC = () => {
   const { showToast } = useToast();
 
   // Memoize callback functions to prevent infinite re-renders
-  const handleMetricClick = useCallback((metric: any) => {
+  const handleMetricClick = useCallback(() => {
     // Show detailed performance view
     // TODO: Implement detailed performance view
   }, []);
@@ -64,7 +64,7 @@ const AdminDashboardPage: React.FC = () => {
     });
   }, [showToast]);
 
-  const handleRealTimeMetricClick = useCallback((metricId: string) => {
+  const handleRealTimeMetricClick = useCallback(() => {
     // Navigate to detailed view or show modal
     // TODO: Implement navigation to detailed view
   }, []);
@@ -598,15 +598,15 @@ const AdminDashboardPage: React.FC = () => {
                 maxAlerts={8}
                 showFilters={true}
                 showActions={true}
-                onAlertClick={(alert) => {
+                onAlertClick={() => {
                   // Show alert details or navigate to issue
                   // TODO: Implement alert details view
                 }}
-                onAcknowledge={(alertId) => {
+                onAcknowledge={() => {
                   // API call to acknowledge alert
                   // TODO: Implement API call to acknowledge alert
                 }}
-                onResolve={(alertId) => {
+                onResolve={() => {
                   // API call to resolve alert
                   // TODO: Implement API call to resolve alert
                 }}
@@ -662,7 +662,7 @@ const AdminDashboardPage: React.FC = () => {
                 }
                 return [];
               }}
-              onDataPointClick={(dataPoint) => {
+              onDataPointClick={() => {
                 // Navigate to user management or show details
                 // TODO: Implement navigation to user management
               }}

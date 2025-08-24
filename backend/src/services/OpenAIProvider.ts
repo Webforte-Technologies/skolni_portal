@@ -68,23 +68,26 @@ export class OpenAIProvider extends AIProvider {
       let tokensUsed = 0;
       
       switch (request.type) {
-        case 'chat':
+        case 'chat': {
           const chatResult = await this.processChatRequest(request, model);
           response = chatResult.response;
           tokensUsed = chatResult.tokensUsed;
           break;
+        }
           
-        case 'generation':
+        case 'generation': {
           const genResult = await this.processGenerationRequest(request, model);
           response = genResult.response;
           tokensUsed = genResult.tokensUsed;
           break;
+        }
           
-        case 'analysis':
+        case 'analysis': {
           const analysisResult = await this.processAnalysisRequest(request, model);
           response = analysisResult.response;
           tokensUsed = analysisResult.tokensUsed;
           break;
+        }
           
         default:
           return this.createErrorResponse(
@@ -109,7 +112,7 @@ export class OpenAIProvider extends AIProvider {
       });
       
     } catch (error: any) {
-      const processingTime = Date.now() - startTime;
+      const _processingTime = Date.now() - startTime;
       
       // Handle specific OpenAI errors
       if (error.status === 429) {

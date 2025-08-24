@@ -86,7 +86,7 @@ const MaterialGenerationHelp: React.FC<MaterialGenerationHelpProps> = ({ classNa
                   <div>
                     <p className="font-medium text-sm text-blue-800 dark:text-blue-200">Konkrétní téma</p>
                     <p className="text-xs text-blue-700 dark:text-blue-300">
-                      Místo "Matematika" zadejte "Sčítání zlomků s různými jmenovateli"
+                      Místo &quot;Matematika&quot; zadejte &quot;Sčítání zlomků s různými jmenovateli&quot;
                     </p>
                   </div>
                 </div>
