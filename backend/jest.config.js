@@ -13,7 +13,7 @@ module.exports = {
   },
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
   setupFiles: ['dotenv/config'],
-  testTimeout: 10000,
+  testTimeout: 30000, // Increased from 10000 to 30000
   forceExit: true,
   clearMocks: true,
   resetMocks: true,

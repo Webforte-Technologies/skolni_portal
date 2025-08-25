@@ -344,7 +344,7 @@ export class UserActivityModel {
         activity_type,
         COUNT(*) as type_count
       FROM user_activity_logs ual
-      ${where}
+      ${where ? where + ' AND' : 'WHERE'} ual.id IS NOT NULL
       GROUP BY activity_type
     `;
 
@@ -368,7 +368,7 @@ export class UserActivityModel {
         COUNT(*) as activity_count
       FROM user_activity_logs ual
       JOIN users u ON ual.user_id = u.id
-      ${where}
+      ${where ? where + ' AND' : 'WHERE'} ual.id IS NOT NULL
       GROUP BY u.id, u.email, u.first_name, u.last_name
       ORDER BY activity_count DESC
       LIMIT 10
@@ -382,8 +382,7 @@ export class UserActivityModel {
         DATE(created_at) as date,
         COUNT(*) as count
       FROM user_activity_logs ual
-      ${where}
-      AND created_at >= NOW() - INTERVAL '30 days'
+      ${where ? where + ' AND' : 'WHERE'} created_at >= NOW() - INTERVAL '30 days'
       GROUP BY DATE(created_at)
       ORDER BY date
     `;
@@ -406,7 +405,7 @@ export class UserActivityModel {
         ), 0) as credits_used
       FROM user_activity_logs ual
       JOIN users u ON ual.user_id = u.id
-      ${where}
+      ${where ? where + ' AND' : 'WHERE'} ual.id IS NOT NULL
       GROUP BY u.id, u.email, u.first_name, u.last_name
       HAVING COALESCE(SUM(
         CASE 

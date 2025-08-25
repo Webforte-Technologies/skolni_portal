@@ -42,5 +42,15 @@ export default {
       lines: 70,
       statements: 70
     }
-  }
+  },
+  // Ensure ES module handling is properly configured
+  transform: {
+    ...baseConfig.transform,
+  },
+  transformIgnorePatterns: [
+    ...baseConfig.transformIgnorePatterns,
+  ],
+  globals: {
+    ...baseConfig.globals,
+  },
 };
