@@ -7,7 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import InputField from '../../components/ui/InputField';
+import Badge from '../../components/ui/Badge';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import SchoolTeacherSubtable from '../../components/admin/SchoolTeacherSubtable';
 import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
@@ -18,13 +20,16 @@ interface School {
   address?: string;
   city?: string;
   postal_code?: string;
-  phone?: string;
-  email?: string;
+  contact_phone?: string;  // Map to phone display
+  contact_email?: string;  // Map to email display
+  phone?: string;          // For backward compatibility
+  email?: string;          // For backward compatibility
   website?: string;
   teacher_count: number;
   student_count: number;
   subscription_plan: string;
   credits_balance: number;
+  total_credits: number;   // From backend findAllWithStats
   created_at: string;
   is_active: boolean;
 }
@@ -39,12 +44,15 @@ const SchoolsManagementPage: React.FC = () => {
     isOpen: boolean;
     schoolId: string | null;
     schoolName: string;
+    showTeacherManagement: boolean;
   }>({
     isOpen: false,
     schoolId: null,
-    schoolName: ''
+    schoolName: '',
+    showTeacherManagement: false
   });
   const [deleting, setDeleting] = useState(false);
+  const [selectedSchoolForTeachers, setSelectedSchoolForTeachers] = useState<School | null>(null);
   const pageSize = 20;
 
   const { showToast } = useToast();
@@ -79,7 +87,18 @@ const SchoolsManagementPage: React.FC = () => {
     setDeleteDialog({
       isOpen: true,
       schoolId,
-      schoolName
+      schoolName,
+      showTeacherManagement: false
+    });
+  };
+
+  const handleDeleteWithTeacherManagement = (school: School) => {
+    setSelectedSchoolForTeachers(school);
+    setDeleteDialog({
+      isOpen: true,
+      schoolId: school.id,
+      schoolName: school.name,
+      showTeacherManagement: true
     });
   };
 
@@ -88,20 +107,51 @@ const SchoolsManagementPage: React.FC = () => {
 
     try {
       setDeleting(true);
-      await api.delete(`/admin/schools/${deleteDialog.schoolId}`);
-      showToast({ type: 'success', message: 'Škola byla úspěšně smazána' });
-      setDeleteDialog({ isOpen: false, schoolId: null, schoolName: '' });
+      
+      // Check if we need to auto-deactivate teachers
+      const autoDeactivate = deleteDialog.showTeacherManagement;
+      
+      const response = await api.delete(`/admin/schools/${deleteDialog.schoolId}`, {
+        data: {
+          auto_deactivate_teachers: autoDeactivate,
+          reason: 'School deletion by admin'
+        }
+      });
+
+      const message = response.data?.message || 'Škola byla úspěšně smazána';
+      showToast({ type: 'success', message });
+      
+      setDeleteDialog({ isOpen: false, schoolId: null, schoolName: '', showTeacherManagement: false });
+      setSelectedSchoolForTeachers(null);
       fetchSchools();
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || 'Chyba při mazání školy';
-      showToast({ type: 'error', message: errorMessage });
+      const errorData = error.response?.data;
+      
+      if (errorData?.requires_teacher_deactivation) {
+        // Show teacher management option
+        setDeleteDialog(prev => ({ ...prev, showTeacherManagement: true }));
+        showToast({ 
+          type: 'warning', 
+          message: `Škola má ${errorData.active_teachers} aktivních učitelů. Musíte je nejprve deaktivovat.` 
+        });
+      } else {
+        const errorMessage = errorData?.error || 'Chyba při mazání školy';
+        showToast({ type: 'error', message: errorMessage });
+      }
     } finally {
       setDeleting(false);
     }
   };
 
   const handleDeleteCancel = () => {
-    setDeleteDialog({ isOpen: false, schoolId: null, schoolName: '' });
+    setDeleteDialog({ isOpen: false, schoolId: null, schoolName: '', showTeacherManagement: false });
+    setSelectedSchoolForTeachers(null);
+  };
+
+  const handleTeacherDeactivated = () => {
+    // Refresh schools data after teacher deactivation
+    fetchSchools();
+    showToast({ type: 'success', message: 'Učitelé byli úspěšně deaktivováni' });
   };
 
   return (
@@ -165,18 +215,27 @@ const SchoolsManagementPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 text-lg">{school.name}</h3>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <MapPin className="w-4 h-4" />
-                    {school.city || 'N/A'}{school.postal_code ? `, ${school.postal_code}` : ''}
-                  </div>
+                                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <MapPin className="w-4 h-4" />
+                {school.city || 'N/A'}{school.postal_code ? `, ${school.postal_code}` : ''}
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Badge 
+                  variant={school.subscription_plan === 'premium' ? 'success' : 'secondary'}
+                  className="text-xs"
+                >
+                  {school.subscription_plan === 'premium' ? 'Premium' : 'Základní'} plán
+                </Badge>
+              </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              {/* School Actions */}
+              <div className="flex items-center gap-2 mb-4">
                 <Button 
                   size="sm" 
                   variant="secondary"
                   onClick={() => navigate(`/admin/schools/${school.id}`)}
-                  title="Zobrazit profil"
+                  title="Zobrazit profil školy"
                 >
                   <Eye className="w-4 h-4" />
                 </Button>
@@ -191,63 +250,87 @@ const SchoolsManagementPage: React.FC = () => {
                 <Button 
                   size="sm" 
                   variant="secondary"
-                  onClick={() => handleDeleteSchool(school.id, school.name)}
-                  title="Smazat školu"
+                  onClick={() => handleDeleteWithTeacherManagement(school)}
+                  title="Smazat školu s možností správy učitelů"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>
 
-            {/* School Details */}
+            {/* School Details - Enhanced Layout */}
             <div className="space-y-3 mb-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Phone className="w-4 h-4" />
-                {school.phone || 'N/A'}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Mail className="w-4 h-4" />
-                {school.email || 'N/A'}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-600 font-medium">Telefon:</span>
+                  <span className="text-gray-900">{school.contact_phone || school.phone || 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-600 font-medium">Email:</span>
+                  <span className="text-gray-900">{school.contact_email || school.email || 'N/A'}</span>
+                </div>
               </div>
               {school.website && (
                 <div className="flex items-center gap-2 text-sm text-blue-600">
                   <span>🌐</span>
-                  <a href={school.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                  <span className="text-gray-600 font-medium">Web:</span>
+                  <a href={school.website} target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-600">
                     {school.website}
                   </a>
                 </div>
               )}
             </div>
 
-            {/* Statistics */}
+            {/* Statistics - Enhanced */}
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-center gap-2 mb-1">
+              <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-center gap-2 mb-2">
                   <Users className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm text-gray-600">Učitelé</span>
+                  <span className="text-sm font-medium text-blue-700">Učitelé</span>
                 </div>
-                <div className="text-xl font-bold text-gray-900">{school.teacher_count || 0}</div>
+                <div className="text-2xl font-bold text-blue-900">{school.teacher_count || 0}</div>
+                <div className="text-xs text-blue-600 mt-1">Registrováno</div>
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center justify-center gap-2 mb-1">
+              <div className="text-center p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-center gap-2 mb-2">
                   <Users className="w-4 h-4 text-green-600" />
-                  <span className="text-sm text-gray-600">Studenti</span>
+                  <span className="text-sm font-medium text-green-700">Studenti</span>
                 </div>
-                <div className="text-xl font-bold text-gray-900">{school.student_count || 0}</div>
+                <div className="text-2xl font-bold text-green-900">{school.student_count || 0}</div>
+                <div className="text-xs text-green-600 mt-1">Celkem</div>
               </div>
             </div>
 
-            {/* Credits Information */}
-            <div className="space-y-3 mb-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Celkové kredity školy</span>
-                <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-purple-600" />
-                  <span className="font-medium">{(school.credits_balance || 0).toLocaleString()}</span>
+            {/* Credits Information - Enhanced */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200 mb-4">
+              <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-blue-600" />
+                Kreditový systém školy
+              </h4>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Celkové kredity školy</span>
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-purple-600" />
+                    <span className="font-bold text-lg text-purple-700">
+                      {(school.total_credits || school.credits_balance || 0).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="text-xs text-gray-500">
-                Kredity jsou rozděleny mezi učitele školy
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Dostupné kredity</span>
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-blue-600" />
+                    <span className="font-bold text-lg text-blue-700">
+                      {(school.credits_balance || 0).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-500 mt-2 p-2 bg-white rounded border-l-4 border-blue-400">
+                  💡 Kredity jsou rozděleny mezi učitele školy a umožňují generování materiálů
+                </div>
               </div>
             </div>
 
@@ -308,16 +391,74 @@ const SchoolsManagementPage: React.FC = () => {
         </Card>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Enhanced Delete Confirmation Dialog */}
       <DeleteConfirmDialog
         isOpen={deleteDialog.isOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         title="Smazat školu"
         entityName={deleteDialog.schoolName}
-        impactMessage="Škola bude deaktivována a všichni její uživatelé budou muset být přesunuti nebo deaktivováni."
+        impactMessage={
+          deleteDialog.showTeacherManagement 
+            ? "Škola bude smazána a všichni její učitelé budou automaticky deaktivováni."
+            : "Škola bude deaktivována a všichni její uživatelé budou muset být přesunuti nebo deaktivováni."
+        }
         loading={deleting}
       />
+
+      {/* Teacher Management Modal */}
+      {deleteDialog.showTeacherManagement && selectedSchoolForTeachers && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div 
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              onClick={handleDeleteCancel}
+            />
+
+            {/* Modal */}
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                      Správa učitelů před smazáním školy: {selectedSchoolForTeachers.name}
+                    </h3>
+                    <div className="mt-2">
+                      <SchoolTeacherSubtable
+                        schoolId={selectedSchoolForTeachers.id}
+                        schoolName={selectedSchoolForTeachers.name}
+                        onTeacherDeactivated={handleTeacherDeactivated}
+                        showDeleteControls={true}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <Button
+                  variant="danger"
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting}
+                  isLoading={deleting}
+                  className="w-full sm:w-auto sm:ml-3"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Smazat školu s deaktivací učitelů
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDeleteCancel}
+                  disabled={deleting}
+                  className="mt-3 w-full sm:mt-0 sm:w-auto"
+                >
+                  Zrušit
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </AdminLayout>
   );

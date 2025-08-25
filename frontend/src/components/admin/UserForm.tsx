@@ -60,7 +60,7 @@ const UserForm: React.FC<UserFormProps> = ({
 
   const fetchSchools = useCallback(async () => {
     try {
-      const response = await api.get('/admin/schools?limit=100');
+      const response = await api.get('/schools?limit=100');
       setAvailableSchools((response.data.data as School[]) || []);
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při načítání škol' });

@@ -222,7 +222,7 @@ export const SchoolAnalytics: React.FC<SchoolAnalyticsProps> = ({ data, isLoadin
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">{city.count} škol</span>
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="outline" className="text-xs">
                     {getStatusPercentage(city.count, data.total_schools)}%
                   </Badge>
                 </div>
@@ -280,3 +280,5 @@ export const SchoolAnalytics: React.FC<SchoolAnalyticsProps> = ({ data, isLoadin
     </div>
   );
 };
+
+export default SchoolAnalytics;

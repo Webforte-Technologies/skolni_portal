@@ -399,10 +399,16 @@ export interface AdminCreateSchoolRequest {
   address?: string;
   city?: string;
   postal_code?: string;
+  country?: string;
   contact_email?: string;
   contact_phone?: string;
   logo_url?: string;
   is_active?: boolean;
+  status?: 'active' | 'suspended' | 'pending_verification' | 'inactive';
+  verification_required?: boolean;
+  subscription_tier?: 'basic' | 'premium' | 'enterprise';
+  max_teachers?: number;
+  max_students?: number;
 }
 
 export interface AdminUpdateSchoolRequest extends Partial<AdminCreateSchoolRequest> {

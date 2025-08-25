@@ -17,7 +17,29 @@ export interface School {
   name: string;
   address?: string;
   city?: string;
+  postal_code?: string;
+  country?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  phone?: string;          // For backward compatibility
+  email?: string;          // For backward compatibility
+  logo_url?: string;
+  website?: string;
+  is_active: boolean;
+  status?: 'active' | 'suspended' | 'pending_verification' | 'inactive';
+  verification_required?: boolean;
+  subscription_tier?: 'basic' | 'premium' | 'enterprise';
+  subscription_plan?: string;  // For backward compatibility
+  max_teachers?: number;
+  max_students?: number;
+  teacher_count?: number;
+  student_count?: number;
+  credits_balance?: number;
+  total_credits?: number;
+  last_activity_at?: string;
+  admin_activity_at?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface UserWithSchool extends User {

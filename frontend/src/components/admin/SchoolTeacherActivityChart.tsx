@@ -33,7 +33,7 @@ const SchoolTeacherActivityChart: React.FC<SchoolTeacherActivityChartProps> = ({
     try {
       setLoading(true);
       const response = await api.get(`/admin/schools/${schoolId}/teachers/activity?range=${dateRange}`);
-      setTeacherActivity(response.data.data || []);
+      setTeacherActivity((response.data.data as TeacherActivity[]) || []);
     } catch (error: any) {
       showToast({ 
         type: 'error', 

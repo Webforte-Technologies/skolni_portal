@@ -543,4 +543,77 @@ export class SchoolModel {
       total: parseInt(countResult.rows[0].count)
     };
   }
+
+  // Get all teachers for a specific school
+  static async getSchoolTeachers(schoolId: string): Promise<any[]> {
+    const query = `
+      SELECT 
+        u.id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.role,
+        u.is_active,
+        u.credits_balance,
+        u.created_at,
+        u.last_activity_at
+      FROM users u
+      WHERE u.school_id = $1 AND u.role IN ('teacher_school', 'school_admin')
+      ORDER BY u.role DESC, u.last_name ASC, u.first_name ASC
+    `;
+
+    const result = await pool.query(query, [schoolId]);
+    return result.rows;
+  }
+
+  // Get school deletion information including teacher count
+  static async getSchoolDeletionInfo(schoolId: string): Promise<{
+    school: School | null;
+    activeTeachers: number;
+    totalTeachers: number;
+    canDelete: boolean;
+    deletionMessage: string;
+  }> {
+    const school = await this.findById(schoolId);
+    if (!school) {
+      return {
+        school: null,
+        activeTeachers: 0,
+        totalTeachers: 0,
+        canDelete: false,
+        deletionMessage: 'Škola nebyla nalezena'
+      };
+    }
+
+    // Get teacher statistics
+    const teacherQuery = `
+      SELECT 
+        COUNT(*) as total_teachers,
+        COUNT(*) FILTER (WHERE is_active = true) as active_teachers
+      FROM users 
+      WHERE school_id = $1 AND role IN ('teacher_school', 'school_admin')
+    `;
+
+    const teacherResult = await pool.query(teacherQuery, [schoolId]);
+    const { total_teachers, active_teachers } = teacherResult.rows[0];
+
+    const canDelete = active_teachers === 0;
+    let deletionMessage = '';
+
+    if (active_teachers > 0) {
+      deletionMessage = `Škola má ${active_teachers} aktivních učitelů. Musíte je nejprve deaktivovat.`;
+    } else if (total_teachers > 0) {
+      deletionMessage = `Škola má ${total_teachers} neaktivních učitelů. Můžete ji bezpečně smazat.`;
+    } else {
+      deletionMessage = 'Škola nemá žádné učitele. Můžete ji bezpečně smazat.';
+    }
+
+    return {
+      school,
+      activeTeachers: parseInt(active_teachers),
+      totalTeachers: parseInt(total_teachers),
+      canDelete,
+      deletionMessage
+    };
+  }
 }

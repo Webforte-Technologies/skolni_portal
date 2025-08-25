@@ -17,6 +17,7 @@ import {
   Users,
   Database
 } from 'lucide-react';
+import AdminLayout from '../../components/admin/AdminLayout';
 
 interface SecuritySetting {
   id: string;
@@ -186,19 +187,19 @@ const SecuritySettingsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <AdminLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center space-x-2">
             <RefreshCw className="w-6 h-6 animate-spin text-primary" />
             <span className="text-lg text-gray-600">Načítání bezpečnostních nastavení...</span>
           </div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AdminLayout>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -336,7 +337,7 @@ const SecuritySettingsPage: React.FC = () => {
           </Card>
         ))}
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

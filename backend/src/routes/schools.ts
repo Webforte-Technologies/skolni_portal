@@ -5,6 +5,53 @@ import { UserModel } from '../models/User';
 
 const router = express.Router();
 
+// Get all active schools (public - any authenticated user can access)
+router.get('/', authenticateToken, async (req: RequestWithUser, res) => {
+  try {
+    const limit = Math.min(parseInt(String(req.query['limit'] || '100')), 1000);
+    const offset = parseInt(String(req.query['offset'] || '0'));
+    const q = (req.query['q'] as string | undefined)?.trim();
+    
+    const conditions: string[] = ['is_active = true'];
+    const values: any[] = [];
+    let i = 1;
+
+    if (q) {
+      conditions.push(`(name ILIKE $${i} OR city ILIKE $${i})`);
+      values.push(`%${q}%`);
+      i++;
+    }
+
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const query = `
+      SELECT id, name, address, city, postal_code, contact_email, contact_phone, is_active, created_at, updated_at
+      FROM schools
+      ${where}
+      ORDER BY name ASC
+      LIMIT $${i} OFFSET $${i + 1}
+    `;
+
+    const countQuery = `SELECT COUNT(*) FROM schools ${where}`;
+
+    const [result, countResult] = await Promise.all([
+      pool.query(query, [...values, limit, offset]),
+      pool.query(countQuery, values)
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: result.rows,
+      total: parseInt(countResult.rows[0].count),
+      limit,
+      offset
+    });
+  } catch (error) {
+    console.error('Get schools error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to get schools' });
+  }
+});
+
 // Get school details (admin only)
 router.get('/:schoolId', authenticateToken, requireRole(['school_admin']), async (req: RequestWithUser, res) => {
   try {

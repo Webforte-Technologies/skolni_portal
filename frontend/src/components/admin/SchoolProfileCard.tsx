@@ -48,7 +48,7 @@ export interface SchoolProfileCardProps {
   onSendNotification?: () => void;
 }
 
-export const SchoolProfileCard: React.FC<SchoolProfileCardProps> = ({
+const SchoolProfileCard: React.FC<SchoolProfileCardProps> = ({
   school,
   onEdit,
   onStatusChange,
@@ -289,3 +289,5 @@ export const SchoolProfileCard: React.FC<SchoolProfileCardProps> = ({
     </Card>
   );
 };
+
+export default SchoolProfileCard;

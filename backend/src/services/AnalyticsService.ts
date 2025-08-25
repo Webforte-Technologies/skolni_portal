@@ -3,6 +3,7 @@ import {
   PerformanceMetrics,
   EnhancedMetrics 
 } from '../middleware/enhanced-metrics';
+import { analyticsCacheService } from './AnalyticsCacheService';
 
 export interface TimeRange {
   start: Date;
@@ -149,7 +150,7 @@ export class AnalyticsService {
 
       const totalUsers = parseInt(userCount.rows[0].count);
       const totalSchools = parseInt(schoolCount.rows[0].count);
-      const totalRevenue = parseInt(revenueResult.rows[0].total) || 0;
+      const totalRevenue = parseFloat(revenueResult.rows[0].total) || 0;
       const criticalAlerts = parseInt(alertResult.rows[0].critical);
 
       // Determine system health
@@ -215,9 +216,6 @@ export class AnalyticsService {
    */
   static async getUserMetrics(timeRange?: TimeRange): Promise<UserMetrics> {
     try {
-      const _whereClause = timeRange 
-        ? 'WHERE created_at BETWEEN $1 AND $2' 
-        : '';
       const params = timeRange ? [timeRange.start, timeRange.end] : [];
 
       // Get total users
@@ -299,9 +297,6 @@ export class AnalyticsService {
    */
   static async getCreditMetrics(timeRange?: TimeRange): Promise<CreditMetrics> {
     try {
-      const _whereClause = timeRange 
-        ? 'WHERE created_at BETWEEN $1 AND $2' 
-        : '';
       const params = timeRange ? [timeRange.start, timeRange.end] : [];
 
       // Get total credits
@@ -350,10 +345,10 @@ export class AnalyticsService {
       `);
       
       const revenue = {
-        daily: parseInt(revenueResult.rows[0].daily) || 0,
-        weekly: parseInt(revenueResult.rows[0].weekly) || 0,
-        monthly: parseInt(revenueResult.rows[0].monthly) || 0,
-        total: parseInt(revenueResult.rows[0].total) || 0
+        daily: parseFloat(revenueResult.rows[0].daily) || 0,
+        weekly: parseFloat(revenueResult.rows[0].weekly) || 0,
+        monthly: parseFloat(revenueResult.rows[0].monthly) || 0,
+        total: parseFloat(revenueResult.rows[0].total) || 0
       };
 
       return {
@@ -507,9 +502,6 @@ export class AnalyticsService {
    */
   static async getRevenueMetrics(timeRange?: TimeRange): Promise<RevenueMetrics> {
     try {
-      const _whereClause = timeRange 
-        ? 'WHERE created_at BETWEEN $1 AND $2' 
-        : '';
       const params = timeRange ? [timeRange.start, timeRange.end] : [];
 
       // Get current and previous period revenue
@@ -517,13 +509,13 @@ export class AnalyticsService {
         SELECT SUM(amount) as revenue FROM credit_transactions 
         WHERE transaction_type = 'purchase' AND created_at > NOW() - INTERVAL '30 days'
       `);
-      const currentPeriod = parseInt(currentResult.rows[0].revenue) || 0;
+      const currentPeriod = parseFloat(currentResult.rows[0].revenue) || 0;
 
       const previousResult = await pool.query(`
         SELECT SUM(amount) as revenue FROM credit_transactions 
         WHERE transaction_type = 'purchase' AND created_at BETWEEN NOW() - INTERVAL '60 days' AND NOW() - INTERVAL '30 days'
       `);
-      const previousPeriod = parseInt(previousResult.rows[0].revenue) || 0;
+      const previousPeriod = parseFloat(previousResult.rows[0].revenue) || 0;
 
       // Calculate growth rate
       const growthRate = previousPeriod > 0 
@@ -546,7 +538,7 @@ export class AnalyticsService {
       
       const byPlan: Record<string, number> = {};
       planResult.rows.forEach(row => {
-        byPlan[row.plan_type] = parseInt(row.revenue) || 0;
+        byPlan[row.plan_type] = parseFloat(row.revenue) || 0;
       });
 
       // Get revenue by school
@@ -567,7 +559,7 @@ export class AnalyticsService {
       
       const bySchool: Record<string, number> = {};
       schoolResult.rows.forEach(row => {
-        bySchool[row.name] = parseInt(row.revenue) || 0;
+        bySchool[row.name] = parseFloat(row.revenue) || 0;
       });
 
       // Simple projections (linear growth)
@@ -633,7 +625,158 @@ export class AnalyticsService {
   }
 
   /**
-   * Get platform overview metrics for admin analytics dashboard
+   * Get enhanced material creation trends with real-time data
+   */
+  static async getEnhancedMaterialCreationTrends(timeRange?: '7d' | '30d' | '90d' | '1y'): Promise<{
+    hourlyTrend: Array<{
+      hour: string;
+      materials: number;
+      uniqueUsers: number;
+      avgResponseTime: number;
+    }>;
+    subjectEngagement: Array<{
+      subject: string;
+      materials: number;
+      uniqueUsers: number;
+      avgSessionDuration: number;
+      popularityScore: number;
+    }>;
+    typeEfficiency: Array<{
+      type: string;
+      materials: number;
+      avgCreationTime: number;
+      successRate: number;
+      userSatisfaction: number;
+    }>;
+    userEngagementMetrics: {
+      totalActiveCreators: number;
+      averageCreationsPerUser: number;
+      peakCreationHour: string;
+      mostProductiveDay: string;
+    };
+  }> {
+    try {
+      const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : timeRange === '1y' ? 365 : 30;
+
+      // Hourly trend for the last 24 hours (real-time data)
+      const hourlyTrendResult = await pool.query(`
+        SELECT 
+          TO_CHAR(DATE_TRUNC('hour', created_at), 'HH24:MI') as hour,
+          COUNT(*) as materials,
+          COUNT(DISTINCT user_id) as unique_users,
+          AVG(COALESCE(EXTRACT(EPOCH FROM (updated_at - created_at)), 0)) as avg_response_time
+        FROM generated_files
+        WHERE created_at >= NOW() - INTERVAL '24 hours'
+          AND created_at IS NOT NULL
+        GROUP BY DATE_TRUNC('hour', created_at)
+        ORDER BY DATE_TRUNC('hour', created_at) ASC
+      `);
+
+      const hourlyTrend = hourlyTrendResult.rows.map(row => ({
+        hour: row.hour,
+        materials: parseInt(row.materials) || 0,
+        uniqueUsers: parseInt(row.unique_users) || 0,
+        avgResponseTime: parseFloat(row.avg_response_time) || 0
+      }));
+
+      // Subject engagement with advanced metrics
+      const subjectEngagementResult = await pool.query(`
+        SELECT 
+          COALESCE(gf.ai_subject, 'Nezařazeno') as subject,
+          COUNT(gf.*) as materials,
+          COUNT(DISTINCT gf.user_id) as unique_users,
+          AVG(COALESCE(cs.duration_minutes, 0)) as avg_session_duration,
+          (COUNT(gf.*) * 0.4 + COUNT(DISTINCT gf.user_id) * 0.6) as popularity_score
+        FROM generated_files gf
+        LEFT JOIN chat_sessions cs ON gf.session_id = cs.id
+        WHERE gf.created_at >= NOW() - INTERVAL '${days} days'
+          AND gf.created_at IS NOT NULL
+        GROUP BY gf.ai_subject
+        ORDER BY popularity_score DESC
+        LIMIT 10
+      `);
+
+      const subjectEngagement = subjectEngagementResult.rows.map(row => ({
+        subject: row.subject,
+        materials: parseInt(row.materials) || 0,
+        uniqueUsers: parseInt(row.unique_users) || 0,
+        avgSessionDuration: parseFloat(row.avg_session_duration) || 0,
+        popularityScore: parseFloat(row.popularity_score) || 0
+      }));
+
+      // Type efficiency metrics
+      const typeEfficiencyResult = await pool.query(`
+        SELECT 
+          COALESCE(file_type, 'worksheet') as type,
+          COUNT(*) as materials,
+          AVG(COALESCE(EXTRACT(EPOCH FROM (updated_at - created_at)), 0)) as avg_creation_time,
+          AVG(CASE WHEN COALESCE(status, 'completed') = 'completed' THEN 1 ELSE 0 END) * 100 as success_rate,
+          AVG(COALESCE(user_rating, 4.0)) as user_satisfaction
+        FROM generated_files
+        WHERE created_at >= NOW() - INTERVAL '${days} days'
+          AND created_at IS NOT NULL
+        GROUP BY file_type
+        ORDER BY materials DESC
+      `);
+
+      const typeEfficiency = typeEfficiencyResult.rows.map(row => ({
+        type: row.type,
+        materials: parseInt(row.materials) || 0,
+        avgCreationTime: parseFloat(row.avg_creation_time) || 0,
+        successRate: parseFloat(row.success_rate) || 0,
+        userSatisfaction: parseFloat(row.user_satisfaction) || 4.0
+      }));
+
+      // User engagement metrics
+      const engagementMetricsResult = await pool.query(`
+        SELECT 
+          COUNT(DISTINCT user_id) as total_active_creators,
+          AVG(user_materials) as avg_creations_per_user,
+          (SELECT TO_CHAR(DATE_TRUNC('hour', created_at), 'HH24:MI') 
+           FROM generated_files 
+           WHERE created_at >= NOW() - INTERVAL '7 days'
+             AND created_at IS NOT NULL
+           GROUP BY DATE_TRUNC('hour', created_at)
+           ORDER BY COUNT(*) DESC 
+           LIMIT 1) as peak_creation_hour,
+          (SELECT TO_CHAR(DATE_TRUNC('day', created_at), 'Day') 
+           FROM generated_files 
+           WHERE created_at >= NOW() - INTERVAL '7 days'
+             AND created_at IS NOT NULL
+           GROUP BY DATE_TRUNC('day', created_at)
+           ORDER BY COUNT(*) DESC 
+           LIMIT 1) as most_productive_day
+        FROM (
+          SELECT user_id, COUNT(*) as user_materials
+          FROM generated_files
+          WHERE created_at >= NOW() - INTERVAL '${days} days'
+            AND created_at IS NOT NULL
+          GROUP BY user_id
+        ) user_stats
+      `);
+
+      const engagementMetrics = engagementMetricsResult.rows[0] || {};
+      const userEngagementMetrics = {
+        totalActiveCreators: parseInt(engagementMetrics.total_active_creators) || 0,
+        averageCreationsPerUser: parseFloat(engagementMetrics.avg_creations_per_user) || 0,
+        peakCreationHour: engagementMetrics.peak_creation_hour || '09:00',
+        mostProductiveDay: engagementMetrics.most_productive_day || 'Monday'
+      };
+
+      return {
+        hourlyTrend,
+        subjectEngagement,
+        typeEfficiency,
+        userEngagementMetrics
+      };
+    } catch (error) {
+      console.error('Failed to get enhanced material creation trends:', error);
+      throw new Error('Failed to retrieve enhanced material creation trends');
+    }
+  }
+
+  /**
+   * Get platform overview metrics for admin analytics dashboard (with caching)
    */
   static async getPlatformOverviewMetrics(timeRange?: '7d' | '30d' | '90d' | '1y'): Promise<{
     activeUsers: {
@@ -683,7 +826,72 @@ export class AnalyticsService {
       }>;
     };
   }> {
+    // Use caching for expensive queries
+    return analyticsCacheService.getCachedOrExecute(
+      'getPlatformOverviewMetrics',
+      { timeRange },
+      async () => {
+        return this._getPlatformOverviewMetricsUncached(timeRange);
+      },
+      timeRange === '7d' ? 5 : timeRange === '30d' ? 15 : 30 // Cache TTL in minutes
+    );
+  }
+
+  /**
+   * Internal method to get platform overview metrics without caching
+   */
+  private static async _getPlatformOverviewMetricsUncached(timeRange?: '7d' | '30d' | '90d' | '1y'): Promise<{
+    activeUsers: {
+      total: number;
+      todayActive: number;
+      weeklyActive: number;
+      monthlyActive: number;
+    };
+    materialsCreated: {
+      today: number;
+      thisWeek: number;
+      thisMonth: number;
+      total: number;
+    };
+    userGrowth: Array<{
+      month: string;
+      users: number;
+      newUsers: number;
+    }>;
+    creditUsage: Array<{
+      month: string;
+      credits: number;
+      transactions: number;
+    }>;
+    topSchools: Array<{
+      id: string;
+      name: string;
+      users: number;
+      credits: number;
+      materialsCreated: number;
+    }>;
+    materialCreationTrend: {
+      daily: Array<{
+        date: string;
+        materials: number;
+        uniqueUsers: number;
+      }>;
+      bySubject: Array<{
+        subject: string;
+        materials: number;
+        percentage: number;
+      }>;
+      byType: Array<{
+        type: string;
+        materials: number;
+        percentage: number;
+      }>;
+    };
+  }> {
     try {
+      const startTime = Date.now();
+      console.log(`Executing platform overview metrics query for timeRange: ${timeRange}`);
+      
       // Determine the number of days based on timeRange
       const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : timeRange === '1y' ? 365 : 30;
       const months = timeRange === '1y' ? 12 : 6; // Number of months for trends
@@ -723,12 +931,17 @@ export class AnalyticsService {
       // User Growth Trend (monthly data)
       const userGrowthResult = await pool.query(`
         SELECT 
-          TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') as month,
+          TO_CHAR(month_start, 'YYYY-MM') as month,
           COUNT(*) as new_users,
-          (SELECT COUNT(*) FROM users u2 WHERE u2.created_at <= DATE_TRUNC('month', u1.created_at) + INTERVAL '1 month' - INTERVAL '1 day') as total_users
-        FROM users u1
-        WHERE created_at >= NOW() - INTERVAL '${months} months'
-        GROUP BY DATE_TRUNC('month', created_at)
+          (SELECT COUNT(*) FROM users u2 WHERE u2.created_at <= month_start + INTERVAL '1 month' - INTERVAL '1 day') as total_users
+        FROM (
+          SELECT 
+            DATE_TRUNC('month', created_at) as month_start,
+            id
+          FROM users 
+          WHERE created_at >= NOW() - INTERVAL '${months} months'
+        ) u1
+        GROUP BY month_start
         ORDER BY month ASC
       `);
 
@@ -783,12 +996,16 @@ export class AnalyticsService {
         materialsCreated: parseInt(row.materials_created) || 0
       }));
 
-      // Material Creation Trend - Daily data for the specified time range
+      // Enhanced Material Creation Trend - Daily data with more detailed metrics
       const dailyMaterialsResult = await pool.query(`
         SELECT 
           DATE(created_at) as date,
           COUNT(*) as materials,
-          COUNT(DISTINCT user_id) as unique_users
+          COUNT(DISTINCT user_id) as unique_users,
+          COUNT(DISTINCT CASE WHEN file_type = 'worksheet' THEN id END) as worksheets,
+          COUNT(DISTINCT CASE WHEN file_type = 'test' THEN id END) as tests,
+          COUNT(DISTINCT CASE WHEN file_type = 'assignment' THEN id END) as assignments,
+          AVG(EXTRACT(EPOCH FROM (updated_at - created_at))) as avg_creation_time_seconds
         FROM generated_files
         WHERE created_at >= NOW() - INTERVAL '${days} days'
         GROUP BY DATE(created_at)
@@ -798,32 +1015,47 @@ export class AnalyticsService {
       const dailyMaterials = dailyMaterialsResult.rows.map(row => ({
         date: row.date,
         materials: parseInt(row.materials) || 0,
-        uniqueUsers: parseInt(row.unique_users) || 0
+        uniqueUsers: parseInt(row.unique_users) || 0,
+        worksheets: parseInt(row.worksheets) || 0,
+        tests: parseInt(row.tests) || 0,
+        assignments: parseInt(row.assignments) || 0,
+        avgCreationTime: parseFloat(row.avg_creation_time_seconds) || 0
       }));
 
-      // Material Creation by Subject
+      // Enhanced Material Creation by Subject with more details
       const subjectMaterialsResult = await pool.query(`
         SELECT 
           COALESCE(ai_subject, 'Nezařazeno') as subject,
-          COUNT(*) as materials
+          COUNT(*) as materials,
+          COUNT(DISTINCT user_id) as unique_users,
+          AVG(CASE WHEN file_size IS NOT NULL THEN file_size ELSE 0 END) as avg_file_size,
+          COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as recent_materials
         FROM generated_files
         WHERE created_at >= NOW() - INTERVAL '${days} days'
         GROUP BY ai_subject
         ORDER BY materials DESC
+        LIMIT 10
       `);
 
       const totalSubjectMaterials = subjectMaterialsResult.rows.reduce((sum, row) => sum + parseInt(row.materials), 0);
       const bySubject = subjectMaterialsResult.rows.map(row => ({
         subject: row.subject,
         materials: parseInt(row.materials) || 0,
+        uniqueUsers: parseInt(row.unique_users) || 0,
+        avgFileSize: parseFloat(row.avg_file_size) || 0,
+        recentMaterials: parseInt(row.recent_materials) || 0,
         percentage: totalSubjectMaterials > 0 ? Math.round((parseInt(row.materials) / totalSubjectMaterials) * 100) : 0
       }));
 
-      // Material Creation by Type
+      // Enhanced Material Creation by Type with engagement metrics
       const typeMaterialsResult = await pool.query(`
         SELECT 
           COALESCE(file_type, 'worksheet') as type,
-          COUNT(*) as materials
+          COUNT(*) as materials,
+          COUNT(DISTINCT user_id) as unique_users,
+          AVG(CASE WHEN file_size IS NOT NULL THEN file_size ELSE 0 END) as avg_file_size,
+          COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as recent_materials,
+          AVG(EXTRACT(EPOCH FROM (updated_at - created_at))) as avg_creation_time_seconds
         FROM generated_files
         WHERE created_at >= NOW() - INTERVAL '${days} days'
         GROUP BY file_type
@@ -834,6 +1066,10 @@ export class AnalyticsService {
       const byType = typeMaterialsResult.rows.map(row => ({
         type: row.type,
         materials: parseInt(row.materials) || 0,
+        uniqueUsers: parseInt(row.unique_users) || 0,
+        avgFileSize: parseFloat(row.avg_file_size) || 0,
+        recentMaterials: parseInt(row.recent_materials) || 0,
+        avgCreationTime: parseFloat(row.avg_creation_time_seconds) || 0,
         percentage: totalTypeMaterials > 0 ? Math.round((parseInt(row.materials) / totalTypeMaterials) * 100) : 0
       }));
 
@@ -842,6 +1078,9 @@ export class AnalyticsService {
         bySubject,
         byType
       };
+
+      const executionTime = Date.now() - startTime;
+      console.log(`Platform overview metrics query completed in ${executionTime}ms`);
 
       return {
         activeUsers,
@@ -1371,5 +1610,201 @@ export class AnalyticsService {
     }
     
     return null;
+  }
+
+  /**
+   * Get user growth data optimized for charts
+   */
+  static async getUserGrowthChartData(
+    timeRange?: '7d' | '30d' | '90d' | '1y',
+    granularity: 'daily' | 'weekly' = 'daily'
+  ): Promise<{
+    labels: string[];
+    datasets: Array<{
+      label: string;
+      data: number[];
+      borderColor: string;
+      backgroundColor: string;
+      fill: boolean;
+    }>;
+  }> {
+    try {
+      const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
+      
+      let dateFormat: string;
+      let intervalClause: string;
+      
+      if (granularity === 'weekly') {
+        dateFormat = 'YYYY-"W"WW';
+        intervalClause = 'DATE_TRUNC(\'week\', created_at)';
+      } else {
+        dateFormat = 'YYYY-MM-DD';
+        intervalClause = 'DATE_TRUNC(\'day\', created_at)';
+      }
+
+      // Get user registrations over time
+      const userGrowthQuery = `
+        WITH date_series AS (
+          SELECT generate_series(
+            NOW() - INTERVAL '${days} days',
+            NOW(),
+            INTERVAL '1 ${granularity === 'weekly' ? 'week' : 'day'}'
+          )::date AS date
+        ),
+        user_registrations AS (
+          SELECT 
+            ${intervalClause} AS period,
+            COUNT(*) as new_users
+          FROM users 
+          WHERE created_at >= NOW() - INTERVAL '${days} days'
+          GROUP BY ${intervalClause}
+        ),
+        cumulative_users AS (
+          SELECT 
+            ${intervalClause} AS period,
+            COUNT(*) as total_users
+          FROM users 
+          WHERE created_at <= NOW()
+          GROUP BY ${intervalClause}
+        )
+        SELECT 
+          TO_CHAR(ds.date, '${dateFormat}') as label,
+          COALESCE(ur.new_users, 0) as new_users,
+          COALESCE(
+            (SELECT COUNT(*) FROM users WHERE created_at <= ds.date + INTERVAL '1 day'),
+            0
+          ) as total_users
+        FROM date_series ds
+        LEFT JOIN user_registrations ur ON ${intervalClause.replace('created_at', 'ds.date')} = ur.period
+        ORDER BY ds.date ASC
+      `;
+
+      const result = await pool.query(userGrowthQuery);
+      
+      const labels = result.rows.map(row => row.label);
+      const newUsersData = result.rows.map(row => parseInt(row.new_users) || 0);
+      const totalUsersData = result.rows.map(row => parseInt(row.total_users) || 0);
+
+      return {
+        labels,
+        datasets: [
+          {
+            label: 'Celkem uživatelů',
+            data: totalUsersData,
+            borderColor: '#4A90E2',
+            backgroundColor: 'rgba(74, 144, 226, 0.1)',
+            fill: true
+          },
+          {
+            label: 'Noví uživatelé',
+            data: newUsersData,
+            borderColor: '#7BB3F0',
+            backgroundColor: 'rgba(123, 179, 240, 0.1)',
+            fill: false
+          }
+        ]
+      };
+    } catch (error) {
+      console.error('Failed to get user growth chart data:', error);
+      throw new Error('Failed to retrieve user growth chart data');
+    }
+  }
+
+  /**
+   * Get credit usage data optimized for charts
+   */
+  static async getCreditUsageChartData(
+    timeRange?: '7d' | '30d' | '90d' | '1y',
+    granularity: 'daily' | 'weekly' = 'daily'
+  ): Promise<{
+    labels: string[];
+    datasets: Array<{
+      label: string;
+      data: number[];
+      borderColor: string;
+      backgroundColor: string;
+      fill: boolean;
+    }>;
+  }> {
+    try {
+      const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
+      
+      let dateFormat: string;
+      let intervalClause: string;
+      
+      if (granularity === 'weekly') {
+        dateFormat = 'YYYY-"W"WW';
+        intervalClause = 'DATE_TRUNC(\'week\', created_at)';
+      } else {
+        dateFormat = 'YYYY-MM-DD';
+        intervalClause = 'DATE_TRUNC(\'day\', created_at)';
+      }
+
+      // Get credit usage over time
+      const creditUsageQuery = `
+        WITH date_series AS (
+          SELECT generate_series(
+            NOW() - INTERVAL '${days} days',
+            NOW(),
+            INTERVAL '1 ${granularity === 'weekly' ? 'week' : 'day'}'
+          )::date AS date
+        ),
+        credit_usage AS (
+          SELECT 
+            ${intervalClause} AS period,
+            SUM(CASE WHEN transaction_type = 'usage' THEN ABS(amount) ELSE 0 END) as credits_used,
+            SUM(CASE WHEN transaction_type = 'purchase' THEN amount ELSE 0 END) as credits_purchased,
+            COUNT(CASE WHEN transaction_type = 'usage' THEN 1 END) as usage_transactions
+          FROM credit_transactions 
+          WHERE created_at >= NOW() - INTERVAL '${days} days'
+          GROUP BY ${intervalClause}
+        )
+        SELECT 
+          TO_CHAR(ds.date, '${dateFormat}') as label,
+          COALESCE(cu.credits_used, 0) as credits_used,
+          COALESCE(cu.credits_purchased, 0) as credits_purchased,
+          COALESCE(cu.usage_transactions, 0) as transactions
+        FROM date_series ds
+        LEFT JOIN credit_usage cu ON ${intervalClause.replace('created_at', 'ds.date')} = cu.period
+        ORDER BY ds.date ASC
+      `;
+
+      const result = await pool.query(creditUsageQuery);
+      
+      const labels = result.rows.map(row => row.label);
+      const creditsUsedData = result.rows.map(row => parseInt(row.credits_used) || 0);
+      const creditsPurchasedData = result.rows.map(row => parseInt(row.credits_purchased) || 0);
+      const transactionsData = result.rows.map(row => parseInt(row.transactions) || 0);
+
+      return {
+        labels,
+        datasets: [
+          {
+            label: 'Využité kredity',
+            data: creditsUsedData,
+            borderColor: '#28A745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            fill: true
+          },
+          {
+            label: 'Zakoupené kredity',
+            data: creditsPurchasedData,
+            borderColor: '#17A2B8',
+            backgroundColor: 'rgba(23, 162, 184, 0.1)',
+            fill: false
+          },
+          {
+            label: 'Počet transakcí',
+            data: transactionsData,
+            borderColor: '#FFC107',
+            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+            fill: false
+          }
+        ]
+      };
+    } catch (error) {
+      console.error('Failed to get credit usage chart data:', error);
+      throw new Error('Failed to retrieve credit usage chart data');
+    }
   }
 }

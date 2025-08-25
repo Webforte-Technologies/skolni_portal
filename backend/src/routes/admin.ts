@@ -5,6 +5,7 @@ import pool from '../database/connection';
 import { authenticateToken, requireRole, RequestWithUser } from '../middleware/auth';
 import { auditLoggerForAdmin } from '../middleware/audit';
 import { getMetricsSnapshot } from '../middleware/metrics';
+import { bulkOperationLimiter, notificationLimiter, searchLimiter } from '../middleware/rateLimiter';
 import { CreditTransactionModel } from '../models/CreditTransaction';
 import { FeatureFlagModel } from '../models/FeatureFlag';
 import { GeneratedFileModel } from '../models/GeneratedFile';
@@ -53,17 +54,36 @@ router.get('/users', async (req: RequestWithUser, res: express.Response) => {
     const isActive = (req.query as any)['is_active'] as string | undefined;
     const status = (req.query as any)['status'] as string | undefined;
     const q = ((req.query as any)['q'] as string | undefined)?.trim();
+    
+    // Add sorting parameters
+    const orderBy = (req.query as any)['order_by'] as string | undefined;
+    const orderDirection = (req.query as any)['order_direction'] as 'asc' | 'desc' | undefined;
+
+    // Enhanced filter parameters
+    const emailVerified = (req.query as any)['email_verified'] as string | undefined;
+    const lastLogin = (req.query as any)['last_login'] as string | undefined;
+    const creditRangeType = (req.query as any)['credit_range_type'] as string | undefined;
+    const registrationDate = (req.query as any)['registration_date'] as string | undefined;
+    const schoolType = (req.query as any)['school_type'] as string | undefined;
 
     // Use enhanced search if advanced filters are provided
-    if (status || req.query['date_range_start'] || req.query['credit_range_min'] || req.query['last_login_start']) {
+    if (status || req.query['date_range_start'] || req.query['credit_range_min'] || req.query['last_login_start'] || 
+        emailVerified || lastLogin || creditRangeType || registrationDate || schoolType) {
       const filters: any = {
         role,
         school_id: schoolId,
         is_active: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
         status,
+        email_verified: emailVerified === 'true' ? true : emailVerified === 'false' ? false : undefined,
         search: q,
         limit,
-        offset
+        offset,
+        order_by: orderBy,
+        order_direction: orderDirection,
+        last_login: lastLogin,
+        credit_range_type: creditRangeType,
+        registration_date: registrationDate,
+        school_type: schoolType
       };
 
       if (req.query['date_range_start'] && req.query['date_range_end']) {
@@ -91,7 +111,7 @@ router.get('/users', async (req: RequestWithUser, res: express.Response) => {
       return ok(res, { data: result.users, total: result.total, limit, offset });
     }
 
-    // Use basic search for simple filters
+    // Use basic search for simple filters with sorting
     const conditions: string[] = [];
     const values: any[] = [];
     let i = 1;
@@ -103,7 +123,32 @@ router.get('/users', async (req: RequestWithUser, res: express.Response) => {
       values.push(`%${q}%`);
       i++;
     }
+    
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    
+    // Build ORDER BY clause with proper field mapping and validation
+    let orderClause = 'ORDER BY u.created_at DESC'; // Default sorting
+    if (orderBy) {
+      const allowedSortFields = {
+        'first_name': 'u.first_name',
+        'last_name': 'u.last_name',
+        'email': 'u.email',
+        'role': 'u.role',
+        'school_name': 's.name',
+        'credits_balance': 'u.credits_balance',
+        'status': 'u.status',
+        'created_at': 'u.created_at',
+        'last_login_at': 'u.last_login_at',
+        'is_active': 'u.is_active'
+      };
+      
+      const mappedField = allowedSortFields[orderBy as keyof typeof allowedSortFields];
+      if (mappedField) {
+        const direction = orderDirection === 'asc' ? 'ASC' : 'DESC';
+        orderClause = `ORDER BY ${mappedField} ${direction}`;
+      }
+    }
+    
     const sql = `
       SELECT u.id, u.email, u.first_name, u.last_name, u.role, u.is_active, u.school_id, u.credits_balance, u.created_at,
              u.status, u.last_login_at, u.last_activity_at,
@@ -111,10 +156,10 @@ router.get('/users', async (req: RequestWithUser, res: express.Response) => {
       FROM users u
       LEFT JOIN schools s ON u.school_id = s.id
       ${where}
-      ORDER BY u.created_at DESC
+      ${orderClause}
       LIMIT $${i} OFFSET $${i + 1}
     `;
-    const countSql = `SELECT COUNT(*) FROM users u ${where}`;
+    const countSql = `SELECT COUNT(*) FROM users u LEFT JOIN schools s ON u.school_id = s.id ${where}`;
     const rows = (await pool.query(sql, [...values, limit, offset])).rows;
     const total = parseInt((await pool.query(countSql, values)).rows[0].count);
     return ok(res, { data: rows, total, limit, offset });
@@ -124,7 +169,30 @@ router.get('/users', async (req: RequestWithUser, res: express.Response) => {
   }
 });
 
+// Get individual user details
+router.get('/users/:id', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const userId = req.params['id'];
+    
+    if (!userId) {
+      return bad(res, 400, 'User ID is required');
+    }
 
+    const user = await UserModel.findByIdWithSchool(userId);
+    
+    if (!user) {
+      return bad(res, 404, 'User not found');
+    }
+
+    // Remove password hash from response
+    const { password_hash, ...userWithoutPassword } = user;
+    
+    return ok(res, userWithoutPassword);
+  } catch (e) {
+    console.error('Get user error:', e);
+    return bad(res, 500, 'Failed to get user details');
+  }
+});
 
 // Credit operations
 router.post('/users/:id/credits', async (req: RequestWithUser, res: express.Response) => {
@@ -610,6 +678,8 @@ router.put('/schools/:id', async (req: RequestWithUser, res: express.Response) =
 router.delete('/schools/:id', async (req: RequestWithUser, res: express.Response) => {
   try {
     const schoolId = req.params['id'];
+    const { auto_deactivate_teachers, reason } = req.body;
+    
     if (!schoolId) {
       return bad(res, 400, 'School ID is required');
     }
@@ -620,31 +690,64 @@ router.delete('/schools/:id', async (req: RequestWithUser, res: express.Response
       return bad(res, 404, 'School not found');
     }
 
-    // Check if school has active users
-    const usersResult = await pool.query(`
-      SELECT COUNT(*) as user_count 
-      FROM users 
-      WHERE school_id = $1 AND is_active = true
-    `, [schoolId]);
-
-    const userCount = parseInt(usersResult.rows[0].user_count);
-    if (userCount > 0) {
-      return bad(res, 400, `Cannot delete school with ${userCount} active users. Please deactivate users first.`);
+    // Get detailed deletion information
+    const deletionInfo = await SchoolModel.getSchoolDeletionInfo(schoolId);
+    
+    if (!deletionInfo.canDelete && !auto_deactivate_teachers) {
+      return bad(res, 400, deletionInfo.deletionMessage, {
+        active_teachers: deletionInfo.activeTeachers,
+        total_teachers: deletionInfo.totalTeachers,
+        can_delete: false,
+        requires_teacher_deactivation: true
+      });
     }
 
+    // Auto-deactivate teachers if requested
+    if (auto_deactivate_teachers && deletionInfo.activeTeachers > 0) {
+      try {
+        const teachers = await SchoolModel.getSchoolTeachers(schoolId);
+        const activeTeacherIds = teachers.filter(t => t.is_active).map(t => t.id);
+        
+        if (activeTeacherIds.length > 0) {
+          const deactivationQuery = `
+            UPDATE users 
+            SET is_active = false, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ANY($1) AND school_id = $2
+            RETURNING id, first_name, last_name, email
+          `;
+
+          const deactivationResult = await pool.query(deactivationQuery, [activeTeacherIds, schoolId]);
+          const deactivatedTeachers = deactivationResult.rows;
+          
+          console.log(`Auto-deactivated ${deactivatedTeachers.length} teachers for school ${schoolId} during deletion by admin ${req.user?.id}`);
+        }
+      } catch (deactivationError) {
+        console.error('Teacher auto-deactivation error:', deactivationError);
+        return bad(res, 500, 'Failed to auto-deactivate teachers. Please deactivate them manually first.');
+      }
+    }
+
+    // Now proceed with school deletion
     const deleted = await SchoolModel.delete(schoolId);
     if (!deleted) {
       return bad(res, 500, 'Failed to delete school');
     }
 
-    return ok(res, { deleted: true, message: 'School deactivated successfully' });
+    const message = auto_deactivate_teachers && deletionInfo.activeTeachers > 0
+      ? `Škola byla úspěšně smazána. ${deletionInfo.activeTeachers} učitelů bylo automaticky deaktivováno.`
+      : 'Škola byla úspěšně smazána.';
+
+    return ok(res, { 
+      deleted: true, 
+      message,
+      teachers_deactivated: auto_deactivate_teachers ? deletionInfo.activeTeachers : 0,
+      reason: reason || 'School deletion by admin'
+    });
   } catch (e) {
     console.error('Delete school error:', e);
     return bad(res, 500, 'Failed to delete school');
   }
 });
-
-
 
 // Get school activity logs
 router.get('/schools/:id/activity', async (req: RequestWithUser, res: express.Response) => {
@@ -858,6 +961,90 @@ router.get('/schools/:id/teachers/activity', async (req: RequestWithUser, res: e
   }
 });
 
+// Get all teachers for a specific school
+router.get('/schools/:id/teachers', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const schoolId = req.params['id'];
+    
+    if (!schoolId) {
+      return bad(res, 400, 'School ID is required');
+    }
+    
+    // Check if school exists
+    const school = await SchoolModel.findById(schoolId);
+    if (!school) {
+      return bad(res, 404, 'School not found');
+    }
+
+    const teachers = await SchoolModel.getSchoolTeachers(schoolId);
+    
+    return ok(res, { 
+      teachers,
+      total: teachers.length,
+      school_id: schoolId,
+      school_name: school.name
+    });
+  } catch (e) {
+    console.error('Get school teachers error:', e);
+    return bad(res, 500, 'Failed to get school teachers');
+  }
+});
+
+// Bulk deactivate teachers for a school
+router.post('/schools/:id/teachers/bulk-deactivate', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const schoolId = req.params['id'];
+    const { teacher_ids, reason } = req.body;
+    
+    if (!schoolId) {
+      return bad(res, 400, 'School ID is required');
+    }
+    
+    if (!teacher_ids || !Array.isArray(teacher_ids) || teacher_ids.length === 0) {
+      return bad(res, 400, 'Teacher IDs array is required');
+    }
+
+    // Check if school exists
+    const school = await SchoolModel.findById(schoolId);
+    if (!school) {
+      return bad(res, 404, 'School not found');
+    }
+
+    // Verify all teachers belong to this school
+    const teachers = await SchoolModel.getSchoolTeachers(schoolId);
+    const teacherIdsInSchool = teachers.map(t => t.id);
+    const invalidTeacherIds = teacher_ids.filter(id => !teacherIdsInSchool.includes(id));
+    
+    if (invalidTeacherIds.length > 0) {
+      return bad(res, 400, `Some teacher IDs do not belong to this school: ${invalidTeacherIds.join(', ')}`);
+    }
+
+    // Deactivate teachers
+    const deactivationQuery = `
+      UPDATE users 
+      SET is_active = false, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ANY($1) AND school_id = $2
+      RETURNING id, first_name, last_name, email
+    `;
+
+    const result = await pool.query(deactivationQuery, [teacher_ids, schoolId]);
+    const deactivatedTeachers = result.rows;
+
+    // Log the bulk deactivation
+    console.log(`Bulk deactivated ${deactivatedTeachers.length} teachers for school ${schoolId} by admin ${req.user?.id}`);
+
+    return ok(res, { 
+      deactivated_teachers: deactivatedTeachers,
+      total_deactivated: deactivatedTeachers.length,
+      school_id: schoolId,
+      reason: reason || 'Bulk deactivation by admin'
+    });
+  } catch (e) {
+    console.error('Bulk deactivate teachers error:', e);
+    return bad(res, 500, 'Failed to deactivate teachers');
+  }
+});
+
 // Send notifications to multiple schools
 router.post('/schools/bulk-notify', async (req: RequestWithUser, res: express.Response) => {
   try {
@@ -999,19 +1186,95 @@ router.post('/schools/:id/reset-admin-password', async (req: RequestWithUser, re
 
 // Teacher management endpoints
 
-// List teachers with filters
-router.get('/teachers', async (req: RequestWithUser, res: express.Response) => {
+// List teachers with enhanced filters
+router.get('/teachers', searchLimiter, async (req: RequestWithUser, res: express.Response) => {
   try {
     const limit = Math.min(parseInt(String((req.query as any)['limit'] || '50')), 200);
     const offset = parseInt(String((req.query as any)['offset'] || '0'));
     const schoolId = (req.query as any)['school_id'] as string | undefined;
     const isActive = (req.query as any)['is_active'] as string | undefined;
+    const status = (req.query as any)['status'] as string | undefined;
     const search = ((req.query as any)['q'] as string | undefined)?.trim();
+    
+    // Add sorting parameters
+    const sortField = (req.query as any)['sort_field'] as string | undefined;
+    const sortDirection = (req.query as any)['sort_direction'] as 'asc' | 'desc' | undefined;
 
-    const filters: any = { limit, offset, search };
+    // Use enhanced search if advanced filters are provided (excluding simple status filter)
+    if (req.query['date_range_start'] || req.query['credit_range_min'] || req.query['last_activity_start'] || req.query['verification_status']) {
+      const filters: any = {
+        school_id: schoolId,
+        is_active: isActive === 'true' ? true : isActive === 'false' ? false : undefined,
+        status,
+        search,
+        limit,
+        offset,
+        sort_field: sortField,
+        sort_direction: sortDirection
+      };
+      
+      // Add role filter to ensure only teachers are returned
+      if (req.query['role']) {
+        filters.role = req.query['role'];
+      }
+
+      if (req.query['date_range_start'] && req.query['date_range_end']) {
+        filters.date_range = {
+          start_date: req.query['date_range_start'],
+          end_date: req.query['date_range_end']
+        };
+      }
+
+      if (req.query['credit_range_min'] && req.query['credit_range_max']) {
+        filters.credit_range = {
+          min: parseInt(req.query['credit_range_min'] as string),
+          max: parseInt(req.query['credit_range_max'] as string)
+        };
+      }
+
+      if (req.query['last_activity_start'] && req.query['last_activity_end']) {
+        filters.last_activity_range = {
+          start_date: req.query['last_activity_start'],
+          end_date: req.query['last_activity_end']
+        };
+      }
+
+      if (req.query['verification_status']) {
+        filters.email_verified = req.query['verification_status'] === 'verified';
+      }
+
+      const result = await UserModel.advancedSearch(filters);
+      // Filter to only include teachers
+      const teachers = result.users.filter(user => 
+        ['teacher_school', 'teacher_individual'].includes(user.role)
+      );
+      return ok(res, { data: teachers, total: teachers.length, limit, offset });
+    }
+
+    // Use basic search for simple filters
+    const filters: any = { 
+      limit, 
+      offset, 
+      search,
+      sort_field: sortField,
+      sort_direction: sortDirection
+    };
     if (schoolId) filters.school_id = schoolId;
     if (typeof isActive === 'string') {
       filters.is_active = isActive === 'true';
+    }
+    if (status) filters.status = status;
+    if (req.query['role']) filters.role = req.query['role'];
+    if (req.query['verification_status']) {
+      filters.email_verified = req.query['verification_status'] === 'verified';
+    }
+    if (req.query['credit_range_min'] && req.query['credit_range_max']) {
+      filters.credit_range_min = parseInt(req.query['credit_range_min'] as string);
+      filters.credit_range_max = parseInt(req.query['credit_range_max'] as string);
+    }
+    if (req.query['date_range_start'] && req.query['date_range_end']) {
+      filters.date_range_start = req.query['date_range_start'] as string;
+      filters.date_range_end = req.query['date_range_end'] as string;
     }
 
     const result = await UserModel.findTeachersWithSchools(filters);
@@ -1019,6 +1282,92 @@ router.get('/teachers', async (req: RequestWithUser, res: express.Response) => {
   } catch (e) {
     console.error('List teachers error:', e);
     return bad(res, 500, 'Failed to list teachers');
+  }
+});
+
+// Get teacher statistics with optional filters
+router.get('/teachers/stats', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const schoolId = (req.query as any)['school_id'] as string | undefined;
+    const isActive = (req.query as any)['is_active'] as string | undefined;
+    const status = (req.query as any)['status'] as string | undefined;
+    const search = ((req.query as any)['q'] as string | undefined)?.trim();
+
+    // Build base conditions for teachers
+    const conditions: string[] = ["u.role IN ('teacher_school', 'teacher_individual')"];
+    const values: any[] = [];
+    let i = 1;
+
+    if (schoolId) {
+      conditions.push(`u.school_id = $${i}`);
+      values.push(schoolId);
+      i++;
+    }
+
+    if (typeof isActive === 'string') {
+      conditions.push(`u.is_active = $${i}`);
+      values.push(isActive === 'true');
+      i++;
+    }
+
+    if (status) {
+      conditions.push(`u.status = $${i}`);
+      values.push(status);
+      i++;
+    }
+
+    if (search) {
+      conditions.push(`(u.email ILIKE $${i} OR u.first_name ILIKE $${i} OR u.last_name ILIKE $${i})`);
+      values.push(`%${search}%`);
+      i++;
+    }
+
+    const where = `WHERE ${conditions.join(' AND ')}`;
+
+    // Get comprehensive statistics
+    const statsQuery = `
+      SELECT 
+        COUNT(*) as total,
+        COUNT(CASE WHEN u.status = 'active' THEN 1 END) as active,
+        COUNT(CASE WHEN u.status = 'pending_verification' THEN 1 END) as pending,
+        COUNT(CASE WHEN u.status = 'suspended' THEN 1 END) as suspended,
+        COUNT(CASE WHEN u.status = 'inactive' THEN 1 END) as inactive,
+        COUNT(CASE WHEN u.role = 'teacher_individual' THEN 1 END) as individual,
+        COUNT(CASE WHEN u.role = 'teacher_school' THEN 1 END) as school,
+        COUNT(CASE WHEN u.email_verified = false THEN 1 END) as unverified,
+        COUNT(CASE WHEN u.is_active = true THEN 1 END) as active_accounts,
+        COUNT(CASE WHEN u.created_at >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as recent,
+        COUNT(CASE WHEN u.credits_balance < 100 THEN 1 END) as low_credits,
+        AVG(u.credits_balance) as avg_credits,
+        SUM(u.credits_balance) as total_credits
+      FROM users u
+      ${where}
+    `;
+
+    const result = await pool.query(statsQuery, values);
+    const stats = result.rows[0];
+
+    // Convert string numbers to integers
+    const formattedStats = {
+      total: parseInt(stats.total),
+      active: parseInt(stats.active),
+      pending: parseInt(stats.pending),
+      suspended: parseInt(stats.suspended),
+      inactive: parseInt(stats.inactive),
+      individual: parseInt(stats.individual),
+      school: parseInt(stats.school),
+      unverified: parseInt(stats.unverified),
+      active_accounts: parseInt(stats.active_accounts),
+      recent: parseInt(stats.recent),
+      lowCredits: parseInt(stats.low_credits),
+      avg_credits: parseFloat(stats.avg_credits) || 0,
+      total_credits: parseFloat(stats.total_credits) || 0
+    };
+
+    return ok(res, formattedStats);
+  } catch (e) {
+    console.error('Get teacher stats error:', e);
+    return bad(res, 500, 'Failed to get teacher statistics');
   }
 });
 
@@ -1032,6 +1381,21 @@ router.post('/teachers', async (req: RequestWithUser, res: express.Response) => 
       return bad(res, 400, 'Missing required fields: email, first_name, last_name');
     }
 
+    // Validate field lengths
+    if (teacherData.first_name.trim().length < 2) {
+      return bad(res, 400, 'First name must be at least 2 characters long');
+    }
+    
+    if (teacherData.last_name.trim().length < 2) {
+      return bad(res, 400, 'Last name must be at least 2 characters long');
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(teacherData.email)) {
+      return bad(res, 400, 'Invalid email format');
+    }
+
     // Set role to teacher_individual by default
     teacherData.role = teacherData.role || 'teacher_individual';
 
@@ -1040,9 +1404,19 @@ router.post('/teachers', async (req: RequestWithUser, res: express.Response) => 
       return bad(res, 400, 'Role must be teacher_school or teacher_individual');
     }
 
-    // Validate school_id consistency
+    // Validate school assignment for school teachers
     if (teacherData.role === 'teacher_school' && !teacherData.school_id) {
-      return bad(res, 400, 'School ID is required for teacher_school role');
+      return bad(res, 400, 'School ID is required for school teachers');
+    }
+
+    // Validate credits balance
+    if (teacherData.credits_balance !== undefined) {
+      if (teacherData.credits_balance < 0) {
+        return bad(res, 400, 'Credits balance cannot be negative');
+      }
+      if (teacherData.credits_balance > 100000) {
+        return bad(res, 400, 'Credits balance cannot exceed 100,000');
+      }
     }
 
     // Check if email already exists
@@ -1224,6 +1598,427 @@ router.delete('/teachers/:id/unassign-school', async (req: RequestWithUser, res:
   } catch (e) {
     console.error('Remove teacher from school error:', e);
     return bad(res, 500, 'Failed to remove teacher from school');
+  }
+});
+
+// Bulk operations on teachers
+router.post('/teachers/bulk', bulkOperationLimiter, async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const { action, teacher_ids, amount, school_id } = req.body as { 
+      action: string; 
+      teacher_ids: string[]; 
+      amount?: number; 
+      school_id?: string; 
+    };
+    
+    if (!Array.isArray(teacher_ids) || teacher_ids.length === 0) { 
+      return bad(res, 400, 'teacher_ids array required'); 
+    }
+
+    // Validate all IDs are actually teachers
+    const teachers = await Promise.all(
+      teacher_ids.map(id => UserModel.findById(id))
+    );
+    
+    const invalidTeachers = teachers.filter((teacher, index) => 
+      !teacher || !['teacher_school', 'teacher_individual'].includes(teacher.role)
+    );
+    
+    if (invalidTeachers.length > 0) {
+      return bad(res, 400, 'Some IDs are not valid teachers');
+    }
+
+    if (action === 'activate' || action === 'deactivate') {
+      const state = action === 'activate';
+      const placeholders = teacher_ids.map((_, idx) => `$${idx + 2}`).join(',');
+      await pool.query(`UPDATE users SET is_active = $1 WHERE id IN (${placeholders})`, [state, ...teacher_ids]);
+      return ok(res, { processed: teacher_ids.length });
+    }
+
+    if (action === 'addCredits' || action === 'deductCredits') {
+      const amt = Number(amount);
+      if (!Number.isFinite(amt) || amt <= 0) return bad(res, 400, 'Positive amount required');
+      
+      for (const id of teacher_ids) {
+        await CreditTransactionModel[action === 'addCredits' ? 'addCredits' : 'deductCredits'](
+          id, 
+          amt, 
+          `Bulk ${action} for teachers`
+        );
+      }
+      return ok(res, { processed: teacher_ids.length });
+    }
+
+    if (action === 'assignToSchool') {
+      if (!school_id) return bad(res, 400, 'school_id required for assignToSchool action');
+      
+      // Verify school exists
+      const school = await SchoolModel.findById(school_id);
+      if (!school) return bad(res, 404, 'School not found');
+      
+      for (const id of teacher_ids) {
+        await UserModel.assignToSchool(id, school_id);
+      }
+      return ok(res, { processed: teacher_ids.length });
+    }
+
+    if (action === 'removeFromSchool') {
+      for (const id of teacher_ids) {
+        const teacher = teachers.find(t => t?.id === id);
+        if (teacher?.role === 'teacher_school') {
+          await UserModel.removeFromSchool(id);
+        }
+      }
+      return ok(res, { processed: teacher_ids.length });
+    }
+
+    if (action === 'delete') {
+      // Perform soft-delete as deactivate for teachers
+      const placeholders = teacher_ids.map((_, idx) => `$${idx + 1}`).join(',');
+      await pool.query(`UPDATE users SET is_active = false WHERE id IN (${placeholders})`, [...teacher_ids]);
+      return ok(res, { processed: teacher_ids.length });
+    }
+
+    return bad(res, 400, 'Unsupported action');
+  } catch (e) {
+    console.error('Bulk teacher operation error:', e);
+    return bad(res, 500, 'Failed to run bulk operation');
+  }
+});
+
+// Get detailed teacher profile with usage statistics
+router.get('/teachers/:id/profile', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const teacherId = req.params['id'];
+    if (!teacherId) {
+      return bad(res, 400, 'Teacher ID is required');
+    }
+    
+    // Check if teacher exists and is actually a teacher
+    const teacher = await UserModel.findById(teacherId);
+    if (!teacher) {
+      return bad(res, 404, 'Teacher not found');
+    }
+    
+    if (!['teacher_school', 'teacher_individual'].includes(teacher.role)) {
+      return bad(res, 400, 'User is not a teacher');
+    }
+
+    const [
+      teacherProfile, 
+      activityStats, 
+      creditStats, 
+      conversationsCount, 
+      filesCount,
+      recentActivities,
+      unreadNotifications
+    ] = await Promise.all([
+      UserModel.getDetailedProfile(teacherId),
+      UserActivityModel.getUserActivityStats(teacherId),
+      CreditTransactionModel.getUserStats(teacherId),
+      ConversationModel.countByUserId(teacherId),
+      GeneratedFileModel.countByUserId(teacherId),
+      UserActivityModel.getUserActivities({
+        user_id: teacherId,
+        limit: 10,
+        offset: 0
+      }),
+      UserNotificationModel.getUnreadCount(teacherId)
+    ]);
+
+    if (!teacherProfile) {
+      return bad(res, 404, 'Teacher profile not found');
+    }
+
+    // Get school information if teacher is assigned to a school
+    let schoolInfo = null;
+    if (teacherProfile.school_id) {
+      schoolInfo = await SchoolModel.findById(teacherProfile.school_id);
+    }
+
+    const profile = {
+      ...teacherProfile,
+      school_info: schoolInfo,
+      usage_statistics: {
+        total_logins: activityStats.activities_by_type?.['login'] || 0,
+        last_login: teacherProfile.last_login_at,
+        total_activities: activityStats.total_activities,
+        credits_used: creditStats.total_credits_used || 0,
+        credits_purchased: 0, // TODO: Add total_credits_purchased to CreditTransactionModel.getUserStats
+        conversations_count: conversationsCount || 0,
+        files_generated: filesCount || 0,
+        average_session_duration: 0, // TODO: Calculate from session data
+        most_active_hours: activityStats.most_active_hours || [],
+        last_activity: activityStats.last_activity
+      },
+      recent_activities: recentActivities.activities,
+      unread_notifications_count: unreadNotifications
+    };
+
+    return ok(res, profile);
+  } catch (e) {
+    console.error('Get teacher profile error:', e);
+    return bad(res, 500, 'Failed to get teacher profile');
+  }
+});
+
+// Get teacher activity logs and analytics
+router.get('/teachers/:id/activity', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const teacherId = req.params['id'];
+    if (!teacherId) {
+      return bad(res, 400, 'Teacher ID is required');
+    }
+    
+    // Check if teacher exists and is actually a teacher
+    const teacher = await UserModel.findById(teacherId);
+    if (!teacher) {
+      return bad(res, 404, 'Teacher not found');
+    }
+    
+    if (!['teacher_school', 'teacher_individual'].includes(teacher.role)) {
+      return bad(res, 400, 'User is not a teacher');
+    }
+
+    const { 
+      limit = 50, 
+      offset = 0, 
+      activity_type, 
+      start_date, 
+      end_date,
+      time_range = '30d'
+    } = req.query as any;
+
+    const filters = {
+      user_id: teacherId,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      activity_type,
+      start_date,
+      end_date
+    };
+
+    // Calculate date range if time_range is provided instead of specific dates
+    if (time_range && !start_date && !end_date) {
+      const now = new Date();
+      let startDate: string;
+      
+      switch (time_range) {
+        case '7d':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+          break;
+        case '30d':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+          break;
+        case '90d':
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
+          break;
+        default:
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      }
+      
+      filters.start_date = startDate;
+      filters.end_date = now.toISOString();
+    }
+
+    const [activities, activityStats, activityTrends] = await Promise.all([
+      UserActivityModel.getUserActivities(filters),
+      UserActivityModel.getUserActivityStats(teacherId),
+      // Get activity trends over time
+      pool.query(`
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as activity_count,
+          COUNT(DISTINCT activity_type) as unique_activities,
+          COALESCE(SUM(CASE WHEN activity_data->>'credits_used' IS NOT NULL 
+            THEN CAST(activity_data->>'credits_used' AS INTEGER) 
+            ELSE 0 END), 0) as credits_used
+        FROM user_activity_logs 
+        WHERE user_id = $1 
+          AND created_at >= $2
+        GROUP BY DATE(created_at)
+        ORDER BY date DESC
+        LIMIT 30
+      `, [teacherId, filters.start_date || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()])
+    ]);
+
+    // Calculate performance metrics
+    const performanceMetrics = {
+      daily_average_activities: activityTrends.rows.length > 0 
+        ? Math.round(activityTrends.rows.reduce((sum, row) => sum + parseInt(row.activity_count), 0) / activityTrends.rows.length)
+        : 0,
+      most_productive_day: activityTrends.rows.length > 0 
+        ? activityTrends.rows.reduce((max, row) => 
+            parseInt(row.activity_count) > parseInt(max.activity_count) ? row : max
+          ).date
+        : null,
+      total_credits_used_period: activityTrends.rows.reduce((sum, row) => sum + parseInt(row.credits_used), 0),
+      activity_consistency: activityTrends.rows.length > 0 
+        ? Math.round((activityTrends.rows.filter(row => parseInt(row.activity_count) > 0).length / activityTrends.rows.length) * 100)
+        : 0
+    };
+
+    return ok(res, {
+      activities: activities.activities,
+      total: activities.total,
+      activity_stats: {
+        total_activities: activityStats.total_activities,
+        activities_by_type: activityStats.activities_by_type,
+        most_active_hours: activityStats.most_active_hours,
+        last_activity: activityStats.last_activity,
+        first_activity: null // TODO: Add first_activity to UserActivityStats
+      },
+      activity_trends: activityTrends.rows,
+      performance_metrics: performanceMetrics,
+      filters: filters
+    });
+  } catch (e) {
+    console.error('Get teacher activity error:', e);
+    return bad(res, 500, 'Failed to get teacher activity');
+  }
+});
+
+// Send notification to teacher
+router.post('/teachers/:id/send-notification', notificationLimiter, async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const teacherId = req.params['id'];
+    if (!teacherId) {
+      return bad(res, 400, 'Teacher ID is required');
+    }
+    
+    // Check if teacher exists and is actually a teacher
+    const teacher = await UserModel.findById(teacherId);
+    if (!teacher) {
+      return bad(res, 404, 'Teacher not found');
+    }
+    
+    if (!['teacher_school', 'teacher_individual'].includes(teacher.role)) {
+      return bad(res, 400, 'User is not a teacher');
+    }
+
+    const { title, message, notification_type, priority, expires_at } = req.body;
+
+    if (!req.user) {
+      return bad(res, 401, 'User not authenticated');
+    }
+
+    if (!title || !message) {
+      return bad(res, 400, 'Title and message are required');
+    }
+
+    const notificationData: CreateUserNotificationRequest = {
+      user_id: teacherId,
+      title,
+      message,
+      notification_type: notification_type || 'general',
+      priority: priority || 'normal',
+      sent_by_user_id: req.user.id,
+      ...(expires_at && { expires_at: new Date(expires_at) })
+    };
+
+    const notification = await UserNotificationModel.create(notificationData);
+    
+    // Log the notification activity
+    await UserActivityModel.logActivity({
+      user_id: req.user.id,
+      activity_type: 'api_call',
+      activity_data: {
+        action: 'admin_notification_sent',
+        target_teacher_id: teacherId,
+        target_teacher_email: teacher.email,
+        notification_type: notification_type || 'general',
+        title: title
+      }
+    });
+
+    return ok(res, notification);
+  } catch (e) {
+    console.error('Send teacher notification error:', e);
+    return bad(res, 500, 'Failed to send teacher notification');
+  }
+});
+
+// Update teacher status
+router.put('/teachers/:id/status', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const teacherId = req.params['id'];
+    if (!teacherId) {
+      return bad(res, 400, 'Teacher ID is required');
+    }
+    
+    // Check if teacher exists and is actually a teacher
+    const teacher = await UserModel.findById(teacherId);
+    if (!teacher) {
+      return bad(res, 404, 'Teacher not found');
+    }
+    
+    if (!['teacher_school', 'teacher_individual'].includes(teacher.role)) {
+      return bad(res, 400, 'User is not a teacher');
+    }
+
+    const { status, reason, expires_at }: UpdateUserStatusRequest = req.body;
+
+    if (!status) {
+      return bad(res, 400, 'Status is required');
+    }
+
+    const validStatuses = ['active', 'suspended', 'pending_verification', 'inactive'];
+    if (!validStatuses.includes(status)) {
+      return bad(res, 400, 'Invalid status');
+    }
+
+    // Update teacher status
+    const updatedTeacher = await UserModel.updateStatus(teacherId, status, reason);
+    if (!updatedTeacher) {
+      return bad(res, 500, 'Failed to update teacher status');
+    }
+
+    // Log status change in audit trail
+    if (teacher.status !== status) {
+      const historyData: any = {
+        user_id: teacherId,
+        old_status: teacher.status,
+        new_status: status
+      };
+      
+      if (reason) historyData.reason = reason;
+      if (req.user?.id) historyData.changed_by = req.user.id;
+      if (expires_at) historyData.expires_at = expires_at;
+      
+      await UserStatusHistoryModel.create(historyData);
+      
+      // Log the admin activity
+      await UserActivityModel.logActivity({
+        user_id: req.user?.id || 'system',
+        activity_type: 'api_call',
+        activity_data: {
+          action: 'teacher_status_updated',
+          target_teacher_id: teacherId,
+          target_teacher_email: teacher.email,
+          old_status: teacher.status,
+          new_status: status,
+          reason: reason || 'No reason provided'
+        }
+      });
+    }
+
+    const teacherWithoutPassword: any = { ...updatedTeacher };
+    delete teacherWithoutPassword.password_hash;
+
+    return ok(res, {
+      teacher: teacherWithoutPassword,
+      message: 'Teacher status updated successfully',
+      status_change: {
+        from: teacher.status,
+        to: status,
+        reason,
+        changed_by: req.user?.id,
+        changed_at: new Date().toISOString()
+      }
+    });
+  } catch (e) {
+    console.error('Update teacher status error:', e);
+    return bad(res, 500, 'Failed to update teacher status');
   }
 });
 
@@ -1438,6 +2233,8 @@ router.get('/docs', async (_req: RequestWithUser, res: express.Response) => {
       // Teacher management
       'GET /teachers', 'POST /teachers', 'PUT /teachers/:id', 'DELETE /teachers/:id',
       'POST /teachers/:id/assign-school', 'DELETE /teachers/:id/unassign-school',
+      'POST /teachers/bulk', 'GET /teachers/:id/profile', 'GET /teachers/:id/activity',
+      'POST /teachers/:id/send-notification', 'PUT /teachers/:id/status',
       // System
       'GET /system/health', 'GET /system/metrics',
       'GET /audit-logs',

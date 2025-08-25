@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Activity, Calendar, Clock } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import UserProfileCard from '../../components/admin/UserProfileCard';
+import EnhancedUserProfileCard from '../../components/admin/EnhancedUserProfileCard';
 import UserActivityChart from '../../components/admin/UserActivityChart';
 import UserActivityLog from '../../components/admin/UserActivityLog';
 import UserNotificationForm from '../../components/admin/UserNotificationForm';
@@ -150,6 +150,23 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
+  const handleQuickEdit = async (data: Partial<UserProfile>) => {
+    try {
+      const response = await api.put(`/admin/users/${userId}`, data);
+      if (response.data.success) {
+        showToast({ type: 'success', message: 'Uživatel byl úspěšně aktualizován' });
+        // Update local state
+        if (userProfile) {
+          setUserProfile({ ...userProfile, ...data });
+        }
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Chyba při aktualizaci uživatele';
+      showToast({ type: 'error', message: errorMessage });
+      throw error; // Re-throw to let the component handle loading states
+    }
+  };
+
   const exportUserData = async () => {
     try {
       const response = await api.get(`/admin/users/${userId}/export`, {
@@ -175,8 +192,71 @@ const UserProfilePage: React.FC = () => {
   if (loading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">Načítání profilu uživatele...</div>
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div>
+                <div className="w-48 h-8 bg-gray-200 rounded animate-pulse mb-2"></div>
+                <div className="w-64 h-4 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <div className="w-24 h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-32 h-10 bg-gray-200 rounded animate-pulse"></div>
+              <div className="w-20 h-10 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* Profile Card Skeleton */}
+          <Card>
+            <div className="p-6">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-20 h-20 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="flex-1">
+                  <div className="w-48 h-8 bg-gray-200 rounded animate-pulse mb-2"></div>
+                  <div className="w-64 h-4 bg-gray-200 rounded animate-pulse mb-3"></div>
+                  <div className="flex gap-2">
+                    <div className="w-24 h-6 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="w-20 h-6 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-full h-16 bg-gray-200 rounded animate-pulse"></div>
+                  ))}
+                </div>
+                <div className="space-y-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-full h-16 bg-gray-200 rounded animate-pulse"></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Activity Cards Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <div className="p-6">
+                <div className="w-32 h-6 bg-gray-200 rounded animate-pulse mb-4"></div>
+                <div className="w-full h-64 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </Card>
+            <Card>
+              <div className="p-6">
+                <div className="w-32 h-6 bg-gray-200 rounded animate-pulse mb-4"></div>
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="w-full h-12 bg-gray-200 rounded animate-pulse"></div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -223,13 +303,15 @@ const UserProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* User Profile Card */}
-        <UserProfileCard 
+        {/* Enhanced User Profile Card */}
+        <EnhancedUserProfileCard 
           user={userProfile}
           onEdit={() => navigate(`/admin/users/${userId}/edit`)}
           onSendNotification={() => setShowNotificationForm(true)}
           onStatusChange={handleStatusChange}
           onResetPassword={handleResetPassword}
+          onQuickEdit={handleQuickEdit}
+          loading={loading}
         />
 
         {/* Activity Chart */}

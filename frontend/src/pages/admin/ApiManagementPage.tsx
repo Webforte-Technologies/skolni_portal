@@ -21,6 +21,7 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
+import AdminLayout from '../../components/admin/AdminLayout';
 
 interface ApiKey {
   id: string;
@@ -225,19 +226,19 @@ const ApiManagementPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <AdminLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center space-x-2">
             <RefreshCw className="w-6 h-6 animate-spin text-primary" />
             <span className="text-lg text-gray-600">Načítání API dat...</span>
           </div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AdminLayout>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -681,7 +682,7 @@ const ApiManagementPage: React.FC = () => {
           </div>
         )}
       </Modal>
-    </div>
+    </AdminLayout>
   );
 };
 

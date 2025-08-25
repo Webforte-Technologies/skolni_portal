@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 import { Activity, Users, Clock, TrendingUp, TrendingDown } from 'lucide-react';
+import { api } from '../../services/apiClient';
+import { useToast } from '../../contexts/ToastContext';
 
 export interface SchoolActivityData {
   action_type: string;
@@ -10,20 +12,58 @@ export interface SchoolActivityData {
 }
 
 export interface SchoolActivityChartProps {
-  activityData: SchoolActivityData[];
-  schoolName: string;
-  totalActivities: number;
-  activeUsers: number;
+  schoolId?: string;
+  activityData?: SchoolActivityData[];
+  schoolName?: string;
+  totalActivities?: number;
+  activeUsers?: number;
   lastActivity?: string;
 }
 
 export const SchoolActivityChart: React.FC<SchoolActivityChartProps> = ({
-  activityData,
-  schoolName,
-  totalActivities,
-  activeUsers,
-  lastActivity
+  schoolId,
+  activityData: propActivityData,
+  schoolName: propSchoolName,
+  totalActivities: propTotalActivities,
+  activeUsers: propActiveUsers,
+  lastActivity: propLastActivity
 }) => {
+  const [activityData, setActivityData] = useState<SchoolActivityData[]>(propActivityData || []);
+  const [schoolName, setSchoolName] = useState<string>(propSchoolName || '');
+  const [totalActivities, setTotalActivities] = useState<number>(propTotalActivities || 0);
+  const [activeUsers, setActiveUsers] = useState<number>(propActiveUsers || 0);
+  const [lastActivity, setLastActivity] = useState<string | undefined>(propLastActivity);
+  const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (schoolId && !propActivityData) {
+      fetchSchoolActivity();
+    }
+  }, [schoolId, propActivityData]);
+
+  const fetchSchoolActivity = async () => {
+    if (!schoolId) return;
+    
+    try {
+      setLoading(true);
+      const response = await api.get(`/admin/schools/${schoolId}/activity`);
+      const data = response.data.data as any;
+      
+      setActivityData(data?.activities || []);
+      setSchoolName(data?.school_name || '');
+      setTotalActivities(data?.total_activities || 0);
+      setActiveUsers(data?.active_users || 0);
+      setLastActivity(data?.last_activity);
+    } catch (error: any) {
+      showToast({ 
+        type: 'error', 
+        message: error.response?.data?.error || 'Chyba při načítání aktivity školy' 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   const getActionTypeLabel = (actionType: string): string => {
     const labels: Record<string, string> = {
       'admin_login': 'Přihlášení admina',
@@ -77,6 +117,28 @@ export const SchoolActivityChart: React.FC<SchoolActivityChartProps> = ({
   };
 
   const activityTrend = getActivityTrend();
+
+  if (loading) {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      </Card>
+    );
+  }
+
+  // If no data is available, show empty state
+  if (!activityData || activityData.length === 0) {
+    return (
+      <Card className="p-6">
+        <div className="text-center py-8">
+          <Activity className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <p className="text-gray-500">Žádná data o aktivitě nejsou k dispozici</p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6">
@@ -191,3 +253,5 @@ export const SchoolActivityChart: React.FC<SchoolActivityChartProps> = ({
     </Card>
   );
 };
+
+export default SchoolActivityChart;

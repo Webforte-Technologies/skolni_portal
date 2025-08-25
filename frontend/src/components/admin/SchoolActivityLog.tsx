@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Filter, Search, Calendar, User, Building2 } from 'lucide-react';
+import { Activity, Filter } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import InputField from '../ui/InputField';
@@ -185,6 +185,7 @@ const SchoolActivityLog: React.FC<SchoolActivityLogProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Hledat</label>
               <InputField
+                label="Hledat"
                 name="search"
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}

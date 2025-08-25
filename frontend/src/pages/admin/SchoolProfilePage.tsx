@@ -14,6 +14,7 @@ import SchoolProfileCard from '../../components/admin/SchoolProfileCard';
 import SchoolActivityChart from '../../components/admin/SchoolActivityChart';
 import SchoolAnalytics from '../../components/admin/SchoolAnalytics';
 import SchoolTeacherActivityChart from '../../components/admin/SchoolTeacherActivityChart';
+import SchoolTeacherSubtable from '../../components/admin/SchoolTeacherSubtable';
 
 interface SchoolProfile {
   id: string;
@@ -21,17 +22,27 @@ interface SchoolProfile {
   address?: string;
   city?: string;
   postal_code?: string;
-  phone?: string;
-  email?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  phone?: string;          // For backward compatibility
+  email?: string;          // For backward compatibility
   website?: string;
   teacher_count: number;
   student_count: number;
   subscription_plan: string;
   credits_balance: number;
+  total_credits: number;
   created_at: string;
   is_active: boolean;
   last_activity_at?: string;
   admin_activity_at?: string;
+  // New fields from migration
+  status?: string;
+  subscription_tier?: string;
+  max_teachers?: number;
+  max_students?: number;
+  verification_required?: boolean;
+  logo_url?: string;
 }
 
 const SchoolProfilePage: React.FC = () => {
@@ -53,7 +64,9 @@ const SchoolProfilePage: React.FC = () => {
     try {
       setLoading(true);
       const response = await api.get(`/admin/schools/${schoolId}/profile`);
-      setSchool(response.data.data);
+      // The backend returns { school, recent_activity, notifications, preferences, status_history }
+      // We need to extract the school data
+      setSchool(response.data.data.school);
     } catch (error: any) {
       showToast({ 
         type: 'error', 
@@ -154,6 +167,42 @@ const SchoolProfilePage: React.FC = () => {
             <>
               <SchoolProfileCard school={school} />
               
+              {/* Teacher Summary */}
+              <Card>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Přehled učitelů</h3>
+                  <Button 
+                    variant="secondary" 
+                    size="sm"
+                    onClick={() => setActiveTab('teachers')}
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Zobrazit všechny
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <Users className="w-8 h-8 mx-auto text-blue-600 mb-2" />
+                    <div className="text-2xl font-bold text-blue-900">{school.teacher_count || 0}</div>
+                    <div className="text-sm text-blue-700">Celkem učitelů</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                    <UserCheck className="w-8 h-8 mx-auto text-green-600 mb-2" />
+                    <div className="text-2xl font-bold text-green-900">
+                      {school.teacher_count || 0}
+                    </div>
+                    <div className="text-sm text-green-700">Aktivních</div>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <CreditCard className="w-8 h-8 mx-auto text-purple-600 mb-2" />
+                    <div className="text-2xl font-bold text-purple-900">
+                      {school.credits_balance || 0}
+                    </div>
+                    <div className="text-sm text-purple-700">Dostupné kredity</div>
+                  </div>
+                </div>
+              </Card>
+              
               {/* Quick Actions */}
               <Card>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Rychlé akce</h3>
@@ -189,7 +238,13 @@ const SchoolProfilePage: React.FC = () => {
 
           {activeTab === 'activity' && (
             <div className="space-y-6">
-              <SchoolActivityChart schoolId={school.id} />
+              <SchoolActivityChart 
+          schoolId={school.id}
+          schoolName={school.name}
+          totalActivities={0}
+          activeUsers={school.teacher_count}
+          lastActivity={school.last_activity_at}
+        />
               <SchoolTeacherActivityChart schoolId={school.id} />
             </div>
           )}
@@ -200,18 +255,15 @@ const SchoolProfilePage: React.FC = () => {
 
           {activeTab === 'teachers' && (
             <div className="space-y-6">
-              <Card>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Učitelé školy</h3>
-                <div className="text-center py-8">
-                  <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-500 mb-4">
-                    Správa učitelů je dostupná v samostatné sekci
-                  </p>
-                  <Button variant="primary" onClick={() => navigate('/admin/teachers')}>
-                    Správa učitelů
-                  </Button>
-                </div>
-              </Card>
+              <SchoolTeacherSubtable 
+                schoolId={school.id} 
+                schoolName={school.name}
+                showDeleteControls={true}
+                onTeacherDeactivated={() => {
+                  // Refresh school data after teacher deactivation
+                  fetchSchoolProfile();
+                }}
+              />
             </div>
           )}
         </div>

@@ -39,17 +39,23 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
     transformData
   } = options;
 
+  // Validate endpoint at the beginning
+  if (!endpoint || typeof endpoint !== 'string' || endpoint.trim().length === 0) {
+    console.error(`[useRealTimeData] Invalid endpoint provided:`, endpoint);
+    throw new Error(`Invalid endpoint: ${endpoint}`);
+  }
+
   // Add a static flag to prevent multiple instances of the same endpoint
   const hookInstanceId = useRef(`${endpoint}-${Math.random()}`);
 
-  // Only log in development mode to reduce console spam
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`[useRealTimeData] Hook initialized for ${endpoint}`, { 
-      refreshInterval, 
-      autoRefresh,
-      timestamp: new Date().toISOString()
-    });
-  }
+  // Console logging disabled to reduce spam
+  // if (process.env.NODE_ENV === 'development') {
+  //   console.log(`[useRealTimeData] Hook initialized for ${endpoint}`, { 
+  //     refreshInterval, 
+  //     autoRefresh,
+  //     timestamp: new Date().toISOString()
+  //   });
+  // }
 
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,46 +70,112 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isAutoRefreshingRef = useRef(autoRefresh);
   const isFetchingRef = useRef(false); // Prevent multiple simultaneous requests
+  const fetchDataRef = useRef<() => Promise<void>>();
   
   // Store callbacks in refs to prevent unnecessary re-renders
   const onDataUpdateRef = useRef(onDataUpdate);
   const onErrorRef = useRef(onError);
   const transformDataRef = useRef(transformData);
+  const dependenciesRef = useRef(options.dependencies);
 
   // Update refs when callbacks change
   useEffect(() => {
+    // Debug logging for dependency changes
+    if (process.env.NODE_ENV === 'development' && options.dependencies) {
+      console.log(`[useRealTimeData] Dependencies changed for ${endpoint}:`, {
+        old: dependenciesRef.current,
+        new: options.dependencies,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     onDataUpdateRef.current = onDataUpdate;
     onErrorRef.current = onError;
     transformDataRef.current = transformData;
+    dependenciesRef.current = options.dependencies;
     if (isAutoRefreshingRef.current !== autoRefresh) {
       isAutoRefreshingRef.current = autoRefresh;
       setIsAutoRefreshing(autoRefresh);
     }
-  }, [onDataUpdate, onError, transformData, autoRefresh]);
+  }, [onDataUpdate, onError, transformData, autoRefresh, options.dependencies, endpoint]);
 
   const fetchData = useCallback(async (isRetry = false) => {
     // Prevent multiple simultaneous requests to the same endpoint
     if (isFetchingRef.current) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[useRealTimeData] Request already in progress for ${endpoint}, skipping`);
-      }
+      // Console logging disabled to reduce spam
+      // if (process.env.NODE_ENV === 'development') {
+      //   console.log(`[useRealTimeData] Request already in progress for ${endpoint}, skipping`);
+      // }
       return;
     }
     
     // Construct the full endpoint URL with dependencies
     let fullEndpoint = endpoint;
-    if (options.dependencies && options.dependencies.length > 0) {
+    if (dependenciesRef.current && dependenciesRef.current.length > 0) {
+      // Validate dependencies first
+      const validDependencies = dependenciesRef.current.filter(dep => 
+        dep !== null && 
+        dep !== undefined && 
+        typeof dep === 'string' && 
+        (dep as string).trim().length > 0
+      );
+      
+      if (validDependencies.length !== dependenciesRef.current.length) {
+        console.warn(`[useRealTimeData] Invalid dependencies detected:`, dependenciesRef.current);
+      }
+      
       // For now, handle timeRange dependency specifically
-      const timeRangeDep = options.dependencies.find(dep => typeof dep === 'string' && ['1h', '6h', '24h', '7d', '30d'].includes(dep));
+      const timeRangeDep = validDependencies.find(dep => ['1h', '6h', '24h', '7d', '30d'].includes(dep as string));
       if (timeRangeDep) {
-        const days = timeRangeDep === '1h' ? 0.04 : timeRangeDep === '6h' ? 0.25 : timeRangeDep === '24h' ? 1 : timeRangeDep === '7d' ? 7 : 30;
-        const separator = endpoint.includes('?') ? '&' : '?';
-        fullEndpoint = `${endpoint}${separator}timeRange=${encodeURIComponent(JSON.stringify({ days }))}`;
-        
-        // Validate the constructed URL
-        if (!fullEndpoint.startsWith('/api/')) {
-          console.error(`[useRealTimeData] Invalid endpoint constructed: ${fullEndpoint}`);
-          setError(new Error(`Invalid endpoint: ${fullEndpoint}`));
+        try {
+          // Debug logging to identify corruption
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[useRealTimeData] Processing timeRange dependency:`, {
+              original: timeRangeDep,
+              type: typeof timeRangeDep,
+              length: (timeRangeDep as string).length,
+              charCodes: Array.from(timeRangeDep as string).map(c => c.charCodeAt(0))
+            });
+          }
+          
+          const days = timeRangeDep === '1h' ? 0.04 : timeRangeDep === '6h' ? 0.25 : timeRangeDep === '24h' ? 1 : timeRangeDep === '7d' ? 7 : 30;
+          const timeRangeObj = { days };
+          const separator = endpoint.includes('?') ? '&' : '?';
+          fullEndpoint = `${endpoint}${separator}timeRange=${encodeURIComponent(JSON.stringify(timeRangeObj))}`;
+          
+          // Debug logging for constructed endpoint
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`[useRealTimeData] Constructed endpoint:`, {
+              original: endpoint,
+              constructed: fullEndpoint,
+              timeRangeObj,
+              encoded: encodeURIComponent(JSON.stringify(timeRangeObj))
+            });
+          }
+          
+          // Validate the constructed URL - check for valid admin or API endpoints
+          if (!fullEndpoint.startsWith('/admin/') && !fullEndpoint.startsWith('/api/')) {
+            console.error(`[useRealTimeData] Invalid endpoint constructed: ${fullEndpoint}`);
+            setError(new Error(`Invalid endpoint: ${fullEndpoint}`));
+            return;
+          }
+          
+          // Additional validation to ensure the timeRange parameter is properly encoded
+          if (fullEndpoint.includes('timeRange=')) {
+            const timeRangeParam = fullEndpoint.split('timeRange=')[1];
+            try {
+              const decoded = decodeURIComponent(timeRangeParam);
+              JSON.parse(decoded); // Validate JSON format
+            } catch (parseError) {
+              console.error(`[useRealTimeData] Invalid timeRange parameter: ${timeRangeParam}`, parseError);
+              setError(new Error(`Invalid timeRange parameter: ${timeRangeParam}`));
+              return;
+            }
+          }
+        } catch (error) {
+          console.error(`[useRealTimeData] Error constructing endpoint:`, error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          setError(new Error(`Failed to construct endpoint: ${errorMessage}`));
           return;
         }
       }
@@ -111,9 +183,10 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
 
     // Check if there's already a request in progress for this endpoint globally
     if (globalRequestMap.has(fullEndpoint)) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[useRealTimeData] Global request already in progress for ${fullEndpoint}, waiting for result`);
-      }
+      // Console logging disabled to reduce spam
+      // if (process.env.NODE_ENV === 'development') {
+      //   console.log(`[useRealTimeData] Global request already in progress for ${fullEndpoint}, waiting for result`);
+      // }
       try {
         const result = await globalRequestMap.get(fullEndpoint);
         // Process the result as if we made the request
@@ -128,9 +201,10 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
         return;
       } catch (error) {
         // If the global request failed, we'll make our own
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[useRealTimeData] Global request failed for ${fullEndpoint}, making new request`);
-        }
+        // Console logging disabled to reduce spam
+        // if (process.env.NODE_ENV === 'development') {
+        //   console.log(`[useRealTimeData] Global request failed for ${fullEndpoint}, making new request`);
+        // }
       }
     }
     
@@ -142,16 +216,16 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
 
     abortControllerRef.current = new AbortController();
     
-    // Add debugging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[useRealTimeData] Fetching data from ${fullEndpoint}`, { 
-        originalEndpoint: endpoint,
-        fullEndpoint,
-        isRetry, 
-        retryCount: retryCountRef.current,
-        timestamp: new Date().toISOString()
-      });
-    }
+    // Console logging disabled to reduce spam
+    // if (process.env.NODE_ENV === 'development') {
+    //   console.log(`[useRealTimeData] Fetching data from ${fullEndpoint}`, { 
+    //     originalEndpoint: endpoint,
+    //     fullEndpoint,
+    //     isRetry, 
+    //     retryCount: retryCountRef.current,
+    //     timestamp: new Date().toISOString()
+    //   });
+    // }
     
     try {
       setLoading(prev => {
@@ -237,7 +311,7 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
       setRetryCount(prev => {
         // Only update if the retry count actually changed
         if (prev !== retryCountRef.current) {
-          return retryCountRef.current;
+          return prev;
         }
         return prev;
       });
@@ -276,7 +350,12 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
       // Reset the fetching flag
       isFetchingRef.current = false;
     }
-  }, [endpoint, options.dependencies]);
+  }, [endpoint]); // Remove options.dependencies from dependency array to prevent unnecessary re-renders
+
+  // Store the fetchData function in a ref for the interval
+  useEffect(() => {
+    fetchDataRef.current = fetchData;
+  }, [fetchData]);
 
   const setAutoRefresh = useCallback((enabled: boolean) => {
     if (isAutoRefreshingRef.current !== enabled) {
@@ -288,12 +367,13 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
     // Set up auto-refresh interval
   useEffect(() => {
     if (isAutoRefreshingRef.current && refreshInterval > 0) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[useRealTimeData] Setting up interval for ${endpoint} (${hookInstanceId.current})`, { 
-          refreshInterval, 
-          timestamp: new Date().toISOString()
-        });
-      }
+      // Console logging disabled to reduce spam
+      // if (process.env.NODE_ENV === 'development') {
+      //   console.log(`[useRealTimeData] Setting up interval for ${endpoint} (${hookInstanceId.current})`, { 
+      //     refreshInterval, 
+      //     timestamp: new Date().toISOString()
+      //   });
+      // }
       
       // Clear any existing interval first
       if (intervalRef.current) {
@@ -306,24 +386,26 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
       
       const initialTimeout = setTimeout(() => {
         if (isAutoRefreshingRef.current && !intervalRef.current) {
-          fetchData(); // Initial fetch after delay
+          fetchDataRef.current?.(); // Initial fetch after delay
         }
       }, initialDelay);
       
       intervalRef.current = setInterval(() => {
         // Use the current fetchData function from ref to avoid dependency issues
         if (isAutoRefreshingRef.current) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`[useRealTimeData] Interval triggered for ${endpoint} (${hookInstanceId.current})`);
-          }
-          fetchData();
+          // Console logging disabled to reduce spam
+          // if (process.env.NODE_ENV === 'development') {
+          //   console.log(`[useRealTimeData] Interval triggered for ${endpoint} (${hookInstanceId.current})`);
+          // }
+          fetchDataRef.current?.();
         }
       }, refreshInterval);
 
       return () => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[useRealTimeData] Cleaning up interval for ${endpoint}`);
-        }
+        // Console logging disabled to reduce spam
+        // if (process.env.NODE_ENV === 'development') {
+        //   console.log(`[useRealTimeData] Cleaning up interval for ${endpoint}`);
+        // }
         if (initialTimeout) {
           clearTimeout(initialTimeout);
         }
@@ -333,7 +415,7 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
         }
       };
     }
-  }, [refreshInterval, endpoint, fetchData]); // Added missing dependencies
+  }, [refreshInterval, endpoint]); // Removed fetchData dependency since we use ref
 
   // Initial data fetch
   useEffect(() => {
@@ -342,9 +424,10 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
 
   // Cleanup on unmount
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[useRealTimeData] Hook cleanup for ${endpoint}`);
-    }
+    // Console logging disabled to reduce spam
+    // if (process.env.NODE_ENV === 'development') {
+    //   console.log(`[useRealTimeData] Hook cleanup for ${endpoint}`);
+    // }
     
     return () => {
       if (intervalRef.current) {

@@ -128,10 +128,32 @@ export class UserModel {
   }
 
   // Get all users (for admin)
-  static async findAll(limit = 50, offset = 0): Promise<User[]> {
+  static async findAll(limit = 50, offset = 0, orderBy?: string, orderDirection: 'asc' | 'desc' = 'desc'): Promise<User[]> {
+    // Build ORDER BY clause with proper field mapping and validation
+    let orderClause = 'ORDER BY created_at DESC'; // Default sorting
+    if (orderBy) {
+      const allowedSortFields = {
+        'first_name': 'first_name',
+        'last_name': 'last_name',
+        'email': 'email',
+        'role': 'role',
+        'credits_balance': 'credits_balance',
+        'status': 'status',
+        'created_at': 'created_at',
+        'last_login_at': 'last_login_at',
+        'is_active': 'is_active'
+      };
+      
+      const mappedField = allowedSortFields[orderBy as keyof typeof allowedSortFields];
+      if (mappedField) {
+        const direction = orderDirection === 'asc' ? 'ASC' : 'DESC';
+        orderClause = `ORDER BY ${mappedField} ${direction}`;
+      }
+    }
+    
     const query = `
       SELECT * FROM users 
-      ORDER BY created_at DESC 
+      ${orderClause}
       LIMIT $1 OFFSET $2
     `;
     
@@ -320,9 +342,18 @@ export class UserModel {
     offset?: number;
     school_id?: string;
     is_active?: boolean;
+    status?: string;
+    role?: string;
+    email_verified?: boolean;
+    credit_range_min?: number;
+    credit_range_max?: number;
+    date_range_start?: string;
+    date_range_end?: string;
     search?: string;
+    sort_field?: string;
+    sort_direction?: 'asc' | 'desc';
   } = {}): Promise<{ teachers: any[]; total: number }> {
-    const { limit = 50, offset = 0, school_id, is_active, search } = filters;
+    const { limit = 50, offset = 0, school_id, is_active, status, role, email_verified, credit_range_min, credit_range_max, date_range_start, date_range_end, search, sort_field, sort_direction = 'desc' } = filters;
 
     const conditions: string[] = ["u.role IN ('teacher_school', 'teacher_individual')"];
     const values: any[] = [];
@@ -340,6 +371,36 @@ export class UserModel {
       i++;
     }
 
+    if (status) {
+      conditions.push(`u.status = $${i}`);
+      values.push(status);
+      i++;
+    }
+
+    if (role) {
+      conditions.push(`u.role = $${i}`);
+      values.push(role);
+      i++;
+    }
+
+    if (typeof email_verified === 'boolean') {
+      conditions.push(`u.email_verified = $${i}`);
+      values.push(email_verified);
+      i++;
+    }
+
+    if (credit_range_min !== undefined && credit_range_max !== undefined) {
+      conditions.push(`u.credits_balance BETWEEN $${i} AND $${i + 1}`);
+      values.push(credit_range_min, credit_range_max);
+      i += 2;
+    }
+
+    if (date_range_start && date_range_end) {
+      conditions.push(`u.created_at::date BETWEEN $${i} AND $${i + 1}`);
+      values.push(date_range_start, date_range_end);
+      i += 2;
+    }
+
     if (search) {
       conditions.push(`(u.email ILIKE $${i} OR u.first_name ILIKE $${i} OR u.last_name ILIKE $${i})`);
       values.push(`%${search}%`);
@@ -347,6 +408,29 @@ export class UserModel {
     }
 
     const where = `WHERE ${conditions.join(' AND ')}`;
+
+    // Build ORDER BY clause with proper field mapping and validation
+    let orderBy = 'ORDER BY u.created_at DESC'; // Default sorting
+    if (sort_field) {
+      const allowedSortFields = {
+        'first_name': 'u.first_name',
+        'last_name': 'u.last_name',
+        'email': 'u.email',
+        'role': 'u.role',
+        'school_name': 's.name',
+        'credits_balance': 'u.credits_balance',
+        'status': 'u.status',
+        'created_at': 'u.created_at',
+        'last_login_at': 'u.last_login_at',
+        'is_active': 'u.is_active'
+      };
+      
+      const mappedField = allowedSortFields[sort_field as keyof typeof allowedSortFields];
+      if (mappedField) {
+        const direction = sort_direction === 'asc' ? 'ASC' : 'DESC';
+        orderBy = `ORDER BY ${mappedField} ${direction}`;
+      }
+    }
 
     const query = `
       SELECT 
@@ -356,7 +440,7 @@ export class UserModel {
       FROM users u
       LEFT JOIN schools s ON u.school_id = s.id
       ${where}
-      ORDER BY u.created_at DESC
+      ${orderBy}
       LIMIT $${i} OFFSET $${i + 1}
     `;
 
@@ -383,6 +467,7 @@ export class UserModel {
     school_id?: string;
     is_active?: boolean;
     status?: string;
+    email_verified?: boolean;
     date_range?: {
       start_date: string;
       end_date: string;
@@ -398,6 +483,13 @@ export class UserModel {
     search?: string;
     limit?: number;
     offset?: number;
+    order_by?: string;
+    order_direction?: 'asc' | 'desc';
+    // New enhanced filters
+    last_login?: string; // 7d, 30d, 90d, never
+    credit_range_type?: string; // low, medium, high
+    registration_date?: string; // this_week, this_month, last_3_months
+    school_type?: string; // individual_only, school_only
   } = {}): Promise<{ users: User[]; total: number }> {
     // Generate cache key from filters
     const searchKey = this.generateSearchCacheKey(filters);
@@ -413,12 +505,19 @@ export class UserModel {
       school_id,
       is_active,
       status,
+      email_verified,
       date_range,
       credit_range,
       last_login_range,
       search,
       limit = 50,
-      offset = 0
+      offset = 0,
+      order_by,
+      order_direction = 'desc',
+      last_login,
+      credit_range_type,
+      registration_date,
+      school_type
     } = filters;
 
     const conditions: string[] = [];
@@ -447,6 +546,67 @@ export class UserModel {
       conditions.push(`u.status = $${i}`);
       values.push(status);
       i++;
+    }
+
+    if (typeof email_verified === 'boolean') {
+      conditions.push(`u.email_verified = $${i}`);
+      values.push(email_verified);
+      i++;
+    }
+
+    // Handle school type filters
+    if (school_type === 'individual_only') {
+      conditions.push(`u.role = 'teacher_individual'`);
+    } else if (school_type === 'school_only') {
+      conditions.push(`u.role IN ('teacher_school', 'school_admin')`);
+    }
+
+    // Handle last login filters
+    if (last_login) {
+      switch (last_login) {
+        case '7d':
+          conditions.push(`u.last_login_at >= CURRENT_DATE - INTERVAL '7 days'`);
+          break;
+        case '30d':
+          conditions.push(`u.last_login_at >= CURRENT_DATE - INTERVAL '30 days'`);
+          break;
+        case '90d':
+          conditions.push(`u.last_login_at >= CURRENT_DATE - INTERVAL '90 days'`);
+          break;
+        case 'never':
+          conditions.push(`u.last_login_at IS NULL`);
+          break;
+      }
+    }
+
+    // Handle credit range type filters
+    if (credit_range_type) {
+      switch (credit_range_type) {
+        case 'low':
+          conditions.push(`u.credits_balance < 10`);
+          break;
+        case 'medium':
+          conditions.push(`u.credits_balance >= 10 AND u.credits_balance <= 100`);
+          break;
+        case 'high':
+          conditions.push(`u.credits_balance > 100`);
+          break;
+      }
+    }
+
+    // Handle registration date filters
+    if (registration_date) {
+      switch (registration_date) {
+        case 'this_week':
+          conditions.push(`u.created_at >= DATE_TRUNC('week', CURRENT_DATE)`);
+          break;
+        case 'this_month':
+          conditions.push(`u.created_at >= DATE_TRUNC('month', CURRENT_DATE)`);
+          break;
+        case 'last_3_months':
+          conditions.push(`u.created_at >= CURRENT_DATE - INTERVAL '3 months'`);
+          break;
+      }
     }
 
     if (date_range) {
@@ -480,6 +640,29 @@ export class UserModel {
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
+    // Build ORDER BY clause with proper field mapping and validation
+    let orderClause = 'ORDER BY u.created_at DESC'; // Default sorting
+    if (order_by) {
+      const allowedSortFields = {
+        'first_name': 'u.first_name',
+        'last_name': 'u.last_name',
+        'email': 'u.email',
+        'role': 'u.role',
+        'school_name': 's.name',
+        'credits_balance': 'u.credits_balance',
+        'status': 'u.status',
+        'created_at': 'u.created_at',
+        'last_login_at': 'u.last_login_at',
+        'is_active': 'u.is_active'
+      };
+      
+      const mappedField = allowedSortFields[order_by as keyof typeof allowedSortFields];
+      if (mappedField) {
+        const direction = order_direction === 'asc' ? 'ASC' : 'DESC';
+        orderClause = `ORDER BY ${mappedField} ${direction}`;
+      }
+    }
+
     const query = `
       SELECT 
         u.*,
@@ -488,7 +671,7 @@ export class UserModel {
       FROM users u
       LEFT JOIN schools s ON u.school_id = s.id
       ${where}
-      ORDER BY u.created_at DESC
+      ${orderClause}
       LIMIT $${i} OFFSET $${i + 1}
     `;
 
@@ -604,12 +787,12 @@ export class UserModel {
   static async lockAccount(userId: string, lockDurationMinutes: number = 30): Promise<void> {
     const query = `
       UPDATE users 
-      SET locked_until = CURRENT_TIMESTAMP + INTERVAL '${lockDurationMinutes} minutes',
+      SET locked_until = CURRENT_TIMESTAMP + INTERVAL $2 || ' minutes',
           updated_at = CURRENT_TIMESTAMP
       WHERE id = $1
     `;
     
-    await pool.query(query, [userId]);
+    await pool.query(query, [userId, lockDurationMinutes.toString()]);
     
     // Clear cache for this user and search results
     cacheService.clearUserCache(userId);

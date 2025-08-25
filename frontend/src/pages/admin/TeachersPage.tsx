@@ -1,253 +1,168 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Filter, Plus, Edit, Trash2, Phone, Building2, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Users, Plus, Calendar, CheckCircle, XCircle, AlertCircle, BarChart3, Bell } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { Card, Button, Badge, Input } from '../../components/ui';
-
-
-interface Teacher {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  school: string;
-  schoolId: string;
-  subjects: string[];
-  status: 'active' | 'inactive' | 'pending' | 'suspended';
-  role: 'teacher' | 'school_admin' | 'teacher_admin';
-  joinDate: Date;
-  lastActive: Date;
-  creditsUsed: number;
-  creditsRemaining: number;
-  materialsCreated: number;
-  isVerified: boolean;
-}
+import { Card, Button } from '../../components/ui';
+import { teacherService, Teacher, TeacherFilters as TeacherFiltersType } from '../../services/teacherService';
+import { errorToMessage } from '../../services/apiClient';
+import TeacherCreateModal from '../../components/admin/TeacherCreateModal';
+import TeacherEditModal from '../../components/admin/TeacherEditModal';
+import TeacherProfileModal from '../../components/admin/TeacherProfileModal';
+import TeacherBulkActions from '../../components/admin/TeacherBulkActions';
+import TeacherFilters from '../../components/admin/TeacherFilters';
+import TeacherSearch from '../../components/admin/TeacherSearch';
+import TeacherQuickFilters from '../../components/admin/TeacherQuickFilters';
+import TeacherSearchResults from '../../components/admin/TeacherSearchResults';
+import TeacherAnalyticsDashboard from '../../components/admin/TeacherAnalyticsDashboard';
+import TeacherNotificationSystem from '../../components/admin/TeacherNotificationSystem';
+import TeacherPerformanceMetrics from '../../components/admin/TeacherPerformanceMetrics';
 
 const TeachersPage: React.FC = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [schoolFilter, setSchoolFilter] = useState<string>('all');
+  const [error, setError] = useState<string | null>(null);
+  const [currentFilters, setCurrentFilters] = useState<TeacherFiltersType>({
+    limit: 50,
+    offset: 0,
+  });
   const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
+  const [total, setTotal] = useState(0);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [sortField, setSortField] = useState<string>();
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [teacherStats, setTeacherStats] = useState<any>(null);
+  
+  // Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
+  const [profileTeacherId, setProfileTeacherId] = useState<string | null>(null);
+  
+  // Phase 5 modal states
+  const [showAnalyticsDashboard, setShowAnalyticsDashboard] = useState(false);
+  const [showNotificationSystem, setShowNotificationSystem] = useState(false);
+  const [showPerformanceMetrics, setShowPerformanceMetrics] = useState(false);
+  const [performanceTeacherId, setPerformanceTeacherId] = useState<string | null>(null);
+
+    const fetchTeachers = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await teacherService.getTeachers(currentFilters);
+      setTeachers(response.data);
+      setTotal(response.total);
+      
+      // Update current page based on offset (for potential future use)
+      // const newPage = Math.floor((currentFilters.offset || 0) / 50) + 1;
+    } catch (err) {
+      console.error('Failed to fetch teachers:', err);
+      setError(errorToMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTeacherStats = async () => {
+    try {
+      // Use current filters for statistics (excluding pagination)
+      const statsFilters = { ...currentFilters };
+      delete statsFilters.limit;
+      delete statsFilters.offset;
+      
+      const stats = await teacherService.getTeacherStats(statsFilters);
+      setTeacherStats(stats);
+    } catch (err) {
+      console.error('Failed to fetch teacher stats:', err);
+    }
+  };
 
   useEffect(() => {
-    // Simulate API call for teachers data
-    const fetchTeachers = async () => {
-      setLoading(true);
-      // In real implementation, this would be an API call
-      setTimeout(() => {
-        const mockTeachers: Teacher[] = [
-          {
-            id: '1',
-            firstName: 'Jan',
-            lastName: 'Novák',
-            email: 'jan.novak@gymnazium-neruda.cz',
-            phone: '+420 123 456 789',
-            school: 'Gymnázium Jana Nerudy',
-            schoolId: 'school1',
-            subjects: ['Matematika', 'Fyzika'],
-            status: 'active',
-            role: 'teacher',
-            joinDate: new Date('2023-09-01'),
-            lastActive: new Date(Date.now() - 1000 * 60 * 60 * 2),
-            creditsUsed: 450,
-            creditsRemaining: 550,
-            materialsCreated: 23,
-            isVerified: true
-          },
-          {
-            id: '2',
-            firstName: 'Marie',
-            lastName: 'Svobodová',
-            email: 'marie.svobodova@zs-tgm.cz',
-            phone: '+420 987 654 321',
-            school: 'ZŠ TGM',
-            schoolId: 'school2',
-            subjects: ['Český jazyk', 'Dějepis'],
-            status: 'active',
-            role: 'school_admin',
-            joinDate: new Date('2023-08-15'),
-            lastActive: new Date(Date.now() - 1000 * 60 * 60 * 6),
-            creditsUsed: 320,
-            creditsRemaining: 680,
-            materialsCreated: 18,
-            isVerified: true
-          },
-          {
-            id: '3',
-            firstName: 'Petr',
-            lastName: 'Černý',
-            email: 'petr.cerny@sst-technicka.cz',
-            phone: '+420 555 123 456',
-            school: 'SŠ technická',
-            schoolId: 'school3',
-            subjects: ['Informatika', 'Matematika'],
-            status: 'pending',
-            role: 'teacher',
-            joinDate: new Date('2024-01-10'),
-            lastActive: new Date(Date.now() - 1000 * 60 * 60 * 24),
-            creditsUsed: 0,
-            creditsRemaining: 1000,
-            materialsCreated: 0,
-            isVerified: false
-          },
-          {
-            id: '4',
-            firstName: 'Anna',
-            lastName: 'Veselá',
-            email: 'anna.vesela@zs-komenskeho.cz',
-            phone: '+420 777 888 999',
-            school: 'ZŠ Komenského',
-            schoolId: 'school4',
-            subjects: ['Anglický jazyk', 'Německý jazyk'],
-            status: 'inactive',
-            role: 'teacher',
-            joinDate: new Date('2023-06-01'),
-            lastActive: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30),
-            creditsUsed: 280,
-            creditsRemaining: 720,
-            materialsCreated: 15,
-            isVerified: true
-          },
-          {
-            id: '5',
-            firstName: 'Tomáš',
-            lastName: 'Malý',
-            email: 'tomas.maly@gymnazium-neruda.cz',
-            phone: '+420 111 222 333',
-            school: 'Gymnázium Jana Nerudy',
-            schoolId: 'school1',
-            subjects: ['Chemie', 'Biologie'],
-            status: 'active',
-            role: 'teacher',
-            joinDate: new Date('2023-10-01'),
-            lastActive: new Date(Date.now() - 1000 * 60 * 60 * 1),
-            creditsUsed: 180,
-            creditsRemaining: 820,
-            materialsCreated: 12,
-            isVerified: true
-          }
-        ];
-        setTeachers(mockTeachers);
-        setLoading(false);
-      }, 1000);
-    };
-
     fetchTeachers();
+    fetchTeacherStats(); // Update stats when filters change
+  }, [currentFilters]);
+
+  // Since filtering is now done on the server side, we don't need client-side filtering
+  const filteredTeachers = teachers;
+
+  // Handle filter changes
+  const handleFiltersChange = (newFilters: TeacherFiltersType) => {
+    setCurrentFilters(newFilters);
+  };
+
+  // Handle search
+  const handleSearch = (query: string, additionalFilters?: TeacherFiltersType) => {
+    const newFilters = {
+      ...currentFilters,
+      ...additionalFilters,
+      q: query || undefined,
+      offset: 0
+    };
+    setCurrentFilters(newFilters);
+  };
+
+  // Handle sort change
+  const handleSortChange = (field: string, direction: 'asc' | 'desc') => {
+    setSortField(field);
+    setSortDirection(direction);
+    
+    // Update filters to trigger server-side sorting
+    const newFilters = {
+      ...currentFilters,
+      sort_field: field,
+      sort_direction: direction,
+      offset: 0 // Reset to first page when sorting
+    };
+    setCurrentFilters(newFilters);
+  };
+
+  // Handle view mode change
+  const handleViewModeChange = (mode: 'list' | 'grid') => {
+    setViewMode(mode);
+    localStorage.setItem('teacher_view_mode', mode);
+  };
+
+  // Load view mode from localStorage
+  useEffect(() => {
+    const savedViewMode = localStorage.getItem('teacher_view_mode') as 'list' | 'grid';
+    if (savedViewMode) {
+      setViewMode(savedViewMode);
+    }
   }, []);
 
-  const getStatusColor = (status: Teacher['status']) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'suspended':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+  // Modal handlers
+  const handleCreateSuccess = () => {
+    fetchTeachers();
   };
 
-  const getRoleColor = (role: Teacher['role']) => {
-    switch (role) {
-      case 'school_admin':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'teacher_admin':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'teacher':
-        return 'bg-green-100 text-green-800 border-green-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+  const handleEditSuccess = () => {
+    fetchTeachers();
+    setSelectedTeacher(null);
   };
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('cs-CZ');
+  const handleCloseModals = () => {
+    setShowCreateModal(false);
+    setShowEditModal(false);
+    setShowProfileModal(false);
+    setSelectedTeacher(null);
+    setProfileTeacherId(null);
+    
+    // Phase 5 modals
+    setShowAnalyticsDashboard(false);
+    setShowNotificationSystem(false);
+    setShowPerformanceMetrics(false);
+    setPerformanceTeacherId(null);
   };
 
-  const formatLastActive = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / (1000 * 60));
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (minutes < 60) {
-      return `před ${minutes} min`;
-    } else if (hours < 24) {
-      return `před ${hours} hod`;
-    } else {
-      return `před ${days} dny`;
-    }
+  const handleBulkActionSuccess = () => {
+    fetchTeachers();
   };
 
-  const approveTeacher = (id: string) => {
-    setTeachers(prev => 
-      prev.map(teacher => 
-        teacher.id === id 
-          ? { ...teacher, status: 'active' as const, isVerified: true }
-          : teacher
-      )
-    );
-  };
-
-  const suspendTeacher = (id: string) => {
-    setTeachers(prev => 
-      prev.map(teacher => 
-        teacher.id === id 
-          ? { ...teacher, status: 'suspended' as const }
-          : teacher
-      )
-    );
-  };
-
-  const activateTeacher = (id: string) => {
-    setTeachers(prev => 
-      prev.map(teacher => 
-        teacher.id === id 
-          ? { ...teacher, status: 'active' as const }
-          : teacher
-      )
-    );
-  };
-
-  const deleteTeacher = (id: string) => {
-    setTeachers(prev => prev.filter(teacher => teacher.id !== id));
-  };
-
-  const deleteSelected = () => {
-    setTeachers(prev => prev.filter(teacher => !selectedTeachers.includes(teacher.id)));
+  const handleClearSelection = () => {
     setSelectedTeachers([]);
   };
 
-  const toggleSelection = (id: string) => {
-    setSelectedTeachers(prev => 
-      prev.includes(id) 
-        ? prev.filter(t => t !== id)
-        : [...prev, id]
-    );
-  };
-
-  const filteredTeachers = teachers.filter(teacher => {
-    const matchesSearch = searchQuery === '' || 
-      teacher.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      teacher.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      teacher.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      teacher.school.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || teacher.status === statusFilter;
-    const matchesSchool = schoolFilter === 'all' || teacher.schoolId === schoolFilter;
-
-    return matchesSearch && matchesStatus && matchesSchool;
-  });
-
-  const schools = Array.from(new Set(teachers.map(t => ({ id: t.schoolId, name: t.school }))));
-
-  if (loading) {
+  if (loading && teachers.length === 0) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
@@ -260,6 +175,24 @@ const TeachersPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
+        {/* Error Display */}
+        {error && (
+          <Card className="p-4 border-red-200 bg-red-50">
+            <div className="flex items-center space-x-2 text-red-800">
+              <AlertCircle className="w-5 h-5" />
+              <span>{error}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setError(null)}
+                className="ml-auto text-red-600 hover:text-red-700"
+              >
+                ×
+              </Button>
+            </div>
+          </Card>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -268,22 +201,33 @@ const TeachersPage: React.FC = () => {
           </div>
           <div className="flex items-center space-x-3 mt-4 sm:mt-0">
             <Button
-              onClick={() => {/* setShowAddModal(true) */}}
+              variant="secondary"
+              onClick={() => setShowAnalyticsDashboard(true)}
               className="flex items-center space-x-2"
+              disabled={loading}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>Analytika</span>
+            </Button>
+            
+            <Button
+              variant="secondary"
+              onClick={() => setShowNotificationSystem(true)}
+              className="flex items-center space-x-2"
+              disabled={loading}
+            >
+              <Bell className="w-4 h-4" />
+              <span>Oznámení</span>
+            </Button>
+            
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center space-x-2"
+              disabled={loading}
             >
               <Plus className="w-4 h-4" />
               <span>Přidat učitele</span>
             </Button>
-            {selectedTeachers.length > 0 && (
-              <Button
-                variant="danger"
-                onClick={deleteSelected}
-                className="flex items-center space-x-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Smazat vybrané ({selectedTeachers.length})</span>
-              </Button>
-            )}
           </div>
         </div>
 
@@ -293,7 +237,7 @@ const TeachersPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Celkem učitelů</p>
-                <p className="text-2xl font-bold text-gray-900">{teachers.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{teacherStats?.total || total}</p>
               </div>
               <Users className="w-8 h-8 text-blue-600" />
             </div>
@@ -303,7 +247,7 @@ const TeachersPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Aktivní</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {teachers.filter(t => t.status === 'active').length}
+                  {teacherStats?.active || teachers.filter(t => t.status === 'active').length}
                 </p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-600" />
@@ -314,7 +258,7 @@ const TeachersPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Čekající na schválení</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {teachers.filter(t => t.status === 'pending').length}
+                  {teacherStats?.pending || teachers.filter(t => t.status === 'pending_verification').length}
                 </p>
               </div>
               <Calendar className="w-8 h-8 text-yellow-600" />
@@ -325,7 +269,7 @@ const TeachersPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Nepotvrzení</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {teachers.filter(t => !t.isVerified).length}
+                  {teacherStats?.unverified || teachers.filter(t => !t.email_verified).length}
                 </p>
               </div>
               <XCircle className="w-8 h-8 text-red-600" />
@@ -333,226 +277,88 @@ const TeachersPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Filters and Search */}
-        <Card className="p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-            <div className="flex flex-wrap items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Filter className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">Filtry:</span>
-              </div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Všechny stavy</option>
-                <option value="active">Aktivní</option>
-                <option value="inactive">Neaktivní</option>
-                <option value="pending">Čekající</option>
-                <option value="suspended">Pozastavení</option>
-              </select>
-              <select
-                value={schoolFilter}
-                onChange={(e) => setSchoolFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Všechny školy</option>
-                {schools.map(school => (
-                  <option key={school.id} value={school.id}>{school.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Hledat učitele..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-full lg:w-80"
-              />
-            </div>
-          </div>
-        </Card>
+        {/* Bulk Actions */}
+        <TeacherBulkActions
+          selectedTeacherIds={selectedTeachers}
+          onSuccess={handleBulkActionSuccess}
+          onClearSelection={handleClearSelection}
+        />
 
-        {/* Teachers Table */}
-        <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <input
-                      type="checkbox"
-                      checked={selectedTeachers.length === filteredTeachers.length && filteredTeachers.length > 0}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedTeachers(filteredTeachers.map(t => t.id));
-                        } else {
-                          setSelectedTeachers([]);
-                        }
-                      }}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Učitel
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Škola
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Předměty
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Stav
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Kredity
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Aktivita
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Akce
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredTeachers.map((teacher) => (
-                  <tr key={teacher.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={selectedTeachers.includes(teacher.id)}
-                        onChange={() => toggleSelection(teacher.id)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-sm font-medium text-blue-600">
-                              {teacher.firstName[0]}{teacher.lastName[0]}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {teacher.firstName} {teacher.lastName}
-                          </div>
-                          <div className="text-sm text-gray-500">{teacher.email}</div>
-                          {teacher.phone && (
-                            <div className="text-sm text-gray-500 flex items-center space-x-1">
-                              <Phone className="w-3 h-3" />
-                              <span>{teacher.phone}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
-                        <Building2 className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-900">{teacher.school}</span>
-                      </div>
-                      <Badge variant="outline" className={getRoleColor(teacher.role)}>
-                        {teacher.role === 'school_admin' ? 'Správce školy' : 
-                         teacher.role === 'teacher_admin' ? 'Správce učitelů' : 'Učitel'}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-wrap gap-1">
-                        {teacher.subjects.map((subject, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {subject}
-                          </Badge>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant="outline" className={getStatusColor(teacher.status)}>
-                        {teacher.status === 'active' ? 'Aktivní' :
-                         teacher.status === 'inactive' ? 'Neaktivní' :
-                         teacher.status === 'pending' ? 'Čekající' : 'Pozastavení'}
-                      </Badge>
-                      {!teacher.isVerified && (
-                        <Badge variant="warning" className="ml-2">Nepotvrzený</Badge>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        <div>Použito: {teacher.creditsUsed}</div>
-                        <div className="text-green-600">Zbývá: {teacher.creditsRemaining}</div>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Materiálů: {teacher.materialsCreated}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        <div>Připojen: {formatDate(teacher.joinDate)}</div>
-                        <div className="text-gray-500">Poslední aktivita: {formatLastActive(teacher.lastActive)}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {/* setEditingTeacher(teacher) */}}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        {teacher.status === 'pending' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => approveTeacher(teacher.id)}
-                            className="text-green-600 hover:text-green-700"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                        )}
-                        {teacher.status === 'active' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => suspendTeacher(teacher.id)}
-                            className="text-yellow-600 hover:text-yellow-700"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </Button>
-                        )}
-                        {teacher.status === 'suspended' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => activateTeacher(teacher.id)}
-                            className="text-green-600 hover:text-green-700"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteTeacher(teacher.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        {/* Enhanced Search */}
+        <TeacherSearch
+          onSearch={handleSearch}
+          currentFilters={currentFilters}
+          className="mb-6"
+        />
+
+        {/* Quick Filters */}
+        <TeacherQuickFilters
+          onFilterSelect={handleFiltersChange}
+          currentFilters={currentFilters}
+          teacherStats={teacherStats}
+        />
+
+        {/* Advanced Filters (Collapsible) */}
+        <TeacherFilters
+          filters={currentFilters}
+          onFiltersChange={handleFiltersChange}
+          loading={loading}
+        />
+
+        {/* Search Results */}
+        <TeacherSearchResults
+          teachers={filteredTeachers}
+          total={total}
+          loading={loading}
+          currentFilters={currentFilters}
+          searchQuery={currentFilters.q}
+          onSortChange={handleSortChange}
+          onViewModeChange={handleViewModeChange}
+          viewMode={viewMode}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onShowPerformanceMetrics={(teacherId) => {
+            setPerformanceTeacherId(teacherId);
+            setShowPerformanceMetrics(true);
+          }}
+        />
+
+        {/* Modals */}
+        <TeacherCreateModal
+          isOpen={showCreateModal}
+          onClose={handleCloseModals}
+          onSuccess={handleCreateSuccess}
+        />
+
+        <TeacherEditModal
+          isOpen={showEditModal}
+          teacher={selectedTeacher}
+          onClose={handleCloseModals}
+          onSuccess={handleEditSuccess}
+        />
+
+        <TeacherProfileModal
+          isOpen={showProfileModal}
+          teacherId={profileTeacherId}
+          onClose={handleCloseModals}
+        />
+
+        {/* Phase 5 Modals */}
+        <TeacherAnalyticsDashboard
+          isOpen={showAnalyticsDashboard}
+          onClose={handleCloseModals}
+        />
+
+        <TeacherNotificationSystem
+          isOpen={showNotificationSystem}
+          onClose={handleCloseModals}
+        />
+
+        <TeacherPerformanceMetrics
+          teacherId={performanceTeacherId || ''}
+          isOpen={showPerformanceMetrics}
+          onClose={handleCloseModals}
+        />
       </div>
     </AdminLayout>
   );

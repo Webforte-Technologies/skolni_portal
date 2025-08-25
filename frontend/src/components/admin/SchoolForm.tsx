@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { School } from '../../types';
 import Button from '../ui/Button';
 import InputField from '../ui/InputField';
+import Badge from '../ui/Badge';
 
 interface SchoolFormProps {
   school?: School;
@@ -17,6 +18,7 @@ interface SchoolFormData {
   postal_code?: string;
   contact_email?: string;
   contact_phone?: string;
+  website?: string;
   logo_url?: string;
   is_active: boolean;
 }
@@ -44,12 +46,13 @@ const SchoolForm: React.FC<SchoolFormProps> = ({
       setFormData({
         name: school.name,
         address: school.address || '',
-        city: '',
-        postal_code: '',
-        contact_email: '',
-        contact_phone: '',
-        logo_url: '',
-        is_active: true
+        city: school.city || '',
+        postal_code: school.postal_code || '',
+        contact_email: school.contact_email || school.email || '',
+        contact_phone: school.contact_phone || school.phone || '',
+        website: school.website || '',
+        logo_url: school.logo_url || '',
+        is_active: school.is_active !== undefined ? school.is_active : true
       });
     }
   }, [school]);
@@ -71,6 +74,10 @@ const SchoolForm: React.FC<SchoolFormProps> = ({
 
     if (formData.contact_phone && !/^(\+420\s?)?\d{3}\s?\d{3}\s?\d{3}$/.test(formData.contact_phone.replace(/\s/g, ''))) {
       newErrors.contact_phone = 'Neplatný formát telefonu (např. +420 123 456 789)';
+    }
+
+    if (formData.website && !/^https?:\/\/.+/.test(formData.website)) {
+      newErrors.website = 'URL musí začínat s http:// nebo https://';
     }
 
     if (formData.logo_url && !/^https?:\/\/.+/.test(formData.logo_url)) {
@@ -181,6 +188,18 @@ const SchoolForm: React.FC<SchoolFormProps> = ({
           error={errors.contact_phone}
           disabled={loading}
           placeholder="+420 123 456 789"
+        />
+
+        {/* Website */}
+        <InputField
+          label="Webové stránky"
+          name="website"
+          type="url"
+          value={formData.website}
+          onChange={(e) => handleInputChange('website', e.target.value)}
+          error={errors.website}
+          disabled={loading}
+          placeholder="https://www.skola.cz"
         />
 
         {/* Logo URL */}

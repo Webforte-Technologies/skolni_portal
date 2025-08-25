@@ -5,6 +5,8 @@ import { AnalyticsService } from '../../services/AnalyticsService';
 import { realTimeService } from '../../services/RealTimeService';
 import { webSocketService } from '../../services/WebSocketService';
 import { enhancedMetricsMiddleware, getEnhancedMetrics } from '../../middleware/enhanced-metrics';
+import { analyticsPerformanceMonitor } from '../../middleware/analytics-performance';
+import { analyticsCacheService } from '../../services/AnalyticsCacheService';
 import pool from '../../database/connection';
 import { MCPAnalyticsService } from '../../services/MCPAnalyticsService';
 
@@ -53,6 +55,7 @@ function parseTimeRange(timeRangeParam: any) {
 router.use(authenticateToken, requireRole(['platform_admin', 'admin']));
 router.use(auditLoggerForAdmin);
 router.use(enhancedMetricsMiddleware);
+router.use(analyticsPerformanceMonitor.trackPerformance);
 
 // Helper: standard envelope
 const ok = (res: express.Response, data: any) => res.status(200).json({ success: true, data });
@@ -90,6 +93,27 @@ router.get('/platform-overview', async (req: RequestWithUser, res: express.Respo
   } catch (error) {
     console.error('Failed to get platform overview metrics:', error);
     return bad(res, 500, 'Failed to retrieve platform overview metrics');
+  }
+});
+
+/**
+ * GET /admin/analytics/enhanced-material-trends
+ * Get enhanced material creation trends with real-time data and user engagement metrics
+ */
+router.get('/enhanced-material-trends', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const timeRange = req.query['timeRange'] as '7d' | '30d' | '90d' | '1y' | undefined;
+    
+    // Validate timeRange parameter
+    if (timeRange && !['7d', '30d', '90d', '1y'].includes(timeRange)) {
+      return bad(res, 400, 'Invalid timeRange parameter. Must be one of: 7d, 30d, 90d, 1y');
+    }
+    
+    const trends = await AnalyticsService.getEnhancedMaterialCreationTrends(timeRange);
+    return ok(res, trends);
+  } catch (error) {
+    console.error('Failed to get enhanced material creation trends:', error);
+    return bad(res, 500, 'Failed to retrieve enhanced material creation trends');
   }
 });
 
@@ -654,13 +678,18 @@ router.get('/enhanced', async (_req: RequestWithUser, res: express.Response) => 
  */
 router.get('/cache/status', async (_req: RequestWithUser, res: express.Response) => {
   try {
-    // This would check the analytics_cache table status
-    // For now, return a placeholder
+    const cacheStats = analyticsCacheService.getStats();
+    const cacheInfo = analyticsCacheService.getCacheInfo();
+    
     const cacheStatus = {
       enabled: true,
-      total_cached_metrics: 0,
-      cache_hit_rate: 0,
-      last_updated: new Date().toISOString()
+      total_cached_metrics: cacheStats.totalEntries,
+      cache_hit_rate: cacheStats.hitRate,
+      total_hits: cacheStats.totalHits,
+      total_misses: cacheStats.totalMisses,
+      average_query_time: cacheStats.averageQueryTime,
+      last_updated: new Date().toISOString(),
+      cache_entries: cacheInfo.entries.slice(0, 10) // Show only first 10 entries
     };
     
     return ok(res, cacheStatus);
@@ -676,12 +705,90 @@ router.get('/cache/status', async (_req: RequestWithUser, res: express.Response)
  */
 router.post('/cache/refresh', async (_req: RequestWithUser, res: express.Response) => {
   try {
-    // This would trigger a cache refresh
-    // For now, return success
-    return ok(res, { message: 'Cache refresh initiated' });
+    // Clear cache and preload common queries
+    const clearedEntries = analyticsCacheService.clearAll();
+    await analyticsCacheService.preloadCommonQueries();
+    
+    return ok(res, { 
+      message: 'Cache refresh completed',
+      clearedEntries,
+      newEntries: analyticsCacheService.getStats().totalEntries
+    });
   } catch (error) {
     console.error('Failed to refresh cache:', error);
     return bad(res, 500, 'Failed to refresh cache');
+  }
+});
+
+/**
+ * GET /admin/analytics/performance/stats
+ * Get analytics performance statistics
+ */
+router.get('/performance/stats', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const timeRangeMinutes = parseInt(req.query['timeRange'] as string) || 60;
+    const performanceStats = analyticsPerformanceMonitor.getPerformanceStats(timeRangeMinutes);
+    
+    return ok(res, performanceStats);
+  } catch (error) {
+    console.error('Failed to get performance stats:', error);
+    return bad(res, 500, 'Failed to retrieve performance statistics');
+  }
+});
+
+/**
+ * GET /admin/analytics/performance/slow-queries
+ * Get slow query alerts
+ */
+router.get('/performance/slow-queries', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const thresholdMs = parseInt(req.query['threshold'] as string) || 2000;
+    const timeRangeMinutes = parseInt(req.query['timeRange'] as string) || 60;
+    
+    const slowQueries = analyticsPerformanceMonitor.getSlowQueryAlerts(thresholdMs, timeRangeMinutes);
+    
+    return ok(res, {
+      slow_queries: slowQueries,
+      threshold_ms: thresholdMs,
+      time_range_minutes: timeRangeMinutes,
+      total_slow_queries: slowQueries.length
+    });
+  } catch (error) {
+    console.error('Failed to get slow query alerts:', error);
+    return bad(res, 500, 'Failed to retrieve slow query alerts');
+  }
+});
+
+/**
+ * POST /admin/analytics/cache/invalidate
+ * Invalidate specific cache entries
+ */
+router.post('/cache/invalidate', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const { pattern, method, params } = req.body as {
+      pattern?: string;
+      method?: string;
+      params?: any;
+    };
+
+    let removedCount = 0;
+
+    if (pattern) {
+      removedCount = analyticsCacheService.invalidateByPattern(pattern);
+    } else if (method) {
+      const removed = analyticsCacheService.invalidate(method, params);
+      removedCount = removed ? 1 : 0;
+    } else {
+      return bad(res, 400, 'Either pattern or method must be provided');
+    }
+
+    return ok(res, {
+      message: 'Cache invalidation completed',
+      removed_entries: removedCount
+    });
+  } catch (error) {
+    console.error('Failed to invalidate cache:', error);
+    return bad(res, 500, 'Failed to invalidate cache');
   }
 });
 
@@ -965,5 +1072,57 @@ router.get('/mcp/real-time',
     }
   }
 );
+
+/**
+ * GET /admin/analytics/user-growth-chart
+ * Get user growth data optimized for charts (daily/weekly)
+ */
+router.get('/user-growth-chart', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const timeRange = req.query['timeRange'] as '7d' | '30d' | '90d' | '1y' | undefined;
+    const granularity = req.query['granularity'] as 'daily' | 'weekly' | undefined || 'daily';
+    
+    // Validate parameters
+    if (timeRange && !['7d', '30d', '90d', '1y'].includes(timeRange)) {
+      return bad(res, 400, 'Invalid timeRange parameter. Must be one of: 7d, 30d, 90d, 1y');
+    }
+    
+    if (granularity && !['daily', 'weekly'].includes(granularity)) {
+      return bad(res, 400, 'Invalid granularity parameter. Must be daily or weekly');
+    }
+    
+    const chartData = await AnalyticsService.getUserGrowthChartData(timeRange, granularity);
+    return ok(res, chartData);
+  } catch (error) {
+    console.error('Failed to get user growth chart data:', error);
+    return bad(res, 500, 'Failed to retrieve user growth chart data');
+  }
+});
+
+/**
+ * GET /admin/analytics/credit-usage-chart
+ * Get credit usage data optimized for charts (daily/weekly)
+ */
+router.get('/credit-usage-chart', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const timeRange = req.query['timeRange'] as '7d' | '30d' | '90d' | '1y' | undefined;
+    const granularity = req.query['granularity'] as 'daily' | 'weekly' | undefined || 'daily';
+    
+    // Validate parameters
+    if (timeRange && !['7d', '30d', '90d', '1y'].includes(timeRange)) {
+      return bad(res, 400, 'Invalid timeRange parameter. Must be one of: 7d, 30d, 90d, 1y');
+    }
+    
+    if (granularity && !['daily', 'weekly'].includes(granularity)) {
+      return bad(res, 400, 'Invalid granularity parameter. Must be daily or weekly');
+    }
+    
+    const chartData = await AnalyticsService.getCreditUsageChartData(timeRange, granularity);
+    return ok(res, chartData);
+  } catch (error) {
+    console.error('Failed to get credit usage chart data:', error);
+    return bad(res, 500, 'Failed to retrieve credit usage chart data');
+  }
+});
 
 export default router;

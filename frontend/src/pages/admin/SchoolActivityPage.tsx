@@ -290,7 +290,12 @@ const SchoolActivityPage: React.FC = () => {
         {/* Activity Chart */}
         <Card>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Přehled aktivity</h3>
-          <SchoolActivityChart />
+          <SchoolActivityChart 
+            schoolName="Všechny školy"
+            totalActivities={totalLogs}
+            activeUsers={new Set(activityLogs.filter(log => log.user_id).map(log => log.user_id)).size}
+            lastActivity={activityLogs.length > 0 ? activityLogs[0].created_at : undefined}
+          />
         </Card>
 
         {/* Activity Logs */}
