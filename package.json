@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "EduAI-Asistent - AI-powered tools for Czech teachers",
   "private": true,
-  
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "dev:backend": "npm run dev --prefix backend",
@@ -15,12 +14,16 @@
     "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
     "test": "npm run test --prefix backend",
     "test:smoke": "npm run test:smoke --prefix backend",
-    "prepare": "husky install",
+    "prepare": "husky",
     "type-check": "npm run type-check --prefix frontend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "husky": "^9.1.6"
+    "husky": "^9.1.6",
+    "lint-staged": "^16.1.5"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md}": []
   },
   "keywords": [
     "education",
@@ -37,5 +40,8 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.11.0"
   }
-} 
+}

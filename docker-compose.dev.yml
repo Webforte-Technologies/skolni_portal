@@ -47,6 +47,9 @@ services:
       - ENABLE_LOGGER=true
       - LOG_FORMAT=dev
       - LOG_LEVEL=debug
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-your-openai-api-key-here}
+      - OPENAI_MODEL=gpt-4
+      - OPENAI_MAX_TOKENS=2000
     ports:
       - "3001:3001"
     volumes:

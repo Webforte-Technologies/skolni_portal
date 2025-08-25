@@ -34,6 +34,19 @@ interface CreditAnalytics {
   monthly: { usage: any[]; purchases: any[] };
 }
 
+interface UserMetrics {
+  new_users_24h: number;
+  activity: {
+    active_24h: number;
+  };
+}
+
+interface RevenueMetrics {
+  current_period: number;
+  previous_period: number;
+  growth_rate: number;
+}
+
 interface QuickAction {
   id: string;
   title: string;
@@ -47,14 +60,15 @@ const AdminDashboardPage: React.FC = () => {
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
   const [credits, setCredits] = useState<CreditAnalytics | null>(null);
+  const [userMetrics, setUserMetrics] = useState<UserMetrics | null>(null);
+  const [revenueMetrics, setRevenueMetrics] = useState<RevenueMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [criticalAlerts, setCriticalAlerts] = useState<any[]>([]);
   const { showToast } = useToast();
 
   // Memoize callback functions to prevent infinite re-renders
-  const handleMetricClick = useCallback((metric: any) => {
+  const handleMetricClick = useCallback(() => {
     // Show detailed performance view
-    console.log('Metric clicked:', metric);
     // TODO: Implement detailed performance view
   }, []);
 
@@ -65,9 +79,8 @@ const AdminDashboardPage: React.FC = () => {
     });
   }, [showToast]);
 
-  const handleRealTimeMetricClick = useCallback((metricId: string) => {
+  const handleRealTimeMetricClick = useCallback(() => {
     // Navigate to detailed view or show modal
-    console.log('Real-time metric clicked:', metricId);
     // TODO: Implement navigation to detailed view
   }, []);
 
@@ -130,15 +143,19 @@ const AdminDashboardPage: React.FC = () => {
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
-      const [healthRes, metricsRes, creditsRes] = await Promise.all([
+      const [healthRes, metricsRes, creditsRes, userMetricsRes, revenueMetricsRes] = await Promise.all([
         api.get<any>('/admin/system/health'),
         api.get<any>('/admin/system/metrics'),
-        api.get<any>('/admin/credits/analytics')
+        api.get<any>('/admin/credits/analytics'),
+        api.get<any>('/admin/analytics/export?type=users'),
+        api.get<any>('/admin/analytics/export?type=revenue')
       ]);
 
       setHealth(healthRes.data.data);
       setMetrics(metricsRes.data.data);
       setCredits(creditsRes.data.data);
+      setUserMetrics(userMetricsRes.data.data);
+      setRevenueMetrics(revenueMetricsRes.data.data);
 
       // Simulate critical alerts (in real app, this would come from monitoring)
       const alerts = [];
@@ -181,10 +198,11 @@ const AdminDashboardPage: React.FC = () => {
     <CheckCircle className="w-6 h-6" /> : 
     <AlertTriangle className="w-6 h-6" />;
 
-  const activeUsers = metrics?.total_requests ? Math.floor(metrics.total_requests / 100) : 0;
-  const newUsersToday = 12; // This would come from analytics endpoint
+  const activeUsers = userMetrics?.activity?.active_24h || 0;
+  const newUsersToday = userMetrics?.new_users_24h || 0;
   const creditsUsedToday = credits?.totals?.used || 0;
-  const revenueToday = 2840; // This would come from revenue analytics
+  const revenueToday = revenueMetrics?.current_period || 0;
+  const revenueGrowthRate = revenueMetrics?.growth_rate || 0;
 
   if (loading) {
     return (
@@ -315,8 +333,12 @@ const AdminDashboardPage: React.FC = () => {
                 {revenueToday.toLocaleString()} Kč
               </div>
               <div className="text-xs text-orange-600 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                +15% vs včera
+                {revenueGrowthRate >= 0 ? (
+                  <TrendingUp className="w-3 h-3" />
+                ) : (
+                  <TrendingUp className="w-3 h-3 rotate-180" />
+                )}
+                {revenueGrowthRate >= 0 ? '+' : ''}{revenueGrowthRate.toFixed(1)}% vs předchozí období
               </div>
             </div>
           </div>
@@ -600,19 +622,16 @@ const AdminDashboardPage: React.FC = () => {
                 maxAlerts={8}
                 showFilters={true}
                 showActions={true}
-                onAlertClick={(alert) => {
+                onAlertClick={() => {
                   // Show alert details or navigate to issue
-                  console.log('Alert clicked:', alert);
                   // TODO: Implement alert details view
                 }}
-                onAcknowledge={(alertId) => {
+                onAcknowledge={() => {
                   // API call to acknowledge alert
-                  console.log('Acknowledging alert:', alertId);
                   // TODO: Implement API call to acknowledge alert
                 }}
-                onResolve={(alertId) => {
+                onResolve={() => {
                   // API call to resolve alert
-                  console.log('Resolving alert:', alertId);
                   // TODO: Implement API call to resolve alert
                 }}
               />
@@ -667,9 +686,8 @@ const AdminDashboardPage: React.FC = () => {
                 }
                 return [];
               }}
-              onDataPointClick={(dataPoint) => {
+              onDataPointClick={() => {
                 // Navigate to user management or show details
-                console.log('Data point clicked:', dataPoint);
                 // TODO: Implement navigation to user management
               }}
             />

@@ -4,6 +4,7 @@ import { cn } from '../../utils/cn';
 import { User, Bot, Copy, Check, BookOpen, ExternalLink, Target, TrendingUp, Star } from 'lucide-react';
 import Button from '../ui/Button';
 import ResponsiveMarkdown from '../math/ResponsiveMarkdown';
+import TypingEffect from './TypingEffect';
 import { forwardRef } from 'react';
 
 interface MessageProps {
@@ -16,6 +17,13 @@ interface MessageProps {
   showRightAvatar?: boolean;
   isMobile?: boolean;
   isTablet?: boolean;
+  typingEffectSettings?: {
+    enabled: boolean;
+    speed: number;
+    showCursor: boolean;
+    cursorBlinkSpeed: number;
+  };
+  isTyping?: boolean;
 }
 
 const getDifficultyIcon = (difficulty: MathDifficulty) => {
@@ -83,7 +91,10 @@ const getTopicName = (topic: MathTopic) => {
 
 
 const Message = forwardRef<HTMLDivElement, MessageProps>(
-  ({ message, onCopyMessage, copiedMessageId, onDeleteMessage, onRegenerate, showLeftAvatar = true, showRightAvatar = true, isMobile = false, isTablet = false }) => {
+  ({ message, onCopyMessage, copiedMessageId, onDeleteMessage, onRegenerate, showLeftAvatar = true, showRightAvatar = true, isMobile = false, isTablet = false, typingEffectSettings, isTyping = false }) => {
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+      console.log('Message: Rendering message:', message.id, message.isUser, message.content?.substring(0, 50));
+    }
     const isUser = message.isUser;
     const isCopied = copiedMessageId === message.id;
     const [isExpanded, setIsExpanded] = useState(true);
@@ -172,9 +183,19 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                 : 'max-h-56 overflow-hidden pr-2' 
               : 'max-h-none'
           )}>
-            <ResponsiveMarkdown>
-              {message.content}
-            </ResponsiveMarkdown>
+            {!isUser && typingEffectSettings?.enabled && isTyping ? (
+              <TypingEffect
+                content={message.content || ''}
+                speed={typingEffectSettings.speed}
+                showCursor={typingEffectSettings.showCursor}
+                cursorBlinkSpeed={typingEffectSettings.cursorBlinkSpeed}
+                autoStart={true}
+              />
+            ) : (
+              <ResponsiveMarkdown>
+                {message.content}
+              </ResponsiveMarkdown>
+            )}
             {/* Gradient fade when collapsed */}
             {!isUser && isLong && !isExpanded && (
               <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-primary-50 dark:from-primary-900/20 to-transparent" />

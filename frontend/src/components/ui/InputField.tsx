@@ -133,8 +133,8 @@ const InputField = forwardRef<HTMLInputElement, ResponsiveInputFieldProps>(({
           type={type}
           placeholder={placeholder}
           required={required}
-          value={value}
-          onChange={onChange}
+          value={value || ''}
+          onChange={onChange || (() => {})}
           className={inputClasses}
           // Mobile-specific attributes
           autoComplete={props.autoComplete || 'off'}

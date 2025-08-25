@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import Card from '../../components/ui/Card';
-import Badge from '../../components/ui/Badge';
-import Button from '../../components/ui/Button';
 import { 
   Shield, 
   Search, 
   Download, 
-  RefreshCw,
+  Eye, 
   AlertTriangle,
   CheckCircle,
-  XCircle,
   Clock,
   Database,
+  RefreshCw,
   Server,
-  Eye
-  
+  XCircle
 } from 'lucide-react';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
+import AdminLayout from '../../components/admin/AdminLayout';
 
 interface SecurityEvent {
   id: string;
@@ -216,19 +216,19 @@ const SecurityAuditPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <AdminLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex items-center space-x-2">
             <RefreshCw className="w-6 h-6 animate-spin text-primary" />
             <span className="text-lg text-gray-600">Načítání bezpečnostního auditu...</span>
           </div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AdminLayout>
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -430,7 +430,7 @@ const SecurityAuditPage: React.FC = () => {
           )}
         </div>
       </Card>
-    </div>
+    </AdminLayout>
   );
 };
 

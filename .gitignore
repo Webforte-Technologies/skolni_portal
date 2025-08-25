@@ -172,4 +172,4 @@ logs/
 *.temp
 
 docker-compose.env
-docker-compose.env.local
+docker-compose.env.localdocker-compose.env.local

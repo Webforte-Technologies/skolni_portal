@@ -618,7 +618,7 @@ const BillingPage: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => console.log(`Downloading invoice ${invoice.invoiceNumber}`)}
+                          onClick={() => {/* TODO: Implement invoice download */}}
                           className="text-gray-600 hover:text-gray-700"
                         >
                           <Download className="w-4 h-4" />

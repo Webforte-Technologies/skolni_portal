@@ -177,4 +177,44 @@ export class CreditTransactionModel {
     const result = await pool.query(query, [userId]);
     return parseInt(result.rows[0].count);
   }
+
+  // Get user statistics
+  static async getUserStats(userId: string): Promise<{
+    total_credits_used: number;
+    recent_credits_used: number;
+    monthly_usage: any[];
+  }> {
+    const totalUsed = await this.getTotalCreditsUsed(userId);
+    
+    // Get recent usage (last 30 days)
+    const recentQuery = `
+      SELECT COALESCE(SUM(ABS(amount)), 0) as recent_used
+      FROM credit_transactions 
+      WHERE user_id = $1 
+        AND transaction_type = 'usage' 
+        AND created_at >= NOW() - INTERVAL '30 days'
+    `;
+    const recentResult = await pool.query(recentQuery, [userId]);
+    const recentUsed = parseInt(recentResult.rows[0].recent_used);
+    
+    // Get monthly usage for the last 6 months
+    const monthlyQuery = `
+      SELECT 
+        DATE_TRUNC('month', created_at) as month,
+        COALESCE(SUM(ABS(amount)), 0) as credits_used
+      FROM credit_transactions 
+      WHERE user_id = $1 
+        AND transaction_type = 'usage' 
+        AND created_at >= NOW() - INTERVAL '6 months'
+      GROUP BY DATE_TRUNC('month', created_at)
+      ORDER BY month DESC
+    `;
+    const monthlyResult = await pool.query(monthlyQuery, [userId]);
+    
+    return {
+      total_credits_used: totalUsed,
+      recent_credits_used: recentUsed,
+      monthly_usage: monthlyResult.rows
+    };
+  }
 } 

@@ -4,8 +4,8 @@
     "rootDir": "C:/Projects/skolni_portal/frontend/tests",
     "forbidOnly": false,
     "fullyParallel": true,
-    "globalSetup": null,
-    "globalTeardown": null,
+    "globalSetup": "C:\\Projects\\skolni_portal\\frontend\\tests\\global-setup.ts",
+    "globalTeardown": "C:\\Projects\\skolni_portal\\frontend\\tests\\global-teardown.ts",
     "globalTimeout": 0,
     "grep": {},
     "grepInvert": null,
@@ -121,12 +121,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4141,
+                      "duration": 4941,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:27.746Z",
+                      "startTime": "2025-08-25T22:39:59.499Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -155,12 +155,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 4409,
+                      "duration": 5213,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:27.763Z",
+                      "startTime": "2025-08-25T22:39:59.499Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -189,12 +189,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 6160,
+                      "duration": 6475,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:27.762Z",
+                      "startTime": "2025-08-25T22:39:59.499Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -223,12 +223,12 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 4208,
+                      "duration": 4230,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:27.795Z",
+                      "startTime": "2025-08-25T22:39:59.498Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -257,12 +257,12 @@
                       "workerIndex": 4,
                       "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 4174,
+                      "duration": 4443,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:27.758Z",
+                      "startTime": "2025-08-25T22:39:59.513Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -291,12 +291,12 @@
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 4057,
+                      "duration": 4490,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:27.761Z",
+                      "startTime": "2025-08-25T22:39:59.548Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -325,12 +325,12 @@
                       "workerIndex": 6,
                       "parallelIndex": 6,
                       "status": "passed",
-                      "duration": 4110,
+                      "duration": 4580,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:27.794Z",
+                      "startTime": "2025-08-25T22:39:59.530Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -359,12 +359,12 @@
                       "workerIndex": 7,
                       "parallelIndex": 7,
                       "status": "passed",
-                      "duration": 4471,
+                      "duration": 5125,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:27.732Z",
+                      "startTime": "2025-08-25T22:39:59.530Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -391,14 +391,14 @@
                   "results": [
                     {
                       "workerIndex": 8,
-                      "parallelIndex": 4,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 3853,
+                      "duration": 3988,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:39.923Z",
+                      "startTime": "2025-08-25T22:40:21.878Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -425,14 +425,14 @@
                   "results": [
                     {
                       "workerIndex": 9,
-                      "parallelIndex": 0,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 3890,
+                      "duration": 4133,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:39.981Z",
+                      "startTime": "2025-08-25T22:40:22.095Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -459,14 +459,14 @@
                   "results": [
                     {
                       "workerIndex": 10,
-                      "parallelIndex": 3,
+                      "parallelIndex": 7,
                       "status": "passed",
-                      "duration": 5835,
+                      "duration": 6300,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:40.193Z",
+                      "startTime": "2025-08-25T22:40:22.127Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -493,14 +493,14 @@
                   "results": [
                     {
                       "workerIndex": 11,
-                      "parallelIndex": 1,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3620,
+                      "duration": 4032,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:40.439Z",
+                      "startTime": "2025-08-25T22:40:22.144Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -527,14 +527,14 @@
                   "results": [
                     {
                       "workerIndex": 12,
-                      "parallelIndex": 2,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 3698,
+                      "duration": 3998,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:40.883Z",
+                      "startTime": "2025-08-25T22:40:22.398Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -561,14 +561,14 @@
                   "results": [
                     {
                       "workerIndex": 13,
-                      "parallelIndex": 6,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 3632,
+                      "duration": 3881,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:41.105Z",
+                      "startTime": "2025-08-25T22:40:22.994Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -594,15 +594,15 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 8,
-                      "parallelIndex": 4,
+                      "workerIndex": 14,
+                      "parallelIndex": 6,
                       "status": "passed",
-                      "duration": 3526,
+                      "duration": 3935,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:43.883Z",
+                      "startTime": "2025-08-25T22:40:23.207Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -628,15 +628,15 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 14,
-                      "parallelIndex": 7,
+                      "workerIndex": 15,
+                      "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 3967,
+                      "duration": 4182,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:45.134Z",
+                      "startTime": "2025-08-25T22:40:23.241Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -679,15 +679,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 1071,
+                      "duration": 939,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:32.000Z",
+                      "startTime": "2025-08-25T22:40:03.935Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -713,15 +713,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 1017,
+                      "duration": 1062,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:32.027Z",
+                      "startTime": "2025-08-25T22:40:04.135Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -747,15 +747,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 4,
-                      "parallelIndex": 4,
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 898,
+                      "duration": 934,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:32.113Z",
+                      "startTime": "2025-08-25T22:40:04.278Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -784,12 +784,12 @@
                       "workerIndex": 6,
                       "parallelIndex": 6,
                       "status": "passed",
-                      "duration": 1261,
+                      "duration": 1641,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:32.132Z",
+                      "startTime": "2025-08-25T22:40:04.340Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -815,15 +815,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 824,
+                      "duration": 926,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:32.259Z",
+                      "startTime": "2025-08-25T22:40:04.667Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -849,15 +849,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
                       "status": "passed",
-                      "duration": 903,
+                      "duration": 930,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:32.321Z",
+                      "startTime": "2025-08-25T22:40:04.851Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -883,15 +883,15 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 9,
-                      "parallelIndex": 0,
+                      "workerIndex": 8,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 726,
+                      "duration": 762,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:44.001Z",
+                      "startTime": "2025-08-25T22:40:25.992Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -917,15 +917,15 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 11,
+                      "workerIndex": 9,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 761,
+                      "duration": 841,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:44.221Z",
+                      "startTime": "2025-08-25T22:40:26.397Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -951,15 +951,15 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 15,
-                      "parallelIndex": 5,
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 704,
+                      "duration": 901,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:46.217Z",
+                      "startTime": "2025-08-25T22:40:26.427Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -986,14 +986,14 @@
                   "results": [
                     {
                       "workerIndex": 12,
-                      "parallelIndex": 2,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 1670,
+                      "duration": 2205,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:44.688Z",
+                      "startTime": "2025-08-25T22:40:26.784Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1019,15 +1019,15 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 9,
-                      "parallelIndex": 0,
+                      "workerIndex": 8,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 782,
+                      "duration": 960,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:44.736Z",
+                      "startTime": "2025-08-25T22:40:26.768Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1054,14 +1054,14 @@
                   "results": [
                     {
                       "workerIndex": 13,
-                      "parallelIndex": 6,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 1125,
+                      "duration": 1397,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:44.844Z",
+                      "startTime": "2025-08-25T22:40:27.064Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1104,10 +1104,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 7,
-                      "parallelIndex": 7,
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 5905,
+                      "duration": 6468,
                       "errors": [],
                       "stdout": [
                         {
@@ -1134,7 +1134,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:32.336Z",
+                      "startTime": "2025-08-25T22:40:04.897Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1160,12 +1160,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 4,
-                      "parallelIndex": 4,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 5725,
+                      "duration": 5915,
                       "errors": [],
                       "stdout": [
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
                         {
                           "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
                         },
@@ -1177,14 +1180,11 @@
                         },
                         {
                           "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
-                        },
-                        {
-                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:33.038Z",
+                      "startTime": "2025-08-25T22:40:04.943Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1210,10 +1210,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 5710,
+                      "duration": 5978,
                       "errors": [],
                       "stdout": [
                         {
@@ -1234,7 +1234,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:33.074Z",
+                      "startTime": "2025-08-25T22:40:05.237Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1263,7 +1263,7 @@
                       "workerIndex": 5,
                       "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 5654,
+                      "duration": 6640,
                       "errors": [],
                       "stdout": [
                         {
@@ -1284,7 +1284,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:33.105Z",
+                      "startTime": "2025-08-25T22:40:05.253Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1310,20 +1310,20 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5901,
+                      "duration": 6337,
                       "errors": [],
                       "stdout": [
                         {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
                           "text": "Mocking API request: GET http://localhost:3001/api/health\n"
-                        },
-                        {
-                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
-                        },
-                        {
-                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
                         },
                         {
                           "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
@@ -1334,7 +1334,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:33.125Z",
+                      "startTime": "2025-08-25T22:40:05.626Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1360,20 +1360,20 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 11,
+                      "workerIndex": 9,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 6602,
+                      "duration": 7191,
                       "errors": [],
                       "stdout": [
                         {
-                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
-                        },
-                        {
-                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
-                        },
-                        {
                           "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
+                        },
+                        {
+                          "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
                         },
                         {
                           "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
@@ -1390,7 +1390,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:45.015Z",
+                      "startTime": "2025-08-25T22:40:27.264Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1416,10 +1416,10 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 9,
-                      "parallelIndex": 0,
+                      "workerIndex": 14,
+                      "parallelIndex": 6,
                       "status": "passed",
-                      "duration": 5860,
+                      "duration": 6349,
                       "errors": [],
                       "stdout": [
                         {
@@ -1440,7 +1440,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:45.545Z",
+                      "startTime": "2025-08-25T22:40:27.362Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1466,10 +1466,10 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 13,
-                      "parallelIndex": 6,
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6044,
+                      "duration": 6306,
                       "errors": [],
                       "stdout": [
                         {
@@ -1479,18 +1479,18 @@
                           "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
                         },
                         {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
                           "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
                         },
                         {
                           "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
-                        },
-                        {
-                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:45.998Z",
+                      "startTime": "2025-08-25T22:40:27.376Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1516,10 +1516,10 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 10,
-                      "parallelIndex": 3,
+                      "workerIndex": 15,
+                      "parallelIndex": 5,
                       "status": "passed",
-                      "duration": 5950,
+                      "duration": 6143,
                       "errors": [],
                       "stdout": [
                         {
@@ -1540,7 +1540,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:46.188Z",
+                      "startTime": "2025-08-25T22:40:27.626Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1566,10 +1566,10 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 12,
+                      "workerIndex": 8,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 6352,
+                      "duration": 6838,
                       "errors": [],
                       "stdout": [
                         {
@@ -1579,18 +1579,18 @@
                           "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
                         },
                         {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
                           "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
                         },
                         {
                           "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
-                        },
-                        {
-                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
                         }
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:46.388Z",
+                      "startTime": "2025-08-25T22:40:27.768Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1633,10 +1633,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
+                      "workerIndex": 7,
+                      "parallelIndex": 7,
                       "status": "passed",
-                      "duration": 6064,
+                      "duration": 6468,
                       "errors": [],
                       "stdout": [
                         {
@@ -1667,7 +1667,7 @@
                           "text": "Script errors: []\n"
                         },
                         {
-                          "text": "Console errors: [\n  \u001b[32m'Warning: forwardRef render functions accept exactly two parameters: props and ref. %s Did you forget to use the ref parameter?'\u001b[39m,\n  \u001b[32m'Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s touchOptimized touchoptimized \\n'\u001b[39m +\n    \u001b[32m'    at input\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:13937\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at form\\n'\u001b[39m +\n    \u001b[32m'    at Ye (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:17422)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at F (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:11845)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at de (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:12249)\\n'\u001b[39m +\n    \u001b[32m'    at O (http://localhost:4173/assets/pages-auth-CU1nFBfp.js:1:458)\\n'\u001b[39m +\n    \u001b[32m'    at cU (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:3259)\\n'\u001b[39m +\n    \u001b[32m'    at t5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:8945)\\n'\u001b[39m +\n    \u001b[32m'    at Suspense\\n'\u001b[39m +\n    \u001b[32m'    at ss (http://localhost:4173/assets/components-misc-BVTAcLJe.js:1:4145)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at main\\n'\u001b[39m +\n    \u001b[32m'    at We (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:5246)\\n'\u001b[39m +\n    \u001b[32m'    at CU (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:8047)\\n'\u001b[39m +\n    \u001b[32m'    at n5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:2735)\\n'\u001b[39m +\n    \u001b[32m'    at ie (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:10639)\\n'\u001b[39m +\n    \u001b[32m'    at ue (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:11327)\\n'\u001b[39m +\n    \u001b[32m'    at ne (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:8730)\\n'\u001b[39m +\n    \u001b[32m'    at se (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:4656)\\n'\u001b[39m +\n    \u001b[32m'    at Y (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:299)\\n'\u001b[39m +\n    \u001b[32m'    at X (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:1749)\\n'\u001b[39m +\n    \u001b[32m'    at ee (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:3323)\\n'\u001b[39m +\n    \u001b[32m'    at zR (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:57639)\\n'\u001b[39m +\n    \u001b[32m'    at a5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:46786)\\n'\u001b[39m +\n    \u001b[32m'    at ve (http://localhost:4173/assets/main-CbtHVXm0.js:2:6936)'\u001b[39m\n]\n"
+                          "text": "Console errors: [\n  \u001b[32m'Warning: forwardRef render functions accept exactly two parameters: props and ref. %s Did you forget to use the ref parameter?'\u001b[39m,\n  \u001b[32m'Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s touchOptimized touchoptimized \\n'\u001b[39m +\n    \u001b[32m'    at input\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at http://localhost:4173/assets/components-ui-C_FrvtkV.js:1:13937\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at form\\n'\u001b[39m +\n    \u001b[32m'    at Xe (http://localhost:4173/assets/components-ui-C_FrvtkV.js:1:17436)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at F (http://localhost:4173/assets/components-ui-C_FrvtkV.js:1:11845)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at de (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:12267)\\n'\u001b[39m +\n    \u001b[32m'    at O (http://localhost:4173/assets/pages-auth-hCosiqJN.js:1:453)\\n'\u001b[39m +\n    \u001b[32m'    at mU (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:207:3259)\\n'\u001b[39m +\n    \u001b[32m'    at d4 (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:207:8945)\\n'\u001b[39m +\n    \u001b[32m'    at Suspense\\n'\u001b[39m +\n    \u001b[32m'    at hs (http://localhost:4173/assets/components-misc-AftIUmRa.js:1:4289)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at main\\n'\u001b[39m +\n    \u001b[32m'    at Je (http://localhost:4173/assets/components-ui-C_FrvtkV.js:1:5246)\\n'\u001b[39m +\n    \u001b[32m'    at kU (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:207:8047)\\n'\u001b[39m +\n    \u001b[32m'    at h4 (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:216:2735)\\n'\u001b[39m +\n    \u001b[32m'    at ie (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:10657)\\n'\u001b[39m +\n    \u001b[32m'    at ue (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:11345)\\n'\u001b[39m +\n    \u001b[32m'    at ne (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:8748)\\n'\u001b[39m +\n    \u001b[32m'    at se (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:4674)\\n'\u001b[39m +\n    \u001b[32m'    at Y (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:299)\\n'\u001b[39m +\n    \u001b[32m'    at X (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:1767)\\n'\u001b[39m +\n    \u001b[32m'    at ee (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:3341)\\n'\u001b[39m +\n    \u001b[32m'    at NR (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:216:57639)\\n'\u001b[39m +\n    \u001b[32m'    at p4 (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:216:46786)\\n'\u001b[39m +\n    \u001b[32m'    at Ie (http://localhost:4173/assets/main-ByayOyeP.js:2:8694)'\u001b[39m\n]\n"
                         },
                         {
                           "text": "Console logs: [\n  \u001b[32m'Using runtime config API URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'API Client configured with baseURL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'Starting React application...'\u001b[39m,\n  \u001b[32m'React application rendered successfully'\u001b[39m,\n  \u001b[32m'App component rendering...'\u001b[39m,\n  \u001b[32m'App component rendering...'\u001b[39m,\n  \u001b[32m'AuthContext: Initializing authentication...'\u001b[39m,\n  \u001b[32m'AuthContext: Initializing authentication...'\u001b[39m,\n  \u001b[32m'=== Environment Debug Info ==='\u001b[39m,\n  \u001b[32m'VITE_API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'window.ENV_API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'window.APP_CONFIG: {API_URL: http://localhost:3001/api, API_TIMEOUT: 10000, APP_NAME: EduAI-Asistent, APP_VERSION: 1.0.0, ENABLE_ANALYTICS: false}'\u001b[39m,\n  \u001b[32m'window.APP_CONFIG?.API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'Current location: http://localhost:4173/login'\u001b[39m,\n  \u001b[32m'Expected backend URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'============================='\u001b[39m,\n  \u001b[32m'✅ Backend health check successful: {success: true, data: Object, error: null}'\u001b[39m\n]\n"
@@ -1681,7 +1681,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:33.261Z",
+                      "startTime": "2025-08-25T22:40:05.816Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1710,7 +1710,7 @@
                       "workerIndex": 6,
                       "parallelIndex": 6,
                       "status": "passed",
-                      "duration": 6510,
+                      "duration": 7017,
                       "errors": [],
                       "stdout": [
                         {
@@ -1743,7 +1743,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:33.430Z",
+                      "startTime": "2025-08-25T22:40:06.017Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1772,7 +1772,7 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 5630,
+                      "duration": 6085,
                       "errors": [],
                       "stdout": [
                         {
@@ -1799,7 +1799,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:34.108Z",
+                      "startTime": "2025-08-25T22:40:06.204Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1825,10 +1825,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 7,
-                      "parallelIndex": 7,
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 5618,
+                      "duration": 5893,
                       "errors": [],
                       "stdout": [
                         {
@@ -1838,13 +1838,13 @@
                           "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
                         },
                         {
+                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
+                        },
+                        {
                           "text": "Mocking API request: GET http://localhost:3001/api/auth/profile\n"
                         },
                         {
                           "text": "Mocking API request: GET http://localhost:3001/api/ai/features\n"
-                        },
-                        {
-                          "text": "Mocking API request: GET http://localhost:3001/api/health\n"
                         },
                         {
                           "text": "LocalStorage after navigation: {\n  authToken: \u001b[32m'test-token-123'\u001b[39m,\n  user: \u001b[32m'{\"id\":\"u1\",\"email\":\"teacher@example.com\",\"first_name\":\"Test\",\"last_name\":\"Učitel\",\"credits_balance\":100,\"is_active\":true,\"created_at\":\"2024-01-01T00:00:00Z\",\"updated_at\":\"2024-01-01T00:00:00Z\",\"role\":\"teacher_school\",\"school\":null}'\u001b[39m\n}\n"
@@ -1864,7 +1864,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:38.268Z",
+                      "startTime": "2025-08-25T22:40:10.884Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1890,10 +1890,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 5816,
+                      "duration": 6019,
                       "errors": [],
                       "stdout": [
                         {
@@ -1935,7 +1935,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:38.776Z",
+                      "startTime": "2025-08-25T22:40:11.236Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1961,10 +1961,10 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 15,
-                      "parallelIndex": 5,
+                      "workerIndex": 13,
+                      "parallelIndex": 4,
                       "status": "passed",
-                      "duration": 5729,
+                      "duration": 6389,
                       "errors": [],
                       "stdout": [
                         {
@@ -1995,7 +1995,7 @@
                           "text": "Script errors: []\n"
                         },
                         {
-                          "text": "Console errors: [\n  \u001b[32m'Warning: forwardRef render functions accept exactly two parameters: props and ref. %s Did you forget to use the ref parameter?'\u001b[39m,\n  \u001b[32m'Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s touchOptimized touchoptimized \\n'\u001b[39m +\n    \u001b[32m'    at input\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:13937\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at form\\n'\u001b[39m +\n    \u001b[32m'    at Ye (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:17422)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at F (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:11845)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at de (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:12249)\\n'\u001b[39m +\n    \u001b[32m'    at O (http://localhost:4173/assets/pages-auth-CU1nFBfp.js:1:458)\\n'\u001b[39m +\n    \u001b[32m'    at cU (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:3259)\\n'\u001b[39m +\n    \u001b[32m'    at t5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:8945)\\n'\u001b[39m +\n    \u001b[32m'    at Suspense\\n'\u001b[39m +\n    \u001b[32m'    at ss (http://localhost:4173/assets/components-misc-BVTAcLJe.js:1:4145)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at main\\n'\u001b[39m +\n    \u001b[32m'    at We (http://localhost:4173/assets/components-ui-Cipb0JuZ.js:1:5246)\\n'\u001b[39m +\n    \u001b[32m'    at CU (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:207:8047)\\n'\u001b[39m +\n    \u001b[32m'    at n5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:2735)\\n'\u001b[39m +\n    \u001b[32m'    at ie (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:10639)\\n'\u001b[39m +\n    \u001b[32m'    at ue (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:11327)\\n'\u001b[39m +\n    \u001b[32m'    at ne (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:8730)\\n'\u001b[39m +\n    \u001b[32m'    at se (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:4656)\\n'\u001b[39m +\n    \u001b[32m'    at Y (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:299)\\n'\u001b[39m +\n    \u001b[32m'    at X (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:1749)\\n'\u001b[39m +\n    \u001b[32m'    at ee (http://localhost:4173/assets/contexts-_tGYHmIq.js:1:3323)\\n'\u001b[39m +\n    \u001b[32m'    at zR (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:57639)\\n'\u001b[39m +\n    \u001b[32m'    at a5 (http://localhost:4173/assets/vendor-react-chg5FiEQ.js:216:46786)\\n'\u001b[39m +\n    \u001b[32m'    at ve (http://localhost:4173/assets/main-CbtHVXm0.js:2:6936)'\u001b[39m\n]\n"
+                          "text": "Console errors: [\n  \u001b[32m'Warning: forwardRef render functions accept exactly two parameters: props and ref. %s Did you forget to use the ref parameter?'\u001b[39m,\n  \u001b[32m'Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s touchOptimized touchoptimized \\n'\u001b[39m +\n    \u001b[32m'    at input\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at http://localhost:4173/assets/components-ui-C_FrvtkV.js:1:13937\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at form\\n'\u001b[39m +\n    \u001b[32m'    at Xe (http://localhost:4173/assets/components-ui-C_FrvtkV.js:1:17436)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at F (http://localhost:4173/assets/components-ui-C_FrvtkV.js:1:11845)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at de (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:12267)\\n'\u001b[39m +\n    \u001b[32m'    at O (http://localhost:4173/assets/pages-auth-hCosiqJN.js:1:453)\\n'\u001b[39m +\n    \u001b[32m'    at mU (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:207:3259)\\n'\u001b[39m +\n    \u001b[32m'    at d4 (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:207:8945)\\n'\u001b[39m +\n    \u001b[32m'    at Suspense\\n'\u001b[39m +\n    \u001b[32m'    at hs (http://localhost:4173/assets/components-misc-AftIUmRa.js:1:4289)\\n'\u001b[39m +\n    \u001b[32m'    at div\\n'\u001b[39m +\n    \u001b[32m'    at main\\n'\u001b[39m +\n    \u001b[32m'    at Je (http://localhost:4173/assets/components-ui-C_FrvtkV.js:1:5246)\\n'\u001b[39m +\n    \u001b[32m'    at kU (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:207:8047)\\n'\u001b[39m +\n    \u001b[32m'    at h4 (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:216:2735)\\n'\u001b[39m +\n    \u001b[32m'    at ie (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:10657)\\n'\u001b[39m +\n    \u001b[32m'    at ue (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:11345)\\n'\u001b[39m +\n    \u001b[32m'    at ne (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:8748)\\n'\u001b[39m +\n    \u001b[32m'    at se (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:4674)\\n'\u001b[39m +\n    \u001b[32m'    at Y (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:299)\\n'\u001b[39m +\n    \u001b[32m'    at X (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:1767)\\n'\u001b[39m +\n    \u001b[32m'    at ee (http://localhost:4173/assets/contexts-BCqsjBa1.js:1:3341)\\n'\u001b[39m +\n    \u001b[32m'    at NR (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:216:57639)\\n'\u001b[39m +\n    \u001b[32m'    at p4 (http://localhost:4173/assets/vendor-react-Cn7ZduJh.js:216:46786)\\n'\u001b[39m +\n    \u001b[32m'    at Ie (http://localhost:4173/assets/main-ByayOyeP.js:2:8694)'\u001b[39m\n]\n"
                         },
                         {
                           "text": "Console logs: [\n  \u001b[32m'Using runtime config API URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'API Client configured with baseURL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'Starting React application...'\u001b[39m,\n  \u001b[32m'React application rendered successfully'\u001b[39m,\n  \u001b[32m'App component rendering...'\u001b[39m,\n  \u001b[32m'App component rendering...'\u001b[39m,\n  \u001b[32m'AuthContext: Initializing authentication...'\u001b[39m,\n  \u001b[32m'AuthContext: Initializing authentication...'\u001b[39m,\n  \u001b[32m'=== Environment Debug Info ==='\u001b[39m,\n  \u001b[32m'VITE_API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'window.ENV_API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'window.APP_CONFIG: {API_URL: http://localhost:3001/api, API_TIMEOUT: 10000, APP_NAME: EduAI-Asistent, APP_VERSION: 1.0.0, ENABLE_ANALYTICS: false}'\u001b[39m,\n  \u001b[32m'window.APP_CONFIG?.API_URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'Current location: http://localhost:4173/login'\u001b[39m,\n  \u001b[32m'Expected backend URL: http://localhost:3001/api'\u001b[39m,\n  \u001b[32m'============================='\u001b[39m,\n  \u001b[32m'✅ Backend health check successful: {success: true, data: Object, error: null}'\u001b[39m\n]\n"
@@ -2009,7 +2009,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:47.089Z",
+                      "startTime": "2025-08-25T22:40:28.501Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2035,10 +2035,10 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 8,
-                      "parallelIndex": 4,
+                      "workerIndex": 10,
+                      "parallelIndex": 7,
                       "status": "passed",
-                      "duration": 8058,
+                      "duration": 9955,
                       "errors": [],
                       "stdout": [
                         {
@@ -2071,7 +2071,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:47.433Z",
+                      "startTime": "2025-08-25T22:40:28.657Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2097,10 +2097,10 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 14,
-                      "parallelIndex": 7,
+                      "workerIndex": 12,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 5877,
+                      "duration": 6332,
                       "errors": [],
                       "stdout": [
                         {
@@ -2127,7 +2127,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:49.272Z",
+                      "startTime": "2025-08-25T22:40:29.029Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2153,10 +2153,10 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 9,
+                      "workerIndex": 11,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6425,
+                      "duration": 7080,
                       "errors": [],
                       "stdout": [
                         {
@@ -2192,7 +2192,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:51.429Z",
+                      "startTime": "2025-08-25T22:40:33.718Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2218,10 +2218,10 @@
                   "projectName": "mobile-chrome",
                   "results": [
                     {
-                      "workerIndex": 11,
-                      "parallelIndex": 1,
+                      "workerIndex": 14,
+                      "parallelIndex": 6,
                       "status": "passed",
-                      "duration": 6475,
+                      "duration": 7120,
                       "errors": [],
                       "stdout": [
                         {
@@ -2263,7 +2263,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-22T19:44:51.661Z",
+                      "startTime": "2025-08-25T22:40:33.734Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2279,13 +2279,2181 @@
           ]
         }
       ]
+    },
+    {
+      "title": "performance-validation.spec.ts",
+      "file": "performance-validation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Performance Validation Tests",
+          "file": "performance-validation.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Page Load Performance",
+              "file": "performance-validation.spec.ts",
+              "line": 22,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load user management page within acceptable time",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2246,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:11.420Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-735e9032af53c8f6a5ff",
+                  "file": "performance-validation.spec.ts",
+                  "line": 23,
+                  "column": 5
+                },
+                {
+                  "title": "should show loading states during data fetch",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 2171,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:11.931Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-c9c0465d2742ca70a8fa",
+                  "file": "performance-validation.spec.ts",
+                  "line": 39,
+                  "column": 5
+                },
+                {
+                  "title": "should load user management page within acceptable time",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 15,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 2582,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:33.828Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-d0996f1741e570cd54c5",
+                  "file": "performance-validation.spec.ts",
+                  "line": 23,
+                  "column": 5
+                },
+                {
+                  "title": "should show loading states during data fetch",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 2402,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:34.494Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-ad2a8c3803cddd9b42d0",
+                  "file": "performance-validation.spec.ts",
+                  "line": 39,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Search Performance",
+              "file": "performance-validation.spec.ts",
+              "line": 51,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have search input available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2273,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:11.993Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-15cdc88adf7bfa152fbc",
+                  "file": "performance-validation.spec.ts",
+                  "line": 52,
+                  "column": 5
+                },
+                {
+                  "title": "should handle input interactions efficiently",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 2497,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Input value was cleared by JavaScript validation - this is normal behavior\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:12.305Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-0edd367550069ef03929",
+                  "file": "performance-validation.spec.ts",
+                  "line": 61,
+                  "column": 5
+                },
+                {
+                  "title": "should have search input available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 2415,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:34.664Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-51f13311203bbaa62794",
+                  "file": "performance-validation.spec.ts",
+                  "line": 52,
+                  "column": 5
+                },
+                {
+                  "title": "should handle input interactions efficiently",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 13,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 2659,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Input value was cleared by JavaScript validation - this is normal behavior\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:34.915Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-6f14263678009c6216dc",
+                  "file": "performance-validation.spec.ts",
+                  "line": 61,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Filtering Performance",
+              "file": "performance-validation.spec.ts",
+              "line": 90,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have filter elements available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 2308,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:12.322Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-b3e3ada9d6ccd0f77a26",
+                  "file": "performance-validation.spec.ts",
+                  "line": 91,
+                  "column": 5
+                },
+                {
+                  "title": "should handle form interactions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 2103,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:13.064Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-c3ffffe62c038445329c",
+                  "file": "performance-validation.spec.ts",
+                  "line": 100,
+                  "column": 5
+                },
+                {
+                  "title": "should have filter elements available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 12,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2432,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:35.385Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-7a8f259e907efbb6329e",
+                  "file": "performance-validation.spec.ts",
+                  "line": 91,
+                  "column": 5
+                },
+                {
+                  "title": "should handle form interactions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 15,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 2278,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:36.422Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-b1e33e188bde33fa1ec5",
+                  "file": "performance-validation.spec.ts",
+                  "line": 100,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Sorting Performance",
+              "file": "performance-validation.spec.ts",
+              "line": 112,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have table structure available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2061,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:13.687Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-f5d9c768261a371fae9e",
+                  "file": "performance-validation.spec.ts",
+                  "line": 113,
+                  "column": 5
+                },
+                {
+                  "title": "should handle table interactions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 2101,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:14.115Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-1cadef9298984388f462",
+                  "file": "performance-validation.spec.ts",
+                  "line": 124,
+                  "column": 5
+                },
+                {
+                  "title": "should have table structure available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 2271,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:36.913Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-0ef3dee776bb28365ff7",
+                  "file": "performance-validation.spec.ts",
+                  "line": 113,
+                  "column": 5
+                },
+                {
+                  "title": "should handle table interactions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 2292,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:37.090Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-acb1caf88f1591272912",
+                  "file": "performance-validation.spec.ts",
+                  "line": 124,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Bulk Operations Performance",
+              "file": "performance-validation.spec.ts",
+              "line": 136,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have action elements available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2068,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:14.281Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-200d08ed43e59ef15c1e",
+                  "file": "performance-validation.spec.ts",
+                  "line": 137,
+                  "column": 5
+                },
+                {
+                  "title": "should handle button interactions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 2144,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:14.643Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-2c2fcda0e6e1a70a225b",
+                  "file": "performance-validation.spec.ts",
+                  "line": 146,
+                  "column": 5
+                },
+                {
+                  "title": "should have action elements available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 13,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 2392,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:37.586Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-7a4370f8b86a29f4cebd",
+                  "file": "performance-validation.spec.ts",
+                  "line": 137,
+                  "column": 5
+                },
+                {
+                  "title": "should handle button interactions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 12,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2334,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:37.838Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-643df562837aa1ed65f3",
+                  "file": "performance-validation.spec.ts",
+                  "line": 146,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Memory Usage",
+              "file": "performance-validation.spec.ts",
+              "line": 158,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should not have memory leaks during navigation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 3774,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:14.811Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-1d2042d88a79936c8b3f",
+                  "file": "performance-validation.spec.ts",
+                  "line": 159,
+                  "column": 5
+                },
+                {
+                  "title": "should not have memory leaks during navigation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 10,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 3973,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:38.648Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-7df31c4faafe18b42d2c",
+                  "file": "performance-validation.spec.ts",
+                  "line": 159,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Mobile Performance",
+              "file": "performance-validation.spec.ts",
+              "line": 175,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should perform well on mobile viewport",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 2077,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:15.177Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-96b5c2b29733821e712c",
+                  "file": "performance-validation.spec.ts",
+                  "line": 176,
+                  "column": 5
+                },
+                {
+                  "title": "should handle touch interactions efficiently",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2143,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:15.757Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-659b1b0113a7b7655bd6",
+                  "file": "performance-validation.spec.ts",
+                  "line": 186,
+                  "column": 5
+                },
+                {
+                  "title": "should perform well on mobile viewport",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 15,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 2323,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:38.712Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-29d932cef9ad9f1edf20",
+                  "file": "performance-validation.spec.ts",
+                  "line": 176,
+                  "column": 5
+                },
+                {
+                  "title": "should handle touch interactions efficiently",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 2365,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:39.198Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-f21c898588c7bf3d1552",
+                  "file": "performance-validation.spec.ts",
+                  "line": 186,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Error Handling Performance",
+              "file": "performance-validation.spec.ts",
+              "line": 197,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should handle errors gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 2227,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:16.226Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-0c822fa1a1db9633d06a",
+                  "file": "performance-validation.spec.ts",
+                  "line": 198,
+                  "column": 5
+                },
+                {
+                  "title": "should handle errors gracefully",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 2328,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:39.397Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-a7fc941d24bf4d9a171a",
+                  "file": "performance-validation.spec.ts",
+                  "line": 198,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Accessibility Performance",
+              "file": "performance-validation.spec.ts",
+              "line": 208,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should maintain accessibility features",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2238,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:16.361Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-7b932efbc5c60ef92800",
+                  "file": "performance-validation.spec.ts",
+                  "line": 209,
+                  "column": 5
+                },
+                {
+                  "title": "should maintain accessibility features",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 13,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 2208,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:39.989Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-94a8c610cdf307c53fe6",
+                  "file": "performance-validation.spec.ts",
+                  "line": 209,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Bundle Size and Loading",
+              "file": "performance-validation.spec.ts",
+              "line": 223,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load JavaScript bundles efficiently",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 2350,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:16.800Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-87ae7fd5fe9a133dfda5",
+                  "file": "performance-validation.spec.ts",
+                  "line": 224,
+                  "column": 5
+                },
+                {
+                  "title": "should load JavaScript bundles efficiently",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 12,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2227,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:40.185Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "3030452461ac2e1f2335-0963e72d4f86d51ba321",
+                  "file": "performance-validation.spec.ts",
+                  "line": 224,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Performance Metrics Collection",
+          "file": "performance-validation.spec.ts",
+          "line": 239,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should collect and report performance metrics",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 1630,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Performance Metrics: {\n  domContentLoaded: \u001b[33m0\u001b[39m,\n  loadComplete: \u001b[33m0\u001b[39m,\n  firstPaint: \u001b[33m472\u001b[39m,\n  firstContentfulPaint: \u001b[33m472\u001b[39m,\n  totalLoadTime: \u001b[33m409\u001b[39m\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T22:40:16.799Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3030452461ac2e1f2335-9b66f27b4a50a23c009a",
+              "file": "performance-validation.spec.ts",
+              "line": 240,
+              "column": 3
+            },
+            {
+              "title": "should collect and report performance metrics",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile-chrome",
+                  "projectName": "mobile-chrome",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1464,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "Performance Metrics: {\n  domContentLoaded: \u001b[33m0.10000002384185791\u001b[39m,\n  loadComplete: \u001b[33m0\u001b[39m,\n  firstPaint: \u001b[33m340\u001b[39m,\n  firstContentfulPaint: \u001b[33m340\u001b[39m,\n  totalLoadTime: \u001b[33m275.60000002384186\u001b[39m\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-25T22:40:40.818Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "3030452461ac2e1f2335-331f49eaee7737428b83",
+              "file": "performance-validation.spec.ts",
+              "line": 240,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "user-management-e2e.spec.ts",
+      "file": "user-management-e2e.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Enhanced User Management E2E Tests",
+          "file": "user-management-e2e.spec.ts",
+          "line": 17,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Page Structure",
+              "file": "user-management-e2e.spec.ts",
+              "line": 33,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should display page content",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 1820,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:17.282Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-de615ac2e2c5c659dbf9",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 34,
+                  "column": 5
+                },
+                {
+                  "title": "should have basic page elements",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 1759,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:17.281Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-5cc12c2e60bbc3a0d94c",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 46,
+                  "column": 5
+                },
+                {
+                  "title": "should display page content",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 14,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 1619,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:40.880Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-b57758b407eb8a58fc79",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 34,
+                  "column": 5
+                },
+                {
+                  "title": "should have basic page elements",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 15,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 1678,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:41.082Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-cdb79f2bfef794f6bdc6",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 46,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Form Elements",
+              "file": "user-management-e2e.spec.ts",
+              "line": 53,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have input fields available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1481,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:17.922Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-bda6992375b75f81eca2",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 54,
+                  "column": 5
+                },
+                {
+                  "title": "should handle form interactions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1693,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Input value was cleared by JavaScript validation - this is normal behavior\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:18.450Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-8eefdb699397eff0beb2",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 62,
+                  "column": 5
+                },
+                {
+                  "title": "should have input fields available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1587,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:41.611Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-76b2d311a418d5b4c4af",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 54,
+                  "column": 5
+                },
+                {
+                  "title": "should handle form interactions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1656,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "Input value was cleared by JavaScript validation - this is normal behavior\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:41.751Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-c9f2c7a5a25502693bec",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 62,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Button Interactions",
+              "file": "user-management-e2e.spec.ts",
+              "line": 94,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have buttons available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 1589,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:18.474Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-7db369ecf728b7cef581",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 95,
+                  "column": 5
+                },
+                {
+                  "title": "should handle button clicks",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 2146,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:18.619Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-7545e9d68dd797722728",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 103,
+                  "column": 5
+                },
+                {
+                  "title": "should have buttons available",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 13,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 1552,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:42.231Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-8c89cb964b4bf3fbbcb5",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 95,
+                  "column": 5
+                },
+                {
+                  "title": "should handle button clicks",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 11,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 1571,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:42.307Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-d5065fdb33bd2b3a599f",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 103,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Responsive Design",
+              "file": "user-management-e2e.spec.ts",
+              "line": 112,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should work properly on mobile viewport",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 2153,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:18.651Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-4fcb263044f9c0a86899",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 113,
+                  "column": 5
+                },
+                {
+                  "title": "should work properly on tablet viewport",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 2232,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:19.056Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-57a97ec049fe0f50ecc7",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 129,
+                  "column": 5
+                },
+                {
+                  "title": "should work properly on mobile viewport",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 12,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 2176,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:42.449Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-49be957629cdf3a348f9",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 113,
+                  "column": 5
+                },
+                {
+                  "title": "should work properly on tablet viewport",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 14,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 2623,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:42.511Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-b14819439c6f75724ff6",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 129,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Performance and Loading States",
+              "file": "user-management-e2e.spec.ts",
+              "line": 140,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should load page efficiently",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 2209,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:19.115Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-13d416e2383f15f549bd",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 141,
+                  "column": 5
+                },
+                {
+                  "title": "should handle page interactions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1551,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:19.197Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-60fe96c8cfa57d4dc405",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 153,
+                  "column": 5
+                },
+                {
+                  "title": "should load page efficiently",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 10,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 2248,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:42.669Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-3601a198443b12b4222a",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 141,
+                  "column": 5
+                },
+                {
+                  "title": "should handle page interactions",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 15,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 1541,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:42.773Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-56fc6ac3c1a0acce771d",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 153,
+                  "column": 5
+                }
+              ]
+            },
+            {
+              "title": "Accessibility",
+              "file": "user-management-e2e.spec.ts",
+              "line": 166,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should have accessible elements",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 1505,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:19.420Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-6ef3e2ee80aa0a700005",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 167,
+                  "column": 5
+                },
+                {
+                  "title": "should support keyboard navigation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 1392,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:20.072Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-4f8858e0c87606b2c522",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 179,
+                  "column": 5
+                },
+                {
+                  "title": "should have accessible elements",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1460,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:43.209Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-bb1ff3ec9d0b91d18864",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 167,
+                  "column": 5
+                },
+                {
+                  "title": "should support keyboard navigation",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "mobile-chrome",
+                      "projectName": "mobile-chrome",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 1511,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-08-25T22:40:43.418Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "181e9503fa90418b0686-6ea4f938c4b739a6c0c7",
+                  "file": "user-management-e2e.spec.ts",
+                  "line": 179,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-22T19:44:03.531Z",
-    "duration": 54807.354,
-    "expected": 48,
+    "startTime": "2025-08-25T22:38:46.897Z",
+    "duration": 118824.333,
+    "expected": 106,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0

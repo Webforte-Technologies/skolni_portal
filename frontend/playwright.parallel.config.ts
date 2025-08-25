@@ -38,5 +38,5 @@ export default defineConfig({
     },
   ],
   // Test splitting configuration
-  globalSetup: require.resolve('./tests/global-setup.ts'),
+  globalSetup: './tests/global-setup.ts',
 });

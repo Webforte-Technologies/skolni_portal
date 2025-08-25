@@ -12,6 +12,12 @@ interface ChatWindowProps {
   isTyping?: boolean;
   onDeleteMessage?: (messageId: string) => void;
   onRegenerate?: (messageId: string) => void;
+  typingEffectSettings?: {
+    enabled: boolean;
+    speed: number;
+    showCursor: boolean;
+    cursorBlinkSpeed: number;
+  };
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = React.memo(({ 
@@ -20,7 +26,8 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({
   copiedMessageId, 
   isTyping = false,
   onDeleteMessage,
-  onRegenerate
+  onRegenerate,
+  typingEffectSettings
 }) => {
   const listRef = useRef<VirtuosoHandle>(null);
   const [isNearBottom, setIsNearBottom] = useState(true);
@@ -28,6 +35,9 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({
 
   // Group messages early so hooks below can depend on it safely
   const grouped = useMemo(() => {
+    if (import.meta.env.VITE_ENABLE_DEBUG_MODE === 'true') {
+      console.log('ChatWindow: Processing messages:', messages.length, messages);
+    }
     return messages.map((m, i) => {
       const prev = i > 0 ? messages[i - 1] : undefined;
       const next = i < messages.length - 1 ? messages[i + 1] : undefined;
@@ -112,6 +122,8 @@ const ChatWindow: React.FC<ChatWindowProps> = React.memo(({
                     showRightAvatar={(message as any).showRightAvatar}
                     isMobile={isMobile}
                     isTablet={isTablet}
+                    typingEffectSettings={typingEffectSettings}
+                    isTyping={isTyping && !message.isUser && index === grouped.length - 1}
                   />
                 </div>
               );

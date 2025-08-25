@@ -5,9 +5,14 @@ import { AnalyticsService } from '../../services/AnalyticsService';
 import { realTimeService } from '../../services/RealTimeService';
 import { webSocketService } from '../../services/WebSocketService';
 import { enhancedMetricsMiddleware, getEnhancedMetrics } from '../../middleware/enhanced-metrics';
+import { analyticsPerformanceMonitor } from '../../middleware/analytics-performance';
+import { analyticsCacheService } from '../../services/AnalyticsCacheService';
 import pool from '../../database/connection';
+import { MCPAnalyticsService } from '../../services/MCPAnalyticsService';
+
 
 const router = express.Router();
+const mcpAnalyticsService = new MCPAnalyticsService(pool);
 
 // Helper function to convert timeRange parameter to proper format
 function parseTimeRange(timeRangeParam: any) {
@@ -46,10 +51,11 @@ function parseTimeRange(timeRangeParam: any) {
   }
 }
 
-// Guard entire router
-router.use(authenticateToken, requireRole(['platform_admin']));
+// Guard entire router - Allow both platform_admin and admin roles
+router.use(authenticateToken, requireRole(['platform_admin', 'admin']));
 router.use(auditLoggerForAdmin);
 router.use(enhancedMetricsMiddleware);
+router.use(analyticsPerformanceMonitor.trackPerformance);
 
 // Helper: standard envelope
 const ok = (res: express.Response, data: any) => res.status(200).json({ success: true, data });
@@ -66,6 +72,48 @@ router.get('/dashboard', async (_req: RequestWithUser, res: express.Response) =>
   } catch (error) {
     console.error('Failed to get dashboard metrics:', error);
     return bad(res, 500, 'Failed to retrieve dashboard metrics');
+  }
+});
+
+/**
+ * GET /admin/analytics/platform-overview
+ * Get platform overview metrics for dynamic admin analytics dashboard
+ */
+router.get('/platform-overview', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const timeRange = req.query['timeRange'] as '7d' | '30d' | '90d' | '1y' | undefined;
+    
+    // Validate timeRange parameter
+    if (timeRange && !['7d', '30d', '90d', '1y'].includes(timeRange)) {
+      return bad(res, 400, 'Invalid timeRange parameter. Must be one of: 7d, 30d, 90d, 1y');
+    }
+    
+    const metrics = await AnalyticsService.getPlatformOverviewMetrics(timeRange);
+    return ok(res, metrics);
+  } catch (error) {
+    console.error('Failed to get platform overview metrics:', error);
+    return bad(res, 500, 'Failed to retrieve platform overview metrics');
+  }
+});
+
+/**
+ * GET /admin/analytics/enhanced-material-trends
+ * Get enhanced material creation trends with real-time data and user engagement metrics
+ */
+router.get('/enhanced-material-trends', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const timeRange = req.query['timeRange'] as '7d' | '30d' | '90d' | '1y' | undefined;
+    
+    // Validate timeRange parameter
+    if (timeRange && !['7d', '30d', '90d', '1y'].includes(timeRange)) {
+      return bad(res, 400, 'Invalid timeRange parameter. Must be one of: 7d, 30d, 90d, 1y');
+    }
+    
+    const trends = await AnalyticsService.getEnhancedMaterialCreationTrends(timeRange);
+    return ok(res, trends);
+  } catch (error) {
+    console.error('Failed to get enhanced material creation trends:', error);
+    return bad(res, 500, 'Failed to retrieve enhanced material creation trends');
   }
 });
 
@@ -630,13 +678,18 @@ router.get('/enhanced', async (_req: RequestWithUser, res: express.Response) => 
  */
 router.get('/cache/status', async (_req: RequestWithUser, res: express.Response) => {
   try {
-    // This would check the analytics_cache table status
-    // For now, return a placeholder
+    const cacheStats = analyticsCacheService.getStats();
+    const cacheInfo = analyticsCacheService.getCacheInfo();
+    
     const cacheStatus = {
       enabled: true,
-      total_cached_metrics: 0,
-      cache_hit_rate: 0,
-      last_updated: new Date().toISOString()
+      total_cached_metrics: cacheStats.totalEntries,
+      cache_hit_rate: cacheStats.hitRate,
+      total_hits: cacheStats.totalHits,
+      total_misses: cacheStats.totalMisses,
+      average_query_time: cacheStats.averageQueryTime,
+      last_updated: new Date().toISOString(),
+      cache_entries: cacheInfo.entries.slice(0, 10) // Show only first 10 entries
     };
     
     return ok(res, cacheStatus);
@@ -652,12 +705,90 @@ router.get('/cache/status', async (_req: RequestWithUser, res: express.Response)
  */
 router.post('/cache/refresh', async (_req: RequestWithUser, res: express.Response) => {
   try {
-    // This would trigger a cache refresh
-    // For now, return success
-    return ok(res, { message: 'Cache refresh initiated' });
+    // Clear cache and preload common queries
+    const clearedEntries = analyticsCacheService.clearAll();
+    await analyticsCacheService.preloadCommonQueries();
+    
+    return ok(res, { 
+      message: 'Cache refresh completed',
+      clearedEntries,
+      newEntries: analyticsCacheService.getStats().totalEntries
+    });
   } catch (error) {
     console.error('Failed to refresh cache:', error);
     return bad(res, 500, 'Failed to refresh cache');
+  }
+});
+
+/**
+ * GET /admin/analytics/performance/stats
+ * Get analytics performance statistics
+ */
+router.get('/performance/stats', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const timeRangeMinutes = parseInt(req.query['timeRange'] as string) || 60;
+    const performanceStats = analyticsPerformanceMonitor.getPerformanceStats(timeRangeMinutes);
+    
+    return ok(res, performanceStats);
+  } catch (error) {
+    console.error('Failed to get performance stats:', error);
+    return bad(res, 500, 'Failed to retrieve performance statistics');
+  }
+});
+
+/**
+ * GET /admin/analytics/performance/slow-queries
+ * Get slow query alerts
+ */
+router.get('/performance/slow-queries', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const thresholdMs = parseInt(req.query['threshold'] as string) || 2000;
+    const timeRangeMinutes = parseInt(req.query['timeRange'] as string) || 60;
+    
+    const slowQueries = analyticsPerformanceMonitor.getSlowQueryAlerts(thresholdMs, timeRangeMinutes);
+    
+    return ok(res, {
+      slow_queries: slowQueries,
+      threshold_ms: thresholdMs,
+      time_range_minutes: timeRangeMinutes,
+      total_slow_queries: slowQueries.length
+    });
+  } catch (error) {
+    console.error('Failed to get slow query alerts:', error);
+    return bad(res, 500, 'Failed to retrieve slow query alerts');
+  }
+});
+
+/**
+ * POST /admin/analytics/cache/invalidate
+ * Invalidate specific cache entries
+ */
+router.post('/cache/invalidate', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const { pattern, method, params } = req.body as {
+      pattern?: string;
+      method?: string;
+      params?: any;
+    };
+
+    let removedCount = 0;
+
+    if (pattern) {
+      removedCount = analyticsCacheService.invalidateByPattern(pattern);
+    } else if (method) {
+      const removed = analyticsCacheService.invalidate(method, params);
+      removedCount = removed ? 1 : 0;
+    } else {
+      return bad(res, 400, 'Either pattern or method must be provided');
+    }
+
+    return ok(res, {
+      message: 'Cache invalidation completed',
+      removed_entries: removedCount
+    });
+  } catch (error) {
+    console.error('Failed to invalidate cache:', error);
+    return bad(res, 500, 'Failed to invalidate cache');
   }
 });
 
@@ -701,5 +832,297 @@ function convertToCSV(data: any): string {
     return [headers.join(','), values.join(',')].join('\n');
   }
 }
+
+/**
+ * MCP ANALYTICS ENDPOINTS
+ * Analytics endpoints for Model Context Protocol (MCP) server data
+ */
+
+/**
+ * POST /admin/analytics/mcp/setup-sample-data
+ * Add sample data for testing MCP analytics (development only)
+ */
+router.post('/mcp/setup-sample-data', async (_req: RequestWithUser, res: express.Response) => {
+  try {
+    // Only allow in development
+    if (process.env['NODE_ENV'] !== 'development') {
+      return bad(res, 403, 'Sample data setup only available in development');
+    }
+
+    console.log('Setting up sample MCP data...');
+    
+    // Insert sample AI provider
+    const providerResult = await pool.query(`
+      INSERT INTO ai_providers (name, type, api_key, models, rate_limits, priority, enabled) 
+      VALUES (
+        'OpenAI',
+        'openai',
+        'sk-test-key',
+        '["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4"]',
+        '{"requests_per_minute": 60, "tokens_per_minute": 150000}',
+        1,
+        true
+      ) ON CONFLICT (name) DO NOTHING RETURNING id
+    `);
+    
+    const providerId = providerResult.rows[0]?.id;
+    if (!providerId) {
+      // Get existing provider
+      const existingProvider = await pool.query('SELECT id FROM ai_providers WHERE name = $1', ['OpenAI']);
+      if (existingProvider.rows.length === 0) {
+        return bad(res, 500, 'Failed to create or find AI provider');
+      }
+    }
+    
+    // Get first user for sample data
+    const userResult = await pool.query('SELECT id FROM users LIMIT 1');
+    if (userResult.rows.length === 0) {
+      return bad(res, 500, 'No users found in database');
+    }
+    const userId = userResult.rows[0].id;
+    
+    // Insert sample AI requests for the last 30 days
+    for (let i = 0; i < 30; i++) {
+      await pool.query(`
+        INSERT INTO ai_requests (
+          user_id, request_type, provider_id, model_used, priority, parameters,
+          tokens_used, processing_time_ms, cost, success, cached, created_at
+        ) VALUES 
+        ($1, 'chat', $2, 'gpt-4o-mini', 'normal', '{"message": "Sample chat"}', 150, 1200, 0.003, true, false, NOW() - INTERVAL '1 day' * $3),
+        ($1, 'generation', $2, 'gpt-4-turbo', 'normal', '{"type": "worksheet"}', 300, 2500, 0.006, true, true, NOW() - INTERVAL '1 day' * $3),
+        ($1, 'analysis', $2, 'gpt-4o', 'high', '{"type": "content_analysis"}', 500, 3500, 0.012, true, false, NOW() - INTERVAL '1 day' * $3),
+        ($1, 'chat', $2, 'gpt-4o-mini', 'normal', '{"message": "Quick question"}', 80, 800, 0.001, true, true, NOW() - INTERVAL '1 day' * $3),
+        ($1, 'chat', $2, 'gpt-4o-mini', 'normal', '{"message": "Error test"}', 100, 5000, 0.002, false, false, NOW() - INTERVAL '1 day' * $3)
+      `, [userId, providerId || 1, i]);
+    }
+    
+    console.log('Sample MCP data setup completed');
+    return ok(res, { message: 'Sample MCP data setup completed successfully' });
+  } catch (error) {
+    console.error('Error setting up sample MCP data:', error);
+    return bad(res, 500, 'Failed to setup sample MCP data');
+  }
+});
+
+/**
+ * GET /admin/analytics/mcp/overview
+ * Get MCP analytics overview with comprehensive metrics
+ */
+router.get('/mcp/overview', 
+  async (req: RequestWithUser, res: express.Response) => {
+    try {
+      console.log('MCP Analytics request from user:', req.user?.email, 'with role:', req.user?.role);
+      console.log('Query parameters:', req.query);
+      
+      const { days } = req.query;
+      const daysNumber = typeof days === 'string' ? parseInt(days, 10) : 30;
+      
+      console.log('Fetching MCP analytics for days:', daysNumber);
+      const analytics = await mcpAnalyticsService.getAnalytics(daysNumber);
+      
+      console.log('MCP Analytics fetched successfully');
+      return ok(res, analytics);
+    } catch (error) {
+      console.error('Error fetching MCP analytics:', error);
+      if (error instanceof Error) {
+        return bad(res, 500, `Failed to fetch MCP analytics data: ${error.message}`);
+      }
+      return bad(res, 500, 'Failed to fetch MCP analytics data');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/mcp/models
+ * Get model performance statistics and metrics
+ */
+router.get('/mcp/models',
+  async (req: RequestWithUser, res: express.Response) => {
+    try {
+      const { days } = req.query;
+      const daysNumber = typeof days === 'string' ? parseInt(days, 10) : 30;
+      const analytics = await mcpAnalyticsService.getAnalytics(daysNumber);
+
+      // Return only model-related statistics
+      return ok(res, {
+        modelStats: analytics.modelStats,
+        requestTypeBreakdown: analytics.requestTypeBreakdown,
+        totalRequests: analytics.totalRequests,
+        successRate: analytics.successRate,
+        averageResponseTime: analytics.averageResponseTime,
+        totalTokensUsed: analytics.totalTokensUsed,
+        totalCost: analytics.totalCost
+      });
+    } catch (error) {
+      console.error('Error fetching MCP model analytics:', error);
+      return bad(res, 500, 'Failed to fetch MCP model analytics');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/mcp/providers
+ * Get AI provider health and performance data
+ */
+router.get('/mcp/providers',
+  async (_req: RequestWithUser, res: express.Response) => {
+    try {
+      // Get provider summary using the view created in migration
+      const result = await pool.query(`
+        SELECT * FROM provider_performance_summary
+        ORDER BY total_requests_last_30_days DESC
+      `);
+
+      return ok(res, result.rows);
+    } catch (error) {
+      console.error('Error fetching MCP provider data:', error);
+      return bad(res, 500, 'Failed to fetch MCP provider data');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/mcp/cache
+ * Get cache performance metrics
+ */
+router.get('/mcp/cache',
+  async (req: RequestWithUser, res: express.Response) => {
+    try {
+      const { days } = req.query;
+      const daysNumber = typeof days === 'string' ? parseInt(days, 10) : 30;
+      const analytics = await mcpAnalyticsService.getAnalytics(daysNumber);
+
+      return ok(res, {
+        cacheStats: analytics.cacheStats,
+        cacheHitRate: analytics.cacheHitRate
+      });
+    } catch (error) {
+      console.error('Error fetching MCP cache analytics:', error);
+      return bad(res, 500, 'Failed to fetch MCP cache analytics');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/mcp/errors
+ * Get recent errors and error analytics
+ */
+router.get('/mcp/errors',
+  async (_req: RequestWithUser, res: express.Response) => {
+    try {
+      const analytics = await mcpAnalyticsService.getAnalytics(7); // Last 7 days for errors
+
+      return ok(res, {
+        recentErrors: analytics.recentErrors,
+        errorRate: 100 - analytics.successRate,
+        totalRequests: analytics.totalRequests
+      });
+    } catch (error) {
+      console.error('Error fetching MCP error analytics:', error);
+      return bad(res, 500, 'Failed to fetch MCP error analytics');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/mcp/real-time
+ * Get real-time MCP metrics for the last hour
+ */
+router.get('/mcp/real-time',
+  async (_req: RequestWithUser, res: express.Response) => {
+    try {
+      // Get metrics for the last hour, grouped by 5-minute intervals
+      const result = await pool.query(`
+        SELECT 
+          DATE_TRUNC('minute', created_at) + 
+          INTERVAL '5 min' * FLOOR(EXTRACT('minute' FROM created_at) / 5) as time_bucket,
+          COUNT(*) as requests,
+          SUM(CASE WHEN success THEN 1 ELSE 0 END) as successful_requests,
+          AVG(processing_time_ms) as avg_response_time,
+          SUM(tokens_used) as tokens_used,
+          SUM(cost) as total_cost
+        FROM ai_requests
+        WHERE created_at >= NOW() - INTERVAL '1 hour'
+        GROUP BY time_bucket
+        ORDER BY time_bucket ASC
+      `);
+
+      // Get current active requests (in progress)
+      const activeResult = await pool.query(`
+        SELECT COUNT(*) as active_requests
+        FROM ai_requests
+        WHERE created_at >= NOW() - INTERVAL '5 minutes'
+          AND response_data IS NULL
+      `);
+
+      return ok(res, {
+        time_series: result.rows.map(row => ({
+          timestamp: row.time_bucket,
+          requests: parseInt(row.requests),
+          successful_requests: parseInt(row.successful_requests),
+          avg_response_time: parseFloat(row.avg_response_time) || 0,
+          tokens_used: parseInt(row.tokens_used) || 0,
+          total_cost: parseFloat(row.total_cost) || 0
+        })),
+        active_requests: parseInt(activeResult.rows[0].active_requests) || 0
+      });
+    } catch (error) {
+      console.error('Error fetching MCP real-time metrics:', error);
+      return bad(res, 500, 'Failed to fetch MCP real-time metrics');
+    }
+  }
+);
+
+/**
+ * GET /admin/analytics/user-growth-chart
+ * Get user growth data optimized for charts (daily/weekly)
+ */
+router.get('/user-growth-chart', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const timeRange = req.query['timeRange'] as '7d' | '30d' | '90d' | '1y' | undefined;
+    const granularity = req.query['granularity'] as 'daily' | 'weekly' | undefined || 'daily';
+    
+    // Validate parameters
+    if (timeRange && !['7d', '30d', '90d', '1y'].includes(timeRange)) {
+      return bad(res, 400, 'Invalid timeRange parameter. Must be one of: 7d, 30d, 90d, 1y');
+    }
+    
+    if (granularity && !['daily', 'weekly'].includes(granularity)) {
+      return bad(res, 400, 'Invalid granularity parameter. Must be daily or weekly');
+    }
+    
+    const chartData = await AnalyticsService.getUserGrowthChartData(timeRange, granularity);
+    return ok(res, chartData);
+  } catch (error) {
+    console.error('Failed to get user growth chart data:', error);
+    return bad(res, 500, 'Failed to retrieve user growth chart data');
+  }
+});
+
+/**
+ * GET /admin/analytics/credit-usage-chart
+ * Get credit usage data optimized for charts (daily/weekly)
+ */
+router.get('/credit-usage-chart', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const timeRange = req.query['timeRange'] as '7d' | '30d' | '90d' | '1y' | undefined;
+    const granularity = req.query['granularity'] as 'daily' | 'weekly' | undefined || 'daily';
+    
+    // Validate parameters
+    if (timeRange && !['7d', '30d', '90d', '1y'].includes(timeRange)) {
+      return bad(res, 400, 'Invalid timeRange parameter. Must be one of: 7d, 30d, 90d, 1y');
+    }
+    
+    if (granularity && !['daily', 'weekly'].includes(granularity)) {
+      return bad(res, 400, 'Invalid granularity parameter. Must be daily or weekly');
+    }
+    
+    const chartData = await AnalyticsService.getCreditUsageChartData(timeRange, granularity);
+    return ok(res, chartData);
+  } catch (error) {
+    console.error('Failed to get credit usage chart data:', error);
+    return bad(res, 500, 'Failed to retrieve credit usage chart data');
+  }
+});
 
 export default router;

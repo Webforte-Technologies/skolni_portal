@@ -1,32 +1,38 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, Filter, Plus, Trash2,  Mail,  CreditCard, CheckCircle, XCircle,  Download } from 'lucide-react';
+import { Plus, Download, Activity } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import InputField from '../../components/ui/InputField';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import AdvancedUserFilters from '../../components/admin/AdvancedUserFilters';
+import EnhancedUserFilters, { EnhancedUserFilters as EnhancedUserFiltersType } from '../../components/admin/EnhancedUserFilters';
+import UserActivityLog from '../../components/admin/UserActivityLog';
+import UserSearchControls from '../../components/admin/UserSearchControls';
+import UserBulkActions from '../../components/admin/UserBulkActions';
+import UserTable from '../../components/admin/UserTable';
+import BulkActionConfirmDialog from '../../components/admin/BulkActionConfirmDialog';
 import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
+import AdminErrorBoundary from '../../components/admin/AdminErrorBoundary';
+import filterPersistenceService, { SavedFilter } from '../../services/filterPersistenceService';
+import { extractUsersFromResponse, transformUserToBackend, StandardUser } from '../../utils/dataTransform';
 
-interface User {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-  is_active: boolean;
-  school_id?: string;
-  credits_balance: number;
-  created_at: string;
-  school_name?: string;
-}
-
-
+// Use StandardUser from dataTransform utility
+type User = StandardUser;
 
 interface UserFilters {
   status: string;
   role: string;
   school: string;
   dateRange: string;
+  date_range_start?: string;
+  date_range_end?: string;
+  credit_range_min?: number;
+  credit_range_max?: number;
+  last_login_start?: string;
+  last_login_end?: string;
+  activity_threshold?: number;
 }
 
 interface UsersResponse {
@@ -34,6 +40,33 @@ interface UsersResponse {
   total: number;
   limit: number;
   offset: number;
+}
+
+interface ActivityLog {
+  id: string;
+  user_id: string;
+  user_name?: string;
+  user_email?: string;
+  action?: string;
+  action_type: 'login' | 'logout' | 'page_view' | 'api_call' | 'file_generated' | 
+               'conversation_started' | 'credits_used' | 'profile_updated' | 
+               'password_changed' | 'email_verified' | 'subscription_changed';
+  details?: string;
+  ip_address?: string;
+  user_agent?: string;
+  timestamp?: string;
+  session_id?: string;
+  credits_used?: number;
+  school_id?: string;
+  school_name?: string;
+  activity_data?: Record<string, any>;
+  created_at?: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
 }
 
 const UserManagementPage: React.FC = () => {
@@ -50,27 +83,111 @@ const UserManagementPage: React.FC = () => {
     dateRange: '30d'
   });
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Enhanced filters state
+  const [enhancedFilters, setEnhancedFilters] = useState<EnhancedUserFiltersType>(
+    filterPersistenceService.getDefaultFilters()
+  );
+  const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
+  const [schools, setSchools] = useState<Array<{ id: string; name: string; city?: string }>>([]);
+  const [useEnhancedFilters, setUseEnhancedFilters] = useState(false);
   const [bulkAction, setBulkAction] = useState<string>('');
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    userId: string | null;
+    userName: string;
+  }>({
+    isOpen: false,
+    userId: null,
+    userName: ''
+  });
+  const [deleting, setDeleting] = useState(false);
+  const [recentActivity, setRecentActivity] = useState<ActivityLog[]>([]);
+  const [showRecentActivity, setShowRecentActivity] = useState(false);
+  
+  // Sorting state
+  const [sortField, setSortField] = useState<string>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  
+  // Bulk action confirmation state
+  const [bulkConfirmDialog, setBulkConfirmDialog] = useState<{
+    isOpen: boolean;
+    action: string;
+    selectedUsers: User[];
+  }>({
+    isOpen: false,
+    action: '',
+    selectedUsers: []
+  });
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
+  
   const pageSize = 20;
 
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get<UsersResponse>('/admin/users', {
-        params: {
+      
+      // Prepare params for API call
+      let params: any;
+      
+      if (useEnhancedFilters) {
+        // Use enhanced filters
+        params = {
+          page: currentPage,
+          limit: pageSize,
+          order_by: sortField,
+          order_direction: sortDirection,
+          ...filterPersistenceService.filtersToApiParams(enhancedFilters)
+        };
+      } else {
+        // Use basic filters
+        params = {
           page: currentPage,
           limit: pageSize,
           search: searchQuery,
-          ...filters
-        }
-      });
-      // The backend returns: { success: true, data: { data: rows, total, limit, offset } }
-      const usersData = response.data.data;
-      if (usersData?.data && Array.isArray(usersData.data)) {
-        setUsers(usersData.data);
-        setTotalUsers(usersData.total);
+          role: filters.role !== 'all' ? filters.role : undefined,
+          school_id: filters.school !== 'all' ? filters.school : undefined,
+          is_active: filters.status === 'active' ? 'true' : filters.status === 'inactive' ? 'false' : undefined,
+          status: filters.status !== 'all' ? filters.status : undefined,
+          order_by: sortField,
+          order_direction: sortDirection
+        };
+      }
+
+      // Add advanced filters if they exist
+      if (filters.date_range_start && filters.date_range_end) {
+        params.date_range_start = filters.date_range_start;
+        params.date_range_end = filters.date_range_end;
+      }
+
+      if (filters.credit_range_min !== undefined && filters.credit_range_max !== undefined) {
+        params.credit_range_min = filters.credit_range_min;
+        params.credit_range_max = filters.credit_range_max;
+      }
+
+      if (filters.last_login_start && filters.last_login_end) {
+        params.last_login_start = filters.last_login_start;
+        params.last_login_end = filters.last_login_end;
+      }
+
+      if (filters.activity_threshold !== undefined) {
+        params.activity_threshold = filters.activity_threshold;
+      }
+
+      const response = await api.get<ApiResponse<UsersResponse>>('/admin/users', { params });
+      
+      // Use data transformation utility to handle inconsistent data formats
+      if (response.data.success) {
+        const transformedUsers = extractUsersFromResponse(response);
+        setUsers(transformedUsers);
+        
+        // Extract total from response data
+        const responseData = response.data as any;
+        const total = responseData.data?.total || transformedUsers.length;
+        setTotalUsers(total);
       } else {
         setUsers([]);
         setTotalUsers(0);
@@ -80,86 +197,244 @@ const UserManagementPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, filters, pageSize, searchQuery, showToast]);
+  }, [currentPage, filters, pageSize, searchQuery, sortField, sortDirection, useEnhancedFilters, enhancedFilters, showToast]);
 
   useEffect(() => {
     fetchUsers();
   }, [currentPage, filters, fetchUsers]);
+
+  // Initialize enhanced filters and load saved filters
+  useEffect(() => {
+    // Load saved filters from localStorage
+    setSavedFilters(filterPersistenceService.getSavedFilters());
+    
+    // Load filters from URL if present
+    const urlFilters = filterPersistenceService.loadFiltersFromUrl();
+    if (Object.keys(urlFilters).length > 0) {
+      setEnhancedFilters(prev => ({ ...prev, ...urlFilters }));
+      setUseEnhancedFilters(true);
+    }
+    
+    // Load schools for filter dropdown
+    fetchSchools();
+  }, []);
+
+  // Save filters to URL when they change
+  useEffect(() => {
+    if (useEnhancedFilters && filterPersistenceService.hasActiveFilters(enhancedFilters)) {
+      filterPersistenceService.saveFiltersToUrl(enhancedFilters);
+    }
+  }, [enhancedFilters, useEnhancedFilters]);
+
+  const fetchSchools = async () => {
+    try {
+      const response = await api.get('/schools?limit=100');
+      if (response.data.success && response.data.data) {
+        setSchools(response.data.data as Array<{ id: string; name: string; city?: string }>);
+      }
+    } catch (error) {
+      console.error('Error fetching schools:', error);
+    }
+  };
+
+  // Enhanced filter handlers
+  const handleEnhancedFiltersChange = (newFilters: EnhancedUserFiltersType) => {
+    setEnhancedFilters(newFilters);
+    setCurrentPage(0); // Reset to first page when filters change
+  };
+
+  const handleSaveFilter = (name: string, filters: EnhancedUserFiltersType) => {
+    try {
+      const savedFilter = filterPersistenceService.saveFilter(name, filters);
+      setSavedFilters(prev => [...prev, savedFilter]);
+      showToast({ type: 'success', message: `Filtr "${name}" byl uložen` });
+    } catch (error) {
+      showToast({ type: 'error', message: 'Nepodařilo se uložit filtr' });
+    }
+  };
+
+  const handleLoadFilter = (filters: EnhancedUserFiltersType) => {
+    setEnhancedFilters(filters);
+    setUseEnhancedFilters(true);
+    setCurrentPage(0);
+    showToast({ type: 'success', message: 'Filtr byl načten' });
+  };
+
+  const handleDeleteFilter = (filterId: string) => {
+    try {
+      filterPersistenceService.deleteFilter(filterId);
+      setSavedFilters(prev => prev.filter(f => f.id !== filterId));
+      showToast({ type: 'success', message: 'Filtr byl smazán' });
+    } catch (error) {
+      showToast({ type: 'error', message: 'Nepodařilo se smazat filtr' });
+    }
+  };
+
+  const fetchRecentActivity = async () => {
+    try {
+      const response = await api.get<ApiResponse<ActivityLog[]>>('/admin/users/activity-logs', {
+        params: { limit: 10, date_range: '24h' }
+      });
+      if (response.data.success && Array.isArray(response.data.data)) {
+        setRecentActivity(response.data.data);
+      }
+    } catch (error) {
+      // Silently fail for recent activity
+    }
+  };
+
+  useEffect(() => {
+    fetchRecentActivity();
+    const interval = setInterval(fetchRecentActivity, 30000); // Update every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = () => {
     setCurrentPage(0);
     fetchUsers();
   };
 
+  // Handle sorting
+  const handleSort = (field: string, direction: 'asc' | 'desc') => {
+    setSortField(field);
+    setSortDirection(direction);
+    setCurrentPage(0); // Reset to first page when sorting changes
+  };
+
+  // Handle bulk action initiation (show confirmation dialog)
   const handleBulkAction = async () => {
     if (!bulkAction || selectedUsers.length === 0) return;
 
-    try {
-      const action = bulkAction;
-      setBulkAction('');
-      setSelectedUsers([]);
+    const selectedUserObjects = users.filter(user => selectedUsers.includes(user.id));
+    
+    setBulkConfirmDialog({
+      isOpen: true,
+      action: bulkAction,
+      selectedUsers: selectedUserObjects
+    });
+  };
 
-      switch (action) {
+  // Handle confirmed bulk action
+  const handleBulkActionConfirm = async (data?: any) => {
+    if (!bulkConfirmDialog.action || bulkConfirmDialog.selectedUsers.length === 0) return;
+
+    try {
+      setBulkActionLoading(true);
+      const userIds = bulkConfirmDialog.selectedUsers.map(user => user.id);
+      
+      switch (bulkConfirmDialog.action) {
         case 'activate':
-          await api.post('/admin/users/bulk/activate', { userIds: selectedUsers });
-          showToast({ type: 'success', message: 'Uživatelé byli aktivováni' });
-          break;
         case 'deactivate':
-          await api.post('/admin/users/bulk/deactivate', { userIds: selectedUsers });
-          showToast({ type: 'success', message: 'Uživatelé byli deaktivováni' });
+          await api.post('/admin/users/bulk', {
+            action: bulkConfirmDialog.action,
+            user_ids: userIds
+          });
+          showToast({ 
+            type: 'success', 
+            message: `${userIds.length} uživatelů bylo ${bulkConfirmDialog.action === 'activate' ? 'aktivováno' : 'deaktivováno'}` 
+          });
           break;
-        case 'addCredits': {
-          const credits = prompt('Zadejte počet kreditů k přidání:');
-          if (credits) {
-            await api.post('/admin/users/bulk/credits', { 
-              userIds: selectedUsers, 
-              credits: parseInt(credits) 
-            });
-            showToast({ type: 'success', message: 'Kredity byly přidány' });
+        
+        case 'addCredits':
+          if (!data?.amount || data.amount <= 0) {
+            showToast({ type: 'error', message: 'Neplatné množství kreditů' });
+            return;
           }
+          await api.post('/admin/users/bulk', {
+            action: 'addCredits',
+            user_ids: userIds,
+            amount: data.amount
+          });
+          showToast({ 
+            type: 'success', 
+            message: `${data.amount} kreditů bylo přidáno ${userIds.length} uživatelům` 
+          });
           break;
-        }
+        
         case 'delete':
-          if (confirm('Opravdu chcete smazat vybrané uživatele?')) {
-            await api.delete('/admin/users/bulk', { data: { userIds: selectedUsers } });
-            showToast({ type: 'success', message: 'Uživatelé byli smazáni' });
-          }
+          await api.post('/admin/users/bulk', {
+            action: 'delete',
+            user_ids: userIds
+          });
+          showToast({ 
+            type: 'success', 
+            message: `${userIds.length} uživatelů bylo smazáno` 
+          });
           break;
       }
       
+      setSelectedUsers([]);
+      setBulkAction('');
+      setBulkConfirmDialog({ isOpen: false, action: '', selectedUsers: [] });
       fetchUsers();
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při provádění hromadné akce' });
+    } finally {
+      setBulkActionLoading(false);
     }
+  };
+
+  // Handle bulk action cancellation
+  const handleBulkActionCancel = () => {
+    setBulkConfirmDialog({ isOpen: false, action: '', selectedUsers: [] });
   };
 
   const handleUserAction = async (userId: string, action: string) => {
     try {
       switch (action) {
         case 'activate':
-          await api.post(`/admin/users/${userId}/activate`);
+          await api.put(`/admin/users/${userId}`, transformUserToBackend({ isActive: true }));
           showToast({ type: 'success', message: 'Uživatel byl aktivován' });
           break;
         case 'deactivate':
-          await api.post(`/admin/users/${userId}/deactivate`);
+          await api.put(`/admin/users/${userId}`, transformUserToBackend({ isActive: false }));
           showToast({ type: 'success', message: 'Uživatel byl deaktivován' });
           break;
-        case 'suspend':
-          await api.post(`/admin/users/${userId}/suspend`);
-          showToast({ type: 'success', message: 'Uživatel byl pozastaven' });
-          break;
+        case 'edit':
+          navigate(`/admin/users/${userId}/edit`);
+          return;
+        case 'view':
+          navigate(`/admin/users/${userId}/profile`);
+          return;
         case 'delete':
-          if (confirm('Opravdu chcete smazat tohoto uživatele?')) {
-            await api.delete(`/admin/users/${userId}`);
-            showToast({ type: 'success', message: 'Uživatel byl smazán' });
+          {
+            const user = users.find(u => u.id === userId);
+            if (user) {
+              setDeleteDialog({
+                isOpen: true,
+                userId,
+                userName: `${user.firstName} ${user.lastName}`
+              });
+            }
           }
-          break;
+          return;
       }
       
       fetchUsers();
     } catch (error) {
       showToast({ type: 'error', message: 'Chyba při provádění akce' });
     }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.userId) return;
+
+    try {
+      setDeleting(true);
+      await api.delete(`/admin/users/${deleteDialog.userId}`);
+      showToast({ type: 'success', message: 'Uživatel byl úspěšně smazán' });
+      setDeleteDialog({ isOpen: false, userId: null, userName: '' });
+      fetchUsers();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Chyba při mazání uživatele';
+      showToast({ type: 'error', message: errorMessage });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ isOpen: false, userId: null, userName: '' });
   };
 
   const exportUsers = async () => {
@@ -185,9 +460,21 @@ const UserManagementPage: React.FC = () => {
 
   const totalPages = Math.ceil(totalUsers / pageSize);
 
+  const resetFilters = () => {
+    setFilters({
+      status: 'all',
+      role: 'all',
+      school: 'all',
+      dateRange: '30d'
+    });
+    setSearchQuery('');
+    setCurrentPage(0);
+  };
+
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <AdminErrorBoundary>
+        <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -195,11 +482,23 @@ const UserManagementPage: React.FC = () => {
           <p className="text-gray-600">Spravujte uživatele, role a oprávnění</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate('/admin/users/analytics')}>
+            <Activity className="w-4 h-4 mr-2" />
+            Analýza
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/admin/users/activity')}>
+            <Activity className="w-4 h-4 mr-2" />
+            Aktivita
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/admin/users/import-export')}>
+            <Download className="w-4 h-4 mr-2" />
+            Import/Export
+          </Button>
           <Button variant="outline" onClick={exportUsers}>
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Button>
+          <Button onClick={() => navigate('/admin/users/create')}>
             <Plus className="w-4 h-4 mr-2" />
             Nový uživatel
           </Button>
@@ -207,290 +506,152 @@ const UserManagementPage: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <Card>
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <InputField
-                label="Hledat uživatele"
-                name="search"
-                placeholder="Hledat uživatele..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
-            </div>
-            <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
-              <Filter className="w-4 h-4 mr-2" />
-              Filtry
-            </Button>
-            <Button onClick={handleSearch}>
-              <Search className="w-4 h-4 mr-2" />
-              Hledat
-            </Button>
-          </div>
+      <UserSearchControls
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearch={handleSearch}
+        useEnhancedFilters={useEnhancedFilters}
+        onToggleEnhancedFilters={() => setUseEnhancedFilters(!useEnhancedFilters)}
+        showRecentActivity={showRecentActivity}
+        onToggleRecentActivity={() => setShowRecentActivity(!showRecentActivity)}
+        loading={loading}
+      />
 
-          {showFilters && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t">
-              <select
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Všechny stavy</option>
-                <option value="active">Aktivní</option>
-                <option value="inactive">Neaktivní</option>
-                <option value="suspended">Pozastaveni</option>
-              </select>
+      {/* Enhanced Filters */}
+      {useEnhancedFilters && (
+        <EnhancedUserFilters
+          filters={enhancedFilters}
+          onFiltersChange={handleEnhancedFiltersChange}
+          schools={schools}
+          loading={loading}
+          onSaveFilter={handleSaveFilter}
+          savedFilters={savedFilters}
+          onLoadFilter={handleLoadFilter}
+          onDeleteFilter={handleDeleteFilter}
+        />
+      )}
 
-              <select
-                value={filters.role}
-                onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Všechny role</option>
-                <option value="teacher">Učitel</option>
-                <option value="school_admin">Správce školy</option>
-                <option value="platform_admin">Platforma admin</option>
-              </select>
-
-              <select
-                value={filters.school}
-                onChange={(e) => setFilters({ ...filters, school: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Všechny školy</option>
-                <option value="none">Bez školy</option>
-              </select>
-
-              <select
-                value={filters.dateRange}
-                onChange={(e) => setFilters({ ...filters, dateRange: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="7d">Posledních 7 dní</option>
-                <option value="30d">Posledních 30 dní</option>
-                <option value="90d">Posledních 90 dní</option>
-                <option value="1y">Poslední rok</option>
-              </select>
-            </div>
-          )}
-        </div>
-      </Card>
-
-      {/* Bulk Actions */}
-      {selectedUsers.length > 0 && (
+      {/* Basic Filters (legacy) */}
+      {!useEnhancedFilters && showFilters && (
         <Card>
-          <div className="flex flex-col sm:flex-row items-center gap-4">
-            <span className="text-sm text-gray-600">
-              {selectedUsers.length} uživatelů vybráno
-            </span>
-            <select
-              value={bulkAction}
-              onChange={(e) => setBulkAction(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Vyberte akci...</option>
-              <option value="activate">Aktivovat</option>
-              <option value="deactivate">Deaktivovat</option>
-              <option value="addCredits">Přidat kredity</option>
-              <option value="delete">Smazat</option>
-            </select>
-            <Button onClick={handleBulkAction} disabled={!bulkAction}>
-              Provést akci
-            </Button>
-            <Button variant="outline" onClick={() => setSelectedUsers([])}>
-              Zrušit výběr
-            </Button>
+          <div className="pt-4 border-t">
+            <AdvancedUserFilters
+              filters={{
+                search: searchQuery,
+                role: filters.role,
+                school_id: filters.school,
+                is_active: filters.status === 'active' ? 'true' : filters.status === 'inactive' ? 'false' : 'all',
+                date_from: filters.date_range_start || '',
+                date_to: filters.date_range_end || '',
+                credit_min: filters.credit_range_min?.toString() || '',
+                credit_max: filters.credit_range_max?.toString() || '',
+                last_login_from: filters.last_login_start || '',
+                last_login_to: filters.last_login_end || '',
+                status: filters.status
+              }}
+              onFiltersChange={(newFilters) => {
+                setFilters({
+                  ...filters,
+                  role: newFilters.role,
+                  school: newFilters.school_id,
+                  status: newFilters.is_active === 'true' ? 'active' : newFilters.is_active === 'false' ? 'inactive' : 'all',
+                  date_range_start: newFilters.date_from || undefined,
+                  date_range_end: newFilters.date_to || undefined,
+                  credit_range_min: newFilters.credit_min ? parseInt(newFilters.credit_min) : undefined,
+                  credit_range_max: newFilters.credit_max ? parseInt(newFilters.credit_max) : undefined,
+                  last_login_start: newFilters.last_login_from || undefined,
+                  last_login_end: newFilters.last_login_to || undefined
+                });
+              }}
+              schools={schools}
+              loading={loading}
+            />
+            <div className="flex gap-2 mt-4">
+              <Button onClick={() => setShowFilters(false)}>
+                Použít filtry
+              </Button>
+              <Button variant="outline" onClick={resetFilters}>
+                Resetovat filtry
+              </Button>
+            </div>
           </div>
         </Card>
       )}
 
-      {/* Users Table */}
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.length === users.length && users.length > 0}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedUsers(users.map(u => u.id));
-                      } else {
-                        setSelectedUsers([]);
-                      }
-                    }}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Uživatel
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Stav
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Škola
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Kredity
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Poslední přihlášení
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Akce
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
-                    Načítání...
-                  </td>
-                </tr>
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
-                    Žádní uživatelé nebyli nalezeni
-                  </td>
-                </tr>
-              ) : (
-                users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={selectedUsers.includes(user.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedUsers([...selectedUsers, user.id]);
-                          } else {
-                            setSelectedUsers(selectedUsers.filter(id => id !== user.id));
-                          }
-                        }}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-sm font-medium text-blue-800">
-                              {user.first_name[0]}{user.last_name[0]}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {user.first_name} {user.last_name}
-                          </div>
-                          <div className="text-sm text-gray-500 flex items-center">
-                            <Mail className="w-3 h-3 mr-1" />
-                            {user.email}
-                            {/* Note: emailVerified field not available in backend response */}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.role === 'platform_admin' ? 'bg-red-100 text-red-800' :
-                        user.role === 'school_admin' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {user.role === 'platform_admin' ? 'Platforma Admin' :
-                         user.role === 'school_admin' ? 'Správce školy' : 'Učitel'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {user.is_active ? 'Aktivní' : 'Neaktivní'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {user.school_name || 'Bez školy'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="flex items-center">
-                        <CreditCard className="w-4 h-4 mr-1 text-blue-500" />
-                        {user.credits_balance}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(user.created_at).toLocaleDateString('cs-CZ')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleUserAction(user.id, 'activate')}
-                          disabled={user.is_active}
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleUserAction(user.id, 'deactivate')}
-                          disabled={!user.is_active}
-                        >
-                          <XCircle className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleUserAction(user.id, 'delete')}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* Recent Activity */}
+      {showRecentActivity && (
+        <Card title="Nedávná aktivita uživatelů" icon={<Activity className="w-5 h-5" />}>
+          <UserActivityLog 
+            logs={recentActivity}
+            loading={false}
+            onFilterChange={() => {}}
+            onExport={() => {}}
+          />
+        </Card>
+      )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200">
-            <div className="text-sm text-gray-700">
-              Zobrazeno {currentPage * pageSize + 1} až {Math.min((currentPage + 1) * pageSize, totalUsers)} z {totalUsers} výsledků
-            </div>
-            <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 0}
-              >
-                Předchozí
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage >= totalPages - 1}
-              >
-                Další
-              </Button>
-            </div>
-          </div>
-        )}
-      </Card>
-      </div>
+      {/* Bulk Actions */}
+      <UserBulkActions
+        selectedCount={selectedUsers.length}
+        bulkAction={bulkAction}
+        onBulkActionChange={setBulkAction}
+        onExecuteBulkAction={handleBulkAction}
+        onClearSelection={() => setSelectedUsers([])}
+        loading={bulkActionLoading}
+      />
+
+      {/* Users Table */}
+      <UserTable
+        users={users}
+        loading={loading}
+        selectedUsers={selectedUsers}
+        onSelectAll={(selected) => {
+          if (selected) {
+            setSelectedUsers(users.map(u => u.id));
+          } else {
+            setSelectedUsers([]);
+          }
+        }}
+        onSelectUser={(userId, selected) => {
+          if (selected) {
+            setSelectedUsers([...selectedUsers, userId]);
+          } else {
+            setSelectedUsers(selectedUsers.filter(id => id !== userId));
+          }
+        }}
+        onUserAction={handleUserAction}
+        currentSortField={sortField}
+        currentSortDirection={sortDirection}
+        onSort={handleSort}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalUsers={totalUsers}
+        pageSize={pageSize}
+        onPageChange={setCurrentPage}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Smazat uživatele"
+        entityName={deleteDialog.userName}
+        impactMessage="Uživatel bude deaktivován a nebude moci se přihlásit do systému."
+        loading={deleting}
+      />
+
+      {/* Bulk Action Confirmation Dialog */}
+      <BulkActionConfirmDialog
+        isOpen={bulkConfirmDialog.isOpen}
+        action={bulkConfirmDialog.action}
+        selectedUsers={bulkConfirmDialog.selectedUsers}
+        onConfirm={handleBulkActionConfirm}
+        onCancel={handleBulkActionCancel}
+        loading={bulkActionLoading}
+      />
+        </div>
+      </AdminErrorBoundary>
     </AdminLayout>
   );
 };

@@ -1,38 +1,24 @@
 import { Router, Request, Response } from 'express';
-import { body, validationResult } from 'express-validator';
 import { UserModel } from '../models/User';
 import { CreditTransactionModel } from '../models/CreditTransaction';
 import { generateToken, authenticateToken, RequestWithUser } from '../middleware/auth';
+import { validateBody } from '../middleware/zodValidation';
+import { logUserAction } from '../middleware/activity-logger';
 import pool from '../database/connection';
 import { CreateUserRequest, LoginRequest, AuthResponse, CreateSchoolRequest, User } from '../types/database';
+import { 
+  RegistrationSchema, 
+  LoginSchema, 
+  SchoolRegistrationSchema,
+
+  ChangePasswordSchema,
+  UpdateProfileSchema
+} from '../schemas/auth';
 
 const router = Router();
 
-// Validation middleware
-const validateRegistration = [
-  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
-  body('first_name').trim().isLength({ min: 2 }).withMessage('First name is required'),
-  body('last_name').trim().isLength({ min: 2 }).withMessage('Last name is required')
-];
-
-const validateLogin = [
-  body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-  body('password').notEmpty().withMessage('Password is required')
-];
-
 // Register new school + admin user
-router.post('/register-school', [
-  body('school.name').trim().isLength({ min: 2 }).withMessage('School name is required'),
-  body('admin.email').isEmail().withMessage('Valid admin email is required'),
-  body('admin.password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
-  body('admin.first_name').trim().isLength({ min: 2 }).withMessage('First name is required'),
-  body('admin.last_name').trim().isLength({ min: 2 }).withMessage('Last name is required'),
-], async (req: Request, res: Response) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ success: false, error: 'Validation failed', details: errors.array() });
-  }
+router.post('/register-school', validateBody(SchoolRegistrationSchema), async (req: Request, res: Response) => {
 
   const schoolData: CreateSchoolRequest = req.body.school || {};
   const adminData = req.body.admin || {};
@@ -72,17 +58,8 @@ router.post('/register-school', [
 });
 
 // Register new user
-router.post('/register', validateRegistration, async (req: Request, res: Response) => {
+router.post('/register', validateBody(RegistrationSchema), async (req: Request, res: Response) => {
   try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
 
     const { email, password, first_name, last_name, school_id }: CreateUserRequest = req.body;
 
@@ -152,23 +129,17 @@ router.post('/register', validateRegistration, async (req: Request, res: Respons
 });
 
 // Login user
-router.post('/login', validateLogin, async (req: Request, res: Response) => {
+router.post('/login', validateBody(LoginSchema), async (req: Request, res: Response) => {
   try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
 
     const { email, password }: LoginRequest = req.body;
 
     // Find user by email
     const user = await UserModel.findByEmail(email);
     if (!user) {
+      // Log failed login attempt (no user found) - skip user logging for unknown users
+      // TODO: Implement anonymous activity logging for security monitoring
+      
       return res.status(401).json({
         success: false,
         error: 'Invalid email or password'
@@ -177,6 +148,13 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
 
     // Check if user is active
     if (!user.is_active) {
+      // Log failed login attempt (deactivated account)
+      await logUserAction(user.id, 'login_failed', {
+        email: user.email,
+        reason: 'account_deactivated',
+        timestamp: new Date().toISOString()
+      }, req);
+      
       return res.status(401).json({
         success: false,
         error: 'Account is deactivated'
@@ -186,6 +164,13 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
     // Verify password
     const isValidPassword = await UserModel.verifyPassword(user, password);
     if (!isValidPassword) {
+      // Log failed login attempt (wrong password)
+      await logUserAction(user.id, 'login_failed', {
+        email: user.email,
+        reason: 'invalid_password',
+        timestamp: new Date().toISOString()
+      }, req);
+      
       return res.status(401).json({
         success: false,
         error: 'Invalid email or password'
@@ -194,6 +179,19 @@ router.post('/login', validateLogin, async (req: Request, res: Response) => {
 
     // Generate JWT token
     const token = generateToken(user);
+
+    // Log successful login
+    await logUserAction(user.id, 'login', {
+      email: user.email,
+      timestamp: new Date().toISOString(),
+      success: true
+    }, req);
+
+    // Update last login timestamp
+    await pool.query(
+      'UPDATE users SET last_login_at = CURRENT_TIMESTAMP, login_count = COALESCE(login_count, 0) + 1 WHERE id = $1',
+      [user.id]
+    );
 
     // Remove password_hash from response
     const userWithoutPassword: any = { ...(user as any) };
@@ -248,21 +246,8 @@ router.get('/profile', authenticateToken, async (req: RequestWithUser, res: Resp
 });
 
 // Update user profile
-router.put('/profile', authenticateToken, [
-  body('first_name').optional().trim().isLength({ min: 2 }).withMessage('First name must be at least 2 characters'),
-  body('last_name').optional().trim().isLength({ min: 2 }).withMessage('Last name must be at least 2 characters'),
-  body('school_id').optional().isUUID().withMessage('Invalid school ID format')
-], async (req: RequestWithUser, res: Response) => {
+router.put('/profile', authenticateToken, validateBody(UpdateProfileSchema), async (req: RequestWithUser, res: Response) => {
   try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
 
     if (!req.user) {
       return res.status(401).json({
@@ -294,20 +279,8 @@ router.put('/profile', authenticateToken, [
 });
 
 // Change password
-router.put('/change-password', authenticateToken, [
-  body('current_password').notEmpty().withMessage('Current password is required'),
-  body('new_password').isLength({ min: 8 }).withMessage('New password must be at least 8 characters long')
-], async (req: RequestWithUser, res: Response) => {
+router.put('/change-password', authenticateToken, validateBody(ChangePasswordSchema), async (req: RequestWithUser, res: Response) => {
   try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
 
     if (!req.user) {
       return res.status(401).json({

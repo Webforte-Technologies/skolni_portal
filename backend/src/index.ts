@@ -21,7 +21,7 @@ if (missingEnvVars.length > 0) {
 
 // Import routes
 import authRoutes from './routes/auth';
-import aiRoutes from './routes/ai';
+import { createAIRoutes } from './routes/ai/index';
 import conversationRoutes from './routes/conversations';
 import schoolsRoutes from './routes/schools';
 import filesRoutes from './routes/files';
@@ -33,13 +33,18 @@ import adminRoutes from './routes/admin';
 import analyticsRoutes from './routes/admin/analytics';
 import notificationsRoutes from './routes/notifications';
 import { metricsMiddleware } from './middleware/metrics';
+import { activityLogger } from './middleware/activity-logger';
 import { realTimeService } from './services/RealTimeService';
 import { webSocketService } from './services/WebSocketService';
+import { MCPServer } from './services/MCPServer';
 import fs from 'fs';
 import path from 'path';
 
 const app = express();
 const PORT = parseInt(process.env['PORT'] || '3001', 10);
+
+// Initialize MCP Server
+const mcpServer = new MCPServer(pool);
 
 // Set default values for critical environment variables
 if (!process.env['JWT_SECRET']) {
@@ -415,9 +420,17 @@ if (process.env['NODE_ENV'] !== 'test') {
   });
 }
 
+// Activity logging middleware (for authenticated API routes)
+app.use('/api', activityLogger({
+  excludePaths: ['/health', '/metrics', '/favicon.ico'],
+  excludeMethods: ['OPTIONS']
+}));
+
 // API Routes
 try {
   app.use('/api/auth', authRoutes);
+  // Create AI routes with MCP server instance
+  const aiRoutes = createAIRoutes(mcpServer);
   app.use('/api/ai', aiRoutes);
   app.use('/api/conversations', conversationRoutes);
   app.use('/api/files', filesRoutes);
@@ -557,7 +570,7 @@ app.use('*', (_req, res) => {
 if (process.env['NODE_ENV'] !== 'test') {
   // CORRECTED: Start server listening on 0.0.0.0 to be reachable in Docker
   const server = app
-    .listen(PORT, '0.0.0.0', () => {
+    .listen(PORT, '0.0.0.0', async () => {
       try {
         console.log(`🚀 EduAI-Asistent Backend server running on port ${PORT}`);
       } catch (error) {
@@ -587,6 +600,17 @@ if (process.env['NODE_ENV'] !== 'test') {
         );
       } catch (error) {
         console.warn('⚠️ Failed to log database config:', error);
+      }
+      
+      // Initialize MCP server
+      try {
+        await mcpServer.initialize();
+        console.log(`🤖 MCP Server initialized`);
+      } catch (error) {
+        console.warn(`⚠️ MCP Server initialization failed:`, error);
+        if (error instanceof Error) {
+          console.warn('Error details:', error.message);
+        }
       }
       
       // Initialize real-time service
@@ -651,3 +675,4 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 export default app;
+export { mcpServer };

@@ -9,6 +9,8 @@ export interface WorksheetData {
   title: string;
   instructions: string;
   questions: WorksheetQuestion[];
+  subject?: string;
+  grade_level?: string;
   tags?: string[];
 }
 
@@ -142,6 +144,7 @@ export interface SSEErrorMessage {
 export interface SSEProgressMessage {
   type: 'progress';
   message: string;
+  progress?: number;
   current_step?: number;
   total_steps?: number;
   phase?: string;
@@ -149,7 +152,12 @@ export interface SSEProgressMessage {
   completed_material?: any;
 }
 
-export type SSEMessage = SSEStartMessage | SSEChunkMessage | SSEEndMessage | SSEErrorMessage | SSEProgressMessage;
+export interface SSEConnectionMessage {
+  type: 'connection';
+  message: string;
+}
+
+export type SSEMessage = SSEStartMessage | SSEChunkMessage | SSEEndMessage | SSEErrorMessage | SSEProgressMessage | SSEConnectionMessage;
 
 // Time parsing utilities
 export const parseTimeToMinutes = (timeStr: string): number => {

@@ -5,8 +5,8 @@ import { authService } from '../services/authService';
 interface AuthContextType {
   user: UserWithSchool | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (userData: any) => Promise<void>;
+  login: (email: string, password: string) => Promise<any>;
+  register: (userData: any) => Promise<any>;
   logout: () => void;
   updateUser: (userData: Partial<UserWithSchool>) => void;
 }
@@ -83,11 +83,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = useCallback(async (email: string, password: string) => {
     const authResponse = await authService.login({ email, password });
     setUser(authResponse.user);
+    return authResponse;
   }, []);
 
   const register = useCallback(async (userData: any) => {
     const authResponse = await authService.register(userData);
     setUser(authResponse.user);
+    return authResponse;
   }, []);
 
   const logout = useCallback(() => {

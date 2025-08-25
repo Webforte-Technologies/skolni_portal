@@ -1,21 +1,13 @@
 import { Router, Response } from 'express';
-import { body, validationResult } from 'express-validator';
 import { authenticateToken, RequestWithUser } from '../middleware/auth';
+import { validateBody } from '../middleware/zodValidation';
 import { ConversationModel } from '../models/Conversation';
 import { MessageModel } from '../models/Message';
+import { CreateConversationSchema, CreateMessageSchema, UpdateConversationSchema } from '../schemas/conversations';
 
 const router = Router();
 
-// Validation middleware
-const validateConversationRequest = [
-  body('title').trim().isLength({ min: 1, max: 255 }).withMessage('Title must be between 1 and 255 characters'),
-  body('assistant_type').optional().isIn(['math_assistant', 'physics_assistant', 'chemistry_assistant', 'biology_assistant', 'history_assistant', 'language_assistant']).withMessage('Invalid assistant type')
-];
 
-const validateMessageRequest = [
-  body('content').trim().isLength({ min: 1, max: 10000 }).withMessage('Content must be between 1 and 10000 characters'),
-  body('role').isIn(['user', 'assistant']).withMessage('Role must be either user or assistant')
-];
 
 // Get all conversations for the authenticated user
 router.get('/', authenticateToken, async (req: RequestWithUser, res: Response) => {
@@ -111,17 +103,8 @@ router.get('/:id', authenticateToken, async (req: RequestWithUser, res: Response
 });
 
 // Create a new conversation
-router.post('/', authenticateToken, validateConversationRequest, async (req: RequestWithUser, res: Response) => {
+router.post('/', authenticateToken, validateBody(CreateConversationSchema), async (req: RequestWithUser, res: Response) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
-
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -154,18 +137,8 @@ router.post('/', authenticateToken, validateConversationRequest, async (req: Req
 });
 
 // Update conversation title
-router.put('/:id', authenticateToken, [
-  body('title').trim().isLength({ min: 1, max: 255 }).withMessage('Title must be between 1 and 255 characters')
-], async (req: RequestWithUser, res: Response) => {
+router.put('/:id', authenticateToken, validateBody(UpdateConversationSchema), async (req: RequestWithUser, res: Response) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
 
     if (!req.user) {
       return res.status(401).json({
@@ -271,16 +244,8 @@ router.delete('/:id', authenticateToken, async (req: RequestWithUser, res: Respo
 });
 
 // Add a message to a conversation
-router.post('/:id/messages', authenticateToken, validateMessageRequest, async (req: RequestWithUser, res: Response) => {
+router.post('/:id/messages', authenticateToken, validateBody(CreateMessageSchema), async (req: RequestWithUser, res: Response) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Validation failed',
-        details: errors.array()
-      });
-    }
 
     if (!req.user) {
       return res.status(401).json({

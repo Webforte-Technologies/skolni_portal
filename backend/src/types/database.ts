@@ -11,6 +11,16 @@ export interface User {
   credits_balance: number;
   is_active: boolean;
   email_verified: boolean;
+  status: 'active' | 'suspended' | 'pending_verification' | 'inactive';
+  last_login_at?: Date;
+  last_activity_at?: Date;
+  login_count: number;
+  failed_login_attempts: number;
+  locked_until?: Date;
+  email_verification_token?: string;
+  email_verification_expires_at?: Date;
+  password_reset_token?: string;
+  password_reset_expires_at?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -24,7 +34,15 @@ export interface School {
   country: string;
   contact_email?: string;
   contact_phone?: string;
+  logo_url?: string;
   is_active: boolean;
+  status: 'active' | 'suspended' | 'pending_verification' | 'inactive';
+  verification_required: boolean;
+  subscription_tier: 'basic' | 'premium' | 'enterprise';
+  max_teachers: number;
+  max_students: number;
+  last_activity_at?: Date;
+  admin_activity_at?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -182,6 +200,141 @@ export interface CreateUserRequest {
   role?: 'platform_admin' | 'school_admin' | 'teacher_school' | 'teacher_individual';
 }
 
+// Enhanced School Management Types
+export interface SchoolActivityLog {
+  id: string;
+  school_id: string;
+  action_type: string;
+  action_description?: string;
+  user_id?: string;
+  metadata?: any;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: Date;
+}
+
+export interface SchoolNotification {
+  id: string;
+  school_id: string;
+  title: string;
+  message: string;
+  notification_type: 'general' | 'announcement' | 'warning' | 'maintenance' | 'update';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  is_read: boolean;
+  sent_by_user_id?: string;
+  sent_at: Date;
+  expires_at?: Date;
+  metadata?: any;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface SchoolPreferences {
+  id: string;
+  school_id: string;
+  preference_key: string;
+  preference_value?: string;
+  preference_type: 'string' | 'boolean' | 'number' | 'json';
+  is_public: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface SchoolStatusHistory {
+  id: string;
+  school_id: string;
+  old_status: string;
+  new_status: string;
+  reason?: string;
+  changed_by_user_id?: string;
+  changed_at: Date;
+  metadata?: any;
+}
+
+export interface SchoolProfile {
+  school: School;
+  teacher_count: number;
+  admin_count: number;
+  active_users: number;
+  total_credits: number;
+  recent_activity: SchoolActivityLog[];
+  notifications: SchoolNotification[];
+  preferences: SchoolPreferences[];
+  status_history: SchoolStatusHistory[];
+}
+
+export interface AdvancedSchoolFilters {
+  search?: string;
+  is_active?: boolean;
+  status?: string;
+  subscription_tier?: string;
+  date_range?: {
+    start_date: string;
+    end_date: string;
+  };
+  teacher_count_range?: {
+    min: number;
+    max: number;
+  };
+  credit_usage_range?: {
+    min: number;
+    max: number;
+  };
+  city?: string;
+  country?: string;
+  verification_required?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export interface SchoolImportData {
+  name: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  subscription_tier?: string;
+  max_teachers?: number;
+  max_students?: number;
+}
+
+export interface SchoolExportOptions {
+  include_teachers: boolean;
+  include_activity: boolean;
+  include_notifications: boolean;
+  include_preferences: boolean;
+  date_range?: {
+    start_date: string;
+    end_date: string;
+  };
+  format: 'csv' | 'excel';
+}
+
+export interface SchoolAnalytics {
+  total_schools: number;
+  active_schools: number;
+  suspended_schools: number;
+  pending_verification_schools: number;
+  schools_by_tier: {
+    basic: number;
+    premium: number;
+    enterprise: number;
+  };
+  schools_by_city: Array<{
+    city: string;
+    count: number;
+  }>;
+  average_teachers_per_school: number;
+  average_credits_per_school: number;
+  activity_trends: Array<{
+    date: string;
+    active_schools: number;
+    total_activity: number;
+  }>;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -222,6 +375,46 @@ export interface CreateChatMessageRequest {
   credits_cost?: number;
 }
 
+// Admin-specific request types
+export interface AdminCreateUserRequest extends Omit<CreateUserRequest, 'password'> {
+  role: 'platform_admin' | 'school_admin' | 'teacher_school' | 'teacher_individual';
+  school_id?: string;
+  credits_balance?: number;
+  is_active?: boolean;
+}
+
+export interface AdminUpdateUserRequest {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  role?: 'platform_admin' | 'school_admin' | 'teacher_school' | 'teacher_individual';
+  school_id?: string;
+  is_active?: boolean;
+  credits_balance?: number;
+  status?: 'active' | 'suspended' | 'pending_verification' | 'inactive';
+}
+
+export interface AdminCreateSchoolRequest {
+  name: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  logo_url?: string;
+  is_active?: boolean;
+  status?: 'active' | 'suspended' | 'pending_verification' | 'inactive';
+  verification_required?: boolean;
+  subscription_tier?: 'basic' | 'premium' | 'enterprise';
+  max_teachers?: number;
+  max_students?: number;
+}
+
+export interface AdminUpdateSchoolRequest extends Partial<AdminCreateSchoolRequest> {
+  is_active?: boolean;
+}
+
 // API Response types
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -236,4 +429,170 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+// Enhanced User CRUD Operations Types
+
+export interface UserActivityLog {
+  id: string;
+  user_id: string;
+  activity_type: 'login' | 'login_failed' | 'logout' | 'page_view' | 'api_call' | 'file_generated' | 
+                 'conversation_started' | 'credits_used' | 'profile_updated' | 
+                 'password_changed' | 'email_verified' | 'subscription_changed';
+  activity_data: Record<string, any>;
+  ip_address?: string;
+  user_agent?: string;
+  session_id?: string;
+  created_at: Date;
+  // Additional fields from JOIN with users table
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  school_name?: string;
+}
+
+export interface UserNotification {
+  id: string;
+  user_id: string;
+  notification_type: 'system' | 'admin_message' | 'credit_alert' | 'subscription_expiry' | 
+                     'feature_update' | 'maintenance' | 'security_alert';
+  title: string;
+  message: string;
+  severity: 'info' | 'warning' | 'error' | 'success';
+  is_read: boolean;
+  read_at?: Date;
+  expires_at?: Date;
+  action_url?: string;
+  action_text?: string;
+  metadata: Record<string, any>;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface UserPreferences {
+  id: string;
+  user_id: string;
+  language: string;
+  theme: 'light' | 'dark' | 'auto';
+  email_notifications: {
+    marketing: boolean;
+    updates: boolean;
+    security: boolean;
+  };
+  push_notifications: {
+    enabled: boolean;
+    sound: boolean;
+  };
+  dashboard_layout: Record<string, any>;
+  ai_assistant_preferences: Record<string, any>;
+  accessibility_settings: {
+    high_contrast: boolean;
+    font_size: 'small' | 'medium' | 'large';
+  };
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface UserProfile extends Omit<User, 'password_hash'> {
+  school_name?: string;
+  school_city?: string;
+  activity_stats: {
+    total_logins: number;
+    last_login: Date;
+    total_activities: number;
+    credits_used: number;
+    conversations_count: number;
+    files_generated: number;
+  };
+  preferences?: UserPreferences;
+  recent_activities: UserActivityLog[];
+  unread_notifications_count: number;
+}
+
+export interface AdvancedUserFilters {
+  role?: string;
+  school_id?: string;
+  is_active?: boolean;
+  status?: string;
+  date_range?: {
+    start_date: string;
+    end_date: string;
+  };
+  credit_range?: {
+    min: number;
+    max: number;
+  };
+  last_login_range?: {
+    start_date: string;
+    end_date: string;
+  };
+  search?: string;
+  activity_type?: string;
+}
+
+export interface UserImportData {
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  school_id?: string;
+  credits_balance?: number;
+  is_active?: boolean;
+}
+
+export interface UserExportOptions {
+  format: 'csv' | 'excel';
+  filters?: AdvancedUserFilters;
+  include_activity?: boolean;
+  include_preferences?: boolean;
+  include_notifications?: boolean;
+}
+
+export interface UserAnalytics {
+  total_users: number;
+  active_users: number;
+  new_users_this_month: number;
+  users_by_role: Record<string, number>;
+  users_by_status: Record<string, number>;
+  average_credits_balance: number;
+  top_credit_users: Array<{
+    user_id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    credits_balance: number;
+  }>;
+  recent_activity_summary: {
+    logins_today: number;
+    logins_this_week: number;
+    logins_this_month: number;
+  };
+}
+
+export interface CreateUserNotificationRequest {
+  user_id: string;
+  notification_type: UserNotification['notification_type'];
+  title: string;
+  message: string;
+  severity?: UserNotification['severity'];
+  expires_at?: string;
+  action_url?: string;
+  action_text?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface UpdateUserStatusRequest {
+  status: User['status'];
+  reason?: string;
+  expires_at?: string;
+}
+
+export interface UserActivityStats {
+  user_id: string;
+  total_activities: number;
+  activities_by_type: Record<string, number>;
+  last_activity: Date;
+  most_active_hours: number[];
+  average_daily_activities: number;
 } 
