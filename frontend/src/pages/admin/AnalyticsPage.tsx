@@ -1,78 +1,86 @@
 import React, { useState, useEffect } from 'react';
-import {  TrendingUp, Users, CreditCard, FileText, Download, Zap } from 'lucide-react';
+import {  TrendingUp, Users, CreditCard, FileText, Download, Zap, AlertCircle } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import MCPAnalyticsDashboard from '../../components/admin/MCPAnalyticsDashboard';
+import { api, errorToMessage } from '../../services/apiClient';
 
-interface AnalyticsData {
-  userGrowth: { month: string; users: number }[];
-  creditUsage: { month: string; credits: number }[];
-  contentCreation: { month: string; materials: number }[];
-  systemPerformance: { metric: string; value: number; unit: string; trend: 'up' | 'down' | 'stable' }[];
-  topSchools: { name: string; users: number; credits: number }[];
-  popularSubjects: { subject: string; materials: number; usage: number }[];
+interface PlatformOverviewData {
+  activeUsers: {
+    total: number;
+    todayActive: number;
+    weeklyActive: number;
+    monthlyActive: number;
+  };
+  materialsCreated: {
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+    total: number;
+  };
+  userGrowth: Array<{
+    month: string;
+    users: number;
+    newUsers: number;
+  }>;
+  creditUsage: Array<{
+    month: string;
+    credits: number;
+    transactions: number;
+  }>;
+  topSchools: Array<{
+    id: string;
+    name: string;
+    users: number;
+    credits: number;
+    materialsCreated: number;
+  }>;
+  materialCreationTrend: {
+    daily: Array<{
+      date: string;
+      materials: number;
+      uniqueUsers: number;
+    }>;
+    bySubject: Array<{
+      subject: string;
+      materials: number;
+      percentage: number;
+    }>;
+    byType: Array<{
+      type: string;
+      materials: number;
+      percentage: number;
+    }>;
+  };
 }
 
 const AnalyticsPage: React.FC = () => {
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<PlatformOverviewData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [activeTab, setActiveTab] = useState<'platform' | 'mcp'>('platform');
 
   useEffect(() => {
-    // Simulate API call for analytics data
     const fetchAnalytics = async () => {
       setLoading(true);
-      // In real implementation, this would be an API call
-      setTimeout(() => {
-        setAnalyticsData({
-          userGrowth: [
-            { month: 'Led', users: 120 },
-            { month: 'Úno', users: 145 },
-            { month: 'Bře', users: 167 },
-            { month: 'Dub', users: 189 },
-            { month: 'Kvě', users: 234 },
-            { month: 'Čer', users: 278 }
-          ],
-          creditUsage: [
-            { month: 'Led', credits: 1250 },
-            { month: 'Úno', credits: 1380 },
-            { month: 'Bře', credits: 1560 },
-            { month: 'Dub', credits: 1720 },
-            { month: 'Kvě', credits: 1980 },
-            { month: 'Čer', credits: 2340 }
-          ],
-          contentCreation: [
-            { month: 'Led', materials: 45 },
-            { month: 'Úno', materials: 52 },
-            { month: 'Bře', materials: 61 },
-            { month: 'Dub', materials: 73 },
-            { month: 'Kvě', materials: 89 },
-            { month: 'Čer', materials: 104 }
-          ],
-          systemPerformance: [
-            { metric: 'Průměrná odezva API', value: 245, unit: 'ms', trend: 'down' },
-            { metric: 'Uptime', value: 99.8, unit: '%', trend: 'stable' },
-            { metric: 'Aktivní uživatelé', value: 156, unit: '', trend: 'up' },
-            { metric: 'Vytvořené materiály', value: 23, unit: 'dnes', trend: 'up' }
-          ],
-          topSchools: [
-            { name: 'Gymnázium Jana Nerudy', users: 45, credits: 890 },
-            { name: 'ZŠ TGM', users: 38, credits: 720 },
-            { name: 'SŠ technická', users: 32, credits: 650 },
-            { name: 'ZŠ Komenského', users: 28, credits: 580 }
-          ],
-          popularSubjects: [
-            { subject: 'Matematika', materials: 156, usage: 2340 },
-            { subject: 'Český jazyk', materials: 134, usage: 1890 },
-            { subject: 'Anglický jazyk', materials: 98, usage: 1450 },
-            { subject: 'Fyzika', materials: 87, usage: 1230 },
-            { subject: 'Chemie', materials: 76, usage: 980 }
-          ]
-        });
+      setError(null);
+      
+      try {
+        const response = await api.get<PlatformOverviewData>(`/admin/analytics/platform-overview?timeRange=${timeRange}`);
+        
+        if (response.data.success) {
+          setAnalyticsData(response.data.data);
+        } else {
+          setError('Nepodařilo se načíst analytická data');
+        }
+      } catch (err) {
+        console.error('Failed to fetch analytics data:', err);
+        setError(errorToMessage(err));
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
 
     fetchAnalytics();
@@ -89,6 +97,26 @@ const AnalyticsPage: React.FC = () => {
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
           <div className="text-lg text-gray-600">Načítání analytických dat...</div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <div className="text-lg text-gray-900 mb-2">Chyba při načítání dat</div>
+            <div className="text-gray-600 mb-4">{error}</div>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline"
+            >
+              Zkusit znovu
+            </Button>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -175,25 +203,69 @@ const AnalyticsPage: React.FC = () => {
 
         {/* System Performance Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {analyticsData?.systemPerformance.map((metric, index) => (
-            <Card key={index} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{metric.metric}</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {metric.value}{metric.unit}
-                  </p>
-                </div>
-                <div className={`p-2 rounded-full ${
-                  metric.trend === 'up' ? 'bg-green-100 text-green-600' :
-                  metric.trend === 'down' ? 'bg-red-100 text-red-600' :
-                  'bg-gray-100 text-gray-600'
-                }`}>
-                  <TrendingUp className="w-5 h-5" />
-                </div>
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Aktivní uživatelé</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {analyticsData?.activeUsers.total || 0}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {analyticsData?.activeUsers.todayActive || 0} dnes
+                </p>
               </div>
-            </Card>
-          ))}
+              <div className="p-2 rounded-full bg-blue-100 text-blue-600">
+                <Users className="w-5 h-5" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Vytvořené materiály</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {analyticsData?.materialsCreated.today || 0}
+                </p>
+                <p className="text-xs text-gray-500">dnes</p>
+              </div>
+              <div className="p-2 rounded-full bg-green-100 text-green-600">
+                <FileText className="w-5 h-5" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Týdenní aktivita</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {analyticsData?.activeUsers.weeklyActive || 0}
+                </p>
+                <p className="text-xs text-gray-500">aktivních uživatelů</p>
+              </div>
+              <div className="p-2 rounded-full bg-purple-100 text-purple-600">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Celkem materiálů</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {analyticsData?.materialsCreated.total || 0}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {analyticsData?.materialsCreated.thisMonth || 0} tento měsíc
+                </p>
+              </div>
+              <div className="p-2 rounded-full bg-orange-100 text-orange-600">
+                <CreditCard className="w-5 h-5" />
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Charts Section */}
@@ -205,15 +277,35 @@ const AnalyticsPage: React.FC = () => {
               <Users className="w-5 h-5 text-blue-600" />
             </div>
             <div className="h-64 flex items-end justify-between space-x-2">
-              {analyticsData?.userGrowth.map((data, index) => (
-                <div key={index} className="flex-1 flex flex-col items-center">
-                  <div 
-                    className="w-full bg-blue-500 rounded-t"
-                    style={{ height: `${(data.users / 300) * 200}px` }}
-                  />
-                  <span className="text-xs text-gray-600 mt-2">{data.month}</span>
-                </div>
-              ))}
+              {analyticsData?.userGrowth.map((data, index) => {
+                const maxUsers = Math.max(...(analyticsData?.userGrowth.map(d => d.users) || [1]));
+                return (
+                  <div key={index} className="flex-1 flex flex-col items-center">
+                    <div className="relative w-full">
+                      <div 
+                        className="w-full bg-blue-500 rounded-t"
+                        style={{ height: `${(data.users / maxUsers) * 200}px` }}
+                        title={`${data.users} celkem uživatelů, ${data.newUsers} nových`}
+                      />
+                      <div 
+                        className="w-full bg-blue-300 rounded-t absolute bottom-0"
+                        style={{ height: `${(data.newUsers / maxUsers) * 200}px` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-600 mt-2">{data.month}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-center mt-4 space-x-4 text-xs">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-500 rounded mr-1"></div>
+                <span>Celkem uživatelů</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-300 rounded mr-1"></div>
+                <span>Noví uživatelé</span>
+              </div>
             </div>
           </Card>
 
@@ -224,15 +316,19 @@ const AnalyticsPage: React.FC = () => {
               <CreditCard className="w-5 h-5 text-green-600" />
             </div>
             <div className="h-64 flex items-end justify-between space-x-2">
-              {analyticsData?.creditUsage.map((data, index) => (
-                <div key={index} className="flex-1 flex flex-col items-center">
-                  <div 
-                    className="w-full bg-green-500 rounded-t"
-                    style={{ height: `${(data.credits / 2500) * 200}px` }}
-                  />
-                  <span className="text-xs text-gray-600 mt-2">{data.month}</span>
-                </div>
-              ))}
+              {analyticsData?.creditUsage.map((data, index) => {
+                const maxCredits = Math.max(...(analyticsData?.creditUsage.map(d => d.credits) || [1]));
+                return (
+                  <div key={index} className="flex-1 flex flex-col items-center">
+                    <div 
+                      className="w-full bg-green-500 rounded-t"
+                      style={{ height: `${(data.credits / maxCredits) * 200}px` }}
+                      title={`${data.credits} kreditů, ${data.transactions} transakcí`}
+                    />
+                    <span className="text-xs text-gray-600 mt-2">{data.month}</span>
+                  </div>
+                );
+              })}
             </div>
           </Card>
         </div>
@@ -244,13 +340,14 @@ const AnalyticsPage: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Nejaktivnější školy</h3>
             <div className="space-y-3">
               {analyticsData?.topSchools.map((school, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={school.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-gray-900">{school.name}</p>
                     <p className="text-sm text-gray-600">{school.users} uživatelů</p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-green-600">{school.credits} kreditů</p>
+                    <p className="text-xs text-gray-500">{school.materialsCreated} materiálů</p>
                   </div>
                 </div>
               ))}
@@ -261,14 +358,20 @@ const AnalyticsPage: React.FC = () => {
           <Card className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Nejoblíbenější předměty</h3>
             <div className="space-y-3">
-              {analyticsData?.popularSubjects.map((subject, index) => (
+              {analyticsData?.materialCreationTrend.bySubject.map((subject, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-gray-900">{subject.subject}</p>
                     <p className="text-sm text-gray-600">{subject.materials} materiálů</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-blue-600">{subject.usage} použití</p>
+                    <p className="font-semibold text-blue-600">{subject.percentage}%</p>
+                    <div className="w-16 bg-gray-200 rounded-full h-2 mt-1">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full" 
+                        style={{ width: `${subject.percentage}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
               ))}

@@ -73,6 +73,27 @@ router.get('/dashboard', async (_req: RequestWithUser, res: express.Response) =>
 });
 
 /**
+ * GET /admin/analytics/platform-overview
+ * Get platform overview metrics for dynamic admin analytics dashboard
+ */
+router.get('/platform-overview', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const timeRange = req.query['timeRange'] as '7d' | '30d' | '90d' | '1y' | undefined;
+    
+    // Validate timeRange parameter
+    if (timeRange && !['7d', '30d', '90d', '1y'].includes(timeRange)) {
+      return bad(res, 400, 'Invalid timeRange parameter. Must be one of: 7d, 30d, 90d, 1y');
+    }
+    
+    const metrics = await AnalyticsService.getPlatformOverviewMetrics(timeRange);
+    return ok(res, metrics);
+  } catch (error) {
+    console.error('Failed to get platform overview metrics:', error);
+    return bad(res, 500, 'Failed to retrieve platform overview metrics');
+  }
+});
+
+/**
  * GET /admin/analytics/users/real-time
  * Get real-time user statistics
  */

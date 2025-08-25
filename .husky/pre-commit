@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Run lint-staged for linting and type checking
+npx lint-staged
+
+# Run backend tests if backend files changed
+if git diff --cached --name-only | grep -q "^backend/"; then
+  echo "🧪 Running backend tests..."
+  cd backend && npm run test:smoke
+fi
+
+echo "✅ Pre-commit checks completed!"

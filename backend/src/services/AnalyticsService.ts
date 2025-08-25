@@ -633,6 +633,231 @@ export class AnalyticsService {
   }
 
   /**
+   * Get platform overview metrics for admin analytics dashboard
+   */
+  static async getPlatformOverviewMetrics(timeRange?: '7d' | '30d' | '90d' | '1y'): Promise<{
+    activeUsers: {
+      total: number;
+      todayActive: number;
+      weeklyActive: number;
+      monthlyActive: number;
+    };
+    materialsCreated: {
+      today: number;
+      thisWeek: number;
+      thisMonth: number;
+      total: number;
+    };
+    userGrowth: Array<{
+      month: string;
+      users: number;
+      newUsers: number;
+    }>;
+    creditUsage: Array<{
+      month: string;
+      credits: number;
+      transactions: number;
+    }>;
+    topSchools: Array<{
+      id: string;
+      name: string;
+      users: number;
+      credits: number;
+      materialsCreated: number;
+    }>;
+    materialCreationTrend: {
+      daily: Array<{
+        date: string;
+        materials: number;
+        uniqueUsers: number;
+      }>;
+      bySubject: Array<{
+        subject: string;
+        materials: number;
+        percentage: number;
+      }>;
+      byType: Array<{
+        type: string;
+        materials: number;
+        percentage: number;
+      }>;
+    };
+  }> {
+    try {
+      // Determine the number of days based on timeRange
+      const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : timeRange === '1y' ? 365 : 30;
+      const months = timeRange === '1y' ? 12 : 6; // Number of months for trends
+
+      // Active Users Calculation
+      const activeUsersResult = await pool.query(`
+        SELECT 
+          (SELECT COUNT(*) FROM users WHERE is_active = true) as total,
+          (SELECT COUNT(DISTINCT user_id) FROM user_activity_logs WHERE created_at >= CURRENT_DATE) as today_active,
+          (SELECT COUNT(DISTINCT user_id) FROM user_activity_logs WHERE created_at >= NOW() - INTERVAL '7 days') as weekly_active,
+          (SELECT COUNT(DISTINCT user_id) FROM user_activity_logs WHERE created_at >= NOW() - INTERVAL '30 days') as monthly_active
+      `);
+
+      const activeUsers = {
+        total: parseInt(activeUsersResult.rows[0]?.total) || 0,
+        todayActive: parseInt(activeUsersResult.rows[0]?.today_active) || 0,
+        weeklyActive: parseInt(activeUsersResult.rows[0]?.weekly_active) || 0,
+        monthlyActive: parseInt(activeUsersResult.rows[0]?.monthly_active) || 0
+      };
+
+      // Materials Created Calculation
+      const materialsResult = await pool.query(`
+        SELECT 
+          (SELECT COUNT(*) FROM generated_files WHERE DATE(created_at) = CURRENT_DATE) as today,
+          (SELECT COUNT(*) FROM generated_files WHERE created_at >= NOW() - INTERVAL '7 days') as this_week,
+          (SELECT COUNT(*) FROM generated_files WHERE created_at >= NOW() - INTERVAL '30 days') as this_month,
+          (SELECT COUNT(*) FROM generated_files) as total
+      `);
+
+      const materialsCreated = {
+        today: parseInt(materialsResult.rows[0]?.today) || 0,
+        thisWeek: parseInt(materialsResult.rows[0]?.this_week) || 0,
+        thisMonth: parseInt(materialsResult.rows[0]?.this_month) || 0,
+        total: parseInt(materialsResult.rows[0]?.total) || 0
+      };
+
+      // User Growth Trend (monthly data)
+      const userGrowthResult = await pool.query(`
+        SELECT 
+          TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') as month,
+          COUNT(*) as new_users,
+          (SELECT COUNT(*) FROM users u2 WHERE u2.created_at <= DATE_TRUNC('month', u1.created_at) + INTERVAL '1 month' - INTERVAL '1 day') as total_users
+        FROM users u1
+        WHERE created_at >= NOW() - INTERVAL '${months} months'
+        GROUP BY DATE_TRUNC('month', created_at)
+        ORDER BY month ASC
+      `);
+
+      const userGrowth = userGrowthResult.rows.map(row => ({
+        month: row.month,
+        users: parseInt(row.total_users) || 0,
+        newUsers: parseInt(row.new_users) || 0
+      }));
+
+      // Credit Usage Trend (monthly data)
+      const creditUsageResult = await pool.query(`
+        SELECT 
+          TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') as month,
+          SUM(CASE WHEN transaction_type = 'usage' THEN amount ELSE 0 END) as credits,
+          COUNT(CASE WHEN transaction_type = 'usage' THEN 1 END) as transactions
+        FROM credit_transactions
+        WHERE created_at >= NOW() - INTERVAL '${months} months'
+        GROUP BY DATE_TRUNC('month', created_at)
+        ORDER BY month ASC
+      `);
+
+      const creditUsage = creditUsageResult.rows.map(row => ({
+        month: row.month,
+        credits: parseInt(row.credits) || 0,
+        transactions: parseInt(row.transactions) || 0
+      }));
+
+      // Top Schools by Activity
+      const topSchoolsResult = await pool.query(`
+        SELECT 
+          s.id,
+          s.name,
+          COUNT(DISTINCT u.id) as users,
+          COALESCE(SUM(ct.amount), 0) as credits,
+          COUNT(DISTINCT gf.id) as materials_created
+        FROM schools s
+        LEFT JOIN users u ON s.id = u.school_id AND u.is_active = true
+        LEFT JOIN credit_transactions ct ON u.id = ct.user_id AND ct.transaction_type = 'usage'
+        LEFT JOIN generated_files gf ON u.id = gf.user_id
+        WHERE s.is_active = true
+        GROUP BY s.id, s.name
+        HAVING COUNT(DISTINCT u.id) > 0
+        ORDER BY users DESC, credits DESC, materials_created DESC
+        LIMIT 10
+      `);
+
+      const topSchools = topSchoolsResult.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        users: parseInt(row.users) || 0,
+        credits: parseInt(row.credits) || 0,
+        materialsCreated: parseInt(row.materials_created) || 0
+      }));
+
+      // Material Creation Trend - Daily data for the specified time range
+      const dailyMaterialsResult = await pool.query(`
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as materials,
+          COUNT(DISTINCT user_id) as unique_users
+        FROM generated_files
+        WHERE created_at >= NOW() - INTERVAL '${days} days'
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+      `);
+
+      const dailyMaterials = dailyMaterialsResult.rows.map(row => ({
+        date: row.date,
+        materials: parseInt(row.materials) || 0,
+        uniqueUsers: parseInt(row.unique_users) || 0
+      }));
+
+      // Material Creation by Subject
+      const subjectMaterialsResult = await pool.query(`
+        SELECT 
+          COALESCE(ai_subject, 'Nezařazeno') as subject,
+          COUNT(*) as materials
+        FROM generated_files
+        WHERE created_at >= NOW() - INTERVAL '${days} days'
+        GROUP BY ai_subject
+        ORDER BY materials DESC
+      `);
+
+      const totalSubjectMaterials = subjectMaterialsResult.rows.reduce((sum, row) => sum + parseInt(row.materials), 0);
+      const bySubject = subjectMaterialsResult.rows.map(row => ({
+        subject: row.subject,
+        materials: parseInt(row.materials) || 0,
+        percentage: totalSubjectMaterials > 0 ? Math.round((parseInt(row.materials) / totalSubjectMaterials) * 100) : 0
+      }));
+
+      // Material Creation by Type
+      const typeMaterialsResult = await pool.query(`
+        SELECT 
+          COALESCE(file_type, 'worksheet') as type,
+          COUNT(*) as materials
+        FROM generated_files
+        WHERE created_at >= NOW() - INTERVAL '${days} days'
+        GROUP BY file_type
+        ORDER BY materials DESC
+      `);
+
+      const totalTypeMaterials = typeMaterialsResult.rows.reduce((sum, row) => sum + parseInt(row.materials), 0);
+      const byType = typeMaterialsResult.rows.map(row => ({
+        type: row.type,
+        materials: parseInt(row.materials) || 0,
+        percentage: totalTypeMaterials > 0 ? Math.round((parseInt(row.materials) / totalTypeMaterials) * 100) : 0
+      }));
+
+      const materialCreationTrend = {
+        daily: dailyMaterials,
+        bySubject,
+        byType
+      };
+
+      return {
+        activeUsers,
+        materialsCreated,
+        userGrowth,
+        creditUsage,
+        topSchools,
+        materialCreationTrend
+      };
+    } catch (error) {
+      console.error('Failed to get platform overview metrics:', error);
+      throw new Error('Failed to retrieve platform overview metrics');
+    }
+  }
+
+  /**
    * Get all enhanced metrics in one call
    */
   static async getAllMetrics(): Promise<EnhancedMetrics> {

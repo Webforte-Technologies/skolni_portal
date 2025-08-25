@@ -14,12 +14,23 @@
     "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
     "test": "npm run test --prefix backend",
     "test:smoke": "npm run test:smoke --prefix backend",
-    "prepare": "husky install",
+    "prepare": "husky",
     "type-check": "npm run type-check --prefix frontend"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "husky": "^9.1.6"
+    "husky": "^9.1.6",
+    "lint-staged": "^16.1.5"
+  },
+  "lint-staged": {
+    "frontend/src/**/*.{ts,tsx}": [
+      "cd frontend && npm run lint -- --fix",
+      "cd frontend && npm run type-check"
+    ],
+    "backend/src/**/*.ts": [
+      "cd backend && npm run lint:fix",
+      "cd backend && npm run type-check"
+    ]
   },
   "keywords": [
     "education",
