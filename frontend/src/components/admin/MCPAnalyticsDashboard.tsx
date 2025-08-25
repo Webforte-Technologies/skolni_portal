@@ -90,13 +90,15 @@ const MCPAnalyticsDashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      const response = await fetch('/api/admin/analytics/mcp');
-      if (!response.ok) {
-        throw new Error('Failed to fetch analytics data');
-      }
+      const response = await api.get('/admin/analytics/mcp/overview');
       
-      const data = await response.json();
-      setAnalyticsData(data);
+      if (response.data.success && response.data.data) {
+        // Type assertion with runtime check
+        const analyticsData = response.data.data as MCPAnalyticsData;
+        setAnalyticsData(analyticsData);
+      } else {
+        throw new Error('Invalid response format from analytics API');
+      }
     } catch (err) {
       console.error('Failed to fetch analytics data:', err);
     } finally {

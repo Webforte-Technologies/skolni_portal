@@ -13,6 +13,10 @@ import { ContentCategoryModel, ContentCategoryFilters } from '../models/ContentC
 import { UserStatusHistoryModel } from '../models/UserStatusHistory';
 import { UserModel } from '../models/User';
 import { SchoolModel } from '../models/School';
+import { SchoolActivityModel } from '../models/SchoolActivity';
+import { SchoolNotificationModel } from '../models/SchoolNotification';
+import { SchoolPreferencesModel } from '../models/SchoolPreferences';
+import { SchoolStatusHistoryModel } from '../models/SchoolStatusHistory';
 import { UserActivityModel } from '../models/UserActivity';
 import { UserNotificationModel } from '../models/UserNotification';
 import { UserPreferencesModel } from '../models/UserPreferences';
@@ -23,7 +27,10 @@ import {
   AdminUpdateSchoolRequest,
   CreateUserNotificationRequest,
   UpdateUserStatusRequest,
-
+  AdvancedSchoolFilters,
+  SchoolImportData,
+  SchoolExportOptions,
+  SchoolAnalytics
 } from '../types/database';
 
 const router = express.Router();
@@ -319,7 +326,202 @@ router.get('/schools', async (req: RequestWithUser, res: express.Response) => {
     const result = await SchoolModel.findAllWithStats(filters);
     return ok(res, { data: result.schools, total: result.total, limit, offset });
   } catch (e) {
-    return bad(res, 500, 'Failed to list schools');
+    return bad(res, 500, 'Nepodařilo se načíst seznam škol');
+  }
+});
+
+// Get school analytics
+router.get('/schools/analytics', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const days = parseInt(String(req.query['days'] || '30'));
+    
+    const [analytics, schoolsByCity, activityTrends] = await Promise.all([
+      SchoolModel.getAnalytics(),
+      SchoolModel.getSchoolsByCity(),
+      SchoolModel.getActivityTrends(days)
+    ]);
+
+    const result: SchoolAnalytics = {
+      ...analytics,
+      schools_by_city: schoolsByCity,
+      activity_trends: activityTrends
+    };
+
+    return ok(res, result);
+  } catch (e) {
+    console.error('Get school analytics error:', e);
+    return bad(res, 500, 'Failed to get school analytics');
+  }
+});
+
+// Get school activity logs with filters
+router.get('/schools/activity-logs', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const filters: any = {
+      limit: Math.min(parseInt(String(req.query['limit'] || '100')), 500),
+      offset: parseInt(String(req.query['offset'] || '0'))
+    };
+
+    // Add optional filters only if they exist
+    if ((req.query as any)['school_id']) filters.school_id = (req.query as any)['school_id'];
+    if ((req.query as any)['action_type']) filters.action_type = (req.query as any)['action_type'];
+    if ((req.query as any)['user_id']) filters.user_id = (req.query as any)['user_id'];
+    if (req.query['date_range_start'] && req.query['date_range_end']) {
+      filters.date_range = {
+        start_date: req.query['date_range_start'] as string,
+        end_date: req.query['date_range_end'] as string
+      };
+    }
+
+    const result = await SchoolActivityModel.findAll(filters);
+    return ok(res, { data: result.activities, total: result.total });
+  } catch (e) {
+    console.error('Get school activity logs error:', e);
+    return bad(res, 500, 'Failed to get school activity logs');
+  }
+});
+
+// Advanced school search with multiple criteria
+router.get('/schools/search/advanced', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const filters: AdvancedSchoolFilters = {
+      limit: Math.min(parseInt(String((req.query as any)['limit'] || '50')), 200),
+      offset: parseInt(String((req.query as any)['offset'] || '0'))
+    };
+
+    // Add optional filters only if they exist
+    if ((req.query as any)['q']) filters.search = (req.query as any)['q'] as string;
+    if ((req.query as any)['is_active'] !== undefined) {
+      filters.is_active = (req.query as any)['is_active'] === 'true';
+    }
+    if ((req.query as any)['status']) filters.status = (req.query as any)['status'] as string;
+    if ((req.query as any)['subscription_tier']) filters.subscription_tier = (req.query as any)['subscription_tier'] as string;
+    if ((req.query as any)['city']) filters.city = (req.query as any)['city'] as string;
+    if ((req.query as any)['country']) filters.country = (req.query as any)['country'] as string;
+    if ((req.query as any)['verification_required'] !== undefined) {
+      filters.verification_required = (req.query as any)['verification_required'] === 'true';
+    }
+
+    // Add date range if provided
+    if (req.query['date_range_start'] && req.query['date_range_end']) {
+      filters.date_range = {
+        start_date: req.query['date_range_start'] as string,
+        end_date: req.query['date_range_end'] as string
+      };
+    }
+
+    // Add teacher count range if provided
+    if (req.query['teacher_count_min'] && req.query['teacher_count_max']) {
+      filters.teacher_count_range = {
+        min: parseInt(req.query['teacher_count_min'] as string),
+        max: parseInt(req.query['teacher_count_max'] as string)
+      };
+    }
+
+    // Add credit usage range if provided
+    if (req.query['credit_usage_min'] && req.query['credit_usage_max']) {
+      filters.credit_usage_range = {
+        min: parseInt(req.query['credit_usage_min'] as string),
+        max: parseInt(req.query['credit_usage_max'] as string)
+      };
+    }
+
+    const result = await SchoolModel.advancedSearch(filters);
+    return ok(res, { data: result.schools, total: result.total, filters });
+  } catch (e) {
+    console.error('Advanced school search error:', e);
+    return bad(res, 500, 'Failed to perform advanced school search');
+  }
+});
+
+// Export schools to CSV/Excel
+router.get('/schools/export', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const format = (req.query['format'] as string) || 'csv';
+    const includeTeachers = req.query['include_teachers'] === 'true';
+    const includeActivity = req.query['include_activity'] === 'true';
+    const includeNotifications = req.query['include_notifications'] === 'true';
+    const includePreferences = req.query['include_preferences'] === 'true';
+
+    // Get all schools with stats
+    const { schools } = await SchoolModel.findAllWithStats({ limit: 10000 });
+
+    if (format === 'excel') {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Schools');
+
+      // Add headers
+      const headers = [
+        'ID', 'Name', 'Address', 'City', 'Postal Code', 'Country',
+        'Contact Email', 'Contact Phone', 'Status', 'Subscription Tier',
+        'Max Teachers', 'Max Students', 'Teacher Count', 'Admin Count',
+        'Active Users', 'Total Credits', 'Created At', 'Last Activity'
+      ];
+      worksheet.addRow(headers);
+
+      // Add data
+      schools.forEach(school => {
+        worksheet.addRow([
+          school.id, school.name, school.address || '', school.city || '',
+          school.postal_code || '', school.country, school.contact_email || '',
+          school.contact_phone || '', school.status, school.subscription_tier,
+          school.max_teachers, school.max_students, school.teacher_count || 0,
+          school.admin_count || 0, school.active_users || 0, school.total_credits || 0,
+          school.created_at, school.last_activity_at || ''
+        ]);
+      });
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename=schools.xlsx');
+      
+      await workbook.xlsx.write(res);
+      return;
+    } else {
+      // CSV format
+      const csvHeaders = [
+        'ID', 'Name', 'Address', 'City', 'Postal Code', 'Country',
+        'Contact Email', 'Contact Phone', 'Status', 'Subscription Tier',
+        'Max Teachers', 'Max Students', 'Teacher Count', 'Admin Count',
+        'Active Users', 'Total Credits', 'Created At', 'Last Activity'
+      ];
+
+      let csvContent = csvHeaders.join(',') + '\n';
+
+      schools.forEach(school => {
+        const row = [
+          school.id, school.name, school.address || '', school.city || '',
+          school.postal_code || '', school.country, school.contact_email || '',
+          school.contact_phone || '', school.status, school.subscription_tier,
+          school.max_teachers, school.max_students, school.teacher_count || 0,
+          school.admin_count || 0, school.active_users || 0, school.total_credits || 0,
+          school.created_at, school.last_activity_at || ''
+        ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(',');
+        
+        csvContent += row + '\n';
+      });
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=schools.csv');
+      res.send(csvContent);
+      return;
+    }
+  } catch (e) {
+    console.error('Export schools error:', e);
+    return bad(res, 500, 'Failed to export schools');
+  }
+});
+
+// Get schools requiring verification
+router.get('/schools/verification-required', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const limit = Math.min(parseInt(String(req.query['limit'] || '50')), 200);
+    const offset = parseInt(String(req.query['offset'] || '0'));
+
+    const result = await SchoolModel.getSchoolsRequiringVerification(limit, offset);
+    return ok(res, { data: result.schools, total: result.total });
+  } catch (e) {
+    console.error('Get schools requiring verification error:', e);
+    return bad(res, 500, 'Failed to get schools requiring verification');
   }
 });
 
@@ -328,19 +530,19 @@ router.get('/schools/:id', async (req: RequestWithUser, res: express.Response) =
   try {
     const schoolId = req.params['id'];
     if (!schoolId) {
-      return bad(res, 400, 'School ID is required');
+      return bad(res, 400, 'ID školy je povinné');
     }
     
     const school = await SchoolModel.findByIdWithStats(schoolId);
     
     if (!school) {
-      return bad(res, 404, 'School not found');
+      return bad(res, 404, 'Škola nebyla nalezena');
     }
 
     return ok(res, school);
   } catch (e) {
     console.error('Get school error:', e);
-    return bad(res, 500, 'Failed to get school');
+    return bad(res, 500, 'Nepodařilo se načíst školu');
   }
 });
 
@@ -351,20 +553,20 @@ router.post('/schools', async (req: RequestWithUser, res: express.Response) => {
     
     // Validate required fields
     if (!schoolData.name) {
-      return bad(res, 400, 'School name is required');
+      return bad(res, 400, 'Název školy je povinný');
     }
 
     // Check if school with same name already exists
     const existingSchool = await SchoolModel.findByName(schoolData.name);
     if (existingSchool) {
-      return bad(res, 400, 'School with this name already exists');
+      return bad(res, 400, 'Škola s tímto názvem již existuje');
     }
 
     const school = await SchoolModel.create(schoolData);
     return ok(res, school);
   } catch (e) {
     console.error('Create school error:', e);
-    return bad(res, 500, 'Failed to create school');
+    return bad(res, 500, 'Nepodařilo se vytvořit školu');
   }
 });
 
@@ -441,6 +643,359 @@ router.delete('/schools/:id', async (req: RequestWithUser, res: express.Response
     return bad(res, 500, 'Failed to delete school');
   }
 });
+
+
+
+// Get school activity logs
+router.get('/schools/:id/activity', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const schoolId = req.params['id'];
+    
+    if (!schoolId) {
+      return bad(res, 400, 'School ID is required');
+    }
+    
+    const days = parseInt(String(req.query['days'] || '30'));
+    const limit = Math.min(parseInt(String(req.query['limit'] || '100')), 500);
+    const offset = parseInt(String(req.query['offset'] || '0'));
+
+    const [activitySummary, activityLogs] = await Promise.all([
+      SchoolActivityModel.getSchoolActivitySummary(schoolId, days),
+      SchoolActivityModel.findAll({ 
+        school_id: schoolId, 
+        limit, 
+        offset 
+      })
+    ]);
+
+    return ok(res, {
+      summary: activitySummary,
+      logs: activityLogs.activities,
+      total: activityLogs.total
+    });
+  } catch (e) {
+    console.error('Get school activity error:', e);
+    return bad(res, 500, 'Failed to get school activity');
+  }
+});
+
+// Get detailed school profile
+router.get('/schools/:id/profile', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const schoolId = req.params['id'];
+    
+    if (!schoolId) {
+      return bad(res, 400, 'School ID is required');
+    }
+    
+    const [school, activityLogs, notifications, preferences, statusHistory] = await Promise.all([
+      SchoolModel.findByIdWithStats(schoolId),
+      SchoolActivityModel.findAll({ school_id: schoolId, limit: 20 }),
+      SchoolNotificationModel.findAll({ school_id: schoolId, limit: 10 }),
+      SchoolPreferencesModel.findAll({ school_id: schoolId }),
+      SchoolStatusHistoryModel.getSchoolStatusHistory(schoolId, 10)
+    ]);
+
+    if (!school) {
+      return bad(res, 404, 'School not found');
+    }
+
+    const profile = {
+      school,
+      recent_activity: activityLogs.activities,
+      notifications: notifications.notifications,
+      preferences: preferences,
+      status_history: statusHistory
+    };
+
+    return ok(res, profile);
+  } catch (e) {
+    console.error('Get school profile error:', e);
+    return bad(res, 500, 'Failed to get school profile');
+  }
+});
+
+// Send notification to school
+router.post('/schools/:id/send-notification', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const schoolId = req.params['id'];
+    const { title, message, notification_type, priority, expires_at } = req.body;
+
+    if (!schoolId) {
+      return bad(res, 400, 'School ID is required');
+    }
+
+    if (!req.user) {
+      return bad(res, 401, 'User not authenticated');
+    }
+
+    if (!title || !message) {
+      return bad(res, 400, 'Title and message are required');
+    }
+
+    const notification = await SchoolNotificationModel.create({
+      school_id: schoolId,
+      title,
+      message,
+      notification_type: notification_type || 'general',
+      priority: priority || 'normal',
+      sent_by_user_id: req.user.id,
+      ...(expires_at && { expires_at: new Date(expires_at) })
+    });
+
+    return ok(res, notification);
+  } catch (e) {
+    console.error('Send school notification error:', e);
+    return bad(res, 500, 'Failed to send school notification');
+  }
+});
+
+// Update school status
+router.put('/schools/:id/status', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const schoolId = req.params['id'];
+    const { status, reason } = req.body;
+
+    if (!schoolId) {
+      return bad(res, 400, 'School ID is required');
+    }
+
+    if (!req.user) {
+      return bad(res, 401, 'User not authenticated');
+    }
+
+    if (!status) {
+      return bad(res, 400, 'Status is required');
+    }
+
+    // Update school status
+    const updatedSchool = await SchoolModel.updateStatus(schoolId, status, reason, req.user.id);
+    if (!updatedSchool) {
+      return bad(res, 404, 'School not found');
+    }
+
+    // Create status history entry
+    await SchoolStatusHistoryModel.create({
+      school_id: schoolId,
+      old_status: updatedSchool.status,
+      new_status: status,
+      reason,
+      changed_by_user_id: req.user.id
+    });
+
+    return ok(res, { school: updatedSchool, status_updated: true });
+  } catch (e) {
+    console.error('Update school status error:', e);
+    return bad(res, 500, 'Failed to update school status');
+  }
+});
+
+// Get school status history
+router.get('/schools/:id/status-history', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const schoolId = req.params['id'];
+    
+    if (!schoolId) {
+      return bad(res, 400, 'School ID is required');
+    }
+    
+    const limit = Math.min(parseInt(String(req.query['limit'] || '50')), 200);
+    const offset = parseInt(String(req.query['offset'] || '0'));
+
+    const result = await SchoolStatusHistoryModel.findAll({ 
+      school_id: schoolId, 
+      limit, 
+      offset 
+    });
+
+    return ok(res, { data: result.history, total: result.total });
+  } catch (e) {
+    console.error('Get school status history error:', e);
+    return bad(res, 500, 'Failed to get school status history');
+  }
+});
+
+// Get teacher activity within school
+router.get('/schools/:id/teachers/activity', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const schoolId = req.params['id'];
+    
+    if (!schoolId) {
+      return bad(res, 400, 'School ID is required');
+    }
+    
+    const days = parseInt(String(req.query['days'] || '30'));
+    const limit = Math.min(parseInt(String(req.query['limit'] || '50')), 200);
+    const offset = parseInt(String(req.query['offset'] || '0'));
+
+    // Get all teacher activities in the school
+    const result = await SchoolActivityModel.findAll({ 
+      school_id: schoolId, 
+      limit, 
+      offset,
+      date_range: {
+        start_date: new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString(),
+        end_date: new Date().toISOString()
+      }
+    });
+
+    // Filter activities to only include teacher-related actions
+    const teacherActivities = result.activities.filter(activity => 
+      activity.action_type?.startsWith('teacher_') || 
+      activity.action_type?.includes('material') ||
+      activity.action_type?.includes('chat') ||
+      activity.action_type?.includes('file_generated')
+    );
+
+    return ok(res, { 
+      activities: teacherActivities,
+      total: teacherActivities.length,
+      school_id: schoolId
+    });
+  } catch (e) {
+    console.error('Get teacher activity error:', e);
+    return bad(res, 500, 'Failed to get teacher activity');
+  }
+});
+
+// Send notifications to multiple schools
+router.post('/schools/bulk-notify', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const { school_ids, title, message, notification_type, priority, expires_at } = req.body;
+
+    if (!school_ids || !Array.isArray(school_ids) || school_ids.length === 0) {
+      return bad(res, 400, 'School IDs array is required');
+    }
+
+    if (!title || !message) {
+      return bad(res, 400, 'Title and message are required');
+    }
+
+    if (!req.user) {
+      return bad(res, 401, 'User not authenticated');
+    }
+
+    const notifications = await SchoolNotificationModel.sendToMultipleSchools(
+      school_ids,
+      {
+        title,
+        message,
+        notification_type: notification_type || 'general',
+        priority: priority || 'normal',
+        sent_by_user_id: req.user.id,
+        ...(expires_at && { expires_at: new Date(expires_at) })
+      }
+    );
+
+    return ok(res, { 
+      notifications_sent: notifications.length,
+      notifications 
+    });
+  } catch (e) {
+    console.error('Bulk notify schools error:', e);
+    return bad(res, 500, 'Failed to send bulk notifications');
+  }
+});
+
+
+
+// Import schools from CSV/Excel
+router.post('/schools/import', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const { schools: schoolsData } = req.body;
+
+    if (!schoolsData || !Array.isArray(schoolsData)) {
+      return bad(res, 400, 'Schools data array is required');
+    }
+
+    const results = {
+      created: 0,
+      failed: 0,
+      errors: [] as string[]
+    };
+
+    for (const schoolData of schoolsData) {
+      try {
+        // Validate subscription tier
+        if (schoolData.subscription_tier && !['basic', 'premium', 'enterprise'].includes(schoolData.subscription_tier)) {
+          schoolData.subscription_tier = 'basic'; // Default to basic if invalid
+        }
+
+        const existingSchool = await SchoolModel.findByName(schoolData.name);
+        if (existingSchool) {
+          results.failed++;
+          results.errors.push(`School already exists: ${schoolData.name}`);
+          continue;
+        }
+
+        await SchoolModel.create(schoolData);
+        results.created++;
+      } catch (error) {
+        results.failed++;
+        results.errors.push(`Failed to create school ${schoolData.name}: ${error}`);
+      }
+    }
+
+    return ok(res, results);
+  } catch (e) {
+    console.error('Import schools error:', e);
+    return bad(res, 500, 'Failed to import schools');
+  }
+});
+
+// Reset school admin password
+router.post('/schools/:id/reset-admin-password', async (req: RequestWithUser, res: express.Response) => {
+  try {
+    const schoolId = req.params['id'];
+    
+    if (!schoolId) {
+      return bad(res, 400, 'School ID is required');
+    }
+    
+    // Find school admin users
+    const adminUsers = await pool.query(`
+      SELECT id, email, first_name, last_name 
+      FROM users 
+      WHERE school_id = $1 AND role = 'school_admin' AND is_active = true
+    `, [schoolId]);
+
+    if (adminUsers.rows.length === 0) {
+      return bad(res, 404, 'No active school admin found for this school');
+    }
+
+    // Generate new passwords for all admin users
+    const newPasswords = adminUsers.rows.map(user => {
+      const newPassword = Math.random().toString(36).slice(-8);
+      return { user, newPassword };
+    });
+
+    // Update passwords (in production, this should send emails)
+    for (const { user, newPassword } of newPasswords) {
+      // Use bcrypt or similar for password hashing
+      const bcrypt = require('bcrypt');
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await pool.query(
+        'UPDATE users SET password_hash = $1 WHERE id = $2',
+        [hashedPassword, user.id]
+      );
+    }
+
+    return ok(res, { 
+      message: 'Admin passwords reset successfully',
+      users_updated: newPasswords.length,
+      new_passwords: newPasswords.map(({ user, newPassword }) => ({
+        email: user.email,
+        name: `${user.first_name} ${user.last_name}`,
+        new_password: newPassword
+      }))
+    });
+  } catch (e) {
+    console.error('Reset admin password error:', e);
+    return bad(res, 500, 'Failed to reset admin passwords');
+  }
+});
+
+
 
 // Teacher management endpoints
 

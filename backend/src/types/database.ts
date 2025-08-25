@@ -34,7 +34,15 @@ export interface School {
   country: string;
   contact_email?: string;
   contact_phone?: string;
+  logo_url?: string;
   is_active: boolean;
+  status: 'active' | 'suspended' | 'pending_verification' | 'inactive';
+  verification_required: boolean;
+  subscription_tier: 'basic' | 'premium' | 'enterprise';
+  max_teachers: number;
+  max_students: number;
+  last_activity_at?: Date;
+  admin_activity_at?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -190,6 +198,141 @@ export interface CreateUserRequest {
   last_name: string;
   school_id?: string;
   role?: 'platform_admin' | 'school_admin' | 'teacher_school' | 'teacher_individual';
+}
+
+// Enhanced School Management Types
+export interface SchoolActivityLog {
+  id: string;
+  school_id: string;
+  action_type: string;
+  action_description?: string;
+  user_id?: string;
+  metadata?: any;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: Date;
+}
+
+export interface SchoolNotification {
+  id: string;
+  school_id: string;
+  title: string;
+  message: string;
+  notification_type: 'general' | 'announcement' | 'warning' | 'maintenance' | 'update';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  is_read: boolean;
+  sent_by_user_id?: string;
+  sent_at: Date;
+  expires_at?: Date;
+  metadata?: any;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface SchoolPreferences {
+  id: string;
+  school_id: string;
+  preference_key: string;
+  preference_value?: string;
+  preference_type: 'string' | 'boolean' | 'number' | 'json';
+  is_public: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface SchoolStatusHistory {
+  id: string;
+  school_id: string;
+  old_status: string;
+  new_status: string;
+  reason?: string;
+  changed_by_user_id?: string;
+  changed_at: Date;
+  metadata?: any;
+}
+
+export interface SchoolProfile {
+  school: School;
+  teacher_count: number;
+  admin_count: number;
+  active_users: number;
+  total_credits: number;
+  recent_activity: SchoolActivityLog[];
+  notifications: SchoolNotification[];
+  preferences: SchoolPreferences[];
+  status_history: SchoolStatusHistory[];
+}
+
+export interface AdvancedSchoolFilters {
+  search?: string;
+  is_active?: boolean;
+  status?: string;
+  subscription_tier?: string;
+  date_range?: {
+    start_date: string;
+    end_date: string;
+  };
+  teacher_count_range?: {
+    min: number;
+    max: number;
+  };
+  credit_usage_range?: {
+    min: number;
+    max: number;
+  };
+  city?: string;
+  country?: string;
+  verification_required?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+export interface SchoolImportData {
+  name: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  subscription_tier?: string;
+  max_teachers?: number;
+  max_students?: number;
+}
+
+export interface SchoolExportOptions {
+  include_teachers: boolean;
+  include_activity: boolean;
+  include_notifications: boolean;
+  include_preferences: boolean;
+  date_range?: {
+    start_date: string;
+    end_date: string;
+  };
+  format: 'csv' | 'excel';
+}
+
+export interface SchoolAnalytics {
+  total_schools: number;
+  active_schools: number;
+  suspended_schools: number;
+  pending_verification_schools: number;
+  schools_by_tier: {
+    basic: number;
+    premium: number;
+    enterprise: number;
+  };
+  schools_by_city: Array<{
+    city: string;
+    count: number;
+  }>;
+  average_teachers_per_school: number;
+  average_credits_per_school: number;
+  activity_trends: Array<{
+    date: string;
+    active_schools: number;
+    total_activity: number;
+  }>;
 }
 
 export interface LoginRequest {

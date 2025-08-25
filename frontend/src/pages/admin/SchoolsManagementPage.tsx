@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Building2, Search, Plus, Edit, Eye, Users, CreditCard, 
-   MapPin, Phone, Mail, Trash2
+   MapPin, Phone, Mail, Trash2, TrendingUp, Activity, Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../components/ui/Card';
@@ -109,15 +109,29 @@ const SchoolsManagementPage: React.FC = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Správa škol</h1>
-          <p className="text-gray-600 mt-1">Spravujte školy a jejich předplatná</p>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Správa škol</h1>
+            <p className="text-gray-600 mt-1">Spravujte školy a jejich předplatná</p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Button variant="secondary" onClick={() => navigate('/admin/schools/analytics')}>
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Analytika
+            </Button>
+            <Button variant="secondary" onClick={() => navigate('/admin/schools/activity')}>
+              <Activity className="w-4 h-4 mr-2" />
+              Aktivita
+            </Button>
+            <Button variant="secondary" onClick={() => navigate('/admin/schools/import-export')}>
+              <Download className="w-4 h-4 mr-2" />
+              Import/Export
+            </Button>
+            <Button variant="primary" onClick={() => navigate('/admin/schools/create')}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nová škola
+            </Button>
+          </div>
         </div>
-        <Button variant="primary" onClick={() => navigate('/admin/schools/create')}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nová škola
-        </Button>
-      </div>
 
       {/* Search and Filters */}
       <Card>
@@ -162,7 +176,7 @@ const SchoolsManagementPage: React.FC = () => {
                   size="sm" 
                   variant="secondary"
                   onClick={() => navigate(`/admin/schools/${school.id}`)}
-                  title="Zobrazit detaily"
+                  title="Zobrazit profil"
                 >
                   <Eye className="w-4 h-4" />
                 </Button>

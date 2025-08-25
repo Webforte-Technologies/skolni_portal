@@ -35,6 +35,10 @@ const UserEditPage = React.lazy(() => import('./pages/admin/UserEditPage'));
 const SchoolsManagementPage = React.lazy(() => import('./pages/admin/SchoolsManagementPage'));
 const SchoolCreatePage = React.lazy(() => import('./pages/admin/SchoolCreatePage'));
 const SchoolEditPage = React.lazy(() => import('./pages/admin/SchoolEditPage'));
+const SchoolProfilePage = React.lazy(() => import('./pages/admin/SchoolProfilePage'));
+const SchoolAnalyticsPage = React.lazy(() => import('./pages/admin/SchoolAnalyticsPage'));
+const SchoolActivityPage = React.lazy(() => import('./pages/admin/SchoolActivityPage'));
+const SchoolImportExportPage = React.lazy(() => import('./pages/admin/SchoolImportExportPage'));
 const RolesPermissionsPage = React.lazy(() => import('./pages/admin/RolesPermissionsPage'));
 const CreditsManagementPage = React.lazy(() => import('./pages/admin/CreditsManagementPage'));
 const SystemHealthPage = React.lazy(() => import('./pages/admin/SystemHealthPage'));
@@ -323,6 +327,34 @@ function App() {
                   <PrivateRoute>
                     <RequireRole roles={['platform_admin']}>
                       <SchoolEditPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/schools/:schoolId" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SchoolProfilePage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/schools/analytics" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SchoolAnalyticsPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/schools/activity" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SchoolActivityPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
+                <Route path="/admin/schools/import-export" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <SchoolImportExportPage />
                     </RequireRole>
                   </PrivateRoute>
                 } />
