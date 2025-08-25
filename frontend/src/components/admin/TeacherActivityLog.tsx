@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Activity, Clock, User, Filter, Calendar, TrendingUp, BarChart3, Download } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Activity, Clock, Filter, Calendar, TrendingUp, BarChart3, Download } from 'lucide-react';
 import { Button, Card, Badge } from '../ui';
-import { teacherService, TeacherActivityResponse, TeacherActivity } from '../../services/teacherService';
+import { teacherService, TeacherActivityResponse } from '../../services/teacherService';
 import { errorToMessage } from '../../services/apiClient';
 
 interface TeacherActivityLogProps {
@@ -33,13 +33,7 @@ const TeacherActivityLog: React.FC<TeacherActivityLogProps> = ({
     time_range: '30d'
   });
 
-  useEffect(() => {
-    if (isOpen && teacherId) {
-      fetchActivity();
-    }
-  }, [isOpen, teacherId, filters]);
-
-  const fetchActivity = async () => {
+  const fetchActivity = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -52,7 +46,13 @@ const TeacherActivityLog: React.FC<TeacherActivityLogProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [teacherId, filters]);
+
+  useEffect(() => {
+    if (isOpen && teacherId) {
+      fetchActivity();
+    }
+  }, [isOpen, teacherId, fetchActivity]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('cs-CZ', {

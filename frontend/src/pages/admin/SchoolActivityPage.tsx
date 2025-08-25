@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, Activity, Filter, Calendar, Search, 
-  Building2, Users, Clock, TrendingUp, BarChart3
+  ArrowLeft, Activity, Filter, 
+  Building2, Users
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -11,7 +11,6 @@ import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
 import SchoolActivityChart from '../../components/admin/SchoolActivityChart';
-import SchoolActivityLog from '../../components/admin/SchoolActivityLog';
 
 interface ActivityLog {
   id: string;
@@ -51,13 +50,7 @@ const SchoolActivityPage: React.FC = () => {
   
   const pageSize = 20;
 
-  useEffect(() => {
-    fetchActivityLogs();
-    fetchSchools();
-    fetchActionTypes();
-  }, [currentPage, filters]);
-
-  const fetchActivityLogs = async () => {
+  const fetchActivityLogs = useCallback(async () => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams({
@@ -67,8 +60,9 @@ const SchoolActivityPage: React.FC = () => {
       });
       
       const response = await api.get(`/admin/schools/activity-logs?${queryParams.toString()}`);
-      setActivityLogs(response.data.data.data || []);
-      setTotalLogs(response.data.data.total || 0);
+      const responseData = response.data.data as any;
+      setActivityLogs(responseData?.data || []);
+      setTotalLogs(responseData?.total || 0);
     } catch (error: any) {
       showToast({ 
         type: 'error', 
@@ -77,12 +71,13 @@ const SchoolActivityPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, filters, pageSize, showToast]);
 
   const fetchSchools = async () => {
     try {
       const response = await api.get('/admin/schools?limit=1000');
-      setSchools(response.data.data.data || []);
+      const responseData = response.data.data as any;
+      setSchools(responseData?.data || []);
     } catch (error) {
       console.error('Failed to fetch schools:', error);
     }
@@ -91,11 +86,18 @@ const SchoolActivityPage: React.FC = () => {
   const fetchActionTypes = async () => {
     try {
       const response = await api.get('/admin/schools/activity-logs/action-types');
-      setActionTypes(response.data.data || []);
+      const responseData = response.data.data as any;
+      setActionTypes(responseData || []);
     } catch (error) {
       console.error('Failed to fetch action types:', error);
     }
   };
+
+  useEffect(() => {
+    fetchActivityLogs();
+    fetchSchools();
+    fetchActionTypes();
+  }, [fetchActivityLogs]);
 
   const handleFilterChange = (key: keyof ActivityFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -291,7 +293,7 @@ const SchoolActivityPage: React.FC = () => {
         <Card>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Přehled aktivity</h3>
           <SchoolActivityChart 
-            schoolName="Všechny školy"
+            schoolId="all"
             totalActivities={totalLogs}
             activeUsers={new Set(activityLogs.filter(log => log.user_id).map(log => log.user_id)).size}
             lastActivity={activityLogs.length > 0 ? activityLogs[0].created_at : undefined}

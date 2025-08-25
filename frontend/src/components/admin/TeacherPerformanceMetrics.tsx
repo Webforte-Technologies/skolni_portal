@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   TrendingUp, TrendingDown, Target, Award, Clock, Activity,
-  BarChart3, PieChart, Users, CreditCard, Calendar, Zap,
+  Users, CreditCard, Zap,
   Star, Trophy, Medal, CheckCircle, AlertTriangle
 } from 'lucide-react';
 import { Card, Button, Badge } from '../ui';
@@ -78,13 +78,7 @@ const TeacherPerformanceMetrics: React.FC<TeacherPerformanceMetricsProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
 
-  useEffect(() => {
-    if (isOpen && teacherId) {
-      fetchPerformanceData();
-    }
-  }, [isOpen, teacherId, timeRange]);
-
-  const fetchPerformanceData = async () => {
+  const fetchPerformanceData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -181,7 +175,13 @@ const TeacherPerformanceMetrics: React.FC<TeacherPerformanceMetricsProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [teacherId, timeRange]);
+
+  useEffect(() => {
+    if (isOpen && teacherId) {
+      fetchPerformanceData();
+    }
+  }, [isOpen, teacherId, fetchPerformanceData]);
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-green-600';

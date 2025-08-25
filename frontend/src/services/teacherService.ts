@@ -1,5 +1,4 @@
 import { api } from './apiClient';
-import { ApiResponse } from '../types';
 
 // Teacher-specific types based on backend implementation
 export interface Teacher {
@@ -274,7 +273,11 @@ class TeacherService {
   /**
    * Update teacher status
    */
-  async updateStatus(id: string, statusUpdate: UpdateStatusRequest): Promise<{
+  async updateTeacherStatus(id: string, statusUpdate: {
+    status: 'active' | 'suspended' | 'pending_verification' | 'inactive';
+    reason?: string;
+    changed_by?: string;
+  }): Promise<{
     teacher: Teacher;
     message: string;
     status_change: {
@@ -286,7 +289,12 @@ class TeacherService {
     };
   }> {
     const response = await api.put(`${this.baseUrl}/${id}/status`, statusUpdate);
-    return response.data.data!;
+    const responseData = response.data.data as any;
+    return {
+      teacher: responseData.teacher,
+      message: responseData.message,
+      status_change: responseData.status_change
+    };
   }
 
   /**
@@ -314,7 +322,20 @@ class TeacherService {
     });
 
     const response = await api.get(`${this.baseUrl}/stats?${params.toString()}`);
-    return response.data;
+    const responseData = response.data as any;
+    return {
+      total: responseData.total || 0,
+      active: responseData.active || 0,
+      pending: responseData.pending || 0,
+      suspended: responseData.suspended || 0,
+      inactive: responseData.inactive || 0,
+      individual: responseData.individual || 0,
+      school: responseData.school || 0,
+      unverified: responseData.unverified || 0,
+      active_accounts: responseData.active_accounts || 0,
+      avg_credits: responseData.avg_credits || 0,
+      total_credits: responseData.total_credits || 0
+    };
   }
 
   /**

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, X, Clock, User, Mail, Building2, Filter, Star, History } from 'lucide-react';
 import { Button, Input } from '../ui';
 import { teacherService, Teacher, TeacherFilters } from '../../services/teacherService';
-import { errorToMessage } from '../../services/apiClient';
 
 interface SearchSuggestion {
   id: string;
@@ -189,7 +188,7 @@ const TeacherSearch: React.FC<TeacherSearchProps> = ({
   const handleSuggestionSelect = (suggestion: SearchSuggestion) => {
     setSearchQuery(suggestion.value);
     
-    let additionalFilters: TeacherFilters = {};
+    const additionalFilters: TeacherFilters = {};
     
     // Apply specific filters based on suggestion type
     switch (suggestion.type) {

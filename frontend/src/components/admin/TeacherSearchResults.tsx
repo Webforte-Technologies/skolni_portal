@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Users, Filter, SortAsc, SortDesc, Grid, List, Target } from 'lucide-react';
+import { Search, Filter, SortAsc, SortDesc, Grid, List, Target } from 'lucide-react';
 import { Button, Badge } from '../ui';
 import { Teacher, TeacherFilters } from '../../services/teacherService';
 
@@ -160,7 +160,7 @@ const TeacherSearchResults: React.FC<TeacherSearchResultsProps> = ({
           <div className="text-sm text-gray-600">
             <span className="font-medium">{total}</span> učitelů
             {searchQuery && (
-              <span> pro "{searchQuery}"</span>
+              <span> pro &quot;{searchQuery}&quot;</span>
             )}
           </div>
           

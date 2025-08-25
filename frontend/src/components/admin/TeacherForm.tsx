@@ -326,7 +326,7 @@ const TeacherForm: React.FC<TeacherFormProps> = ({
                   <strong>Žádné školy nebyly nalezeny.</strong> Pro vytvoření školního učitele je potřeba nejprve vytvořit školu.
                 </p>
                 <p className="text-sm text-amber-700 mt-1">
-                  Alternativně můžete vybrat "Individuální učitel" pro učitele bez školy.
+                  Alternativně můžete vybrat &ldquo;Individuální učitel&rdquo; pro učitele bez školy.
                 </p>
                 <div className="mt-2">
                   <a 

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { School } from '../../types';
 import Button from '../ui/Button';
 import InputField from '../ui/InputField';
-import Badge from '../ui/Badge';
 
 interface SchoolFormProps {
   school?: School;

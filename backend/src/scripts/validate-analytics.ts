@@ -13,7 +13,7 @@
 
 import { AnalyticsService } from '../services/AnalyticsService';
 import { analyticsCacheService } from '../services/AnalyticsCacheService';
-import { analyticsPerformanceMonitor } from '../middleware/analytics-performance';
+import { analyticsPerformanceMonitor as _analyticsPerformanceMonitor } from '../middleware/analytics-performance';
 import pool from '../database/connection';
 
 interface ValidationResult {
@@ -126,7 +126,9 @@ class AnalyticsValidator {
       
       // Verify schools are sorted by activity (users count should be descending)
       for (let i = 1; i < metrics.topSchools.length; i++) {
-        if (metrics.topSchools[i-1].users < metrics.topSchools[i].users) {
+        const prevSchool = metrics.topSchools[i-1];
+        const currentSchool = metrics.topSchools[i];
+        if (prevSchool && currentSchool && prevSchool.users < currentSchool.users) {
           throw new Error('Top schools are not properly sorted by user count');
         }
       }
@@ -310,7 +312,7 @@ class AnalyticsValidator {
 
       // Check data structure
       const firstEntry = metrics.userGrowth[0];
-      if (!firstEntry.month || typeof firstEntry.users !== 'number' || typeof firstEntry.newUsers !== 'number') {
+      if (!firstEntry || !firstEntry.month || typeof firstEntry.users !== 'number' || typeof firstEntry.newUsers !== 'number') {
         throw new Error('Invalid user growth data structure');
       }
 

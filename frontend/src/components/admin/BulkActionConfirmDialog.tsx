@@ -130,7 +130,7 @@ const BulkActionConfirmDialog: React.FC<BulkActionConfirmDialogProps> = ({
               <span className="text-sm font-medium text-gray-700">Vybraní uživatelé:</span>
             </div>
             <div className="max-h-32 overflow-y-auto">
-              {selectedUsers.slice(0, 5).map((user, index) => (
+              {selectedUsers.slice(0, 5).map((user) => (
                 <div key={user.id} className="text-sm text-gray-600">
                   {user.first_name} {user.last_name} ({user.email})
                 </div>
@@ -163,7 +163,7 @@ const BulkActionConfirmDialog: React.FC<BulkActionConfirmDialogProps> = ({
           {actionDetails.requiresConfirmation && (
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Pro potvrzení napište "SMAZAT":
+                Pro potvrzení napište &quot;SMAZAT&quot;:
               </label>
               <input
                 type="text"

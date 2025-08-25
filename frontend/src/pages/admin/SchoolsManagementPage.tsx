@@ -83,14 +83,7 @@ const SchoolsManagementPage: React.FC = () => {
 
   const totalPages = Math.ceil(totalSchools / pageSize);
 
-  const handleDeleteSchool = (schoolId: string, schoolName: string) => {
-    setDeleteDialog({
-      isOpen: true,
-      schoolId,
-      schoolName,
-      showTeacherManagement: false
-    });
-  };
+
 
   const handleDeleteWithTeacherManagement = (school: School) => {
     setSelectedSchoolForTeachers(school);
@@ -221,7 +214,7 @@ const SchoolsManagementPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Badge 
-                  variant={school.subscription_plan === 'premium' ? 'success' : 'secondary'}
+                  variant={school.subscription_plan === 'premium' ? 'success' : 'default'}
                   className="text-xs"
                 >
                   {school.subscription_plan === 'premium' ? 'Premium' : 'Základní'} plán

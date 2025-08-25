@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Users, UserX, AlertTriangle } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -37,13 +37,7 @@ const SchoolTeacherSubtable: React.FC<SchoolTeacherSubtableProps> = ({
 
   const { showToast } = useToast();
 
-  useEffect(() => {
-    if (schoolId) {
-      fetchTeachers();
-    }
-  }, [schoolId]);
-
-  const fetchTeachers = async () => {
+  const fetchTeachers = useCallback(async () => {
     if (!schoolId) return;
     
     try {
@@ -69,7 +63,13 @@ const SchoolTeacherSubtable: React.FC<SchoolTeacherSubtableProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [schoolId, showToast]);
+
+  useEffect(() => {
+    if (schoolId) {
+      fetchTeachers();
+    }
+  }, [schoolId, fetchTeachers]);
 
   const handleTeacherSelection = (teacherId: string) => {
     if (!teacherId) return;

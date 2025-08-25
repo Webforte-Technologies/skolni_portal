@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 import { Activity, Users, Clock, TrendingUp, TrendingDown } from 'lucide-react';
@@ -12,9 +12,8 @@ export interface SchoolActivityData {
 }
 
 export interface SchoolActivityChartProps {
-  schoolId?: string;
+  schoolId: string;
   activityData?: SchoolActivityData[];
-  schoolName?: string;
   totalActivities?: number;
   activeUsers?: number;
   lastActivity?: string;
@@ -23,26 +22,17 @@ export interface SchoolActivityChartProps {
 export const SchoolActivityChart: React.FC<SchoolActivityChartProps> = ({
   schoolId,
   activityData: propActivityData,
-  schoolName: propSchoolName,
   totalActivities: propTotalActivities,
-  activeUsers: propActiveUsers,
-  lastActivity: propLastActivity
+  activeUsers: propActiveUsers
 }) => {
   const [activityData, setActivityData] = useState<SchoolActivityData[]>(propActivityData || []);
-  const [schoolName, setSchoolName] = useState<string>(propSchoolName || '');
   const [totalActivities, setTotalActivities] = useState<number>(propTotalActivities || 0);
   const [activeUsers, setActiveUsers] = useState<number>(propActiveUsers || 0);
-  const [lastActivity, setLastActivity] = useState<string | undefined>(propLastActivity);
+  const [lastActivity, setLastActivity] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { showToast } = useToast();
 
-  useEffect(() => {
-    if (schoolId && !propActivityData) {
-      fetchSchoolActivity();
-    }
-  }, [schoolId, propActivityData]);
-
-  const fetchSchoolActivity = async () => {
+  const fetchSchoolActivity = useCallback(async () => {
     if (!schoolId) return;
     
     try {
@@ -51,7 +41,6 @@ export const SchoolActivityChart: React.FC<SchoolActivityChartProps> = ({
       const data = response.data.data as any;
       
       setActivityData(data?.activities || []);
-      setSchoolName(data?.school_name || '');
       setTotalActivities(data?.total_activities || 0);
       setActiveUsers(data?.active_users || 0);
       setLastActivity(data?.last_activity);
@@ -63,7 +52,13 @@ export const SchoolActivityChart: React.FC<SchoolActivityChartProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [schoolId, showToast]);
+
+  useEffect(() => {
+    if (schoolId && !propActivityData) {
+      fetchSchoolActivity();
+    }
+  }, [schoolId, propActivityData, fetchSchoolActivity]);
   const getActionTypeLabel = (actionType: string): string => {
     const labels: Record<string, string> = {
       'admin_login': 'Přihlášení admina',
@@ -145,7 +140,7 @@ export const SchoolActivityChart: React.FC<SchoolActivityChartProps> = ({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-xl font-semibold text-gray-900">Aktivita školy</h3>
-          <p className="text-gray-600">{schoolName}</p>
+          <p className="text-gray-600">N/A</p>
         </div>
         <Activity className="h-8 w-8 text-blue-600" />
       </div>

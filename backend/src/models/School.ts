@@ -491,8 +491,8 @@ export class SchoolModel {
   static async updateStatus(
     id: string, 
     newStatus: string, 
-    reason?: string, 
-    changedByUserId?: string
+    _reason?: string, 
+    _changedByUserId?: string
   ): Promise<School | null> {
     const school = await this.findById(id);
     if (!school) return null;

@@ -2,7 +2,7 @@
  * Performance optimization utilities for the Enhanced User CRUD system
  */
 
-import { useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 
 // Debounce hook for search and filter inputs
 export function useDebounce<T>(value: T, delay: number): T {
@@ -29,8 +29,8 @@ export function useThrottle<T extends (...args: any[]) => any>(
   const throttleRef = useRef<NodeJS.Timeout | null>(null);
   const lastCallRef = useRef<number>(0);
 
-  return useCallback(
-    ((...args: Parameters<T>) => {
+  const throttledCallback = useCallback(
+    (...args: Parameters<T>) => {
       const now = Date.now();
       
       if (now - lastCallRef.current >= delay) {
@@ -43,9 +43,11 @@ export function useThrottle<T extends (...args: any[]) => any>(
           callback(...args);
         }, delay - (now - lastCallRef.current));
       }
-    }) as T,
+    },
     [callback, delay]
   );
+
+  return throttledCallback as T;
 }
 
 // Memoized table data processing
@@ -239,7 +241,7 @@ export function withPerformanceMonitoring<P extends object>(
   Component: React.ComponentType<P>,
   componentName: string
 ) {
-  return React.memo((props: P) => {
+  const WrappedComponent = React.memo((props: P) => {
     const renderTimer = useRef<(() => void) | null>(null);
     
     useEffect(() => {
@@ -254,6 +256,9 @@ export function withPerformanceMonitoring<P extends object>(
     
     return <Component {...props} />;
   });
+
+  WrappedComponent.displayName = `withPerformanceMonitoring(${componentName})`;
+  return WrappedComponent;
 }
 
 // Bundle size optimization - lazy loading utilities
@@ -263,11 +268,14 @@ export function createLazyComponent<T extends React.ComponentType<any>>(
 ) {
   const LazyComponent = React.lazy(importFn);
   
-  return (props: React.ComponentProps<T>) => (
-    <React.Suspense fallback={fallback ? <fallback /> : <div>Loading...</div>}>
+  const WrappedLazyComponent = (props: React.ComponentProps<T>) => (
+    <React.Suspense fallback={fallback ? React.createElement(fallback) : <div>Loading...</div>}>
       <LazyComponent {...props} />
     </React.Suspense>
   );
+
+  WrappedLazyComponent.displayName = 'LazyComponent';
+  return WrappedLazyComponent;
 }
 
 // Memory usage monitoring
@@ -315,6 +323,3 @@ export function useBatchedUpdates<T>(
   
   return [state, batchedSetState] as const;
 }
-
-// React import fix
-import React from 'react';

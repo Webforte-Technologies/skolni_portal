@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Download, Upload, FileText, CheckCircle, 
-  AlertCircle, XCircle, Building2, Users, CreditCard
+  AlertCircle, XCircle
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -73,10 +73,11 @@ const SchoolImportExportPage: React.FC = () => {
         },
       });
 
-      setImportResult(response.data.data);
+      const responseData = response.data.data as any;
+      setImportResult(responseData);
       showToast({ 
         type: 'success', 
-        message: `Import dokončen: ${response.data.data.success} úspěšných, ${response.data.data.failed} neúspěšných` 
+        message: `Import dokončen: ${responseData.success} úspěšných, ${responseData.failed} neúspěšných` 
       });
       
       // Reset file input
@@ -111,7 +112,7 @@ const SchoolImportExportPage: React.FC = () => {
       });
 
       // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(new Blob([response.data as unknown as BlobPart]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `schools_export_${new Date().toISOString().split('T')[0]}.${exportOptions.format}`);
@@ -364,7 +365,7 @@ Gymnázium Brno,Komenského 5,Brno,60200,+420987654321,gym@brno.cz,www.gym-brno.
             </div>
             <div className="flex items-start space-x-2">
               <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-              <span>Povinné pole je pouze "Název školy" - ostatní jsou volitelné</span>
+              <span>Povinné pole je pouze &quot;Název školy&quot; - ostatní jsou volitelné</span>
             </div>
             <div className="flex items-start space-x-2">
               <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />

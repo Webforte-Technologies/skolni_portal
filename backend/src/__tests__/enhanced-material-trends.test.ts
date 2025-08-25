@@ -5,17 +5,44 @@ jest.mock('../database/connection', () => ({
   query: jest.fn(),
 }));
 
-const mockPool = require('../database/connection');
+// Mock the analytics cache service
+jest.mock('../services/AnalyticsCacheService', () => ({
+  analyticsCacheService: {
+    getCachedOrExecute: jest.fn(),
+    clearAll: jest.fn(),
+  },
+}));
+
+// Import the mocked services
+import pool from '../database/connection';
+import { analyticsCacheService } from '../services/AnalyticsCacheService';
+
+// Import the mocked module and properly type it
+const mockPool = pool as jest.Mocked<typeof pool>;
+const mockCacheService = analyticsCacheService as jest.Mocked<typeof analyticsCacheService>;
 
 describe('AnalyticsService - Enhanced Material Creation Trends', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+    // Clear any cached data
+    jest.clearAllTimers();
+    
+    // Set up default cache service mock to call the actual function
+    (mockCacheService.getCachedOrExecute as jest.Mock).mockImplementation(
+      async (method: string, params: any, queryFunction: () => Promise<any>) => {
+        return await queryFunction();
+      }
+    );
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
   describe('getEnhancedMaterialCreationTrends', () => {
     it('should return enhanced material creation trends with all required metrics', async () => {
       // Mock hourly trend query response
-      mockPool.query.mockResolvedValueOnce({
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({
         rows: [
           { hour: '09:00', materials: 5, unique_users: 3, avg_response_time: 120.5 },
           { hour: '10:00', materials: 8, unique_users: 5, avg_response_time: 95.2 },
@@ -24,7 +51,7 @@ describe('AnalyticsService - Enhanced Material Creation Trends', () => {
       });
 
       // Mock subject engagement query response
-      mockPool.query.mockResolvedValueOnce({
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({
         rows: [
           { subject: 'Matematika', materials: 45, unique_users: 15, avg_session_duration: 25.5, popularity_score: 27.0 },
           { subject: 'Čeština', materials: 32, unique_users: 12, avg_session_duration: 22.3, popularity_score: 20.0 },
@@ -33,7 +60,7 @@ describe('AnalyticsService - Enhanced Material Creation Trends', () => {
       });
 
       // Mock type efficiency query response
-      mockPool.query.mockResolvedValueOnce({
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({
         rows: [
           { type: 'worksheet', materials: 65, avg_creation_time: 180.5, success_rate: 95.5, user_satisfaction: 4.2 },
           { type: 'test', materials: 25, avg_creation_time: 240.8, success_rate: 88.0, user_satisfaction: 4.0 },
@@ -42,7 +69,7 @@ describe('AnalyticsService - Enhanced Material Creation Trends', () => {
       });
 
       // Mock user engagement metrics query response
-      mockPool.query.mockResolvedValueOnce({
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({
         rows: [{
           total_active_creators: 45,
           avg_creations_per_user: 2.3,
@@ -93,10 +120,10 @@ describe('AnalyticsService - Enhanced Material Creation Trends', () => {
 
     it('should handle empty database results gracefully', async () => {
       // Mock empty query responses
-      mockPool.query.mockResolvedValueOnce({ rows: [] }); // hourly trend
-      mockPool.query.mockResolvedValueOnce({ rows: [] }); // subject engagement
-      mockPool.query.mockResolvedValueOnce({ rows: [] }); // type efficiency
-      mockPool.query.mockResolvedValueOnce({ rows: [{}] }); // user engagement metrics
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] }); // hourly trend
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] }); // subject engagement
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [] }); // type efficiency
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({ rows: [{}] }); // user engagement metrics
 
       const result = await AnalyticsService.getEnhancedMaterialCreationTrends('7d');
 
@@ -113,25 +140,25 @@ describe('AnalyticsService - Enhanced Material Creation Trends', () => {
 
     it('should handle null values in database results', async () => {
       // Mock query responses with null values
-      mockPool.query.mockResolvedValueOnce({
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({
         rows: [
           { hour: '09:00', materials: null, unique_users: null, avg_response_time: null }
         ]
       });
 
-      mockPool.query.mockResolvedValueOnce({
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({
         rows: [
           { subject: null, materials: null, unique_users: null, avg_session_duration: null, popularity_score: null }
         ]
       });
 
-      mockPool.query.mockResolvedValueOnce({
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({
         rows: [
           { type: null, materials: null, avg_creation_time: null, success_rate: null, user_satisfaction: null }
         ]
       });
 
-      mockPool.query.mockResolvedValueOnce({
+      (mockPool.query as jest.Mock).mockResolvedValueOnce({
         rows: [{
           total_active_creators: null,
           avg_creations_per_user: null,
@@ -150,9 +177,9 @@ describe('AnalyticsService - Enhanced Material Creation Trends', () => {
         avgResponseTime: 0
       });
 
-      expect(result.subjectEngagement[0].materials).toBe(0);
-      expect(result.typeEfficiency[0].materials).toBe(0);
-      expect(result.typeEfficiency[0].userSatisfaction).toBe(4.0); // default satisfaction
+      expect(result.subjectEngagement[0]?.materials).toBe(0);
+      expect(result.typeEfficiency[0]?.materials).toBe(0);
+      expect(result.typeEfficiency[0]?.userSatisfaction).toBe(4.0); // default satisfaction
 
       expect(result.userEngagementMetrics.totalActiveCreators).toBe(0);
       expect(result.userEngagementMetrics.peakCreationHour).toBe('09:00');
@@ -161,7 +188,7 @@ describe('AnalyticsService - Enhanced Material Creation Trends', () => {
 
     it('should handle database errors gracefully', async () => {
       // Mock database error
-      mockPool.query.mockRejectedValueOnce(new Error('Database connection failed'));
+      (mockPool.query as jest.Mock).mockRejectedValueOnce(new Error('Database connection failed'));
 
       await expect(AnalyticsService.getEnhancedMaterialCreationTrends('30d'))
         .rejects
@@ -170,7 +197,7 @@ describe('AnalyticsService - Enhanced Material Creation Trends', () => {
 
     it('should use correct time ranges', async () => {
       // Mock successful responses
-      mockPool.query.mockResolvedValue({ rows: [] });
+      (mockPool.query as jest.Mock).mockResolvedValue({ rows: [] });
 
       // Test different time ranges
       await AnalyticsService.getEnhancedMaterialCreationTrends('7d');
@@ -179,14 +206,14 @@ describe('AnalyticsService - Enhanced Material Creation Trends', () => {
       await AnalyticsService.getEnhancedMaterialCreationTrends('1y');
 
       // Verify that queries were called with correct intervals
-      const calls = mockPool.query.mock.calls;
+      const calls = (mockPool.query as jest.Mock).mock.calls;
       
       // Check that the queries contain the correct interval calculations
       // 7d should use 7 days, 30d should use 30 days, etc.
-      expect(calls.some(call => call[0].includes("INTERVAL '7 days'"))).toBe(true);
-      expect(calls.some(call => call[0].includes("INTERVAL '30 days'"))).toBe(true);
-      expect(calls.some(call => call[0].includes("INTERVAL '90 days'"))).toBe(true);
-      expect(calls.some(call => call[0].includes("INTERVAL '365 days'"))).toBe(true);
+      expect(calls.some((call: any) => call[0].includes("INTERVAL '7 days'"))).toBe(true);
+      expect(calls.some((call: any) => call[0].includes("INTERVAL '30 days'"))).toBe(true);
+      expect(calls.some((call: any) => call[0].includes("INTERVAL '90 days'"))).toBe(true);
+      expect(calls.some((call: any) => call[0].includes("INTERVAL '365 days'"))).toBe(true);
     });
   });
 });

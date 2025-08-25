@@ -2,6 +2,8 @@
  * Enhanced error handling utilities for the User CRUD system
  */
 
+import React from 'react';
+
 import { AxiosError } from 'axios';
 
 // Error types for better categorization
@@ -231,7 +233,7 @@ class ErrorLogger {
 }
 
 // Retry mechanism for retryable errors
-export class RetryManager {
+class RetryManager {
   private static retryAttempts = new Map<string, number>();
   private static maxRetries = 3;
   private static retryDelays = [1000, 2000, 4000]; // Exponential backoff
@@ -396,6 +398,3 @@ export function formatValidationErrors(errors: Record<string, string>): AppError
 
 // Export the error logger and retry manager
 export { ErrorLogger, RetryManager };
-
-// React import
-import React from 'react';

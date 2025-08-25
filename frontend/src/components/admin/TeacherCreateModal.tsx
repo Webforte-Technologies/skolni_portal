@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '../ui';
 import TeacherForm from './TeacherForm';
-import { teacherService, CreateTeacherRequest } from '../../services/teacherService';
+import { teacherService, CreateTeacherRequest, UpdateTeacherRequest } from '../../services/teacherService';
 import { errorToMessage } from '../../services/apiClient';
 
 interface TeacherCreateModalProps {
@@ -19,14 +19,19 @@ const TeacherCreateModal: React.FC<TeacherCreateModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (data: CreateTeacherRequest) => {
+  const handleSubmit = async (data: CreateTeacherRequest | UpdateTeacherRequest) => {
     try {
       setLoading(true);
       setError(null);
       
-      await teacherService.createTeacher(data);
-      onSuccess();
-      onClose();
+      // Type guard to ensure we have the required fields for creation
+      if ('email' in data && data.email) {
+        await teacherService.createTeacher(data as CreateTeacherRequest);
+        onSuccess();
+        onClose();
+      } else {
+        setError('Email je povinný pro vytvoření učitele');
+      }
     } catch (err) {
       console.error('Failed to create teacher:', err);
       setError(errorToMessage(err));

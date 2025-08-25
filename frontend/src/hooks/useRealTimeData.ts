@@ -45,8 +45,7 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
     throw new Error(`Invalid endpoint: ${endpoint}`);
   }
 
-  // Add a static flag to prevent multiple instances of the same endpoint
-  const hookInstanceId = useRef(`${endpoint}-${Math.random()}`);
+  // Instance identification removed as it was not being used
 
   // Console logging disabled to reduce spam
   // if (process.env.NODE_ENV === 'development') {
@@ -369,7 +368,7 @@ export function useRealTimeData<T = any>(options: UseRealTimeDataOptions<T>): Us
     if (isAutoRefreshingRef.current && refreshInterval > 0) {
       // Console logging disabled to reduce spam
       // if (process.env.NODE_ENV === 'development') {
-      //   console.log(`[useRealTimeData] Setting up interval for ${endpoint} (${hookInstanceId.current})`, { 
+      //   console.log(`[useRealTimeData] Setting up interval for ${endpoint}`, { 
       //     refreshInterval, 
       //     timestamp: new Date().toISOString()
       //   });

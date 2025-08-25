@@ -21,6 +21,7 @@ export interface SchoolNotificationFormData {
   notification_type: 'general' | 'announcement' | 'warning' | 'maintenance' | 'update';
   priority: 'low' | 'normal' | 'high' | 'urgent';
   expires_at?: string;
+  schoolId?: string;
 }
 
 export interface SchoolNotificationFormProps {
@@ -89,7 +90,11 @@ export const SchoolNotificationForm: React.FC<SchoolNotificationFormProps> = ({
     e.preventDefault();
     
     if (validateForm()) {
-      onSend(formData);
+      // Include schoolId in the notification data if available
+      const notificationData = schoolId 
+        ? { ...formData, schoolId }
+        : formData;
+      onSend(notificationData);
     }
   };
 

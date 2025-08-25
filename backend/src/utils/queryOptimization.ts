@@ -487,7 +487,6 @@ export class BatchOperationOptimizer {
       for (const { id, data } of batch) {
         const fields = Object.keys(data);
         const values = Object.values(data);
-        const placeholders = fields.map((_, index) => `$${index + 2}`);
         
         const query = `
           UPDATE ${tableName} 

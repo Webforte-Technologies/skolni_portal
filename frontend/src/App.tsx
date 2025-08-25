@@ -228,6 +228,13 @@ function App() {
                     </RequireRole>
                   </PrivateRoute>
                 } />
+                <Route path="/admin/dashboard" element={
+                  <PrivateRoute>
+                    <RequireRole roles={['platform_admin']}>
+                      <AdminDashboardPage />
+                    </RequireRole>
+                  </PrivateRoute>
+                } />
                 
                 {/* Dashboard section */}
                 <Route path="/admin/analytics" element={

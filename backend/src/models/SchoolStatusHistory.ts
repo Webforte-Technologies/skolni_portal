@@ -2,7 +2,6 @@ import pool from '../database/connection';
 import { SchoolStatusHistory } from '../types/database';
 import { 
   isValidStatusTransition, 
-  getValidTransitions, 
   SCHOOL_STATUS_TRANSITIONS 
 } from '../utils/statusValidation';
 

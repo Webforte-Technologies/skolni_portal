@@ -214,7 +214,7 @@ export const SchoolAnalytics: React.FC<SchoolAnalyticsProps> = ({ data, isLoadin
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Nejaktivnější města</h3>
           <div className="space-y-3">
-            {data.schools_by_city.slice(0, 5).map((city, index) => (
+            {data.schools_by_city.slice(0, 5).map((city) => (
               <div key={city.city} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-gray-400" />
@@ -237,8 +237,8 @@ export const SchoolAnalytics: React.FC<SchoolAnalyticsProps> = ({ data, isLoadin
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Trendy aktivity (posledních 30 dní)</h3>
           <div className="space-y-4">
-            {data.activity_trends.slice(0, 7).map((trend, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            {data.activity_trends.slice(0, 7).map((trend) => (
+              <div key={trend.date} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Activity className="h-4 w-4 text-blue-600" />
                   <span className="text-sm font-medium text-gray-700">

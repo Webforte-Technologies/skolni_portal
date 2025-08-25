@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, TrendingUp, Users, CreditCard, Building2, 
-  Activity, Calendar, BarChart3, PieChart, LineChart
+  ArrowLeft, Users, CreditCard, Building2, 
+  Activity, LineChart
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { api } from '../../services/apiClient';
 import { useToast } from '../../contexts/ToastContext';
 import AdminLayout from '../../components/admin/AdminLayout';
-import SchoolAnalytics from '../../components/admin/SchoolAnalytics';
 
 interface SchoolAnalyticsData {
   total_schools: number;
@@ -41,24 +40,20 @@ const SchoolAnalyticsPage: React.FC = () => {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('30d');
 
   // Utility function to safely convert values to numbers
-  const safeNumber = (value: any, defaultValue: number = 0): number => {
-    if (value === null || value === undefined) return defaultValue;
+  const safeNumber = (value: any): number => {
+    if (value === null || value === undefined) return 0;
     const num = Number(value);
-    return isNaN(num) ? defaultValue : num;
+    return isNaN(num) ? 0 : num;
   };
 
   // Utility function to safely format numbers
-  const safeFormat = (value: any, decimals: number = 0, defaultValue: string = '0'): string => {
+  const safeFormat = (value: any, decimals: number = 0): string => {
     const num = safeNumber(value);
     if (decimals === 0) return num.toLocaleString();
     return num.toFixed(decimals);
   };
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [dateRange]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(`/admin/schools/analytics?range=${dateRange}`);
@@ -87,7 +82,11 @@ const SchoolAnalyticsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange, showToast]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   if (loading) {
     return (
@@ -183,15 +182,13 @@ const SchoolAnalyticsPage: React.FC = () => {
                 <p className="text-sm font-medium text-gray-600">Průměr učitelů na školu</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {analytics.average_teachers_per_school !== undefined && analytics.average_teachers_per_school !== null
-                    ? safeFormat(analytics.average_teachers_per_school, 1, '0.0')
-                    : '0.0'
+                    ? safeFormat(analytics.average_teachers_per_school, 1)
+                    : 'N/A'
                   }
                 </p>
-                {analytics.total_teachers !== undefined && analytics.total_teachers !== null && (
-                  <p className="text-sm text-gray-500">
-                    Celkem: {safeFormat(analytics.total_teachers)}
-                  </p>
-                )}
+                <p className="text-sm text-gray-500">
+                  Celkem: {safeFormat(analytics.total_teachers)}
+                </p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Users className="w-6 h-6 text-purple-600" />
@@ -223,7 +220,7 @@ const SchoolAnalyticsPage: React.FC = () => {
           <Card>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Školy podle města</h3>
             <div className="space-y-3">
-              {(analytics.schools_by_city || []).slice(0, 10).map((city, index) => {
+              {(analytics.schools_by_city || []).slice(0, 10).map((city) => {
                 const cityCount = safeNumber(city.count);
                 const maxCount = Math.max(...(analytics.schools_by_city || []).map(c => safeNumber(c.count)));
                 const percentage = maxCount > 0 ? (cityCount / maxCount) * 100 : 0;
@@ -333,7 +330,7 @@ const SchoolAnalyticsPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Učitelů na školu</span>
                   <span className="text-sm font-medium text-gray-900">
-                    {safeFormat(analytics.average_teachers_per_school, 1, '0.0')}
+                    {safeFormat(analytics.average_teachers_per_school, 1)}
                   </span>
                 </div>
               )}
@@ -341,7 +338,7 @@ const SchoolAnalyticsPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Kreditů na školu</span>
                   <span className="text-sm font-medium text-gray-900">
-                    {safeFormat(analytics.average_credits_per_school, 0, '0')}
+                    {safeFormat(analytics.average_credits_per_school, 0)}
                   </span>
                 </div>
               )}

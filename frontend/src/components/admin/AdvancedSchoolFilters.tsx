@@ -91,7 +91,7 @@ export const AdvancedSchoolFilters: React.FC<AdvancedSchoolFiltersProps> = ({
 
   const getActiveFilters = () => {
     return Object.entries(filters)
-      .filter(([_, value]) => value !== '' && value !== undefined)
+      .filter(([, value]) => value !== '' && value !== undefined)
       .map(([key, value]) => ({ key, value }));
   };
 

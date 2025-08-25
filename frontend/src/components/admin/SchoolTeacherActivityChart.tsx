@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Activity, TrendingUp, Calendar } from 'lucide-react';
 import Card from '../ui/Card';
 import { api } from '../../services/apiClient';
@@ -20,16 +20,10 @@ interface SchoolTeacherActivityChartProps {
 const SchoolTeacherActivityChart: React.FC<SchoolTeacherActivityChartProps> = ({ schoolId }) => {
   const { showToast } = useToast();
   const [teacherActivity, setTeacherActivity] = useState<TeacherActivity[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('30d');
 
-  useEffect(() => {
-    if (schoolId) {
-      fetchTeacherActivity();
-    }
-  }, [schoolId, dateRange]);
-
-  const fetchTeacherActivity = async () => {
+  const fetchTeacherActivity = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(`/admin/schools/${schoolId}/teachers/activity?range=${dateRange}`);
@@ -42,7 +36,13 @@ const SchoolTeacherActivityChart: React.FC<SchoolTeacherActivityChartProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [schoolId, dateRange, showToast]);
+
+  useEffect(() => {
+    if (schoolId) {
+      fetchTeacherActivity();
+    }
+  }, [schoolId, dateRange, fetchTeacherActivity]);
 
   if (loading) {
     return (

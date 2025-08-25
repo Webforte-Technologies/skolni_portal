@@ -129,8 +129,8 @@ const TeacherQuickFilters: React.FC<TeacherQuickFiltersProps> = ({
   ];
 
   const isFilterActive = (filter: QuickFilter) => {
-    const { limit, offset, ...filterCriteria } = filter.filters;
-    const { limit: currentLimit, offset: currentOffset, ...currentCriteria } = currentFilters;
+    const { ...filterCriteria } = filter.filters;
+    const { ...currentCriteria } = currentFilters;
 
     // Special handling for individual/school filters
     if (filter.id === 'individual') {

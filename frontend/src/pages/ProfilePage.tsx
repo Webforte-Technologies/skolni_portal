@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User, Mail, Calendar, CreditCard, ArrowLeft, Edit3, Loader2 } from 'lucide-react';
+import { User, Mail, Calendar, CreditCard, ArrowLeft, Edit3 } from 'lucide-react';
 import Header from '../components/layout/Header';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';

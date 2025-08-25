@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  TrendingUp, TrendingDown, Users, Activity, CreditCard, Clock, 
-  Calendar, BarChart3, PieChart, LineChart, Target, Award,
+  TrendingUp, TrendingDown, Users, Activity, CreditCard, 
+  BarChart3, PieChart, LineChart, Target, Award,
   AlertCircle, CheckCircle, XCircle, Zap
 } from 'lucide-react';
 import { Card, Button, Badge } from '../ui';
-import { teacherService } from '../../services/teacherService';
+
 import { errorToMessage } from '../../services/apiClient';
 
 interface TeacherAnalytics {

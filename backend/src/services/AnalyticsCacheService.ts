@@ -1,4 +1,4 @@
-import pool from '../database/connection';
+
 
 interface CacheEntry {
   key: string;

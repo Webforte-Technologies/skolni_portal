@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Send, Bell, Users, Calendar, Clock, Filter, Search, 
-  Plus, Edit, Trash2, Eye, AlertCircle, CheckCircle,
-  MessageSquare, Mail, Smartphone, Globe, Target
+  Send, Bell, Clock, Plus, Edit, Trash2, Eye, AlertCircle, CheckCircle,
+  MessageSquare, Target
 } from 'lucide-react';
 import { Card, Button, Badge, Input } from '../ui';
 import { teacherService, Teacher } from '../../services/teacherService';
@@ -99,8 +98,6 @@ const TeacherNotificationSystem: React.FC<TeacherNotificationSystemProps> = ({
 
   // Templates state
   const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<NotificationTemplate | null>(null);
-  const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   // Campaigns state
   const [campaigns, setCampaigns] = useState<NotificationCampaign[]>([]);
@@ -116,7 +113,6 @@ const TeacherNotificationSystem: React.FC<TeacherNotificationSystemProps> = ({
 
   // Teachers for targeting
   const [availableTeachers, setAvailableTeachers] = useState<Teacher[]>([]);
-  const [teacherSearch, setTeacherSearch] = useState('');
 
   useEffect(() => {
     if (isOpen) {

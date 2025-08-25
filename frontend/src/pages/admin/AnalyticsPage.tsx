@@ -207,7 +207,7 @@ const AnalyticsPage: React.FC = () => {
         clearInterval(refreshInterval);
       }
     };
-  }, []);
+  }, [refreshInterval]);
 
   const exportData = (format: 'csv' | 'pdf') => {
     // Implementation for data export

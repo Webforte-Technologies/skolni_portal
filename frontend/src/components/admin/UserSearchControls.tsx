@@ -56,12 +56,12 @@ const UserSearchControls: React.FC<UserSearchControlsProps> = ({
               {useEnhancedFilters ? 'Rozšířené filtry' : 'Základní filtry'}
             </Button>
             <Button 
-              variant="outline" 
+              variant={showRecentActivity ? "primary" : "outline"} 
               onClick={onToggleRecentActivity}
               disabled={loading}
             >
               <Activity className="w-4 h-4 mr-2" />
-              Nedávná aktivita
+              {showRecentActivity ? 'Skrýt aktivitu' : 'Nedávná aktivita'}
             </Button>
             <Button onClick={onSearch} disabled={loading}>
               <Search className="w-4 h-4 mr-2" />

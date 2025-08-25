@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Plus, Calendar, CheckCircle, XCircle, AlertCircle, BarChart3, Bell } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { Card, Button } from '../../components/ui';
@@ -44,7 +44,7 @@ const TeachersPage: React.FC = () => {
   const [showPerformanceMetrics, setShowPerformanceMetrics] = useState(false);
   const [performanceTeacherId, setPerformanceTeacherId] = useState<string | null>(null);
 
-    const fetchTeachers = async () => {
+    const fetchTeachers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -61,9 +61,9 @@ const TeachersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentFilters]);
 
-  const fetchTeacherStats = async () => {
+  const fetchTeacherStats = useCallback(async () => {
     try {
       // Use current filters for statistics (excluding pagination)
       const statsFilters = { ...currentFilters };
@@ -75,12 +75,12 @@ const TeachersPage: React.FC = () => {
     } catch (err) {
       console.error('Failed to fetch teacher stats:', err);
     }
-  };
+  }, [currentFilters]);
 
   useEffect(() => {
     fetchTeachers();
     fetchTeacherStats(); // Update stats when filters change
-  }, [currentFilters]);
+  }, [fetchTeachers, fetchTeacherStats]);
 
   // Since filtering is now done on the server side, we don't need client-side filtering
   const filteredTeachers = teachers;
@@ -339,7 +339,7 @@ const TeachersPage: React.FC = () => {
 
         <TeacherProfileModal
           isOpen={showProfileModal}
-          teacherId={profileTeacherId}
+          teacherId={profileTeacherId || ''}
           onClose={handleCloseModals}
         />
 

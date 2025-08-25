@@ -29,8 +29,6 @@ import {
   CreateUserNotificationRequest,
   UpdateUserStatusRequest,
   AdvancedSchoolFilters,
-  SchoolImportData,
-  SchoolExportOptions,
   SchoolAnalytics
 } from '../types/database';
 
@@ -185,7 +183,7 @@ router.get('/users/:id', async (req: RequestWithUser, res: express.Response) => 
     }
 
     // Remove password hash from response
-    const { password_hash, ...userWithoutPassword } = user;
+    const { password_hash: _password_hash, ...userWithoutPassword } = user;
     
     return ok(res, userWithoutPassword);
   } catch (e) {
@@ -506,10 +504,10 @@ router.get('/schools/search/advanced', async (req: RequestWithUser, res: express
 router.get('/schools/export', async (req: RequestWithUser, res: express.Response) => {
   try {
     const format = (req.query['format'] as string) || 'csv';
-    const includeTeachers = req.query['include_teachers'] === 'true';
-    const includeActivity = req.query['include_activity'] === 'true';
-    const includeNotifications = req.query['include_notifications'] === 'true';
-    const includePreferences = req.query['include_preferences'] === 'true';
+    const _includeTeachers = req.query['include_teachers'] === 'true';
+    const _includeActivity = req.query['include_activity'] === 'true';
+    const _includeNotifications = req.query['include_notifications'] === 'true';
+    const _includePreferences = req.query['include_preferences'] === 'true';
 
     // Get all schools with stats
     const { schools } = await SchoolModel.findAllWithStats({ limit: 10000 });
@@ -1158,9 +1156,9 @@ router.post('/schools/:id/reset-admin-password', async (req: RequestWithUser, re
 
     // Update passwords (in production, this should send emails)
     for (const { user, newPassword } of newPasswords) {
-      // Use bcrypt or similar for password hashing
-      const bcrypt = require('bcrypt');
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      // Use bcryptjs for password hashing
+      const bcrypt = await import('bcryptjs');
+      const hashedPassword = await bcrypt.default.hash(newPassword, 10);
       await pool.query(
         'UPDATE users SET password_hash = $1 WHERE id = $2',
         [hashedPassword, user.id]
@@ -1620,7 +1618,7 @@ router.post('/teachers/bulk', bulkOperationLimiter, async (req: RequestWithUser,
       teacher_ids.map(id => UserModel.findById(id))
     );
     
-    const invalidTeachers = teachers.filter((teacher, index) => 
+    const invalidTeachers = teachers.filter((teacher, _index) => 
       !teacher || !['teacher_school', 'teacher_individual'].includes(teacher.role)
     );
     

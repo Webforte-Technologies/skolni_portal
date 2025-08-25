@@ -38,8 +38,16 @@ const LoginPage: React.FC = () => {
     setError('');
 
     try {
-      await login(data.email, data.password);
-      navigate('/dashboard');
+      const authResponse = await login(data.email, data.password);
+      
+      // Role-based redirection
+      if (authResponse.user.role === 'platform_admin') {
+        navigate('/admin/dashboard');
+      } else if (authResponse.user.role === 'school_admin') {
+        navigate('/school');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(errorToMessage(err));
     } finally {

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  Building2, ArrowLeft, Users, CreditCard, MapPin, Phone, 
-  Mail, Globe, Calendar, Activity, TrendingUp, UserCheck,
-  Shield, Settings, Bell, Download, Upload
+  Building2, ArrowLeft, Users, CreditCard, 
+  Activity, TrendingUp, UserCheck,
+  Settings, Bell, Download
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -43,6 +43,10 @@ interface SchoolProfile {
   max_students?: number;
   verification_required?: boolean;
   logo_url?: string;
+  country?: string;
+  admin_count?: number;
+  active_users?: number;
+  total_activities?: number; // Added for SchoolActivityChart
 }
 
 const SchoolProfilePage: React.FC = () => {
@@ -54,19 +58,14 @@ const SchoolProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'activity' | 'analytics' | 'teachers'>('overview');
 
-  useEffect(() => {
-    if (schoolId) {
-      fetchSchoolProfile();
-    }
-  }, [schoolId]);
-
-  const fetchSchoolProfile = async () => {
+  const fetchSchoolProfile = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(`/admin/schools/${schoolId}/profile`);
       // The backend returns { school, recent_activity, notifications, preferences, status_history }
       // We need to extract the school data
-      setSchool(response.data.data.school);
+      const responseData = response.data.data as any;
+      setSchool(responseData.school);
     } catch (error: any) {
       showToast({ 
         type: 'error', 
@@ -75,7 +74,13 @@ const SchoolProfilePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [schoolId, showToast]);
+
+  useEffect(() => {
+    if (schoolId) {
+      fetchSchoolProfile();
+    }
+  }, [schoolId, fetchSchoolProfile]);
 
   if (loading) {
     return (
@@ -165,7 +170,25 @@ const SchoolProfilePage: React.FC = () => {
         <div className="space-y-6">
           {activeTab === 'overview' && (
             <>
-              <SchoolProfileCard school={school} />
+              <SchoolProfileCard 
+                school={{
+                  ...school,
+                  country: school.country || 'Česká republika',
+                  admin_count: school.admin_count || 0,
+                  active_users: school.active_users || 0,
+                  status: school.status || 'active',
+                  subscription_tier: school.subscription_tier || 'basic',
+                  max_teachers: school.max_teachers || 0,
+                  max_students: school.max_students || 0,
+                  verification_required: school.verification_required || false,
+                  created_at: school.created_at || new Date().toISOString(),
+                  teacher_count: school.teacher_count || 0,
+                  total_credits: school.credits_balance || 0
+                }} 
+                onEdit={() => navigate(`/admin/schools/${school.id}/edit`)}
+                onStatusChange={() => {}}
+                onSendNotification={() => navigate(`/admin/schools/${school.id}/notifications`)}
+              />
               
               {/* Teacher Summary */}
               <Card>
@@ -239,18 +262,37 @@ const SchoolProfilePage: React.FC = () => {
           {activeTab === 'activity' && (
             <div className="space-y-6">
               <SchoolActivityChart 
-          schoolId={school.id}
-          schoolName={school.name}
-          totalActivities={0}
-          activeUsers={school.teacher_count}
-          lastActivity={school.last_activity_at}
-        />
+                schoolId={school.id}
+                totalActivities={school.total_activities || 0}
+                activeUsers={school.active_users || 0}
+                lastActivity={school.last_activity_at}
+              />
               <SchoolTeacherActivityChart schoolId={school.id} />
             </div>
           )}
 
           {activeTab === 'analytics' && (
-            <SchoolAnalytics schoolId={school.id} />
+            <div className="space-y-6">
+              <SchoolAnalytics 
+                data={{
+                  total_schools: 1,
+                  active_schools: school.status === 'active' ? 1 : 0,
+                  suspended_schools: school.status === 'suspended' ? 1 : 0,
+                  pending_verification_schools: school.status === 'pending_verification' ? 1 : 0,
+                  schools_by_tier: {
+                    [school.subscription_tier || 'basic']: 1,
+                    basic: 0,
+                    premium: 0,
+                    enterprise: 0
+                  },
+                  schools_by_city: [{ city: school.city || 'Neznámé', count: 1 }],
+                  average_teachers_per_school: school.teacher_count || 0,
+                  average_credits_per_school: school.credits_balance || 0,
+                  activity_trends: []
+                }}
+                isLoading={false}
+              />
+            </div>
           )}
 
           {activeTab === 'teachers' && (
